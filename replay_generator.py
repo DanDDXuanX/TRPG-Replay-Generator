@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-# alpha 1.0
+edtion = 'alpha 1.1'
 
 # 外部参数输入
 
@@ -189,7 +189,6 @@ RE_characor = re.compile('(\w+)(\(\d*\))?(\.\w+)?')
 RE_modify = re.compile('<(\w+)(=\d+)?>')
 RE_sound = re.compile('({.+?})')
 
-
 # 绝对的全局变量
 
 cmap = {'black':(0,0,0,255),'white':(255,255,255,255),'greenscreen':(0,177,64,255)}
@@ -200,7 +199,7 @@ render_arg = ['BG1','BG1_a','BG2','BG2_a','BG3','BG3_a','Am1','Am1_a','Am2','Am2
 speech_speed = 220 #语速，单位word per minute
 method_default = '<replace=0>' #默认切换效果
 method_dur_default = 10 #默认切换效果持续时间
-text_method_default = '<all=1>' #默认文本展示方式
+text_method_default = '<all=0>' #默认文本展示方式
 text_dur_default = 8 #默认单字展示时间参数
 
 # 函数定义
@@ -330,14 +329,19 @@ def parser(stdin_text):
                     this_timeline['Am'+str(k+1)+'_a']=alpha_timeline*alpha
             #文字显示的参数
             if text_method == 'all':
-                pass
+                if text_dur == 0:
+                    pass
+                else:
+                    this_timeline.loc[0:text_dur,'Bb_main'] = '' #将前n帧的文本设置为空白
             elif text_method == 'w2w':
                 word_count_timeline = np.arange(0,this_duration,1)//text_dur+1
                 this_timeline['Bb_main'] = UF_cut_str(this_timeline['Bb_main'],word_count_timeline)
-            elif text_method == 'l2l':
-                line_limit = eval(this_timeline['Bb'][1]+'.MainText.line_limit') #获取主文本对象的line_limit参数
-                #line_limit = 20
-                word_count_timeline = (np.arange(0,this_duration,1)//(text_dur*line_limit)+1)*line_limit
+            elif text_method == 'l2l': 
+                if '#' in ts: #如果是手动换行的列
+                    word_count_timeline = get_l2l(ts,text_dur,this_duration) # 不保证稳定呢！
+                else:
+                    line_limit = eval(this_timeline['Bb'][1]+'.MainText.line_limit') #获取主文本对象的line_limit参数
+                    word_count_timeline = (np.arange(0,this_duration,1)//(text_dur*line_limit)+1)*line_limit
                 this_timeline['Bb_main'] = UF_cut_str(this_timeline['Bb_main'],word_count_timeline)
             else:
                 raise ValueError('[Parser dialogue] Unrecognized text display method: ['+text_method+'] appeared in dialogue line ' + str(i+1)+'.')
@@ -432,7 +436,6 @@ def parser(stdin_text):
         
     render_timeline = pd.concat(render_timeline,axis=0)
     render_timeline.index = np.arange(0,len(render_timeline),1)
-    #render_timeline = render_timeline.drop_duplicates(keep='first') #由于这个bug，可能丢失不应该丢失的帧
     render_timeline = render_timeline.fillna('NA') #假设一共10帧
     timeline_diff = render_timeline.iloc[:-1].copy() #取第0-9帧
     timeline_diff.index = timeline_diff.index+1 #设置为第1-10帧
@@ -474,7 +477,25 @@ def render(this_frame):
             #print('{0}.display(channel={1})'.format(this_frame[key],channel_list[key]))
             exec('{0}.display(channel={1})'.format(this_frame[key],channel_list[key])) #否则就直接播放对象
     return 1
+# 手动换行的l2l
+def get_l2l(ts,text_dur,this_duration): #如果是手动换行的列
+    lines = ts.split('#')
+    wc_list = []
+    len_this = 0
+    for x,l in enumerate(lines): #x是井号的数量
+        len_this = len_this +len(l)+1 #当前行的长度
+        #print(len_this,len(l),x,ts[0:len_this])
+        wc_list.append(np.ones(text_dur*len(l))*len_this)
+    wc_list.append(np.ones(this_duration - (len(ts)-x)*text_dur)*len(ts))
+    word_count_timeline = np.hstack(wc_list)
+    return word_count_timeline.astype(int)
 
+# 倒计时器
+def timer(clock):
+    white.display(screen)
+    screen.blit(note_text.render('%d'%clock,fgcolor=(150,150,150,255),size=100)[0],(930,500)) # for 1080p
+    pygame.display.update()
+    pygame.time.delay(1000)
 
 # 载入od文件
 object_define_text = open(media_obj,'r',encoding='utf-8').read().split('\n')
@@ -527,22 +548,48 @@ channel_list = {'Voice':'VOICE','SE':'SOUEFF'}
 for media in media_list: 
     exec(media+'.convert()')
 
+# 预备画面
+white.display(screen)
+screen.blit(note_text.render('Welcome to TRPG Replay Generator!',fgcolor=(150,150,150,255),size=60)[0],(440,500)) # for 1080p
+screen.blit(note_text.render(edtion,fgcolor=(150,150,150,255),size=30)[0],(1750,1040))
+screen.blit(note_text.render('Press space to begin.',fgcolor=(150,150,150,255),size=30)[0],(800,1000))
+pygame.display.update()
+begin = False
+while begin == False:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                pygame.time.delay(1000)
+                pygame.quit()
+                sys.exit()
+            elif event.key == pygame.K_SPACE:
+                begin = True
+                break
+for s in np.arange(5,0,-1):
+    timer(s)
+
 # 主循环
 n=0
 while n < break_point.max():
     ct = time.time()
     try:
         for event in pygame.event.get():
-            if event.type== pygame.QUIT:
+            if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-            if event.type == pygame.KEYDOWN:
+            elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     pygame.time.delay(1000)
                     pygame.quit()
                     sys.exit()
                 elif event.key == pygame.K_a:
-                    n=break_point[(break_point-n)<0].max() #a无法正常使用
+                    n=break_point[(break_point-n)<0].max()
+                    n=break_point[(break_point-n)<0].max()
+                    if n != n: # 确保不会被a搞崩
+                        n = 0
                     continue
                 elif event.key == pygame.K_d:
                     n=break_point[(break_point-n)>0].min()
