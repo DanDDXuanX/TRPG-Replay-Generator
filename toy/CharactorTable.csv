@@ -1,0 +1,6 @@
+Name	Subtype	Animation	Bubble
+张安翔	default	zhang	bubble1
+张安翔	scared	zhang_scared	bubble1
+KP	default	drink	bubble1_right
+KP	double	drink_left	bubble1
+旁白	default	NA	bubble2
