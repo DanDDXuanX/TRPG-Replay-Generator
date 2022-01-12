@@ -141,7 +141,7 @@ log文件有3种有效行，对话行，背景行和设置行，分别有其对�
 	- 同一个角色如果有差分立绘，可以在角色名后使用.subtype来指定差分；未指定的将默认使用.default的立绘。
 2.	**切换效果修饰符：&lt;method=time&gt;**
 	- 目前可用的切换效果有replace和black，若语句中未指定切换效果，则参考 *method_default*；
-	- 持续时长指渐变持续的帧数；可以缺省持续时长，此时持续时长将参考 *text_method_default*；
+	- 持续时长指渐变持续的帧数；可以缺省持续时长，此时持续时长将参考 *method_dur_default*；
 	- Replace：直接替换，持续时长指切换延后时间；
 	- Black：黑场，以渐变为切换，持续时长指渐变时长。
 3.	**发言文本：Talk#Text**
@@ -149,7 +149,7 @@ log文件有3种有效行，对话行，背景行和设置行，分别有其对�
 	- 发言文本中可以使用井号“#”作为手动换行符；在手动指定换行符的行内，自动换行是失效。
 4.	**文本效果修饰符：&lt;method=time&gt;**
 	- 文本展示的效果有all，w2w，l2l，若语句中未指定展示效果，则参考 *text_method_default*；
-	- 单位时间指每显示一个字需要的帧数；可以缺省单位时间，此时单位时间将参考 *text_method_default*；
+	- 单位时间指每显示一个字需要的帧数；可以缺省单位时间，此时单位时间将参考 *text_dur_default*；
 	- all，一次性展示所有文本，参数此时指延迟帧数；
 	- w2w，逐字展示文本；
 	- l2l，逐行展示文本。
@@ -237,7 +237,7 @@ set:后跟需要设置的全局变量名；
 
 ### 修改timeline和breakpoint文件
 - timeline.pkl 和 breakpoint.pkl 文件是由 *--OutputPath* 标志输出的文件，包含了整个工程的画面和音频的时间轴信息。
-- 主程序的parser()函数解析log文件之后，生成render_timeline表格，提供给render()函数逐帧渲染；breakpoint文件记录了各个小结的断点，用于在播放过程中向前向后导航。
+- 主程序的parser()函数解析log文件之后，生成render_timeline表格，提供给render()函数逐帧渲染；breakpoint文件记录了各个小节的断点，用于在播放过程中向前向后导航。
 - 因此，熟悉pandas库的使用者可以自行修改timeline，以实现到高度自定义的显示效果。
 - timeline.pkl 的type是pandas.DataFrame，breakpoint.pkl的type是pandas.Series；使用`pandas.read_pickle(filepath)`可以读取这些文件。
 - `timeline.columns`为：
