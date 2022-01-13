@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.2'
+edtion = 'alpha 1.3'
 
 # 外部参数输入
 
@@ -190,6 +190,7 @@ RE_setting = re.compile('^<set:([\w\_]+)>:(.+)$')
 RE_characor = re.compile('(\w+)(\(\d*\))?(\.\w+)?')
 RE_modify = re.compile('<(\w+)(=\d+)?>')
 RE_sound = re.compile('({.+?})')
+RE_asterisk = re.compile('\{\w+;\*(\d+\.?\d*)\}')
 
 # 绝对的全局变量
 
@@ -288,7 +289,19 @@ def parser(stdin_text):
         # 对话行 格式： [角色1,角色2(30).happy]<replace=30>:巴拉#巴拉#巴拉<w2w=1>
         elif text[0] == '[':
             try:
+                # 从ts长度预设的 this_duration
                 this_charactor,this_duration,method,method_dur,ts,text_method,text_dur,this_sound = get_dialogue_arg(text)
+                # a 1.3 从音频中加载持续时长 {SE1;*78}：
+                asterisk_timeset = RE_asterisk.findall('\t'.join(this_sound)) #在音频标志中读取
+                if len(asterisk_timeset) == 0:
+                    pass
+                elif len(asterisk_timeset) == 1:
+                    asterisk_time = float(asterisk_timeset[0])
+                    #print(asterisk_time)
+                    this_duration = np.ceil(asterisk_time*frame_rate).astype(int)
+                else:
+                    raise ValueError('[Parser dialogue] Too much asterisk time labels are set in dialogue line ' + str(i+1)+'.')
+                # 确保时长不短于切换特效时长
                 if this_duration<(2*method_dur+1):
                     this_duration = 2*method_dur+1
             except:
@@ -359,10 +372,14 @@ def parser(stdin_text):
 
                 if delay == '':
                     delay = 0
+                elif '*' in delay: # 如果是星标时间
+                    delay = 0
                 elif int(delay) >= this_duration: # delay 不能比一个单元还长
                     delay = this_duration-1
                 else:
                     delay = int(delay)
+                if '*' in se_obj:
+                    raise IOError('[Parser dialogue] Unprocessed asterisk time label appeared in dialogue line ' + str(i+1) + '.')
                 if se_obj in media_list: # 如果delay在媒体里已经定义，则视为SE
                     this_timeline.loc[delay,'SE'] = se_obj
                 elif os.path.isfile(se_obj[1:-1]) == True: #或者指向一个确定的文件，则视为语音
