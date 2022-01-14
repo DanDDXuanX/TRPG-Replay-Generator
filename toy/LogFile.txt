@@ -3,9 +3,11 @@
 <set:method_default>:<black=10>
 <set:text_method_default>:<w2w=1>
 
-<background><cover=60>:bg1
+<set:BGM>:BGM1
 <set:speech_speed>:500
-[张安翔]:^本视频是DanDDXuanX 编写的#TRPG-Replay-Generator的基本演示工程。{SE1;5}
+<background><cover=60>:bg1
+
+[张安翔]:^本视频是DanDDXuanX 编写的#TRPG-Replay-Generator的基本演示工程。{SE1;*3.5}
 [KP]:项目链接：#https://github.com/DanDDXuanX/TRPG-Replay-Generator{SE1;5}
 <set:speech_speed>:300
 [张安翔]:^本工具基于python3 和 pygame2.0，在windows10系统上开发。#演示使用的媒体素材来自网络，侵删。{SE1;5}
@@ -30,7 +32,7 @@
 
 <background><black=60>:bg1
 
-[张安翔(60),KP.double]<replace=10>:调整角色的透明度参数，手动设置立绘透明度。<w2w=5>{SE1;5}
+[张安翔(60),KP.double]<replace=0>:调整角色的透明度参数，手动设置立绘透明度。<w2w=5>{SE1;5}
 [张安翔.scared,KP.double]:指明角色的subtype，展示差分立绘。<w2w=5>{SE1;5}
 [张安翔,KP.double]:在发言文本中以井号作为换行符；#设置手动换行模式；#并逐行显示内容。<l2l=5>{SE1;5}
 
