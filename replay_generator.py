@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.3'
+edtion = 'alpha 1.3.1'
 
 # 外部参数输入
 
@@ -154,7 +154,7 @@ class Audio:
     def __init__(self,filepath):
         self.media = pygame.mixer.Sound(filepath)
     def display(self,channel,volume=100):
-        channel.set_volume(volume)
+        channel.set_volume(volume/100)
         channel.play(self.media)
     def convert(self):
         pass
@@ -163,9 +163,9 @@ class Audio:
 class BGM:
     def __init__(self,filepath,volume=100,loop=True):
         self.media = filepath
-        self.volume = 100
+        self.volume = volume/100
         if loop == True:
-            self.loop = 10000 #大概是不可能能放完的
+            self.loop = -1 #大概是不可能能放完的
         else:
             self.loop = 0
         if filepath.split('.')[-1] not in ['ogg']: #建议的格式
@@ -177,8 +177,8 @@ class BGM:
         else:
             pass
         pygame.mixer.music.load(self.media) #进碟
-        pygame.mixer.music.set_volume(self.volume) #设置音量
         pygame.mixer.music.play(loops=self.loop) #开始播放
+        pygame.mixer.music.set_volume(self.volume) #设置音量
     def convert(self):
         pass
 
@@ -494,7 +494,10 @@ def render(this_frame):
                 temp_Audio.display(channel=eval(channel_list[key]))#这里的参数需要是对象
         else:
             #print('{0}.display(channel={1})'.format(this_frame[key],channel_list[key]))
-            exec('{0}.display(channel={1})'.format(this_frame[key],channel_list[key])) #否则就直接播放对象
+            if key == 'BGM':
+                exec('{0}.display()'.format(this_frame[key])) #否则就直接播放对象
+            else:
+                exec('{0}.display(channel={1})'.format(this_frame[key],channel_list[key])) #否则就直接播放对象
     return 1
 # 手动换行的l2l
 def get_l2l(ts,text_dur,this_duration): #如果是手动换行的列
@@ -511,8 +514,9 @@ def get_l2l(ts,text_dur,this_duration): #如果是手动换行的列
 
 # 倒计时器
 def timer(clock):
+    global W,H
     white.display(screen)
-    screen.blit(note_text.render('%d'%clock,fgcolor=(150,150,150,255),size=100)[0],(930,500)) # for 1080p
+    screen.blit(note_text.render('%d'%clock,fgcolor=(150,150,150,255),size=0.0926*H)[0],(0.484*W,0.463*H)) # for 1080p
     pygame.display.update()
     pygame.time.delay(1000)
 
@@ -568,10 +572,11 @@ for media in media_list:
     exec(media+'.convert()')
 
 # 预备画面
+W,H = screen_size
 white.display(screen)
-screen.blit(note_text.render('Welcome to TRPG Replay Generator!',fgcolor=(150,150,150,255),size=60)[0],(440,500)) # for 1080p
-screen.blit(note_text.render(edtion,fgcolor=(150,150,150,255),size=30)[0],(1750,1040))
-screen.blit(note_text.render('Press space to begin.',fgcolor=(150,150,150,255),size=30)[0],(800,1000))
+screen.blit(note_text.render('Welcome to TRPG Replay Generator!',fgcolor=(150,150,150,255),size=0.0560*H)[0],(0.230*W,0.460*H)) # for 1080p
+screen.blit(note_text.render(edtion,fgcolor=(150,150,150,255),size=0.0278*H)[0],(0.910*W,0.963*H))
+screen.blit(note_text.render('Press space to begin.',fgcolor=(150,150,150,255),size=0.0278*H)[0],(0.417*W,0.926*H))
 pygame.display.update()
 begin = False
 while begin == False:
@@ -616,7 +621,7 @@ while n < break_point.max():
         if n in render_timeline.index:
             this_frame = render_timeline.loc[n]
             render(this_frame)
-            screen.blit(note_text.render(str(1//(time.time()-ct)),fgcolor=(100,255,100,255),size=30)[0],(10,10))##framerate
+            screen.blit(note_text.render('%d'%(1//(time.time()-ct)),fgcolor=(100,255,100,255),size=0.0278*H)[0],(10,10)) ##framerate
         else:
             pass
         pygame.display.update()
