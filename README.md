@@ -1,5 +1,6 @@
 # 概述
 这是一基于python3 和pygame2.1 的自动replay生成工具，旨在降低replay视频制作中的重复工作，节约时间提升效率。使用简单处理后的log文件即可生成replay视频，同时也有较大的自定义空间。适合有一定编程基础和视频剪辑基础的用户使用。<br>
+示例项目演示视频链接：https://www.bilibili.com/video/BV1jY411h7S3/
 
 环境要求：
 1. python &gt; 3.8.3
