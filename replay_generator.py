@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.3.1'
+edtion = 'alpha 1.4'
 
 # 外部参数输入
 
@@ -32,13 +32,15 @@ frame_rate = args.FramePerSecond #帧率 单位fps
 zorder = args.Zorder.split(',') #渲染图层顺序
 
 for path in [stdin_log,media_obj,char_tab]:
+    if path == None:
+        raise OSError("[Invalid argument]: Missing principal input argument!")
     if os.path.isfile(path) == False:
-        raise OSError("[Invalid argument]: cannot find file "+path)
+        raise OSError("[Invalid argument]: Cannot find file "+path)
 
 if output_path == None:
     pass 
 elif os.path.isdir(output_path) == False:
-    raise OSError("[Invalid argument]: cannot find directory "+output_path)
+    raise OSError("[Invalid argument]: Cannot find directory "+output_path)
 else:
     output_path = output_path.replace('\\','/')
     print('The timeline and breakpoint file will be save at '+output_path)
@@ -190,7 +192,7 @@ RE_setting = re.compile('^<set:([\w\_]+)>:(.+)$')
 RE_characor = re.compile('(\w+)(\(\d*\))?(\.\w+)?')
 RE_modify = re.compile('<(\w+)(=\d+)?>')
 RE_sound = re.compile('({.+?})')
-RE_asterisk = re.compile('\{\w+;\*(\d+\.?\d*)\}')
+RE_asterisk = re.compile('\{\w+[;,]\*(\d+\.?\d*)\}')
 
 # 绝对的全局变量
 
