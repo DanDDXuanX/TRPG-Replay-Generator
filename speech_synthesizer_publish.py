@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.4'
+edtion = 'alpha 1.4.1'
 
 # 绝对的全局变量
 # 在开源发布的版本中，隐去了各个key
@@ -10,7 +10,7 @@ AKID="Your_AccessKey"
 AKKEY="Your_AccessKey_Secret"
 APPKEY="Your_Appkey"
 
-asterisk_line_columns=['asterisk_label','character','speach_text','category','filepath']
+asterisk_line_columns=['asterisk_label','character','speech_text','category','filepath']
 
 # 外部参数输入
 
@@ -118,7 +118,7 @@ aliyun_voice_lib = [
 
 RE_dialogue = re.compile('^\[([\w\.\;\(\)\,]+)\](<[\w\=\d]+>)?:(.+?)(<[\w\=\d]+>)?({.+})?$')
 RE_characor = re.compile('(\w+)(\(\d*\))?(\.\w+)?')
-RE_asterisk = re.compile('(\{([\w\.\\\/\'\":]*?[,;])?\*([\w\.]*)?\})')
+RE_asterisk = re.compile('(\{([\w\.\\\/\'\":]*?[,;])?\*([\w\.\,，]*)?\})')
 
 # 函数定义
 
@@ -145,8 +145,6 @@ def isnumber(str):
 def clean_ts(text):
     return text.replace('^','').replace('#','。')
 
-asterisk_line_columns=['asterisk_label','character','speach_text','category','filepath']
-
 # 解析函数
 def parser(stdin_text):
     asterisk_line = pd.DataFrame(index=range(0,len(stdin_text)),columns=asterisk_line_columns)
@@ -170,27 +168,27 @@ def parser(stdin_text):
                     #1.{*}
                     if K0 == '{*}':
                         asterisk_line.loc[i,'category'] = 1
-                        asterisk_line.loc[i,'speach_text'] = clean_ts(ts) #need clean!
+                        asterisk_line.loc[i,'speech_text'] = clean_ts(ts) #need clean!
                         asterisk_line.loc[i,'filepath'] = 'None'
                     #2.{*生成这里面的文本，我在添加一点标点符号}
                     elif (K1=='')&(K2!=''):
                         asterisk_line.loc[i,'category'] = 2
-                        asterisk_line.loc[i,'speach_text'] = K2
+                        asterisk_line.loc[i,'speech_text'] = K2
                         asterisk_line.loc[i,'filepath'] = 'None'
                     #3.{"./timeline.mp3",*}
                     elif (os.path.isfile(K1[1:-2])==True)&(K2==''):
                         asterisk_line.loc[i,'category'] = 3
-                        asterisk_line.loc[i,'speach_text'] = 'None'
+                        asterisk_line.loc[i,'speech_text'] = 'None'
                         asterisk_line.loc[i,'filepath'] = K1[1:-2]
                     #4.{"./timeline.mp3",*30}
                     elif (os.path.isfile(K1[1:-2])==True)&(isnumber(K2)==True):
                         asterisk_line.loc[i,'category'] = 4
-                        asterisk_line.loc[i,'speach_text'] = 'None'
+                        asterisk_line.loc[i,'speech_text'] = 'None'
                         asterisk_line.loc[i,'filepath'] = K1[1:-2]
                     #4.{SE1,*} 始终无视这种标记
                     elif K1[0:-1] in media_list:
                         asterisk_line.loc[i,'category'] = 4
-                        asterisk_line.loc[i,'speach_text'] = 'None'
+                        asterisk_line.loc[i,'speech_text'] = 'None'
                         asterisk_line.loc[i,'filepath'] = K1[0:-1]
                     elif (os.path.isfile(K1[1:-2])==False): #3&4.指定了不存在的文件路径
                         raise OSError('[Parser dialogue] Asterisk SE file '+K1[0:-1]+' in dialogue line '+ str(i+1)+' is not exist.')
@@ -224,8 +222,8 @@ def synthesizer(key,asterisk):
     else:
         ofile = output_path+'/'+'%d'%key+'.wav'
         try:
-            charactor_info['TTS'].start(asterisk['speach_text'],ofile) #执行合成
-            #print(asterisk['speach_text'],ofile)
+            charactor_info['TTS'].start(asterisk['speech_text'],ofile) #执行合成
+            #print(asterisk['speech_text'],ofile)
         except:
             return 'None',False
         return ofile,True
@@ -242,7 +240,7 @@ def get_audio_length(asterisk):
             return np.nan
         return this_audio.get_length()
 
-print('Welcome to use speech_synthesizer for TRPG-replay-generator '+'edtion')
+print('Welcome to use speech_synthesizer for TRPG-replay-generator '+edtion)
 
 # 载入ct文件
 charactor_table = pd.read_csv(char_tab,sep='\t')
