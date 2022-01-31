@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.4'
+edtion = 'alpha 1.4.2'
 
 # 外部参数输入
 
 import argparse
 import sys
 import os
-import warnings
+
 
 ap = argparse.ArgumentParser(description="Generating your TRPG replay video from logfile.")
 ap.add_argument("-l", "--LogFile", help='The standerd input of this programme, which is mainly composed of TRPG log.',type=str)
@@ -31,30 +31,34 @@ screen_size = (args.Width,args.Height) #显示的分辨率
 frame_rate = args.FramePerSecond #帧率 单位fps
 zorder = args.Zorder.split(',') #渲染图层顺序
 
-for path in [stdin_log,media_obj,char_tab]:
-    if path == None:
-        raise OSError("[Invalid argument]: Missing principal input argument!")
-    if os.path.isfile(path) == False:
-        raise OSError("[Invalid argument]: Cannot find file "+path)
+try:
+    for path in [stdin_log,media_obj,char_tab]:
+        if path == None:
+            raise OSError("[ArgumentError]: Missing principal input argument!")
+        if os.path.isfile(path) == False:
+            raise OSError("[ArgumentError]: Cannot find file "+path)
 
-if output_path == None:
-    pass 
-elif os.path.isdir(output_path) == False:
-    raise OSError("[Invalid argument]: Cannot find directory "+output_path)
-else:
-    output_path = output_path.replace('\\','/')
-    print('The timeline and breakpoint file will be save at '+output_path)
+    if output_path == None:
+        pass 
+    elif os.path.isdir(output_path) == False:
+        raise OSError("[ArgumentError]: Cannot find directory "+output_path)
+    else:
+        output_path = output_path.replace('\\','/')
+        print('The timeline and breakpoint file will be save at '+output_path)
 
-# FPS
-if frame_rate <= 0:
-    raise ValueError("[invalid FPS]: "+str(frame_rate))
-elif frame_rate>=30:
-    warnings.warn('FPS is set to '+str(frame_rate)+', which may cause lag in the display!',ResourceWarning)
+    # FPS
+    if frame_rate <= 0:
+        raise ValueError("[ArgumentError]: "+str(frame_rate))
+    elif frame_rate>=30:
+        print("[warning]:",'FPS is set to '+str(frame_rate)+', which may cause lag in the display!')
 
-if (screen_size[0]<=0) | (screen_size[1]<=0):
-    raise ValueError("[invalid resolution]: "+str(screen_size))
-if screen_size[0]*screen_size[1] > 3e6:
-    warnings.warn('Resolution is set to more than 3M, which may cause lag in the display!',ResourceWarning)
+    if (screen_size[0]<=0) | (screen_size[1]<=0):
+        raise ValueError("[ArgumentError]: "+str(screen_size))
+    if screen_size[0]*screen_size[1] > 3e6:
+        print("[warning]:",'Resolution is set to more than 3M, which may cause lag in the display!')
+except Exception as E:
+    print(E)
+    sys.exit()
 
 # 包导入
 
@@ -68,7 +72,6 @@ import time #开发模式，显示渲染帧率
 # 类定义
 
 # 文字对象
-
 class Text:
     pygame.font.init()
     def __init__(self,fontfile='C:/Windows/Fonts/simhei.ttf',fontsize=40,color=(0,0,0,255),line_limit=20):
@@ -171,7 +174,7 @@ class BGM:
         else:
             self.loop = 0
         if filepath.split('.')[-1] not in ['ogg']: #建议的格式
-            warnings.warn('A not recommend music format ['+filepath.split('.')[-1]+'] is specified, which may cause unstableness during displaying!')
+            print("[warning]:",'A not recommend music format ['+filepath.split('.')[-1]+'] is specified, which may cause unstableness during displaying!')
     def display(self):
         if pygame.mixer.music.get_busy() == True: #如果已经在播了
             pygame.mixer.music.stop() #停止
@@ -200,14 +203,35 @@ cmap = {'black':(0,0,0,255),'white':(255,255,255,255),'greenscreen':(0,177,64,25
 #render_arg = ['BG1','BG1_a','BG2','BG2_a','BG3','BG3_a','Am1','Am1_a','Am2','Am2_a','Am3','Am3_a','Bb','Bb_main','Bb_header','Bb_a']
 render_arg = ['BG1','BG1_a','BG2','BG2_a','BG3','BG3_a','Am1','Am1_a','Am2','Am2_a','Am3','Am3_a','Bb','Bb_main','Bb_header','Bb_a','BGM','Voice','SE']
 
+# 数学函数定义 formula
+
+def normalized(X):
+    return (X-X.min())/(X.max()-X.min())
+
+def linear(begin,end,dur):
+    return np.linspace(begin,end,int(dur))
+
+def quadratic(begin,end,dur):
+    return (np.linspace(0,1,int(dur))**2)*(end-begin)+begin
+
+def quadraticR(begin,end,dur):
+    return (1-np.linspace(1,0,int(dur))**2)*(end-begin)+begin
+
+def sigmoid(begin,end,dur,K=5):
+    return normalized(1/(1+np.exp(np.linspace(K,-K,int(dur)))))*(end-begin)+begin
+
+formula_available={'linear':linear,'quadratic':quadratic,'quadraticR':quadraticR,'sigmoid':sigmoid}
+
 # 可以<set:keyword>动态调整的全局变量
+
 speech_speed = 220 #语速，单位word per minute
 method_default = '<replace=0>' #默认切换效果
 method_dur_default = 10 #默认切换效果持续时间
 text_method_default = '<all=0>' #默认文本展示方式
 text_dur_default = 8 #默认单字展示时间参数
+formula = linear #默认的曲线函数
 
-# 函数定义
+# 其他函数定义
 
 # 解析对话行 []
 def get_dialogue_arg(text):
@@ -302,13 +326,14 @@ def parser(stdin_text):
                     #print(asterisk_time)
                     this_duration = np.ceil(asterisk_time*frame_rate).astype(int)
                 else:
-                    raise ValueError('[Parser dialogue] Too much asterisk time labels are set in dialogue line ' + str(i+1)+'.')
+                    raise ValueError('[ParserError]: Too much asterisk time labels are set in dialogue line ' + str(i+1)+'.')
                 # 确保时长不短于切换特效时长
                 if this_duration<(2*method_dur+1):
                     this_duration = 2*method_dur+1
-            except:
-                raise ValueError('[Parser dialogue] Parse exception occurred in dialogue line ' + str(i+1)+'.')
-                continue
+            except Exception as E:
+                print(E)
+                raise ValueError('[ParserError]: Parse exception occurred in dialogue line ' + str(i+1)+'.')
+
             this_timeline=pd.DataFrame(index=range(0,this_duration),dtype=str,columns=render_arg)
             this_timeline['BG1'] = this_background
             this_timeline['BG1_a'] = 100
@@ -316,14 +341,14 @@ def parser(stdin_text):
             if method=='replace': # replace 方法的method_dur 代表显示延迟，单位为帧
                 alpha_timeline = np.hstack([np.zeros(method_dur),np.ones(this_duration-method_dur)])
             elif method in ['black']:
-                alpha_timeline = np.hstack([np.linspace(0,1,method_dur),
+                alpha_timeline = np.hstack([formula(0,1,method_dur),
                                             np.ones(this_duration-2*method_dur),
-                                            np.linspace(1,0,method_dur)])
+                                            formula(1,0,method_dur)])
             else:
-                raise ValueError('[Parser dialogue] Unrecognized switch method: ['+text_method+'] appeared in dialogue line ' + str(i+1)+'.')
+                raise ValueError('[ParserError]: Unrecognized switch method: ['+text_method+'] appeared in dialogue line ' + str(i+1)+'.')
             #各个角色：
             if len(this_charactor) > 3:
-                raise ValueError('[Parser dialogue] Too much charactor is specified in dialogue line ' + str(i+1)+'.')
+                raise ValueError('[ParserError]: Too much charactor is specified in dialogue line ' + str(i+1)+'.')
             for k,charactor in enumerate(this_charactor[0:3]):
                 name,alpha,subtype= charactor
                 #处理空缺参数
@@ -361,7 +386,7 @@ def parser(stdin_text):
                     word_count_timeline = (np.arange(0,this_duration,1)//(text_dur*line_limit)+1)*line_limit
                 this_timeline['Bb_main'] = UF_cut_str(this_timeline['Bb_main'],word_count_timeline)
             else:
-                raise ValueError('[Parser dialogue] Unrecognized text display method: ['+text_method+'] appeared in dialogue line ' + str(i+1)+'.')
+                raise ValueError('[ParserError]: Unrecognized text display method: ['+text_method+'] appeared in dialogue line ' + str(i+1)+'.')
             #音频信息
             if BGM_queue != []:
                 this_timeline.loc[0,'BGM'] = BGM_queue.pop() #从BGM_queue里取出来一个
@@ -381,13 +406,13 @@ def parser(stdin_text):
                 else:
                     delay = int(delay)
                 if '*' in se_obj:
-                    raise IOError('[Parser dialogue] Unprocessed asterisk time label appeared in dialogue line ' + str(i+1) + '.')
+                    raise IOError('[ParserError]: Unprocessed asterisk time label appeared in dialogue line ' + str(i+1) + '.')
                 if se_obj in media_list: # 如果delay在媒体里已经定义，则视为SE
                     this_timeline.loc[delay,'SE'] = se_obj
                 elif os.path.isfile(se_obj[1:-1]) == True: #或者指向一个确定的文件，则视为语音
                     this_timeline.loc[delay,'Voice'] = se_obj
                 else:
-                    raise IOError('[Parser dialogue] The sound effect ['+se_obj+'] specified in dialogue line ' + str(i+1)+' is not exist!')
+                    raise IOError('[ParserError]: The sound effect ['+se_obj+'] specified in dialogue line ' + str(i+1)+' is not exist!')
                 
             render_timeline.append(this_timeline)
             break_point[i+1]=break_point[i]+this_duration
@@ -398,7 +423,7 @@ def parser(stdin_text):
                 bgc,method,method_dur = get_background_arg(text)
                 next_background=bgc
             except:
-                raise ValueError('[Parser background] Parse exception occurred in background line ' + str(i+1)+'.')
+                raise ValueError('[ParserError]: Parse exception occurred in background line ' + str(i+1)+'.')
                 continue
     
             if method=='replace': #replace 方法的method_dur 代表延迟切换（总持续时间），单位为帧
@@ -411,16 +436,16 @@ def parser(stdin_text):
                 this_timeline['BG2']=this_background
                 if method in ['black','white']:
                     this_timeline['BG3']=method
-                    this_timeline['BG1_a']=np.linspace(-100,100,method_dur)
+                    this_timeline['BG1_a']=formula(-100,100,method_dur)
                     this_timeline['BG1_a']=this_timeline['BG1_a'].map(alpha_range)
-                    this_timeline['BG2_a']=np.linspace(100,-100,method_dur)
+                    this_timeline['BG2_a']=formula(100,-100,method_dur)
                     this_timeline['BG2_a']=this_timeline['BG2_a'].map(alpha_range)
                     this_timeline['BG3_a']=100
                 if method in ['cover']:
-                    this_timeline['BG1_a']=np.linspace(0,100,method_dur)
+                    this_timeline['BG1_a']=formula(0,100,method_dur)
                     this_timeline['BG2_a']=100
             else:
-                raise ValueError('[Parser background] Unrecognized switch method: ['+text_method+'] appeared in background line ' + str(i+1)+'.')
+                raise ValueError('[ParserError]: Unrecognized switch method: ['+text_method+'] appeared in background line ' + str(i+1)+'.')
             this_background = next_background #正式切换背景
             render_timeline.append(this_timeline)
             break_point[i+1]=break_point[i]+len(this_timeline.index)
@@ -430,7 +455,7 @@ def parser(stdin_text):
             try:
                 target,args = get_seting_arg(text)
             except:
-                raise ValueError('[Parser setting] Parse exception occurred in setting line ' + str(i+1)+'.')
+                raise ValueError('[ParserError]: Parse exception occurred in setting line ' + str(i+1)+'.')
                 continue
             if target in ['speech_speed','method_default','method_dur_default','text_method_default','text_dur_default']:
                 try: #如果args是数值型
@@ -446,13 +471,18 @@ def parser(stdin_text):
                 elif os.path.isfile(args[1:-1]):
                     BGM_queue.append(args)
                 else:
-                    raise IOError('[Parser setting] The BGM ['+args+'] specified in setting line ' + str(i+1)+' is not exist!')
+                    raise IOError('[ParserError]: The BGM ['+args+'] specified in setting line ' + str(i+1)+' is not exist!')
+            elif target == 'formula':
+                if args in formula_available.keys():
+                    formula = formula_available[args]
+                else:
+                    raise ValueError('[ParserError]: Unsupported formula ['+args+'] is specified in setting line ' + str(i+1)+'.')
             else:
-                raise ValueError('[Parser setting] Unsupported setting ['+target+'] is specified in setting line ' + str(i+1)+'.')
+                raise ValueError('[ParserError]: Unsupported setting ['+target+'] is specified in setting line ' + str(i+1)+'.')
                 continue
         # 异常行，报出异常
         else:
-            raise ValueError('[Parser] Unrecognized line: '+ str(i+1)+'.')
+            raise ValueError('[ParserError]: Unrecognized line: '+ str(i+1)+'.')
         break_point[i+1]=break_point[i]
         
     render_timeline = pd.concat(render_timeline,axis=0)
@@ -475,7 +505,7 @@ def render(this_frame):
         elif this_frame[layer+'_a']<=0: #或者图层的透明度小于等于0(由于fillna("NA"),出现的异常)
             continue
         elif this_frame[layer] not in media_list:
-            raise RuntimeError('[Render video] Undefined media object : ['+this_frame[layer]+'].')
+            raise RuntimeError('[RenderError]: Undefined media object : ['+this_frame[layer]+'].')
             continue
         elif layer != 'Bb':
             exec('{0}.display(surface=screen,alpha={1})'.format(this_frame[layer],this_frame[layer+'_a']))
@@ -522,6 +552,12 @@ def timer(clock):
     pygame.display.update()
     pygame.time.delay(1000)
 
+def stop_SE():
+    for Ch in channel_list.values():
+        exec(Ch+'.stop()')
+
+# Main():
+
 # 载入od文件
 object_define_text = open(media_obj,'r',encoding='utf-8').read().split('\n')
 
@@ -537,8 +573,9 @@ for i,text in enumerate(object_define_text):
             obj_name = text.split('=')[0]
             obj_name = obj_name.replace(' ','')
             media_list.append(obj_name) #记录新增对象名称
-        except:
-            raise SyntaxError('[Syntax exception]: "'+text+'" appeared in media define file line ' + str(i+1)+'.')
+        except Exception as E:
+            print('[SyntaxError]: "'+text+'" appeared in media define file line ' + str(i+1)+' is invalid syntax.')
+            sys.exit()
 black = Background('black')
 white = Background('white')
 media_list.append('black')
@@ -546,12 +583,19 @@ media_list.append('white')
 #print(media_list)
 
 # 载入ct文件
-charactor_table = pd.read_csv(char_tab,sep='\t')
-charactor_table.index = charactor_table['Name']+'.'+charactor_table['Subtype']
+try:
+    charactor_table = pd.read_csv(char_tab,sep='\t')
+    charactor_table.index = charactor_table['Name']+'.'+charactor_table['Subtype']
+except:
+    print('[SyntaxError]: Unable to load charactor table:',E)
 
 # 载入log文件
 stdin_text = open(stdin_log,'r',encoding='utf8').read().split('\n')
-render_timeline,break_point = parser(stdin_text)
+try:
+    render_timeline,break_point = parser(stdin_text)
+except Exception as E:
+    print(E)
+    sys.exit()
 
 # 判断是否指定输出路径
 if output_path != None:
@@ -560,6 +604,7 @@ if output_path != None:
 
 # 初始化界面
 pygame.init()
+pygame.display.set_caption('TRPG Replay Generator '+edtion)
 fps_clock=pygame.time.Clock()
 screen = pygame.display.set_mode(screen_size)
 note_text = pygame.freetype.Font('C:/Windows/Fonts/msyh.ttc')
@@ -571,13 +616,16 @@ channel_list = {'Voice':'VOICE','SE':'SOUEFF'}
 
 # 转换媒体对象
 for media in media_list: 
-    exec(media+'.convert()')
+    try:
+        exec(media+'.convert()')
+    except Exception as E:
+        print('[MediaError]: Exception during converting',media_obj,':',E)
 
 # 预备画面
 W,H = screen_size
 white.display(screen)
-screen.blit(note_text.render('Welcome to TRPG Replay Generator!',fgcolor=(150,150,150,255),size=0.0560*H)[0],(0.230*W,0.460*H)) # for 1080p
-screen.blit(note_text.render(edtion,fgcolor=(150,150,150,255),size=0.0278*H)[0],(0.910*W,0.963*H))
+screen.blit(note_text.render('Welcome to TRPG Replay Generator!',fgcolor=(150,150,150,255),size=0.0315*W)[0],(0.230*W,0.460*H)) # for 1080p
+screen.blit(note_text.render(edtion,fgcolor=(150,150,150,255),size=0.0278*H)[0],(0.900*W,0.963*H))
 screen.blit(note_text.render('Press space to begin.',fgcolor=(150,150,150,255),size=0.0278*H)[0],(0.417*W,0.926*H))
 pygame.display.update()
 begin = False
@@ -608,6 +656,7 @@ while n < break_point.max():
                 sys.exit()
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
+                    stop_SE()
                     pygame.time.delay(1000)
                     pygame.quit()
                     sys.exit()
@@ -616,9 +665,11 @@ while n < break_point.max():
                     n=break_point[(break_point-n)<0].max()
                     if n != n: # 确保不会被a搞崩
                         n = 0
+                    stop_SE()
                     continue
                 elif event.key == pygame.K_d:
                     n=break_point[(break_point-n)>0].min()
+                    stop_SE()
                     continue
         if n in render_timeline.index:
             this_frame = render_timeline.loc[n]
