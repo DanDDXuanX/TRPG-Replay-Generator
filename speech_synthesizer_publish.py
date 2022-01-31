@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.4.1'
+edtion = 'alpha 1.4.2'
 
 # 绝对的全局变量
 # 在开源发布的版本中，隐去了各个key
@@ -32,23 +32,27 @@ stdin_log = args.LogFile #log路径
 output_path = args.OutputPath #保存的时间轴，断点文件的目录
 media_obj = args.MediaObjDefine #媒体对象定义文件的路径
 
-for path in [stdin_log,char_tab,media_obj]:
-    if path == None:
-        raise OSError("[Invalid argument]: Missing principal input argument!")
-    if os.path.isfile(path) == False:
-        raise OSError("[Invalid argument]: Cannot find file "+path)
+try:
+    for path in [stdin_log,char_tab,media_obj]:
+        if path == None:
+            raise OSError("[ArgumentError]: Missing principal input argument!")
+        if os.path.isfile(path) == False:
+            raise OSError("[ArgumentError]: Cannot find file "+path)
 
-if output_path == None:
-    raise OSError("[Invalid argument]: No output path is specified!")
-elif os.path.isdir(output_path) == False:
-    try:
-        os.makedirs(output_path)
-    except:
-        raise OSError("[System Error]: Cannot make directory "+output_path)
-else:
-    pass
-output_path = output_path.replace('\\','/')
-print('The timeline and breakpoint file will be save at '+output_path)
+    if output_path == None:
+        raise OSError("[ArgumentError]: No output path is specified!")
+    elif os.path.isdir(output_path) == False:
+        try:
+            os.makedirs(output_path)
+        except:
+            raise OSError("[SystemError]: Cannot make directory "+output_path)
+    else:
+        pass
+    output_path = output_path.replace('\\','/')
+    
+except Exception as E:
+    print(E)
+    sys.exit()
 
 # 包导入
 
@@ -92,14 +96,14 @@ class TTS_engine:
         #print("on_close: args=>{}".format(args))
         try:
             self.ofile.close()
-        except Exception as e:
-            print("close file failed since:", e)
+        except Exception as E:
+            print("[TTSError]: Close file failed since:", E)
 
     def on_data(self, data, *args):
         try:
             self.ofile.write(data)
-        except Exception as e:
-            print("write data failed:", e)
+        except Exception as E:
+            print("[TTSError]: Write data failed:", E)
 
 #阿里云支持的所有voice名
 
@@ -119,6 +123,8 @@ aliyun_voice_lib = [
 RE_dialogue = re.compile('^\[([\w\.\;\(\)\,]+)\](<[\w\=\d]+>)?:(.+?)(<[\w\=\d]+>)?({.+})?$')
 RE_characor = re.compile('(\w+)(\(\d*\))?(\.\w+)?')
 RE_asterisk = re.compile('(\{([\w\.\\\/\'\":]*?[,;])?\*([\w\.\,，]*)?\})')
+
+media_list=[]
 
 # 函数定义
 
@@ -190,19 +196,21 @@ def parser(stdin_text):
                         asterisk_line.loc[i,'category'] = 4
                         asterisk_line.loc[i,'speech_text'] = 'None'
                         asterisk_line.loc[i,'filepath'] = K1[0:-1]
+                        print('[warning]: A defined object',K1[0:-1],'is specified, which will not be processed.')
                     elif (os.path.isfile(K1[1:-2])==False): #3&4.指定了不存在的文件路径
-                        raise OSError('[Parser dialogue] Asterisk SE file '+K1[0:-1]+' in dialogue line '+ str(i+1)+' is not exist.')
+                        raise OSError('[ParserError]: Asterisk SE file '+K1[0:-1]+' is not exist.')
                     else: # 其他的不合规的星标文本
-                        raise ValueError('[Parser dialogue] Invalid asterisk lable appeared in dialogue line' + str(i+1)+'.')
+                        raise ValueError('[ParserError]: Invalid asterisk lable appeared in dialogue line.')
                     
                 else:
-                    raise ValueError('[Parser dialogue] Too much asterisk time labels are set in dialogue line ' + str(i+1)+'.')
+                    raise ValueError('[ParserError]: Too much asterisk time labels are set in dialogue line.')
                 name,alpha,subtype= this_charactor[0]
                 if subtype == '':
                     subtype = '.default'
                 asterisk_line.loc[i,'character'] = name+subtype
-            except:
-                raise ValueError('[Parser dialogue] Parse exception occurred in dialogue line ' + str(i+1)+'.')
+            except Exception as E:
+                print(E)
+                raise ValueError('[ParserError]: Parse exception occurred in dialogue line ' + str(i+1)+'.')
         else:
             pass
     return asterisk_line.dropna()
@@ -213,7 +221,7 @@ def synthesizer(key,asterisk):
     if asterisk['category'] > 2: #如果解析结果为3&4，不执行语音合成
         return 'Keep',False
     elif asterisk['character'] not in charactor_table.index: #指定了未定义的发言角色
-        print('Undefine charactor!')
+        print('[warning]: Undefine charactor!')
         return 'None',False
     else:
         charactor_info = charactor_table.loc[asterisk['character']]
@@ -225,6 +233,7 @@ def synthesizer(key,asterisk):
             charactor_info['TTS'].start(asterisk['speech_text'],ofile) #执行合成
             #print(asterisk['speech_text'],ofile)
         except:
+            print('[warning]: Synthesis failed in line '+'%d'%(key+1))
             return 'None',False
         return ofile,True
 
@@ -236,89 +245,108 @@ def get_audio_length(asterisk):
         mixer.init()
         try:
             this_audio = mixer.Sound(asterisk.filepath)
-        except:
+        except Exception as E:
+            print('[warning]: Unable to get audio length of '+str(asterisk.filepath)+', due to:',E)
             return np.nan
         return this_audio.get_length()
 
-print('Welcome to use speech_synthesizer for TRPG-replay-generator '+edtion)
+def main():
+    global charactor_table
+    global media_list
 
-# 载入ct文件
-charactor_table = pd.read_csv(char_tab,sep='\t')
-charactor_table.index = charactor_table['Name']+'.'+charactor_table['Subtype']
+    print('Welcome to use speech_synthesizer for TRPG-replay-generator '+edtion)
+    print('The processed Logfile and audio file will be saved at "'+output_path+'"')
+    # 载入ct文件
+    try:
+        charactor_table = pd.read_csv(char_tab,sep='\t')
+        charactor_table.index = charactor_table['Name']+'.'+charactor_table['Subtype']
+        if 'Voice' not in charactor_table.columns:
+            raise SyntaxError('missing necessary columns.')
+    except Exception as E:
+        print('[SyntaxError]: Unable to load charactor table:',E)
 
-# 填补缺省值
-if 'SpeechRate' not in charactor_table.columns:
-    charactor_table['SpeechRate'] = 0
-else:
-    charactor_table['SpeechRate'] = charactor_table['SpeechRate'].fillna(0).astype(int)
-if 'PitchRate' not in charactor_table.columns:
-    charactor_table['PitchRate'] = 0
-else:
-    charactor_table['PitchRate'] = charactor_table['PitchRate'].fillna(0).astype(int)
-
-# 建立TTS_engine的代码
-TTS = pd.Series(index=charactor_table.index,dtype='str')
-TTS_define_tplt = "TTS_engine(name='{0}',voice = '{1}',speech_rate={2},pitch_rate={3},volume=50)"
-for key,value in charactor_table.iterrows():
-    if value.Voice not in aliyun_voice_lib:
-        TTS[key] = '"None"'
+    # 填补缺省值
+    if 'SpeechRate' not in charactor_table.columns:
+        charactor_table['SpeechRate'] = 0
     else:
-        TTS[key] = TTS_define_tplt.format(key,value.Voice,value.SpeechRate,value.PitchRate)
-# 应用并保存在charactor_table内
-charactor_table['TTS'] = TTS.map(lambda x:eval(x))
-
-# 载入od文件
-object_define_text = open(media_obj,'r',encoding='utf-8').read().split('\n')
-media_list=[]
-for i,text in enumerate(object_define_text):
-    if text == '':
-        continue
-    elif text[0] == '#':
-        continue
+        charactor_table['SpeechRate'] = charactor_table['SpeechRate'].fillna(0).astype(int)
+    if 'PitchRate' not in charactor_table.columns:
+        charactor_table['PitchRate'] = 0
     else:
-        try:
-            obj_name = text.split('=')[0]
-            obj_name = obj_name.replace(' ','')
-            media_list.append(obj_name) #记录新增对象名称
-        except:
-            raise SyntaxError('[Syntax exception]: "'+text+'" appeared in media define file line ' + str(i+1)+'.')
+        charactor_table['PitchRate'] = charactor_table['PitchRate'].fillna(0).astype(int)
 
-# 载入log文件
-stdin_text = open(stdin_log,'r',encoding='utf8').read().split('\n')
-asterisk_line = parser(stdin_text)
+    # 建立TTS_engine的代码
+    TTS = pd.Series(index=charactor_table.index,dtype='str')
+    TTS_define_tplt = "TTS_engine(name='{0}',voice = '{1}',speech_rate={2},pitch_rate={3},volume=50)"
+    for key,value in charactor_table.iterrows():
+        if value.Voice not in aliyun_voice_lib:
+            print('[warning]: Unsupported speaker name "'+value.Voice+'".')
+            TTS[key] = '"None"'
+        else:
+            TTS[key] = TTS_define_tplt.format(key,value.Voice,value.SpeechRate,value.PitchRate)
+    # 应用并保存在charactor_table内
+    charactor_table['TTS'] = TTS.map(lambda x:eval(x))
 
-# 开始合成
-print('Begin to speech synthesis!')
-for key,value in asterisk_line.iterrows():
-    # 进行合成
-    ofile_path,synth_status = synthesizer(key,value)
-    if ofile_path == 'Keep':
-        pass
-    elif ofile_path == 'None':
-        asterisk_line.loc[key,'filepath'] = synth_status
-    elif os.path.isfile(ofile_path)==False:
-        asterisk_line.loc[key,'filepath'] = 'None'
-    else:
-        asterisk_line.loc[key,'filepath'] = ofile_path
-    asterisk_line.loc[key,'synth_status'] = synth_status
+    # 载入od文件
+    object_define_text = open(media_obj,'r',encoding='utf-8').read().split('\n')
+    
+    for i,text in enumerate(object_define_text):
+        if text == '':
+            continue
+        elif text[0] == '#':
+            continue
+        else:
+            try:
+                obj_name = text.split('=')[0]
+                obj_name = obj_name.replace(' ','')
+                media_list.append(obj_name) #记录新增对象名称
+            except:
+                print('[SyntaxError]: "'+text+'" appeared in media define file line ' + str(i+1)+'.')
+                sys.exit()
 
-# 需要DEBUG！！！！！！！！！！！！！！！
+    # 载入log文件
+    stdin_text = open(stdin_log,'r',encoding='utf8').read().split('\n')
+    try:
+        asterisk_line = parser(stdin_text)
+    except Exception as E:
+        print(E)
+        sys.exit()
 
-# 读取音频时长    
-for key,value in asterisk_line.iterrows():
-    audio_lenth = get_audio_length(value)
-    asterisk_line.loc[key,'audio_lenth'] = audio_lenth
+    # 开始合成
+    print('Begin to speech synthesis!')
+    for key,value in asterisk_line.iterrows():
+        # 进行合成
+        ofile_path,synth_status = synthesizer(key,value)
+        if ofile_path == 'Keep':
+            pass
+        elif ofile_path == 'None':
+            asterisk_line.loc[key,'filepath'] = synth_status
+        elif os.path.isfile(ofile_path)==False:
+            asterisk_line.loc[key,'filepath'] = 'None'
+        else:
+            asterisk_line.loc[key,'filepath'] = ofile_path
+        asterisk_line.loc[key,'synth_status'] = synth_status
 
-# 生成新的标签
-refresh = asterisk_line[asterisk_line.category<=3].dropna().copy()
-new_asterisk_label = "{'"+refresh.filepath + "';*"+refresh.audio_lenth.map(lambda x:'%.3f'%x)+"}"
-refresh['new_asterisk_label'] = new_asterisk_label
+    # 仅category 3,或者成功合成的1，2去更新标记
+    refresh = asterisk_line[(asterisk_line.category==3)|(asterisk_line.synth_status==True)].dropna().copy() #检定是否成功合成
 
-# 替换原来的标签
-for key,value in refresh.iterrows():
-    stdin_text[key] = stdin_text[key].replace(value.asterisk_label,value.new_asterisk_label)
+    # 读取音频时长
+    for key,value in refresh.iterrows():
+        audio_lenth = get_audio_length(value)
+        refresh.loc[key,'audio_lenth'] = audio_lenth
 
-# 输出新的目录
-out_Logfile = open(output_path+'/AsteriskMarkedLogFile.txt','w',encoding='utf-8')
-out_Logfile.write('\n'.join(stdin_text))
-out_Logfile.close()
+    # 生成新的标签
+    new_asterisk_label = "{'"+refresh.filepath + "';*"+refresh.audio_lenth.map(lambda x:'%.3f'%x)+"}"
+    refresh['new_asterisk_label'] = new_asterisk_label
+
+    # 替换原来的标签
+    for key,value in refresh.iterrows():
+        stdin_text[key] = stdin_text[key].replace(value.asterisk_label,value.new_asterisk_label)
+
+    # 输出新的目录
+    out_Logfile = open(output_path+'/AsteriskMarkedLogFile.txt','w',encoding='utf-8')
+    out_Logfile.write('\n'.join(stdin_text))
+    out_Logfile.close()
+
+if __name__ == '__main__':
+    main()
