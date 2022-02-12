@@ -1,0 +1,57 @@
+							<clipitem id="{clipid}" frameBlend="FALSE">
+								<name>{clipname}</name>
+								<duration>1080000</duration>
+								<enabled>TRUE</enabled>
+								<rate>
+									<timebase>{timebase}</timebase>
+									<ntsc>{ntsc}</ntsc>
+								</rate>
+								<start>{start}</start>
+								<end>{end}</end>
+								<in>{in}</in>
+								<out>{out}</out>
+								<pixelaspectratio>square</pixelaspectratio>
+								<anamorphic>FALSE</anamorphic>
+								<file id="{fileid}">
+									<name>{filename}</name>
+									<pathurl>{filepath}</pathurl>
+									<rate>
+										<timebase>{timebase}</timebase>
+										<ntsc>{ntsc}</ntsc>
+									</rate>
+									<media>
+										<video>
+											<duration>18000</duration>
+											<samplecharacteristics>
+												<rate>
+													<timebase>{timebase}</timebase>
+													<ntsc>{ntsc}</ntsc>
+												</rate>
+												<width>{filewidth}</width>
+												<height>{fileheight}</height>
+												<anamorphic>FALSE</anamorphic>
+												<pixelaspectratio>square</pixelaspectratio>
+												<fielddominance>none</fielddominance>
+											</samplecharacteristics>
+										</video>
+									</media>
+								</file>
+								<filter>
+									<effect>
+										<name>Basic Motion</name>
+										<effectid>basic</effectid>
+										<effectcategory>motion</effectcategory>
+										<effecttype>motion</effecttype>
+										<mediatype>video</mediatype>
+										<pproBypass>false</pproBypass>
+										<parameter authoringApp="PremierePro">
+											<parameterid>center</parameterid>
+											<name>Center</name>
+											<value>
+												<horiz>{horiz}</horiz>
+												<vert>{vert}</vert>
+											</value>
+										</parameter>
+									</effect>
+								</filter>
+							</clipitem>

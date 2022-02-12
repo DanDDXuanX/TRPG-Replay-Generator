@@ -1,0 +1,31 @@
+							<clipitem id="{clipid}" premiereChannelType="{type}">
+								<name>{clipname}</name>
+								<enabled>TRUE</enabled>
+								<duration>{audiolen}</duration>
+								<rate>
+									<timebase>{timebase}</timebase>
+									<ntsc>{ntsc}</ntsc>
+								</rate>
+								<start>{start}</start>
+								<end>{end}</end>
+								<in>{in}</in>
+								<out>{out}</out>
+								<file id="{fileid}">
+									<name>{filename}</name>
+									<pathurl>{filepath}</pathurl>
+									<rate>
+										<timebase>{timebase}</timebase>
+										<ntsc>{ntsc}</ntsc>
+									</rate>
+									<media>
+										<audio>
+											<duration>{audiolen}</duration>
+											<samplecharacteristics>
+												<depth>16</depth>
+												<samplerate>48000</samplerate>
+											</samplecharacteristics>
+											<channelcount>2</channelcount>
+										</audio>
+									</media>
+								</file>
+							</clipitem>

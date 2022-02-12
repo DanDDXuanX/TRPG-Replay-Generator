@@ -1,34 +1,49 @@
 # 概述
-这是一基于python3 和pygame2.1 的自动replay生成工具，旨在降低replay视频制作中的重复工作，节约时间提升效率。使用简单处理后的log文件即可生成replay视频，同时也有较大的自定义空间。适合有一定编程基础和视频剪辑基础的用户使用。<br>
-示例项目演示视频链接：https://www.bilibili.com/video/BV1jY411h7S3/
+这是一基于python3 和pygame 的自动replay生成工具，旨在降低replay视频制作中的重复工作，节约时间提升效率。本工具包括主程序、语音合成、导出为PRXML等三个模块，使用简单处理后的log文件即可生成replay视频，同时也有较大的自定义空间。适合有一定编程基础和视频剪辑基础的用户使用。<br>
 
-环境要求：
-1. python &gt; 3.8.3
-2. pygame &gt; 2.0.1
-3. numpy &gt; 1.18.5
-4. pandas &gt; 1.0.5
+[演示视频](https://www.bilibili.com/video/BV1jY411h7S3/)
+
+**环境要求：**
+
+**运行主程序replay_generator所必要的：**
+1. python &gt;= 3.8.3
+2. pygame &gt;= 2.0.1
+3. numpy &gt;= 1.18.5
+4. pandas &gt;= 1.0.5
+
+**若要导出未Premiere Pro XML 文件，额外要求：**
+1. Pillow &gt;= 7.2.0
+
+**若使用语音合成模块，额外要求：**
+1. 安装[阿里云阿里云智能语音服务Python SDK](https://github.com/aliyun/alibabacloud-nls-python-sdk)
+2. 查看[帮助文档](https://help.aliyun.com/document_detail/374323.html)
+3. 获得[阿里云AccessKey、AccessKey_Secret、Appkey](https://ram.console.aliyun.com/manage/ak)，并填写到speech_synthesizer.py的9-11行。
 
 # 快速上手
 1. 下载包含了源代码和示例文件（"./toy/"）的release压缩包并解压；
 2. 在解压路径，使用终端运行下列命令，即可开始放映示例项目；<br>
 ```bash
-python replay_generator.py -l LogFileTest.txt -d MediaObject.txt -t CharactorTable.csv
+python ./replay_generator.py -l ./toy/LogFile.txt -d ./toy/MediaObject.txt -t ./toy/CharactorTable.csv
 ```
 3. 进入程序后，按空格键（SPACE）开始播放，播放的过程中，按A键跳转到前一小节，D键跳转到后一小节，ESC键终止播放并退出。
 
-# 参考文档
+# 参考文档（文档版本 alpha 1.4.3）
 
-## 主程序参数
+## 主程序replay_generator.py参数
+
 1. **--LogFile, -l** ：log文件的路径，文件格式要求详见 *文件格式.log文件*；
 2. **--MediaObjDefine, -d** ：媒体定义文件的路径，文件格式要求参考 *文件格式.媒体定义文件*；
 3. **--CharacterTable, -t** ：角色表文件的路径，格式为制表符分隔的数据表，包含至少Name、Subtype、Animation、Bubble4列；
 4. ***--OutputPath, -o*** ：可选的参数，输出文件的目录；如果输入了该标志，则项目的时间轴和断点文件将输出到指定点目录，格式为.pkl，是pandas.DataFrame 格式，可以在python中使用pd.read_pickle()函数读取；
-5. ***--FramePerSecond -F*** ：可选的参数，播放的帧率，单位是fps；默认值是30fps；
-6. ***--Width –W*** ：可选的参数，窗体的宽；默认值是1920；
-7. ***--Height -H*** ：可选的参数，窗体的高；默认值是1080；
-8. ***--Zorder –Z*** ： 可选的参数，渲染的图层顺序；通常不建议修改这个参数，除非必要。格式要求详见 进阶使用.图层顺序。
+5. ***--FramePerSecond, -F*** ：可选的参数，播放的帧率，单位是fps；默认值是30fps；
+6. ***--Width, -W*** ：可选的参数，窗体的宽；默认值是1920；
+7. ***--Height, -H*** ：可选的参数，窗体的高；默认值是1080；
+8. ***--Zorder, -Z*** ：可选的参数，渲染的图层顺序；通常不建议修改这个参数，除非必要。格式要求详见 进阶使用.图层顺序。
+9. ***--ExportXML*** ：可选的标志，如果使用该标志，会输出一个能导入到PR的XML文件，以及其引用的一系列PNG图片到输出目录。
+10. ***--SynthesisAnyway*** ：可选的标志，如果使用该标志，会对log文件中尚未处理的星标行进行语音合成；系列WAV音频到会输出到输出目录。
 
 **主程序命令例子：**
+
 ```bash
 python replay_generator.py --LogFile LogFile.txt --MediaObjDefine MediaDefine.txt --CharacterTable CharactorTable.csv --FramePerSecond 30
 ```
@@ -47,6 +62,7 @@ Text(fontfile='C:/Windows/Fonts/simhei.ttf',fontsize=40,color=(0,0,0,255),line_l
 - fontsize	可选参数，设置字体的字号，合理的参数是大于0的整数；默认为40；
 - color	可选参数，设置字体的颜色，是一个4元素的tuple，对应(R,G,B,A)，四个元素应为0-255的整数；默认值是黑色；
 - line_limit	可选参数，设置单行显示的字符数量上限，超过上限会触发自动换行；默认为20字。
+
 > 注意：由于气泡对象需要引用文本对象，因此，文本对象的定义必须在气泡对象的定义之前。
 
 2.	**气泡 Bubble**
@@ -71,6 +87,7 @@ Background(filepath,pos = (0,0))
 - 背景指整个屏幕的背景，通常位于最下的图层，可以在log文件中的 *背景行* 中设置背景及其切换效果
 - filepath	必要参数，指定一个图片文件的路径，或者指定{'black','white','greenscreen'}中的一个。
 - pos	可选参数，指定了背景在屏幕上的位置，是一个2元素的tuple，对应(X,Y)，默认为(0,0)，即左上角。
+
 > 注意：由于背景图通常都是全屏的图片，因此不建议修改Background的pos的默认值。
 
 4.	**立绘 Animation**
@@ -81,6 +98,7 @@ Animation(filepath,pos = (0,0))
 - 立绘指和角色绑定的个人形象图片，通常位于背景的上层，气泡的下层。
 - filepath	必要参数，指定一个图片文件的路径；
 - pos	可选参数，指定了立绘在屏幕上的位置，是一个2元素的tuple，对应(X,Y)，默认为(0,0)，即左上角。
+
 > 注意：一个角色可以在不同的subtype下指定不同的立绘，用于实现差分效果；使用时在log文件的对话行里指定到不同的subtype。<p>
 > 注意：如果希望实现多人同框效果，建议为同框时的立绘另外建立Animation对象，并在定义时指定合适的位置。
 
@@ -93,6 +111,7 @@ BGM(filepath,volume=100,loop=True)
 - filepath	必要参数，指定一个音频文件的路径。
 - volume	可选参数，设置背景音乐的音量，合理的参数是0-100的整数；默认为100；
 - loop	可选参数，设置背景音乐是否会循环播放；默认为单曲循环；如果需要不循环，设置为False；
+
 > 注意：BGM建议使用.ogg格式的音频，否则有可能出现程序的不稳定。另外，建议在后期制作软件中手动加入BGM。<p>
 > 注意：BGM和audio的逻辑不同，不可混用！
 
@@ -103,26 +122,30 @@ Audio(filepath)
 
 - 音效指短音频，音效通常只会完整地播放一次。
 - filepath	必要参数，指定一个音频文件的路径。
-> 注意：replay视频中通常包含大量的语音文件，不建议全建立Audio对象，会消耗较大的内存，在Log文件的*对话行*的*音效框*里指定文件路径即可。
 
+> 注意：replay视频中通常包含大量的语音文件，不建议全建立Audio对象，会消耗较大的内存，在Log文件的*对话行*的*音效框*里指定文件路径即可。<p>
 > 注意：本提及的*文件路径*的格式均为字符串，即需要引号引起来。例子："./pic/zhang.png"
 
 **媒体定义文件例子：**<p>
 参考./toy/MediaObject.txt
 
 ## 2. 角色设置文件
-- 角色设置文件是一个制表符“\t”分隔的数据表文件，用于确定角色和*立绘、气泡*等媒体对象的对应关系；
-- 需要包括Name、Subtype、Animation、Bubble四个列；
+- 角色设置文件是一个制表符“\t”分隔的数据表文件，用于确定角色和*立绘、气泡、声音*等媒体对象的对应关系；
+- 用于replay_generator的角色设置文件需要至少包括Name、Subtype、Animation、Bubble四列；
+- 用于speech_synthesizer的角色设置文件需要至少包括Name、Subtype、Voice三列，SpeechRate、PitchRate两列是可选的。
 - 每个Name需要一个Subtype是default；
-- Animation和Bubble需要指向相应的媒体对象，或者使用 NA 表示缺省。
+- Animation、Bubble列仅可使用*媒体定义文件*中已定义的对应的媒体对象的名称，或者使用 NA 表示缺省。
+- 可选的Voice详见[可用的语音](./doc/aliyun_available_voice.xlsx)，不需要语音的角色使用 NA 表示缺省。
+- SpeechRate、PitchRate的取值范围是(-500,500)，对应0.5倍速至2倍速。详见[接口说明](https://help.aliyun.com/document_detail/84435.html)
 
-角色设置文件例子：
+完整的角色设置文件例子：
 
-|Name|Subtype|Animation|Bubble|
-|:---|:---:|:---:|:---:|
-|张安翔|default|zhang|bubble1|
-|张安翔|scared|zhang_scared|bubble1|
-|KP|default|drink|bubble2|
+|Name|Subtype|Animation|Bubble|Voice|SpeechRate|PitchRate|
+|:---|:---:|:---:|:---:|:---:|:---:|:---:|
+|张安翔|default|zhang|bubble1|sicheng|50|0|
+|张安翔|scared|zhang_scared|bubble1|sicheng|30|0|
+|KP|default|drink|bubble2|sijia|50|0|
+|旁白|default|NA|bubble2|NA|NA|NA|
 
 > 注意：骰子、旁白等弹窗型气泡，也可以以“角色”的形式定义在本文件中。
 
@@ -132,7 +155,7 @@ log文件有3种有效行，对话行，背景行和设置行，分别有其对�
 
 ### A. 对话行
 ```HTML
-[name1(100).default,name2(60).default,name3(60).default]<replace=0>:Talk#Text.<all=0>{"./audio/1.ogg";30}{Audio;30}
+[name1(100).default,name2(60).default,name3(60).default]<replace=0>:Talk#Text.<all=0>{"./audio/1.ogg";30}{Audio;*30}
 ```
 
 通过对话行，在播放中显示角色的*立绘*，并用相应的*气泡*显示*发言文本*中的文字。对应关系在*角色设置文件*中定义。
@@ -156,12 +179,11 @@ log文件有3种有效行，对话行，背景行和设置行，分别有其对�
 	- l2l，逐行展示文本。
 5.	**音效框：{file_or_obj;\*time}**
 	- 音效可以指定一个Audio对象，或者一个文件的路径；
-	- 延迟时间指这个音效相对于本小节第一帧所延迟的帧数；
-	- 通常来说，对白的音效框因由程序自动添加；
+	- time即延迟时间，指这个音效相对于本小节第一帧所延迟的帧数；
 	- 一个对话行可以有多个音效框。
 
-> 注意：在使用“#”进行手动换行的句子里，如果第一行长度超过line_limit，在&lt;w2w&gt;模式仍会触发自动换行，直到第一个“#”被触发为止。为了避免这种情况的发生，在句首声明“^”。<p>
-> 注意：若在音效框的time数值前添加星号“*”，则本小节将和星标音效设置为相同的时长。星标音效通常由音频准备程序自动生成，请谨慎地手动设置星标音效。
+> 注意：在使用“#”进行手动换行的句子里，如果第一行长度超过line_limit，在&lt;w2w&gt;模式仍会自动换行，直到第一个“#”被触发为止。为了避免这种情况的发生，在句首声明“^”。<p>
+> 注意：若在音效框的time数值前添加星号“\*”，则本小节的时长将由星标的time控制。星标的音效通常由speech_synthesizer自动生成。请谨慎地手动设置星标音效。<p>
 
 **对话行例子：**
 ```HTML
@@ -175,7 +197,7 @@ log文件有3种有效行，对话行，背景行和设置行，分别有其对�
 [张安翔(60).scared,KP(30)]<black=30>:显示角色的差分立绘<w2w=5>
 [张安翔(60).scared,KP(30)]<black=30>:设置手动换行模式#以井号作为换行符#逐行显示内容<l2l=5>
 [张安翔(60).scared,KP(30)]<black=30>:播放语音<all=5>{'./voice/1.ogg'}
-[张安翔(60).scared,KP(30)]<black=30>:播放音效<all=5>{SE1;30}
+[张安翔(60).scared,KP(30)]<black=30>:播放音效<all=5>{SE1;*30}
 ```
 
 ### B. 背景行
@@ -212,16 +234,24 @@ set:后跟需要设置的全局变量名；
 2.	**text_method_default**：默认文本展示方法，初始值是：&lt;all=1&gt;。
 	- 当对话行中缺省 *文本效果修饰符* 时，使用该默认值
 	- 例如[name]:talk，等价于[name]&lt;replace=0&gt;:talk&lt;all=1&gt;
-3.	**method_dur_default**：默认展示时间，初始值是：10。
+3.	**method_dur_default**：默认展示时间，初始值是：10，单位是帧。
 	- 当对话行和背景行的 *切换效果修饰符* 中未指定时间，则使用该默认值
 	- 例如 &lt;replace&gt;，等价于&lt;replace=10&gt;
-4.	**text_dur_default**：默认文本展示时间，初始值是：8。
+4.	**text_dur_default**：默认文本展示时间，初始值是：8，单位是帧。
 	- 当对话行的&lt;文本效果修饰符&gt;中未指定时间，则使用该默认值；
 	- 例如 talk&lt;l2l&gt;，等价于talk&lt;l2l=8&gt;。
-5.	**speech_speed**：语速，初始值是：220。
-	- 语速主要影响每个小节的持续时间，需要调整语速和语音文件相一致。
-6.	**BGM**：背景音乐
+5.	**speech_speed**：语速，初始值是：220，单位是words/min。
+	- 语速将影响每个小节的持续时间，当小节没有指定星标音频的时候。
+6.	**asterisk_pause**：星标音频的间隔时间，初始值是：20，单位是帧。
+	- asterisk_pause仅能通过*设置行*进行设置，会应用于之后所有的星标音频。
+7.	**BGM**：背景音乐
 	- 使用&lt;set:BGM&gt;: 设置背景音乐时，需要指定一个BGM对象，或一个.ogg音频文件的路径；
+8.	**formula**：切换效果的曲线函数，初始值是：linear，即线性。
+	- 目前可用的formula包括linear（线性）、quadratic（二次）、quadraticR（二次反向）和sigmoid（S型）；
+	- formula仅能通过*设置行*进行设置，会应用于之后所有的切换效果。
+
+![formula](./doc/formula.png "formula")
+
 > 注意：使用非.ogg文件作为背景音乐，可能导致程序的不稳定，或者卡死！
 
 **设置行例子：**

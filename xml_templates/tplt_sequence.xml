@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE xmeml>
+<xmeml version="4">
+	<project>
+		<name>trpg_generator_xml</name>
+		<children>
+			<sequence id="sequence0">
+				<rate>
+					<timebase>{timebase}</timebase>
+					<ntsc>{ntsc}</ntsc>
+				</rate>
+				<name>{sequence_name}</name>
+				<media>
+					<video>
+						<format>
+							<samplecharacteristics>
+								<rate>
+									<timebase>{timebase}</timebase>
+									<ntsc>{ntsc}</ntsc>
+								</rate>
+								<width>{screen_width}</width>
+								<height>{screen_height}</height>
+								<anamorphic>FALSE</anamorphic>
+								<pixelaspectratio>square</pixelaspectratio>
+								<fielddominance>upper</fielddominance>
+								<colordepth>24</colordepth>
+							</samplecharacteristics>
+						</format>
+{tracks_vedio}
+					</video>
+					<audio>
+						<format>
+							<samplecharacteristics>
+								<depth>16</depth>
+								<samplerate>48000</samplerate>
+							</samplecharacteristics>
+						</format>
+{tracks_audio}
+					</audio>
+				</media>
+			</sequence>
+		</children>
+	</project>
+</xmeml>

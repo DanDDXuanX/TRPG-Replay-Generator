@@ -1,5 +1,5 @@
 # 综合演示
-
+<set:formula>:sigmoid
 <set:method_default>:<black=10>
 <set:text_method_default>:<w2w=1>
 
