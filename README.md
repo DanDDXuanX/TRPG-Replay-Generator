@@ -1,5 +1,5 @@
 # 概述
-这是一基于python3 和pygame 的自动replay生成工具，旨在降低replay视频制作中的重复工作，节约时间提升效率。本工具包括主程序、语音合成、导出为PRXML等三个模块，使用简单处理后的log文件即可生成replay视频，同时也有较大的自定义空间。适合有一定编程基础和视频剪辑基础的用户使用。<br>
+这是一基于python3 和pygame 的自动replay生成工具，旨在降低replay视频制作中的重复工作，节约时间提升效率。本工具包括主程序、语音合成、导出为PRXML等三个模块，使用简单处理后的log文件即可生成replay视频，并可导出可编辑的Premiere Pro序列，有较大的自定义空间。适合有一定编程基础和视频剪辑基础的用户使用。<br>
 
 [演示视频](https://www.bilibili.com/video/BV1jY411h7S3/)
 
@@ -11,11 +11,11 @@
 3. numpy &gt;= 1.18.5
 4. pandas &gt;= 1.0.5
 
-**若要导出未Premiere Pro XML 文件，额外要求：**
+**若要导出为Premiere Pro XML 文件，额外要求：**
 1. Pillow &gt;= 7.2.0
 
 **若使用语音合成模块，额外要求：**
-1. 安装[阿里云阿里云智能语音服务Python SDK](https://github.com/aliyun/alibabacloud-nls-python-sdk)
+1. 安装[阿里云智能语音服务Python SDK](https://github.com/aliyun/alibabacloud-nls-python-sdk)
 2. 查看[帮助文档](https://help.aliyun.com/document_detail/374323.html)
 3. 获得[阿里云AccessKey、AccessKey_Secret、Appkey](https://ram.console.aliyun.com/manage/ak)，并填写到speech_synthesizer.py的9-11行。
 
@@ -40,7 +40,7 @@ python ./replay_generator.py -l ./toy/LogFile.txt -d ./toy/MediaObject.txt -t ./
 7. ***--Height, -H*** ：可选的参数，窗体的高；默认值是1080；
 8. ***--Zorder, -Z*** ：可选的参数，渲染的图层顺序；通常不建议修改这个参数，除非必要。格式要求详见 进阶使用.图层顺序。
 9. ***--ExportXML*** ：可选的标志，如果使用该标志，会输出一个能导入到PR的XML文件，以及其引用的一系列PNG图片到输出目录。
-10. ***--SynthesisAnyway*** ：可选的标志，如果使用该标志，会对log文件中尚未处理的星标行进行语音合成；系列WAV音频到会输出到输出目录。
+10. ***--SynthesisAnyway*** ：可选的标志，如果使用该标志，会对log文件中尚未处理的星标行进行语音合成；一系列WAV音频到会输出到输出目录。
 
 **主程序命令例子：**
 
@@ -51,6 +51,8 @@ python replay_generator.py --LogFile LogFile.txt --MediaObjDefine MediaDefine.tx
 ## 1. 媒体定义文件
 媒体定义文件用于定义项目中使用的媒体对象，及其引用的文件；媒体定义文件使用的python代码的格式。<p>
 目前版本中，可用的对象包括下列：
+
+![媒体定义的示意图](./doc/media_def.png)
 
 1.	**文本 Text**
 ```python 
@@ -250,7 +252,7 @@ set:后跟需要设置的全局变量名；
 	- 目前可用的formula包括linear（线性）、quadratic（二次）、quadraticR（二次反向）和sigmoid（S型）；
 	- formula仅能通过*设置行*进行设置，会应用于之后所有的切换效果。
 
-![formula](./doc/formula.png "formula")
+![formula](./doc/formula.png)
 
 > 注意：使用非.ogg文件作为背景音乐，可能导致程序的不稳定，或者卡死！
 
@@ -266,6 +268,8 @@ set:后跟需要设置的全局变量名；
 `#annotation`
 1.	当一个行的第一个字符是井号“#”，则这个行被认作为注释，行内的任何内容都不会被执行；
 2.	log文件可以任意地添加空白行，且不会影响程序的正常使用。
+
+![程序的工作流程总览](./doc/workflow.png)
 
 ## 进阶使用
 
