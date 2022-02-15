@@ -20,14 +20,18 @@
 3. 获得[阿里云AccessKey、AccessKey_Secret、Appkey](https://ram.console.aliyun.com/manage/ak)，并填写到speech_synthesizer.py的9-11行。
 
 # 快速上手
-1. 下载包含了源代码和示例文件（"./toy/"）的release压缩包并解压；
-2. 在解压路径，使用终端运行下列命令，即可开始放映示例项目；<br>
+1. 下载包含了源代码和示例文件（"./toy/"）的release压缩包并解压；<br>
+2. 在解压路径，使用终端运行下列命令，安装环境要求；<br>
+```bash
+pip install -r ./requirements.txt
+```
+3. 使用终端运行下列命令，即可开始放映示例项目；<br>
 ```bash
 python ./replay_generator.py -l ./toy/LogFile.txt -d ./toy/MediaObject.txt -t ./toy/CharactorTable.csv
 ```
-3. 进入程序后，按空格键（SPACE）开始播放，播放的过程中，按A键跳转到前一小节，D键跳转到后一小节，ESC键终止播放并退出。
+4. 进入程序后，按空格键（SPACE）开始播放，播放的过程中，按A键跳转到前一小节，D键跳转到后一小节，ESC键终止播放并退出。
 
-# 参考文档（文档版本 alpha 1.4.3）
+# 参考文档（文档版本 alpha 1.5）
 
 ## 主程序replay_generator.py参数
 
@@ -41,6 +45,7 @@ python ./replay_generator.py -l ./toy/LogFile.txt -d ./toy/MediaObject.txt -t ./
 8. ***--Zorder, -Z*** ：可选的参数，渲染的图层顺序；通常不建议修改这个参数，除非必要。格式要求详见 进阶使用.图层顺序。
 9. ***--ExportXML*** ：可选的标志，如果使用该标志，会输出一个能导入到PR的XML文件，以及其引用的一系列PNG图片到输出目录。
 10. ***--SynthesisAnyway*** ：可选的标志，如果使用该标志，会对log文件中尚未处理的星标行进行语音合成；一系列WAV音频到会输出到输出目录。
+11. ***--FixScreenZoom*** ：可选的参数，仅在windows系统上生效。使用该标志以消除由于windows系统缩放倍率，而导致的窗体尺寸异常。
 
 **主程序命令例子：**
 
@@ -249,7 +254,8 @@ set:后跟需要设置的全局变量名；
 7.	**BGM**：背景音乐
 	- 使用&lt;set:BGM&gt;: 设置背景音乐时，需要指定一个BGM对象，或一个.ogg音频文件的路径；
 8.	**formula**：切换效果的曲线函数，初始值是：linear，即线性。
-	- 目前可用的formula包括linear（线性）、quadratic（二次）、quadraticR（二次反向）和sigmoid（S型）；
+	- 目前可用的formula包括linear（线性）、quadratic（二次）、quadraticR（二次反向）、sigmoid（S型）、left(左锋)和right(右峰)；
+	- formula可以接受lambda函数形式定义的自定义函数，自定义函数需要以 (begin,end,duration) 为参数；
 	- formula仅能通过*设置行*进行设置，会应用于之后所有的切换效果。
 
 ![formula](./doc/formula.png)
@@ -262,6 +268,8 @@ set:后跟需要设置的全局变量名；
 <set:text_dur_default>:10
 <set:BGM>:'.\BGM\test.ogg'
 <set:BGM>:BGM1
+<set:formula>:sigmoid
+<set:formula>:lambda begin,end,duration:np.linspace(end,begin,duration)
 ```
 
 ### D. 注释行、空白行

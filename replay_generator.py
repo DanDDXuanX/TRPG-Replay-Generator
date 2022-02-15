@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.4.3'
+edtion = 'alpha 1.5'
 
 # 外部参数输入
 
@@ -23,6 +23,7 @@ ap.add_argument("-Z", "--Zorder", help='Set the display order of layers, not rec
 
 ap.add_argument('--ExportXML',help='Export a xml file to load in Premiere Pro, some .png file will be created at same time.',action='store_true')
 ap.add_argument('--SynthesisAnyway',help='Execute speech_synthezier first, and process all unprocessed asterisk time label.',action='store_true')
+ap.add_argument('--FixScreenZoom',help='Windows system only, use this flag to fix incorrect windows zoom.',action='store_true')
 
 args = ap.parse_args()
 
@@ -35,8 +36,9 @@ screen_size = (args.Width,args.Height) #显示的分辨率
 frame_rate = args.FramePerSecond #帧率 单位fps
 zorder = args.Zorder.split(',') #渲染图层顺序
 
-exportXML = args.ExportXML
-synthfirst = args.SynthesisAnyway
+exportXML = args.ExportXML #导出为XML
+synthfirst = args.SynthesisAnyway #是否先行执行语音合成
+fixscreen = args.FixScreenZoom # 是否修复窗体缩放
 
 try:
     for path in [stdin_log,media_obj,char_tab]:
@@ -52,16 +54,15 @@ try:
         raise OSError("[31m[ArgumentError]:[0m Cannot find directory "+output_path)
     else:
         output_path = output_path.replace('\\','/')
-        print('The timeline and breakpoint file will be save at '+output_path)
 
     # FPS
     if frame_rate <= 0:
-        raise ValueError("[31m[ArgumentError]:[0m "+str(frame_rate))
+        raise ValueError("[31m[ArgumentError]:[0m Invalid frame rate:"+str(frame_rate))
     elif frame_rate>30:
         print("[33m[warning]:[0m",'FPS is set to '+str(frame_rate)+', which may cause lag in the display!')
 
     if (screen_size[0]<=0) | (screen_size[1]<=0):
-        raise ValueError("[31m[ArgumentError]:[0m "+str(screen_size))
+        raise ValueError("[31m[ArgumentError]:[0m Invalid resolution:"+str(screen_size))
     if screen_size[0]*screen_size[1] > 3e6:
         print("[33m[warning]:[0m",'Resolution is set to more than 3M, which may cause lag in the display!')
 except Exception as E:
@@ -208,6 +209,8 @@ RE_asterisk = re.compile('(\{([\w\.\\\/\'\":]*?[,;])?\*([\w\.\,，]*)?\})') # a 
 
 # 绝对的全局变量
 
+python3 = sys.executable.replace('\\','/') # 获取python解释器的路径
+
 cmap = {'black':(0,0,0,255),'white':(255,255,255,255),'greenscreen':(0,177,64,255)}
 #render_arg = ['BG1','BG1_a','BG2','BG2_a','BG3','BG3_a','Am1','Am1_a','Am2','Am2_a','Am3','Am3_a','Bb','Bb_main','Bb_header','Bb_a']
 render_arg = ['BG1','BG1_a','BG2','BG2_a','BG3','BG3_a','Am1','Am1_a','Am2','Am2_a','Am3','Am3_a','Bb','Bb_main','Bb_header','Bb_a','BGM','Voice','SE']
@@ -229,7 +232,14 @@ def quadraticR(begin,end,dur):
 def sigmoid(begin,end,dur,K=5):
     return normalized(1/(1+np.exp(np.linspace(K,-K,int(dur)))))*(end-begin)+begin
 
-formula_available={'linear':linear,'quadratic':quadratic,'quadraticR':quadraticR,'sigmoid':sigmoid}
+def right(begin,end,dur,K=4):
+    return normalized(1/(1+np.exp((quadratic(K,-K,int(dur))))))*(end-begin)+begin
+
+def left(begin,end,dur,K=4):
+    return normalized(1/(1+np.exp((quadraticR(K,-K,int(dur))))))*(end-begin)+begin
+
+formula_available={'linear':linear,'quadratic':quadratic,'quadraticR':quadraticR,
+                   'sigmoid':sigmoid,'right':right,'left':left}
 
 # 可以<set:keyword>动态调整的全局变量
 
@@ -496,6 +506,13 @@ def parser(stdin_text):
             elif target == 'formula':
                 if args in formula_available.keys():
                     formula = formula_available[args]
+                elif args[0:6] == 'lambda':
+                    try:
+                        formula = eval(args)
+                        print('[33m[warning]:[0m','Using lambda formula range ',formula(0,1,2),
+                              ' in line',str(i+1),', which may cause unstableness during displaying!')                            
+                    except:
+                        raise ValueError('[31m[ParserError]:[0m Unsupported formula ['+args+'] is specified in setting line ' + str(i+1)+'.')
                 else:
                     raise ValueError('[31m[ParserError]:[0m Unsupported formula ['+args+'] is specified in setting line ' + str(i+1)+'.')
             else:
@@ -582,9 +599,11 @@ def stop_SE():
 # 检查是否需要先做语音合成
 
 if synthfirst == True:
-    command = 'python ./speech_synthesizer.py --LogFile {lg} --MediaObjDefine {md} --CharacterTable {ct} --OutputPath {of}'
+    command = python3 +' ./speech_synthesizer.py --LogFile {lg} --MediaObjDefine {md} --CharacterTable {ct} --OutputPath {of}'
+    command = command.format(lg = stdin_log.replace('\\','/'),md = media_obj.replace('\\','/'), of = output_path, ct = char_tab.replace('\\','/'))
+    print('[replay generator] Flag --SynthesisAnyway detected, running command:\n','[32m'+command+'[0m')
     try:
-        os.system(command.format(lg = stdin_log.replace('\\','/'),md = media_obj.replace('\\','/'), of = output_path, ct = char_tab))
+        os.system(command)
         # 将当前的标准输入调整为处理后的log文件
         if os.path.isfile(output_path+'/AsteriskMarkedLogFile.txt') == True:
             stdin_log = output_path+'/AsteriskMarkedLogFile.txt'
@@ -635,24 +654,30 @@ except Exception as E:
 
 # 判断是否指定输出路径
 if output_path != None:
+    print('[replay generator] The timeline and breakpoint file will be save at '+output_path)
     timenow = '%d'%time.time()
     render_timeline.to_pickle(output_path+'/'+timenow+'.timeline')
     break_point.to_pickle(output_path+'/'+timenow+'.breakpoint')
     if exportXML == True:
-        command = 'python ./export_xml.py --TimeLine {tm} --MediaObjDefine {md} --OutputPath {of} --FramePerSecond {fps} --Width {wd} --Height {he} --Zorder {zd}'
+        command = python3 + ' ./export_xml.py --TimeLine {tm} --MediaObjDefine {md} --OutputPath {of} --FramePerSecond {fps} --Width {wd} --Height {he} --Zorder {zd}'
+        command = command.format(tm = output_path+'/'+timenow+'.timeline',
+                                 md = media_obj.replace('\\','/'), of = output_path.replace('\\','/'), 
+                                 fps = frame_rate, wd = screen_size[0], he = screen_size[1], zd = ','.join(zorder))
+        print('[replay generator] Flag --ExportXML detected, running command:\n','[32m'+command+'[0m')
         try:
-            os.system(command.format(tm = output_path+'/'+timenow+'.timeline',
-                                     md = media_obj.replace('\\','/'), of = output_path.replace('\\','/'), 
-                                     fps = frame_rate,
-                                     wd = screen_size[0],
-                                     he = screen_size[1],
-                                     zd = ','.join(zorder)
-                                     )
-            )
+            os.system(command)
         except Exception as E:
             print('[33m[warning]:[0m Failed to export XML, due to:',E)
 
 # 初始化界面
+
+if fixscreen == True:
+    try:
+        import ctypes
+        ctypes.windll.user32.SetProcessDPIAware() #修复错误的缩放，尤其是在移动设备。
+    except:
+        print('[33m[warning]:[0m OS exception, --FixScreenZoom is only avaliable on windows system!')
+
 pygame.init()
 pygame.display.set_caption('TRPG Replay Generator '+edtion)
 fps_clock=pygame.time.Clock()

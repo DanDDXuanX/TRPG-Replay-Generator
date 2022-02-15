@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.4.3'
+edtion = 'alpha 1.5'
 
 # 外部参数输入
 
@@ -45,7 +45,6 @@ try:
         except:
             raise OSError("[31m[SystemError]:[0m Cannot make directory "+output_path)
     output_path = output_path.replace('\\','/')
-    print('The timeline and break_point file will be save at '+output_path)
 
     # FPS
     if frame_rate <= 0:
@@ -400,7 +399,6 @@ break_point = pd.read_pickle(stdin_log.replace('timeline','breakpoint'))
 def main():
     # 载入od文件
     global media_list
-
     print('[export XML]: Welcome to use exportXML for TRPG-replay-generator '+edtion)
     print('[export XML]: The output xml file and refered png files will be saved at "'+output_path+'"')
 

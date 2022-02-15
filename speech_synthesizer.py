@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.4.3'
+edtion = 'alpha 1.5'
 
 # 绝对的全局变量
 # 在开源发布的版本中，隐去了各个key
@@ -329,6 +329,10 @@ def main():
 
     # 仅category 3,或者成功合成的1，2去更新标记
     refresh = asterisk_line[(asterisk_line.category==3)|(asterisk_line.synth_status==True)].dropna().copy() #检定是否成功合成
+
+    if len(refresh.index) == 0: #如果未合成任何语音
+        print('[33m[warning]:[0m',' There is no vaild asterisk label to synthesis, execution terminated!')
+        sys.exit()
 
     # 读取音频时长
     for key,value in refresh.iterrows():
