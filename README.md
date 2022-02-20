@@ -1,5 +1,5 @@
 # 概述
-这是一基于python3 和pygame 的自动replay生成工具，旨在降低replay视频制作中的重复工作，节约时间提升效率。本工具包括主程序、语音合成、导出为PRXML等三个模块，使用简单处理后的log文件即可生成replay视频，并可导出可编辑的Premiere Pro序列，有较大的自定义空间。适合有一定编程基础和视频剪辑基础的用户使用。<br>
+这是一基于python3 和pygame 的自动replay生成工具，旨在降低replay视频制作中的重复工作，节约时间提升效率。本工具包括主程序、语音合成、导出为PRXML、导出为视频等四个模块，使用简单处理后的log文件即可生成replay视频，并可导出可编辑的Premiere Pro序列，有较大的自定义空间。适合有一定编程基础和视频剪辑基础的用户使用。<br>
 
 [演示视频](https://www.bilibili.com/video/BV1jY411h7S3/)
 
@@ -13,6 +13,11 @@
 
 **若要导出为Premiere Pro XML 文件，额外要求：**
 1. Pillow &gt;= 7.2.0
+
+**若要导出为 MP4 视频，额外要求：**
+1. ffmpeg
+2. pydub
+3. 下载[ffmpeg](https://ffmpeg.org/download.html)的可执行文件，并解压到本程序根目录。
 
 **若使用语音合成模块，额外要求：**
 1. 安装[阿里云智能语音服务Python SDK](https://github.com/aliyun/alibabacloud-nls-python-sdk)
@@ -29,9 +34,9 @@ pip install -r ./requirements.txt
 ```bash
 python ./replay_generator.py -l ./toy/LogFile.txt -d ./toy/MediaObject.txt -t ./toy/CharactorTable.csv
 ```
-4. 进入程序后，按空格键（SPACE）开始播放，播放的过程中，按A键跳转到前一小节，D键跳转到后一小节，ESC键终止播放并退出。
+4. 进入程序后，按空格键（SPACE）开始播放，播放的过程中，按A键跳转到前一小节，D键跳转到后一小节，按空格暂停播放，ESC键终止播放并退出。
 
-# 参考文档（文档版本 alpha 1.5）
+# 参考文档（文档版本 alpha 1.6.0）
 
 ## 主程序replay_generator.py参数
 
@@ -39,18 +44,21 @@ python ./replay_generator.py -l ./toy/LogFile.txt -d ./toy/MediaObject.txt -t ./
 2. **--MediaObjDefine, -d** ：媒体定义文件的路径，文件格式要求参考 *文件格式.媒体定义文件*；
 3. **--CharacterTable, -t** ：角色表文件的路径，格式为制表符分隔的数据表，包含至少Name、Subtype、Animation、Bubble4列；
 4. ***--OutputPath, -o*** ：可选的参数，输出文件的目录；如果输入了该标志，则项目的时间轴和断点文件将输出到指定点目录，格式为.pkl，是pandas.DataFrame 格式，可以在python中使用pd.read_pickle()函数读取；
+
 5. ***--FramePerSecond, -F*** ：可选的参数，播放的帧率，单位是fps；默认值是30fps；
 6. ***--Width, -W*** ：可选的参数，窗体的宽；默认值是1920；
 7. ***--Height, -H*** ：可选的参数，窗体的高；默认值是1080；
 8. ***--Zorder, -Z*** ：可选的参数，渲染的图层顺序；通常不建议修改这个参数，除非必要。格式要求详见 进阶使用.图层顺序。
+
 9. ***--ExportXML*** ：可选的标志，如果使用该标志，会输出一个能导入到PR的XML文件，以及其引用的一系列PNG图片到输出目录。
-10. ***--SynthesisAnyway*** ：可选的标志，如果使用该标志，会对log文件中尚未处理的星标行进行语音合成；一系列WAV音频到会输出到输出目录。
-11. ***--FixScreenZoom*** ：可选的参数，仅在windows系统上生效。使用该标志以消除由于windows系统缩放倍率，而导致的窗体尺寸异常。
+10. ***--ExportVideo*** ：可选的标志，如果使用该标志，会导出一个和窗口中播放的内容完全一致的MP4视频。使用该标志则会跳过窗口播放。
+11. ***--SynthesisAnyway*** ：可选的标志，如果使用该标志，会对log文件中尚未处理的星标行进行语音合成；一系列WAV音频到会输出到输出目录。
+12. ***--FixScreenZoom*** ：可选的参数，仅在windows系统上生效。使用该标志以消除由于windows系统缩放倍率，而导致的窗体尺寸异常。
 
 **主程序命令例子：**
 
 ```bash
-python replay_generator.py --LogFile LogFile.txt --MediaObjDefine MediaDefine.txt --CharacterTable CharactorTable.csv --FramePerSecond 30
+python replay_generator.py -l LogFile.txt -d MediaDefine.txt -t CharactorTable.csv -F 30 --ExportVideo
 ```
 
 ## 1. 媒体定义文件
@@ -253,6 +261,7 @@ set:后跟需要设置的全局变量名；
 	- asterisk_pause仅能通过*设置行*进行设置，会应用于之后所有的星标音频。
 7.	**BGM**：背景音乐
 	- 使用&lt;set:BGM&gt;: 设置背景音乐时，需要指定一个BGM对象，或一个.ogg音频文件的路径；
+	- "&lt;set:BGM&gt;:stop"可以手动终止背景音乐的播放。
 8.	**formula**：切换效果的曲线函数，初始值是：linear，即线性。
 	- 目前可用的formula包括linear（线性）、quadratic（二次）、quadraticR（二次反向）、sigmoid（S型）、left(左锋)和right(右峰)；
 	- formula可以接受lambda函数形式定义的自定义函数，自定义函数需要以 (begin,end,duration) 为参数；

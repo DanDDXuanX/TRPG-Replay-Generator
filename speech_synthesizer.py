@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.5'
+edtion = 'alpha 1.6.0'
 
 # 绝对的全局变量
 # 在开源发布的版本中，隐去了各个key
@@ -232,8 +232,8 @@ def synthesizer(key,asterisk):
         try:
             charactor_info['TTS'].start(asterisk['speech_text'],ofile) #执行合成
             #print(asterisk['speech_text'],ofile)
-        except:
-            print('[33m[warning]:[0m Synthesis failed in line '+'%d'%(key+1))
+        except Exception as E:
+            print('[33m[warning]:[0m Synthesis failed in line '+'%d'%(key+1),'due to:',E)
             return 'None',False
         return ofile,True
 
@@ -331,7 +331,7 @@ def main():
     refresh = asterisk_line[(asterisk_line.category==3)|(asterisk_line.synth_status==True)].dropna().copy() #检定是否成功合成
 
     if len(refresh.index) == 0: #如果未合成任何语音
-        print('[33m[warning]:[0m',' There is no vaild asterisk label to synthesis, execution terminated!')
+        print('[33m[warning]:[0m','There is no vaild asterisk label to synthesis, execution terminated!')
         sys.exit()
 
     # 读取音频时长

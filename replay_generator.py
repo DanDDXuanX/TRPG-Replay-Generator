@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.5'
+edtion = 'alpha 1.6.0'
 
 # 外部参数输入
 
@@ -22,6 +22,7 @@ ap.add_argument("-Z", "--Zorder", help='Set the display order of layers, not rec
                 default='BG3,BG2,BG1,Am3,Am2,Am1,Bb')
 
 ap.add_argument('--ExportXML',help='Export a xml file to load in Premiere Pro, some .png file will be created at same time.',action='store_true')
+ap.add_argument('--ExportVideo',help='Export MP4 video file, this will disables interface display',action='store_true')
 ap.add_argument('--SynthesisAnyway',help='Execute speech_synthezier first, and process all unprocessed asterisk time label.',action='store_true')
 ap.add_argument('--FixScreenZoom',help='Windows system only, use this flag to fix incorrect windows zoom.',action='store_true')
 
@@ -37,6 +38,7 @@ frame_rate = args.FramePerSecond #帧率 单位fps
 zorder = args.Zorder.split(',') #渲染图层顺序
 
 exportXML = args.ExportXML #导出为XML
+exportVideo = args.ExportVideo #导出为视频
 synthfirst = args.SynthesisAnyway #是否先行执行语音合成
 fixscreen = args.FixScreenZoom # 是否修复窗体缩放
 
@@ -501,6 +503,8 @@ def parser(stdin_text):
                     BGM_queue.append(args)
                 elif os.path.isfile(args[1:-1]):
                     BGM_queue.append(args)
+                elif args == 'stop':
+                    BGM_queue.append(args)
                 else:
                     raise IOError('[31m[ParserError]:[0m The BGM ['+args+'] specified in setting line ' + str(i+1)+' is not exist!')
             elif target == 'formula':
@@ -555,6 +559,9 @@ def render(this_frame):
     for key in ['BGM','Voice','SE']:
         if (this_frame[key]=='NA')|(this_frame[key]!=this_frame[key]): #如果是空的
             continue
+        elif this_frame[key] == 'stop': # a 1.6.0更新
+            pygame.mixer.music.stop() #停止
+            pygame.mixer.music.unload() #换碟
         elif (this_frame[key] not in media_list): #不是预先定义的媒体，则一定是合法的路径
             if key == 'BGM':
                 temp_BGM = BGM(filepath=this_frame[key][1:-1])
@@ -593,6 +600,16 @@ def timer(clock):
 def stop_SE():
     for Ch in channel_list.values():
         exec(Ch+'.stop()')
+
+def pause_SE(stats):
+    if stats == 0:
+        pygame.mixer.music.pause()
+        for Ch in channel_list.values():
+            exec(Ch+'.pause()')
+    else:
+        pygame.mixer.music.unpause()
+        for Ch in channel_list.values():
+            exec(Ch+'.unpause()')
 
 # Main():
 
@@ -652,7 +669,7 @@ except Exception as E:
     print(E)
     sys.exit()
 
-# 判断是否指定输出路径
+# 判断是否指定输出路径，准备各种输出选项
 if output_path != None:
     print('[replay generator] The timeline and breakpoint file will be save at '+output_path)
     timenow = '%d'%time.time()
@@ -668,6 +685,17 @@ if output_path != None:
             os.system(command)
         except Exception as E:
             print('[33m[warning]:[0m Failed to export XML, due to:',E)
+    if exportVideo == True:
+        command = python3 + ' ./export_video.py --TimeLine {tm} --MediaObjDefine {md} --OutputPath {of} --FramePerSecond {fps} --Width {wd} --Height {he} --Zorder {zd}'
+        command = command.format(tm = output_path+'/'+timenow+'.timeline',
+                                 md = media_obj.replace('\\','/'), of = output_path.replace('\\','/'), 
+                                 fps = frame_rate, wd = screen_size[0], he = screen_size[1], zd = ','.join(zorder))
+        print('[replay generator] Flag --ExportVideo detected, running command:\n','[32m'+command+'[0m')
+        try:
+            os.system(command)
+        except Exception as E:
+            print('[33m[warning]:[0m Failed to export Video, due to:',E)
+        sys.exit() # 如果导出为视频，则提前终止程序
 
 # 初始化界面
 
@@ -694,7 +722,8 @@ for media in media_list:
     try:
         exec(media+'.convert()')
     except Exception as E:
-        print('[31m[MediaError]:[0m Exception during converting',media_obj,':',E)
+        print('[31m[MediaError]:[0m Exception during converting',media,':',E)
+        sys.exit()
 
 # 预备画面
 W,H = screen_size
@@ -722,6 +751,7 @@ for s in np.arange(5,0,-1):
 
 # 主循环
 n=0
+forward = 1 #forward==0代表暂停
 while n < break_point.max():
     ct = time.time()
     try:
@@ -746,14 +776,21 @@ while n < break_point.max():
                     n=break_point[(break_point-n)>0].min()
                     stop_SE()
                     continue
+                elif event.key == pygame.K_SPACE: #暂停
+                    forward = 1 - forward # 1->0 0->1
+                    pause_SE(forward) # 0:pause,1:unpause
+
         if n in render_timeline.index:
             this_frame = render_timeline.loc[n]
             render(this_frame)
-            screen.blit(note_text.render('%d'%(1//(time.time()-ct)),fgcolor=(100,255,100,255),size=0.0278*H)[0],(10,10)) ##framerate
+            if forward == 1:
+                screen.blit(note_text.render('%d'%(1//(time.time()-ct)),fgcolor=(100,255,100,255),size=0.0278*H)[0],(10,10)) ##render rate 
+            else:
+                screen.blit(note_text.render('Press space to continue.',fgcolor=(100,255,100,255),size=0.0278*H)[0],(0.410*W,0.926*H)) # pause
         else:
-            pass
+            pass # 节约算力
         pygame.display.update()
-        n = n+1
+        n = n + forward #下一帧
         fps_clock.tick(frame_rate)
     except Exception as E:
         print(E)
