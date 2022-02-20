@@ -7,16 +7,16 @@
 
 **运行主程序replay_generator所必要的：**
 1. python &gt;= 3.8.3
-2. pygame &gt;= 2.0.1
-3. numpy &gt;= 1.18.5
-4. pandas &gt;= 1.0.5
+2. [pygame](https://github.com/pygame/pygame) &gt;= 2.0.1
+3. [numpy](https://github.com/numpy/numpy) &gt;= 1.18.5
+4. [pandas](https://github.com/pandas-dev/pandas) &gt;= 1.0.5
 
 **若要导出为Premiere Pro XML 文件，额外要求：**
-1. Pillow &gt;= 7.2.0
+1. [Pillow](https://github.com/python-pillow/Pillow) &gt;= 7.2.0
 
 **若要导出为 MP4 视频，额外要求：**
-1. ffmpeg
-2. pydub
+1. [ffmpeg-python](https://github.com/kkroening/ffmpeg-python) &gt;= 0.2.0
+2. [pydub](https://github.com/jiaaro/pydub) &gt;= 0.25.1
 3. 下载[ffmpeg](https://ffmpeg.org/download.html)的可执行文件，并解压到本程序根目录。
 
 **若使用语音合成模块，额外要求：**
