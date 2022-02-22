@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.6.1'
+edtion = 'alpha 1.6.2'
 
 # 外部参数输入
 
@@ -66,6 +66,7 @@ import numpy as np
 import pygame
 import ffmpeg
 import pydub
+import time
 
 # 文字对象
 class Text:
@@ -324,15 +325,16 @@ for media in media_list:
 # ffmpeg输出
 output_engine = (
     ffmpeg
-    .input('pipe:',format='rawvideo',r=frame_rate,pix_fmt='rgb24', s='{0}x{1}'.format(screen_size[0],screen_size[1])) # 视频来源
+    .input('pipe:',format='rawvideo',r=frame_rate,pix_fmt='rgb24', s='{0}x{1}'.format(screen_size[1],screen_size[0])) # 视频来源
     .output(ffmpeg.input(output_path+'/'+stdin_name+'.mp3').audio,
             output_path+'/'+stdin_name+'.mp4',
             pix_fmt='yuv420p',r=frame_rate,crf=24,
-            **{'loglevel':'quiet'}) # 输出
+            **{'loglevel':'quiet','vf':'transpose=0'}) # 输出
     .overwrite_output()
     .run_async(pipe_stdin=True)
 )
 
+begin_time = time.time()
 # 主循环
 n=0
 while n < break_point.max():
@@ -340,7 +342,7 @@ while n < break_point.max():
         if n in render_timeline.index:
             this_frame = render_timeline.loc[n]
             render(this_frame)
-            obyte = pygame.surfarray.array3d(screen).transpose(1,0,2).tobytes()
+            obyte = pygame.surfarray.array3d(screen).tobytes()
         else:
             pass # 节约算力
         output_engine.stdin.write(obyte) # 写入视频
@@ -362,6 +364,10 @@ while n < break_point.max():
 output_engine.stdin.close()
 pygame.quit()
 
+used_time = time.time()-begin_time
+
+print('[export Video]: Export time elapsed : '+time.strftime("%H:%M:%S", time.gmtime(used_time)))
+print('[export Video]: Mean frames rendered per second : '+'%.2f'%(break_point.max()/used_time)+' FPS')
 print('[export Video]: Encoding finished! Video path :',output_path+'/'+stdin_name+'.mp4')
 
 sys.exit()

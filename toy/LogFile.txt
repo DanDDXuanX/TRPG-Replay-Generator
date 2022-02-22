@@ -1,7 +1,7 @@
 # 综合演示
 <set:formula>:sigmoid
-<set:method_default>:<black=10>
-<set:text_method_default>:<w2w=1>
+<set:am_method_default>:<pass_up=20>
+<set:tx_method_default>:<w2w=1>
 
 <set:BGM>:BGM1
 <set:speech_speed>:500
@@ -15,10 +15,10 @@
 
 <background><cover=60>:bg2
 <set:speech_speed>:250
-<set:method_default>:<replace=0>
-<set:text_method_default>:<all=0>
-<set:method_dur_default>:10
-<set:text_dur_default>:7
+<set:am_method_default>:<replace=0>
+<set:tx_method_default>:<all=0>
+<set:am_dur_default>:10
+<set:tx_dur_default>:7
 
 <set:BGM>:stop
 
