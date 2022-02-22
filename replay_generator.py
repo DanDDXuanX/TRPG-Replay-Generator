@@ -585,8 +585,12 @@ def get_l2l(ts,text_dur,this_duration): #如果是手动换行的列
         len_this = len_this +len(l)+1 #当前行的长度
         #print(len_this,len(l),x,ts[0:len_this])
         wc_list.append(np.ones(text_dur*len(l))*len_this)
-    wc_list.append(np.ones(this_duration - (len(ts)-x)*text_dur)*len(ts))
-    word_count_timeline = np.hstack(wc_list)
+    try:
+        wc_list.append(np.ones(this_duration - (len(ts)-x)*text_dur)*len(ts)) #this_duration > est
+        word_count_timeline = np.hstack(wc_list)
+    except: 
+        word_count_timeline = np.hstack(wc_list) # this_duration < est
+        word_count_timeline = word_count_timeline[0:this_duration]
     return word_count_timeline.astype(int)
 
 # 倒计时器
