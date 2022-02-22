@@ -470,7 +470,7 @@ def main():
                            'tracks_vedio':'\n'.join(video_tracks),
                            'tracks_audio':'\n'.join(audio_tracks)})
 
-    ofile = open(output_path+'/'+stdin_name+'.xml','w')
+    ofile = open(output_path+'/'+stdin_name+'.xml','w',encoding='utf-8')
     ofile.write(main_output)
     ofile.close()
     print('[export XML]: Done!')

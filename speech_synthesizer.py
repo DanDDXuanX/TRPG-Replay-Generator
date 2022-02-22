@@ -312,6 +312,8 @@ def main():
         print(E)
         sys.exit()
 
+    asterisk_line['synth_status'] = False #v1.6.1 初始值，以免生成refresh的时候报错！
+
     # 开始合成
     print('[speech synthesizer]: Begin to speech synthesis!')
     for key,value in asterisk_line.iterrows():
