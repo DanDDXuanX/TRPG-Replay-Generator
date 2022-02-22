@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.6.0'
+edtion = 'alpha 1.6.1'
 
 # 外部参数输入
 
@@ -102,7 +102,12 @@ class Bubble:
         self.Header = Header_Text
         self.ht_pos = ht_pos
         self.line_distance = line_distance
-    def display(self,surface,text,header='',alpha=100):
+    def display(self,surface,text,header='',alpha=100,adjust='NA'):
+        if adjust in ['0,0','NA']:
+            render_pos = self.pos
+        else:
+            adx,ady = split_xy(adjust)
+            render_pos = (self.pos[0]+adx,self.pos[1]+ady)
         temp = self.media.copy()
         if (self.Header!=None) & (header!=''):    # Header 有定义，且输入文本不为空
             temp.blit(self.Header.draw(header)[0],self.ht_pos)
@@ -111,7 +116,7 @@ class Bubble:
             temp.blit(s,(x,y+i*self.MainText.size*self.line_distance))
         if alpha !=100:
             temp.set_alpha(alpha/100*255)            
-        surface.blit(temp,self.pos)
+        surface.blit(temp,render_pos)
     def convert(self):
         self.media = self.media.convert_alpha()
 
@@ -124,13 +129,18 @@ class Background:
         else:
             self.media = pygame.image.load(filepath)
         self.pos = pos
-    def display(self,surface,alpha=100):
+    def display(self,surface,alpha=100,adjust='NA'):
+        if adjust in ['0,0','NA']:
+            render_pos = self.pos
+        else:
+            adx,ady = split_xy(adjust)
+            render_pos = (self.pos[0]+adx,self.pos[1]+ady)
         if alpha !=100:
             temp = self.media.copy()
             temp.set_alpha(alpha/100*255)
-            surface.blit(temp,self.pos)
+            surface.blit(temp,render_pos)
         else:
-            surface.blit(self.media,self.pos)
+            surface.blit(self.media,render_pos)
     def convert(self):
         self.media = self.media.convert_alpha()
 
@@ -139,13 +149,18 @@ class Animation:
     def __init__(self,filepath,pos = (0,0)):
         self.media = pygame.image.load(filepath)
         self.pos = pos
-    def display(self,surface,alpha=100):
+    def display(self,surface,alpha=100,adjust='NA'):
+        if adjust in ['0,0','NA']:
+            render_pos = self.pos
+        else:
+            adx,ady = split_xy(adjust)
+            render_pos = (self.pos[0]+adx,self.pos[1]+ady)
         if alpha !=100:
             temp = self.media.copy()
             temp.set_alpha(alpha/100*255)
-            surface.blit(temp,self.pos)
+            surface.blit(temp,render_pos)
         else:
-            surface.blit(self.media,self.pos)
+            surface.blit(self.media,render_pos)
     def convert(self):
         self.media = self.media.convert_alpha()
 
@@ -190,6 +205,10 @@ def parse_timeline(layer):
         clips.append((item,begin,end))
     return clips #返回一个clip的列表
 
+def split_xy(concated):
+    x,y = concated.split(',')
+    return int(x),int(y)
+
 def render(this_frame):
     global zorder,media_list
     for layer in zorder:
@@ -202,12 +221,13 @@ def render(this_frame):
             raise RuntimeError('[31m[RenderError]:[0m Undefined media object : ['+this_frame[layer]+'].')
             continue
         elif layer != 'Bb':
-            exec('{0}.display(surface=screen,alpha={1})'.format(this_frame[layer],this_frame[layer+'_a']))
+            exec('{0}.display(surface=screen,alpha={1},adjust={2})'.format(this_frame[layer],this_frame[layer+'_a'],'\"'+this_frame[layer+'_p']+'\"'))
         else:
-            exec('{0}.display(surface=screen,text={2},header={3},alpha={1})'.format(this_frame[layer],
-                                                                                    this_frame[layer+'_a'],
-                                                                                    '\"'+this_frame[layer+'_main']+'\"',
-                                                                                    '\"'+this_frame[layer+'_header']+'\"'))
+            exec('{0}.display(surface=screen,text={2},header={3},alpha={1},adjust={4})'.format(this_frame[layer],
+                                                                                               this_frame[layer+'_a'],
+                                                                                               '\"'+this_frame[layer+'_main']+'\"',
+                                                                                               '\"'+this_frame[layer+'_header']+'\"',
+                                                                                               '\"'+this_frame[layer+'_p']+'\"'))
     return 1
 
 

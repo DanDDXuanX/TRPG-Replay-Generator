@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.6.0'
+edtion = 'alpha 1.6.1'
 
 # 外部参数输入
 
@@ -117,7 +117,12 @@ class Bubble:
         self.Header = Header_Text
         self.ht_pos = ht_pos
         self.line_distance = line_distance
-    def display(self,surface,text,header='',alpha=100):
+    def display(self,surface,text,header='',alpha=100,adjust='NA'):
+        if adjust in ['0,0','NA']:
+            render_pos = self.pos
+        else:
+            adx,ady = split_xy(adjust)
+            render_pos = (self.pos[0]+adx,self.pos[1]+ady)
         temp = self.media.copy()
         if (self.Header!=None) & (header!=''):    # Header 有定义，且输入文本不为空
             temp.blit(self.Header.draw(header)[0],self.ht_pos)
@@ -126,7 +131,7 @@ class Bubble:
             temp.blit(s,(x,y+i*self.MainText.size*self.line_distance))
         if alpha !=100:
             temp.set_alpha(alpha/100*255)            
-        surface.blit(temp,self.pos)
+        surface.blit(temp,render_pos)
     def convert(self):
         self.media = self.media.convert_alpha()
 
@@ -139,13 +144,18 @@ class Background:
         else:
             self.media = pygame.image.load(filepath)
         self.pos = pos
-    def display(self,surface,alpha=100):
+    def display(self,surface,alpha=100,adjust='NA'):
+        if adjust in ['0,0','NA']:
+            render_pos = self.pos
+        else:
+            adx,ady = split_xy(adjust)
+            render_pos = (self.pos[0]+adx,self.pos[1]+ady)
         if alpha !=100:
             temp = self.media.copy()
             temp.set_alpha(alpha/100*255)
-            surface.blit(temp,self.pos)
+            surface.blit(temp,render_pos)
         else:
-            surface.blit(self.media,self.pos)
+            surface.blit(self.media,render_pos)
     def convert(self):
         self.media = self.media.convert_alpha()
 
@@ -154,13 +164,18 @@ class Animation:
     def __init__(self,filepath,pos = (0,0)):
         self.media = pygame.image.load(filepath)
         self.pos = pos
-    def display(self,surface,alpha=100):
+    def display(self,surface,alpha=100,adjust='NA'):
+        if adjust in ['0,0','NA']:
+            render_pos = self.pos
+        else:
+            adx,ady = split_xy(adjust)
+            render_pos = (self.pos[0]+adx,self.pos[1]+ady)
         if alpha !=100:
             temp = self.media.copy()
             temp.set_alpha(alpha/100*255)
-            surface.blit(temp,self.pos)
+            surface.blit(temp,render_pos)
         else:
-            surface.blit(self.media,self.pos)
+            surface.blit(self.media,render_pos)
     def convert(self):
         self.media = self.media.convert_alpha()
 
@@ -215,7 +230,10 @@ python3 = sys.executable.replace('\\','/') # 获取python解释器的路径
 
 cmap = {'black':(0,0,0,255),'white':(255,255,255,255),'greenscreen':(0,177,64,255)}
 #render_arg = ['BG1','BG1_a','BG2','BG2_a','BG3','BG3_a','Am1','Am1_a','Am2','Am2_a','Am3','Am3_a','Bb','Bb_main','Bb_header','Bb_a']
-render_arg = ['BG1','BG1_a','BG2','BG2_a','BG3','BG3_a','Am1','Am1_a','Am2','Am2_a','Am3','Am3_a','Bb','Bb_main','Bb_header','Bb_a','BGM','Voice','SE']
+#render_arg = ['BG1','BG1_a','BG2','BG2_a','BG3','BG3_a','Am1','Am1_a','Am2','Am2_a','Am3','Am3_a','Bb','Bb_main','Bb_header','Bb_a','BGM','Voice','SE']
+render_arg = ['BG1','BG1_a','BG1_p','BG2','BG2_a','BG2_p','BG3','BG3_a','BG3_p',
+              'Am1','Am1_a','Am1_p','Am2','Am2_a','Am2_p','Am3','Am3_a','Am3_p',
+              'Bb','Bb_main','Bb_header','Bb_a','Bb_p','BGM','Voice','SE']
 
 # 数学函数定义 formula
 
@@ -245,11 +263,16 @@ formula_available={'linear':linear,'quadratic':quadratic,'quadraticR':quadraticR
 
 # 可以<set:keyword>动态调整的全局变量
 
+am_method_default = '<replace=0>' #默认切换效果（文本框和立绘）
+am_dur_default = 10 #默认切换效果持续时间（文本框和立绘）
+
+bg_method_default = '<replace=0>' #默认切换效果（背景）
+bg_dur_default = 10 #默认切换效果持续时间（背景）
+
+tx_method_default = '<all=0>' #默认文本展示方式
+tx_dur_default = 5 #默认单字展示时间参数
+
 speech_speed = 220 #语速，单位word per minute
-method_default = '<replace=0>' #默认切换效果
-method_dur_default = 10 #默认切换效果持续时间
-text_method_default = '<all=0>' #默认文本展示方式
-text_dur_default = 8 #默认单字展示时间参数
 formula = linear #默认的曲线函数
 asterisk_pause = 20 # 星标音频的句间间隔 a1.4.3，单位是帧，通过处理delay
 
@@ -262,18 +285,18 @@ def get_dialogue_arg(text):
     this_charactor = RE_characor.findall(cr)
     # 切换参数
     if cre=='':
-        cre = method_default
+        cre = am_method_default
     method,method_dur = RE_modify.findall(cre)[0] #<black=\d+> 
     if method_dur == '':
-        method_dur = method_dur_default
+        method_dur = am_dur_default
     else:
         method_dur = int(method_dur.replace('=',''))
     # 文本显示参数
     if tse=='':
-        tse = text_method_default
+        tse = tx_method_default
     text_method,text_dur = RE_modify.findall(tse)[0] #<black=\d+> 
     if text_dur == '':
-        text_dur = text_dur_default
+        text_dur = tx_dur_default
     else:
         text_dur = int(text_dur.replace('=',''))
     # 语音和音效参数
@@ -288,10 +311,10 @@ def get_dialogue_arg(text):
 def get_background_arg(text):
     bge,bgc = RE_background.findall(text)[0]
     if bge=='':
-        bge = method_default
+        bge = bg_method_default
     method,method_dur = RE_modify.findall(bge)[0]
     if method_dur == '':
-        method_dur = method_dur_default
+        method_dur = bg_dur_default
     else:
         method_dur = int(method_dur.replace('=',''))
     return (bgc,method,method_dur)
@@ -314,6 +337,32 @@ def alpha_range(x):
         return 0
     else:
         return x
+
+# UF : 将2个向量组合成"x,y"的形式
+concat_xy = np.frompyfunc(lambda x,y:'%d'%x+','+'%d'%y,2,1)
+
+# 把拼接起来的修正位置分隔开
+def split_xy(concated):
+    x,y = concated.split(',')
+    return int(x),int(y)
+
+def am_methods(method_name,method_dur,this_duration):
+    Height = screen_size[1]
+    if method_name =='replace': # replace 方法的method_dur 代表显示延迟，单位为帧
+        alpha_timeline = np.hstack([np.zeros(method_dur),np.ones(this_duration-method_dur)])
+        pos_timeline = 'NA'
+    elif method_name == 'black': #淡入淡出
+        alpha_timeline = np.hstack([formula(0,1,method_dur),np.ones(this_duration-2*method_dur),formula(1,0,method_dur)])
+        pos_timeline = 'NA'
+    elif method_name == 'pass_up': #下进上出
+        alpha_timeline = np.hstack([formula(0,1,method_dur),np.ones(this_duration-2*method_dur),formula(1,0,method_dur)])
+        pos_timeline = concat_xy(np.zeros(this_duration),np.hstack([formula(Height*0.2,0,method_dur),np.zeros(this_duration-2*method_dur),formula(0,-Height*0.2,method_dur)]))
+    elif method_name == 'pass_down': #上进下出
+        alpha_timeline = np.hstack([formula(0,1,method_dur),np.ones(this_duration-2*method_dur),formula(1,0,method_dur)])
+        pos_timeline = concat_xy(np.zeros(this_duration),np.hstack([formula(Height*0.2,0,method_dur),np.zeros(this_duration-2*method_dur),formula(0,-Height*0.2,method_dur)]))
+    else:
+        raise ValueError('[31m[ParserError]:[0m Unrecognized switch method: ['+text_method+'] appeared in dialogue line ' + str(i+1)+'.')
+    return alpha_timeline,pos_timeline
 
 # 解析函数
 def parser(stdin_text):
@@ -363,15 +412,9 @@ def parser(stdin_text):
             this_timeline=pd.DataFrame(index=range(0,this_duration),dtype=str,columns=render_arg)
             this_timeline['BG1'] = this_background
             this_timeline['BG1_a'] = 100
-            #不同method对应的透明度时间轴
-            if method=='replace': # replace 方法的method_dur 代表显示延迟，单位为帧
-                alpha_timeline = np.hstack([np.zeros(method_dur),np.ones(this_duration-method_dur)])
-            elif method in ['black']:
-                alpha_timeline = np.hstack([formula(0,1,method_dur),
-                                            np.ones(this_duration-2*method_dur),
-                                            formula(1,0,method_dur)])
-            else:
-                raise ValueError('[31m[ParserError]:[0m Unrecognized switch method: ['+text_method+'] appeared in dialogue line ' + str(i+1)+'.')
+
+            alpha_timeline,pos_timeline = am_methods(method,method_dur,this_duration) # 未来的版本中可能会被对象的binding_method 替代掉！
+
             #各个角色：
             if len(this_charactor) > 3:
                 raise ValueError('[31m[ParserError]:[0m Too much charactor is specified in dialogue line ' + str(i+1)+'.')
@@ -394,11 +437,14 @@ def parser(stdin_text):
                     this_timeline['Bb_main'] = ts
                     this_timeline['Bb_header'] = name
                     this_timeline['Bb_a'] = alpha_timeline*100
+                    this_timeline['Bb_p'] = pos_timeline
 
                 if (k!=0)&(alpha==100):#如果非第一角色，且没有指定透明度，则使用正常透明度60%
                     this_timeline['Am'+str(k+1)+'_a']=alpha_timeline*60
                 else:#否则，使用正常透明度
                     this_timeline['Am'+str(k+1)+'_a']=alpha_timeline*alpha
+                # 位置时间轴信息
+                this_timeline['Am'+str(k+1)+'_p'] = pos_timeline
 
             #文字显示的参数
             if text_method == 'all':
@@ -487,7 +533,7 @@ def parser(stdin_text):
             except:
                 raise ValueError('[31m[ParserError]:[0m Parse exception occurred in setting line ' + str(i+1)+'.')
                 continue
-            if target in ['speech_speed','method_default','method_dur_default','text_method_default','text_dur_default','asterisk_pause']:
+            if target in ['speech_speed','am_method_default','am_dur_default','bg_method_default','bg_dur_default','tx_method_default','tx_dur_default','asterisk_pause']:
                 try: #如果args是整数值型
                     test = int(args)
                     if test < 0:
@@ -550,12 +596,13 @@ def render(this_frame):
             raise RuntimeError('[31m[RenderError]:[0m Undefined media object : ['+this_frame[layer]+'].')
             continue
         elif layer != 'Bb':
-            exec('{0}.display(surface=screen,alpha={1})'.format(this_frame[layer],this_frame[layer+'_a']))
+            exec('{0}.display(surface=screen,alpha={1},adjust={2})'.format(this_frame[layer],this_frame[layer+'_a'],'\"'+this_frame[layer+'_p']+'\"'))
         else:
-            exec('{0}.display(surface=screen,text={2},header={3},alpha={1})'.format(this_frame[layer],
-                                                                                    this_frame[layer+'_a'],
-                                                                                    '\"'+this_frame[layer+'_main']+'\"',
-                                                                                    '\"'+this_frame[layer+'_header']+'\"'))
+            exec('{0}.display(surface=screen,text={2},header={3},alpha={1},adjust={4})'.format(this_frame[layer],
+                                                                                               this_frame[layer+'_a'],
+                                                                                               '\"'+this_frame[layer+'_main']+'\"',
+                                                                                               '\"'+this_frame[layer+'_header']+'\"',
+                                                                                               '\"'+this_frame[layer+'_p']+'\"'))
     for key in ['BGM','Voice','SE']:
         if (this_frame[key]=='NA')|(this_frame[key]!=this_frame[key]): #如果是空的
             continue
@@ -585,8 +632,12 @@ def get_l2l(ts,text_dur,this_duration): #如果是手动换行的列
         len_this = len_this +len(l)+1 #当前行的长度
         #print(len_this,len(l),x,ts[0:len_this])
         wc_list.append(np.ones(text_dur*len(l))*len_this)
-    wc_list.append(np.ones(this_duration - (len(ts)-x)*text_dur)*len(ts))
-    word_count_timeline = np.hstack(wc_list)
+    try:
+        wc_list.append(np.ones(this_duration - (len(ts)-x)*text_dur)*len(ts)) #this_duration > est # 1.6.1 update
+        word_count_timeline = np.hstack(wc_list)
+    except: 
+        word_count_timeline = np.hstack(wc_list) # this_duration < est
+        word_count_timeline = word_count_timeline[0:this_duration]
     return word_count_timeline.astype(int)
 
 # 倒计时器
