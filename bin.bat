@@ -1,0 +1,1 @@
+python ./replay_generator.py -l ./test_output/alpha163_test.txt -d ./toy/MediaObject.txt -t ./toy/CharactorTable.csv

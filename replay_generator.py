@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.6.2'
+edtion = 'alpha 1.6.3'
 
 # 外部参数输入
 
@@ -238,7 +238,10 @@ render_arg = ['BG1','BG1_a','BG1_p','BG2','BG2_a','BG2_p','BG3','BG3_a','BG3_p',
 # 数学函数定义 formula
 
 def normalized(X):
-    return (X-X.min())/(X.max()-X.min())
+    if len(X)>=2:
+        return (X-X.min())/(X.max()-X.min())
+    else:
+        return X/X # 兼容 持续时间被设置为0，1等极限情况
 
 def linear(begin,end,dur):
     return np.linspace(begin,end,int(dur))
@@ -346,22 +349,86 @@ def split_xy(concated):
     x,y = concated.split(',')
     return int(x),int(y)
 
-def am_methods(method_name,method_dur,this_duration):
+def am_methods(method_name,method_dur,this_duration,i):
+    if method_dur == 0:
+        return np.ones(this_duration),'NA'
     Height = screen_size[1]
-    if method_name =='replace': # replace 方法的method_dur 代表显示延迟，单位为帧
-        alpha_timeline = np.hstack([np.zeros(method_dur),np.ones(this_duration-method_dur)])
-        pos_timeline = 'NA'
-    elif method_name == 'black': #淡入淡出
-        alpha_timeline = np.hstack([formula(0,1,method_dur),np.ones(this_duration-2*method_dur),formula(1,0,method_dur)])
-        pos_timeline = 'NA'
-    elif method_name == 'pass_up': #下进上出
-        alpha_timeline = np.hstack([formula(0,1,method_dur),np.ones(this_duration-2*method_dur),formula(1,0,method_dur)])
-        pos_timeline = concat_xy(np.zeros(this_duration),np.hstack([formula(Height*0.2,0,method_dur),np.zeros(this_duration-2*method_dur),formula(0,-Height*0.2,method_dur)]))
-    elif method_name == 'pass_down': #上进下出
-        alpha_timeline = np.hstack([formula(0,1,method_dur),np.ones(this_duration-2*method_dur),formula(1,0,method_dur)])
-        pos_timeline = concat_xy(np.zeros(this_duration),np.hstack([formula(Height*0.2,0,method_dur),np.zeros(this_duration-2*method_dur),formula(0,-Height*0.2,method_dur)]))
+    Width = screen_size[0]
+    method_keys = method_name.split('_')
+    method_args = {'alpha':'replace','motion':'static','direction':'up','scale':'major'} #default
+    scale_dic = {'major':0.3,'minor':0.12,'entire':1.0}
+    direction_dic = {'up':0,'down':180,'left':90,'right':270} # up = 0 剩下的逆时针
+    # parse method name
+    for key in method_keys:
+        if key in ['black','replace','delay']:
+            method_args['alpha'] = key
+        elif key in ['pass','leap','static','circular']:
+            method_args['motion'] = key
+        elif key in ['up','down','left','right']:
+            method_args['direction'] = key
+        elif key in ['major','minor','entire']:
+            method_args['scale'] = key
+        elif 'DG' == key[0:2]:
+            try:
+                method_args['direction'] = float(key[2:])
+            except:
+                raise ValueError('[31m[ParserError]:[0m Unrecognized switch method: ['+method_name+'] appeared in dialogue line ' + str(i+1)+'.')
+        else:
+            try:
+                method_args['scale'] = int(key)
+            except:
+                raise ValueError('[31m[ParserError]:[0m Unrecognized switch method: ['+method_name+'] appeared in dialogue line ' + str(i+1)+'.')
+    # alpha
+    if method_args['alpha'] == 'replace':
+        alpha_timeline = np.hstack(np.ones(this_duration)) # replace的延后功能撤销！
+    elif method_args['alpha'] == 'delay':
+        alpha_timeline = np.hstack([np.zeros(method_dur),np.ones(this_duration-method_dur)]) # 延后功能
     else:
-        raise ValueError('[31m[ParserError]:[0m Unrecognized switch method: ['+text_method+'] appeared in dialogue line ' + str(i+1)+'.')
+        alpha_timeline = np.hstack([formula(0,1,method_dur),np.ones(this_duration-2*method_dur),formula(1,0,method_dur)])
+
+    # static 的提前终止
+    if method_args['motion'] == 'static':
+        pos_timeline = 'NA'
+        return alpha_timeline,pos_timeline
+    
+    # direction
+    try:
+        theta = np.deg2rad(direction_dic[method_args['direction']])
+    except: # 设定为角度
+        theta = np.deg2rad(method_args['direction'])
+    # scale
+    if method_args['scale'] in ['major','minor','entire']: #上下绑定屏幕高度，左右绑定屏幕宽度*scale_dic[method_args['scale']]
+        method_args['scale'] = ((np.cos(theta)*Height)**2+(np.sin(theta)*Width)**2)**(1/2)*scale_dic[method_args['scale']]
+    else: # 指定了scale
+        pass
+    # motion
+    if method_args['motion'] == 'pass':
+        D1 = np.hstack([formula(method_args['scale']*np.sin(theta),0,method_dur),
+                        np.zeros(this_duration-2*method_dur),
+                        formula(0,-method_args['scale']*np.sin(theta),method_dur)])
+        D2 = np.hstack([formula(method_args['scale']*np.cos(theta),0,method_dur),
+                        np.zeros(this_duration-2*method_dur),
+                        formula(0,-method_args['scale']*np.cos(theta),method_dur)])
+    elif method_args['motion'] == 'leap':
+        D1 = np.hstack([formula(method_args['scale']*np.sin(theta),0,method_dur),
+                        np.zeros(this_duration-2*method_dur),
+                        formula(0,method_args['scale']*np.sin(theta),method_dur)])
+        D2 = np.hstack([formula(method_args['scale']*np.cos(theta),0,method_dur),
+                        np.zeros(this_duration-2*method_dur),
+                        formula(0,method_args['scale']*np.cos(theta),method_dur)])
+    # 实验性质的功能，想必不可能真的有人用这么鬼畜的效果吧
+    elif method_args['motion'] == 'circular': 
+        theta_timeline = (
+            np
+            .repeat(formula(0-theta,2*np.pi-theta,method_dur),np.ceil(this_duration/method_dur).astype(int))
+            .reshape(method_dur,np.ceil(this_duration/method_dur).astype(int))
+            .transpose().ravel())[0:this_duration]
+        D1 = np.sin(theta_timeline)*method_args['scale']
+        D2 = -np.cos(theta_timeline)*method_args['scale']
+    else:
+        pos_timeline = 'NA'
+        return alpha_timeline,pos_timeline
+    pos_timeline = concat_xy(D1,D2)
     return alpha_timeline,pos_timeline
 
 # 解析函数
@@ -413,7 +480,7 @@ def parser(stdin_text):
             this_timeline['BG1'] = this_background
             this_timeline['BG1_a'] = 100
 
-            alpha_timeline,pos_timeline = am_methods(method,method_dur,this_duration) # 未来的版本中可能会被对象的binding_method 替代掉！
+            alpha_timeline,pos_timeline = am_methods(method,method_dur,this_duration,i) # 未来的版本中可能会被对象的binding_method 替代掉！
 
             #各个角色：
             if len(this_charactor) > 3:
@@ -501,12 +568,15 @@ def parser(stdin_text):
             except:
                 raise ValueError('[31m[ParserError]:[0m Parse exception occurred in background line ' + str(i+1)+'.')
                 continue
-    
-            if method=='replace': #replace 方法的method_dur 代表延迟切换（总持续时间），单位为帧
+            if method=='replace': #replace 改为立刻替换 并持续n秒
+                this_timeline=pd.DataFrame(index=range(0,method_dur),dtype=str,columns=render_arg)
+                this_timeline['BG1']=next_background
+                this_timeline['BG1_a']=100
+            elif method=='delay': # delay 等价于原来的replace，延后n秒，然后替换
                 this_timeline=pd.DataFrame(index=range(0,method_dur),dtype=str,columns=render_arg)
                 this_timeline['BG1']=this_background
                 this_timeline['BG1_a']=100
-            elif method in ['cover','black','white']:
+            elif method in ['cross','black','white','push','cover']: # 交叉溶解，黑场，白场，推，覆盖
                 this_timeline=pd.DataFrame(index=range(0,method_dur),dtype=str,columns=render_arg)
                 this_timeline['BG1']=next_background
                 this_timeline['BG2']=this_background
@@ -517,11 +587,20 @@ def parser(stdin_text):
                     this_timeline['BG2_a']=formula(100,-100,method_dur)
                     this_timeline['BG2_a']=this_timeline['BG2_a'].map(alpha_range)
                     this_timeline['BG3_a']=100
-                if method in ['cover']:
+                elif method == 'cross':
                     this_timeline['BG1_a']=formula(0,100,method_dur)
                     this_timeline['BG2_a']=100
+                elif method in ['push','cover']:
+                    this_timeline['BG1_a']=100
+                    this_timeline['BG2_a']=100
+                    if method == 'push': # 新背景从右侧把旧背景推出去
+                        this_timeline['BG1_p'] = concat_xy(formula(screen_size[0],0,method_dur),np.zeros(method_dur))
+                        this_timeline['BG2_p'] = concat_xy(formula(0,-screen_size[0],method_dur),np.zeros(method_dur))
+                    else: #cover 新背景从右侧进来叠在原图上面
+                        this_timeline['BG1_p'] = concat_xy(formula(screen_size[0],0,method_dur),np.zeros(method_dur))
+                        this_timeline['BG2_p'] = 'NA'
             else:
-                raise ValueError('[31m[ParserError]:[0m Unrecognized switch method: ['+text_method+'] appeared in background line ' + str(i+1)+'.')
+                raise ValueError('[31m[ParserError]:[0m Unrecognized switch method: ['+method+'] appeared in background line ' + str(i+1)+'.')
             this_background = next_background #正式切换背景
             render_timeline.append(this_timeline)
             break_point[i+1]=break_point[i]+len(this_timeline.index)
