@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.6.2'
+edtion = 'alpha 1.6.4'
 
 # 外部参数输入
 
@@ -68,6 +68,7 @@ from PIL import Image,ImageFont,ImageDraw
 import re
 import time #开发模式，显示渲染帧率
 from pygame import mixer
+import glob # 匹配路径
 
 # 文字对象
 
@@ -215,11 +216,11 @@ class Background:
 
 # 立绘图片
 class Animation:
-    def __init__(self,filepath,pos = (0,0)):
+    def __init__(self,filepath,pos = (0,0),tick=1,loop=True):
         global file_index 
-        self.path = reformat_path(filepath)
+        self.path = reformat_path(glob.glob(filepath)[0]) # 兼容动画Animation，只使用第一帧！
         self.pos = pos
-        self.size = Image.open(filepath).size
+        self.size = Image.open(glob.glob(filepath)[0].replace('\\','/')).size # 兼容动画
         self.filename = self.path.split('/')[-1]
         self.fileindex = 'BGfile_%d'% file_index
         self.PRpos = PR_center_arg(np.array(self.size),np.array(self.pos))
@@ -304,7 +305,7 @@ def reformat_path(path):#only use for windows path format
     if path[0] == '/': #unix正斜杠，报错
         raise ValueError('invalid path type')
     if '\\' in path: #是不是反斜杠？
-        path.replace('\\','/') 
+        path = path.replace('\\','/') 
     if path[0] == '.':#是不是./123/型
         path = cwd + path[1:]
     if path[0:2] not in ['C:','D:','E:','F:','G:','H:']: #是不是123/型

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.6.3'
+edtion = 'alpha 1.6.4'
 
 # 外部参数输入
 
@@ -79,6 +79,7 @@ import pygame
 import pygame.freetype
 import re
 import time #开发模式，显示渲染帧率
+import glob # 匹配路径
 
 # 类定义
 
@@ -160,24 +161,58 @@ class Background:
         self.media = self.media.convert_alpha()
 
 # 立绘图片
+#class Animation:
+#    def __init__(self,filepath,pos = (0,0)):
+#        self.media = pygame.image.load(filepath)
+#        self.pos = pos
+#    def display(self,surface,alpha=100,adjust='NA'):
+#        if adjust in ['0,0','NA']:
+#            render_pos = self.pos
+#        else:
+#            adx,ady = split_xy(adjust)
+#            render_pos = (self.pos[0]+adx,self.pos[1]+ady)
+#        if alpha !=100:
+#            temp = self.media.copy()
+#            temp.set_alpha(alpha/100*255)
+#            surface.blit(temp,render_pos)
+#        else:
+#            surface.blit(self.media,render_pos)
+#    def convert(self):
+#        self.media = self.media.convert_alpha()
+
+# 这个是真的动画了，用法和旧版的amination是一样的！
 class Animation:
-    def __init__(self,filepath,pos = (0,0)):
-        self.media = pygame.image.load(filepath)
+    def __init__(self,filepath,pos = (0,0),tick=1,loop=True):
+        file_list = np.frompyfunc(lambda x:x.replace('\\','/'),1,1)(glob.glob(filepath))
+        self.length = len(file_list)
+        if self.length == 0:
+            raise IOError('[31m[IOError]:[0m','Cannot find file match',filepath)
+        self.media = np.frompyfunc(pygame.image.load,1,1)(file_list)
         self.pos = pos
-    def display(self,surface,alpha=100,adjust='NA'):
+        self.loop = loop
+        self.this = 0
+        self.tick = tick
+    def display(self,surface,alpha=100,adjust='NA',frame=0):
+        self.this = frame
         if adjust in ['0,0','NA']:
             render_pos = self.pos
         else:
             adx,ady = split_xy(adjust)
             render_pos = (self.pos[0]+adx,self.pos[1]+ady)
         if alpha !=100:
-            temp = self.media.copy()
+            temp = self.media[int(self.this)].copy()
             temp.set_alpha(alpha/100*255)
             surface.blit(temp,render_pos)
         else:
-            surface.blit(self.media,render_pos)
+            surface.blit(self.media[int(self.this)],render_pos)
+        #self.this = self.this + 1/self.tick
+        #if self.this >= self.length - 1: # 在timeline 简并 之后会出现bug！
+        #    if self.loop == True:
+        #        self.this = 0
+        #    else:
+        #        self.this = self.length - 1
     def convert(self):
-        self.media = self.media.convert_alpha()
+        self.media = np.frompyfunc(lambda x:x.convert_alpha(),1,1)(self.media)
 
 # 音效
 class Audio:
@@ -232,8 +267,9 @@ cmap = {'black':(0,0,0,255),'white':(255,255,255,255),'greenscreen':(0,177,64,25
 #render_arg = ['BG1','BG1_a','BG2','BG2_a','BG3','BG3_a','Am1','Am1_a','Am2','Am2_a','Am3','Am3_a','Bb','Bb_main','Bb_header','Bb_a']
 #render_arg = ['BG1','BG1_a','BG2','BG2_a','BG3','BG3_a','Am1','Am1_a','Am2','Am2_a','Am3','Am3_a','Bb','Bb_main','Bb_header','Bb_a','BGM','Voice','SE']
 render_arg = ['BG1','BG1_a','BG1_p','BG2','BG2_a','BG2_p','BG3','BG3_a','BG3_p',
-              'Am1','Am1_a','Am1_p','Am2','Am2_a','Am2_p','Am3','Am3_a','Am3_p',
+              'Am1','Am1_t','Am1_a','Am1_p','Am2','Am2_t','Am2_a','Am2_p','Am3','Am3_t','Am3_a','Am3_p',
               'Bb','Bb_main','Bb_header','Bb_a','Bb_p','BGM','Voice','SE']
+# 1.6.3 Am的更新，再新增一列，动画的帧！
 
 # 数学函数定义 formula
 
@@ -487,25 +523,40 @@ def parser(stdin_text):
                 raise ValueError('[31m[ParserError]:[0m Too much charactor is specified in dialogue line ' + str(i+1)+'.')
             for k,charactor in enumerate(this_charactor[0:3]):
                 name,alpha,subtype= charactor
-                #处理空缺参数
+                # 处理空缺参数
                 if subtype == '':
                     subtype = '.default'
                 if alpha == '':
                     alpha = 100
                 else:
                     alpha = int(alpha[1:-1])
-                #立绘和气泡的参数
+                # 立绘的参数
                 try:
-                    this_timeline['Am'+str(k+1)] = charactor_table.loc[name+subtype]['Animation']
-                except Exception as E:
-                    raise ValueError('[31m[ParserError]:[0m Undefined Name '+ name+subtype +' in dialogue line ' + str(i+1)+'.')
+                    this_am = charactor_table.loc[name+subtype]['Animation']
+                    this_timeline['Am'+str(k+1)] = this_am
+                except Exception as E: #这是第一次查找名字，所有的查找名字异常都raise在这里！
+                    raise ValueError('[31m[ParserError]:[0m Undefined Name '+ name+subtype +' in dialogue line ' + str(i+1)+'. due to:',E)
+                # 动画的参数
+                if (this_am!=this_am) | (this_am=='NA'):# this_am 可能为空的，需要先处理这种情况！
+                    this_timeline['Am'+str(k+1)+'_t'] = 0
+                else:
+                    if eval(this_am+'.length') > 1: # 如果length > 1 说明是多帧的动画！
+                        tk = eval(this_am+'.tick')
+                        lp = eval(this_am+'.loop')
+                        lt = eval(this_am+'.length')
+                        tick_lineline = (np.arange(0,this_duration if lp else lt,1/tk)[0:this_duration]%(lt))
+                        tick_lineline = np.hstack([tick_lineline,(lt-1)*np.ones(this_duration-len(tick_lineline))]).astype(int)
+                        this_timeline['Am'+str(k+1)+'_t'] = tick_lineline
+                    else:
+                        this_timeline['Am'+str(k+1)+'_t'] = 0
+                # 气泡的参数
                 if k == 0:
                     this_timeline['Bb'] = charactor_table.loc[name+subtype]['Bubble'] # 异常处理，未定义的名字
                     this_timeline['Bb_main'] = ts
                     this_timeline['Bb_header'] = name
                     this_timeline['Bb_a'] = alpha_timeline*100
                     this_timeline['Bb_p'] = pos_timeline
-
+                #透明度参数
                 if (k!=0)&(alpha==100):#如果非第一角色，且没有指定透明度，则使用正常透明度60%
                     this_timeline['Am'+str(k+1)+'_a']=alpha_timeline*60
                 else:#否则，使用正常透明度
@@ -513,7 +564,13 @@ def parser(stdin_text):
                 # 位置时间轴信息
                 this_timeline['Am'+str(k+1)+'_p'] = pos_timeline
 
-            #文字显示的参数
+            # 针对文本内容的警告
+            this_line_limit = eval(this_timeline['Bb'][0]+'.MainText.line_limit') #获取行长，用来展示各类警告信息
+            if (len(ts)>this_line_limit*4) | (len(ts.split('#'))>4): #行数过多的警告
+                print('[33m[warning]:[0m','More than 4 lines will be displayed in dialogue line ' + str(i+1)+'.')
+            if ((ts[0]=='^')|('#' in ts))&(np.frompyfunc(len,1,1)(ts.replace('^','').split('#')).max()>this_line_limit): # 手动换行的字数超限的警告
+                print('[33m[warning]:[0m','Manual break line length exceed the Bubble line_limit in dialogue line ' + str(i+1)+'.') #alpha1.6.3
+            # 文字显示的参数
             if text_method == 'all':
                 if text_dur == 0:
                     pass
@@ -523,7 +580,7 @@ def parser(stdin_text):
                 word_count_timeline = np.arange(0,this_duration,1)//text_dur+1
                 this_timeline['Bb_main'] = UF_cut_str(this_timeline['Bb_main'],word_count_timeline)
             elif text_method == 'l2l': 
-                if '#' in ts: #如果是手动换行的列
+                if ((ts[0]=='^')|('#' in ts)): #如果是手动换行的列
                     word_count_timeline = get_l2l(ts,text_dur,this_duration) # 不保证稳定呢！
                 else:
                     line_limit = eval(this_timeline['Bb'][1]+'.MainText.line_limit') #获取主文本对象的line_limit参数
@@ -674,9 +731,15 @@ def render(this_frame):
         elif this_frame[layer] not in media_list:
             raise RuntimeError('[31m[RenderError]:[0m Undefined media object : ['+this_frame[layer]+'].')
             continue
-        elif layer != 'Bb':
+        elif layer[0:2] == 'BG':
             exec('{0}.display(surface=screen,alpha={1},adjust={2})'.format(this_frame[layer],this_frame[layer+'_a'],'\"'+this_frame[layer+'_p']+'\"'))
-        else:
+        elif layer[0:2] == 'Am': # 兼容H_LG1(1)这种动画形式 alpha1.6.3
+            exec('{0}.display(surface=screen,alpha={1},adjust={2},frame={3})'.format(
+                                                                                     this_frame[layer],
+                                                                                     this_frame[layer+'_a'],
+                                                                                     '\"'+this_frame[layer+'_p']+'\"',
+                                                                                     this_frame[layer+'_t']))
+        elif layer == 'Bb':
             exec('{0}.display(surface=screen,text={2},header={3},alpha={1},adjust={4})'.format(this_frame[layer],
                                                                                                this_frame[layer+'_a'],
                                                                                                '\"'+this_frame[layer+'_main']+'\"',

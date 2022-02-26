@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.6.0'
+edtion = 'alpha 1.6.4'
 
 # 绝对的全局变量
 # 在开源发布的版本中，隐去了各个key
@@ -279,7 +279,9 @@ def main():
     TTS = pd.Series(index=charactor_table.index,dtype='str')
     TTS_define_tplt = "TTS_engine(name='{0}',voice = '{1}',speech_rate={2},pitch_rate={3},volume=50)"
     for key,value in charactor_table.iterrows():
-        if value.Voice not in aliyun_voice_lib:
+        if (value.Voice != value.Voice)|(value.Voice=="NA"): # 如果音源是NA,就pass alpha1.6.3
+            TTS[key] = '"None"'
+        elif value.Voice not in aliyun_voice_lib:
             print('[33m[warning]:[0m Unsupported speaker name "{0}".'.format(value.Voice))
             TTS[key] = '"None"'
         else:

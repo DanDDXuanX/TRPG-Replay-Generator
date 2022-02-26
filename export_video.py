@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.6.2'
+edtion = 'alpha 1.6.4'
 
 # 外部参数输入
 
@@ -67,6 +67,7 @@ import pygame
 import ffmpeg
 import pydub
 import time
+import glob # 匹配路径
 
 # 文字对象
 class Text:
@@ -145,25 +146,39 @@ class Background:
     def convert(self):
         self.media = self.media.convert_alpha()
 
-# 立绘图片
+# 这个是真的动画了，用法和旧版的amination是一样的！
 class Animation:
-    def __init__(self,filepath,pos = (0,0)):
-        self.media = pygame.image.load(filepath)
+    def __init__(self,filepath,pos = (0,0),tick=1,loop=True):
+        file_list = np.frompyfunc(lambda x:x.replace('\\','/'),1,1)(glob.glob(filepath))
+        self.length = len(file_list)
+        if self.length == 0:
+            raise IOError('[31m[IOError]:[0m','Cannot find file match',filepath)
+        self.media = np.frompyfunc(pygame.image.load,1,1)(file_list)
         self.pos = pos
-    def display(self,surface,alpha=100,adjust='NA'):
+        self.loop = loop
+        self.this = 0
+        self.tick = tick
+    def display(self,surface,alpha=100,adjust='NA',frame=0):
+        self.this = frame
         if adjust in ['0,0','NA']:
             render_pos = self.pos
         else:
             adx,ady = split_xy(adjust)
             render_pos = (self.pos[0]+adx,self.pos[1]+ady)
         if alpha !=100:
-            temp = self.media.copy()
+            temp = self.media[int(self.this)].copy()
             temp.set_alpha(alpha/100*255)
             surface.blit(temp,render_pos)
         else:
-            surface.blit(self.media,render_pos)
+            surface.blit(self.media[int(self.this)],render_pos)
+        #self.this = self.this + 1/self.tick
+        #if self.this >= self.length - 1: # 在timeline 简并 之后会出现bug！
+        #    if self.loop == True:
+        #        self.this = 0
+        #    else:
+        #        self.this = self.length - 1
     def convert(self):
-        self.media = self.media.convert_alpha()
+        self.media = np.frompyfunc(lambda x:x.convert_alpha(),1,1)(self.media)
 
 # 音效
 class Audio:
@@ -221,9 +236,15 @@ def render(this_frame):
         elif this_frame[layer] not in media_list:
             raise RuntimeError('[31m[RenderError]:[0m Undefined media object : ['+this_frame[layer]+'].')
             continue
-        elif layer != 'Bb':
+        elif layer[0:2] == 'BG':
             exec('{0}.display(surface=screen,alpha={1},adjust={2})'.format(this_frame[layer],this_frame[layer+'_a'],'\"'+this_frame[layer+'_p']+'\"'))
-        else:
+        elif layer[0:2] == 'Am': # 兼容H_LG1(1)这种动画形式 alpha1.6.3
+            exec('{0}.display(surface=screen,alpha={1},adjust={2},frame={3})'.format(
+                                                                                     this_frame[layer],
+                                                                                     this_frame[layer+'_a'],
+                                                                                     '\"'+this_frame[layer+'_p']+'\"',
+                                                                                     this_frame[layer+'_t']))
+        elif layer == 'Bb':
             exec('{0}.display(surface=screen,text={2},header={3},alpha={1},adjust={4})'.format(this_frame[layer],
                                                                                                this_frame[layer+'_a'],
                                                                                                '\"'+this_frame[layer+'_main']+'\"',
