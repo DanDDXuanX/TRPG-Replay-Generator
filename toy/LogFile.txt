@@ -1,11 +1,11 @@
 # 综合演示
 <set:formula>:sigmoid
-<set:am_method_default>:<pass_up=20>
+<set:am_method_default>:<pass_up_black=20>
 <set:tx_method_default>:<w2w=1>
 
 <set:BGM>:BGM1
 <set:speech_speed>:500
-<background><cover=60>:bg1
+<background><cross=60>:bg1
 
 [张安翔]:^本视频是DanDDXuanX 编写的#TRPG-Replay-Generator的基本演示工程。{SE1;*3.5}
 [KP]:项目链接：#https://github.com/DanDDXuanX/TRPG-Replay-Generator{SE1;5}
@@ -13,7 +13,7 @@
 [张安翔]:^本工具基于python3 和 pygame2.0，在windows10系统上开发。#演示使用的媒体素材来自网络，侵删。{SE1;5}
 [张安翔]:那么，演示开始。{SE1;5}
 
-<background><cover=60>:bg2
+<background><cross=60>:bg2
 <set:speech_speed>:250
 <set:am_method_default>:<replace=0>
 <set:tx_method_default>:<all=0>

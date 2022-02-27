@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.6.4'
+edtion = 'alpha 1.6.5'
 
 # 外部参数输入
 
@@ -80,6 +80,7 @@ import pygame.freetype
 import re
 import time #开发模式，显示渲染帧率
 import glob # 匹配路径
+
 
 # 类定义
 
@@ -214,6 +215,88 @@ class Animation:
     def convert(self):
         self.media = np.frompyfunc(lambda x:x.convert_alpha(),1,1)(self.media)
 
+# a1.6.5 内建动画，这是一个Animation类的子类，重构了构造函数
+class BuiltInAnimation(Animation):
+    def __init__(self,anime_type='hitpoint',anime_args=('0',0,0,0),screensize = (1920,1080),layer=0):
+        if anime_type == 'hitpoint':
+            # 载入图片
+            heart = pygame.image.load('./media/heart.png')
+            heart_shape = pygame.image.load('./media/heart_shape.png')
+            hx,hy = heart.get_size()
+            # 重设图片尺寸，根据screensize[0]
+            if screensize[0]!=1920:
+                multip = screensize[0]/1920
+                heart = pygame.transform.scale(heart,(int(hx*multip),int(hy*multip)))
+                heart_shape = pygame.transform.scale(heart_shape,(int(hx*multip),int(hy*multip)))
+                hx,hy = heart.media[0].get_size()
+            # 动画参数
+            name_tx,heart_max,heart_begin,heart_end = anime_args
+            distance = int(0.026*screensize[0]) # default = 50
+            if (heart_end==heart_begin)|(heart_max<max(heart_begin,heart_end)):
+                raise Exception()
+            total_heart = int(heart_max/2 * hx + max(0,np.ceil(heart_max/2-1)) * distance) #画布总长
+            left_heart = int(heart_end/2 * hx + max(0,np.ceil(heart_end/2-1)) * distance) #画布总长
+            lost_heart = int((heart_begin-heart_end)/2 * hx + np.floor((heart_begin-heart_end)/2) * distance)
+            # 开始制图
+            if layer==0: # 底层 阴影图
+                self.pos = ((screensize[0]-total_heart)/2,(screensize[1]-hy)/2)
+                canvas = pygame.Surface((total_heart,hy),pygame.SRCALPHA)
+                canvas.fill((0,0,0,0))
+                posx,posy = 0,0
+                self.tick = 1
+                self.loop = 1
+                for i in range(1,heart_max+1): # 偶数，低于最终血量
+                    if i%2 == 0:
+                        canvas.blit(heart_shape,(posx,posy))
+                        posx = posx + hx + distance
+                    else:
+                        pass
+                if heart_max%2 == 1: # max是奇数
+                    left_heart_shape = heart_shape.subsurface((0,0,hx/2,hy))
+                    canvas.blit(left_heart_shape,(total_heart-hx/2,0))
+            if layer==1: # 剩余的血量
+                self.pos = ((screensize[0]-total_heart)/2,(screensize[1]-hy)/2)
+                canvas = pygame.Surface((left_heart,hy),pygame.SRCALPHA)
+                canvas.fill((0,0,0,0))
+                posx,posy = 0,0
+                self.tick = 1
+                self.loop = 1
+                for i in range(1,heart_end+1): # 偶数，低于最终血量
+                    if i%2 == 0:
+                        canvas.blit(heart,(posx,posy))
+                        posx = posx + hx + distance
+                    else:
+                        pass
+                if heart_end%2 == 1: # end是奇数
+                    left_heart = heart.subsurface((0,0,hx/2,hy))
+                    canvas.blit(left_heart,(heart_end//2*(hx + distance),0))
+            elif layer==2: # 损失/恢复的血量
+                self.pos = (heart_end//2*(hx + distance)+(heart_end%2)*int(hx/2)+(screensize[0]-total_heart)/2,(screensize[1]-hy)/2)
+                canvas = pygame.Surface((lost_heart,hy),pygame.SRCALPHA)
+                canvas.fill((0,0,0,0))
+                posx,posy = 0,0
+                self.tick = 1
+                self.loop = 1
+                for i in range(1,heart_begin-heart_end+1): 
+                    if (i == 1)&(heart_end%2 == 1): # 如果end是奇数，先来半个右边
+                        right_heart = heart.subsurface((int(hx/2),0,hx/2,hy))
+                        canvas.blit(right_heart,(posx,posy))
+                        posx = posx + int(hx/2) + distance
+                    elif ((i - heart_end%2)%2 == 0): # 如果和end的差值是
+                        canvas.blit(heart,(posx,posy))
+                        posx = posx + hx + distance
+                    elif (i == heart_begin-heart_end)&(heart_begin%2 == 1): # 如果最右边边也是半个心
+                        left_heart = heart.subsurface((0,0,hx/2,hy))
+                        canvas.blit(left_heart,(posx,posy))
+                    else:
+                        pass
+            else:
+                pass
+            self.media=[canvas]
+            #剩下的需要定义的
+            self.this = 0
+            self.length=len(self.media)
+
 # 音效
 class Audio:
     pygame.mixer.init()
@@ -257,6 +340,7 @@ RE_characor = re.compile('(\w+)(\(\d*\))?(\.\w+)?')
 RE_modify = re.compile('<(\w+)(=\d+)?>')
 RE_sound = re.compile('({.+?})')
 RE_asterisk = re.compile('(\{([\w\.\\\/\'\":]*?[,;])?\*([\w\.\,，]*)?\})') # a 1.4.3 修改了星标的正则（和ss一致）
+RE_hitpoint = re.compile('<hitpoint>:\((.+?),(\d+),(\d+),(\d+)\)') # a 1.6.5 血条预设动画
 #RE_asterisk = re.compile('\{\w+[;,]\*(\d+\.?\d*)\}') # 这种格式对于{path;*time的}的格式无效！
 
 # 绝对的全局变量
@@ -477,6 +561,8 @@ def parser(stdin_text):
     render_timeline = []
     BGM_queue = []
     this_background = "black"
+    # 内建的媒体，主要指BIA
+    bulitin_media = {}
 
     for i,text in enumerate(stdin_text):
         # 空白行
@@ -704,6 +790,62 @@ def parser(stdin_text):
             else:
                 raise ValueError('[31m[ParserError]:[0m Unsupported setting ['+target+'] is specified in setting line ' + str(i+1)+'.')
                 continue
+        # 预设动画，损失生命
+        elif '<hitpoint>' in text:
+            try:
+                name_tx,heart_max,heart_begin,heart_end = RE_hitpoint.findall(text)[0]
+                heart_max = int(heart_max)
+                heart_begin = int(heart_begin)
+                heart_end = int(heart_end)
+            except:
+                raise ValueError('[31m[ParserError]:[0m Parse exception occurred in hitpoint line ' + str(i+1)+'.')
+                continue
+            this_timeline=pd.DataFrame(index=range(0,frame_rate*4),dtype=str,columns=render_arg)
+            # 背景
+            #alpha_timeline,pos_timeline = am_methods('black',method_dur=frame_rate//2,this_duration=frame_rate*4,i=i)
+            alpha_timeline = np.hstack([formula(0,1,frame_rate//2),np.ones(frame_rate*3-frame_rate//2),formula(1,0,frame_rate)])
+            this_timeline['BG1'] = 'black' # 黑色背景
+            this_timeline['BG1_a'] = alpha_timeline * 80
+            this_timeline['BG2'] = this_background
+            this_timeline['BG2_a'] = 100
+            # 新建内建动画
+            Auto_media_name = 'BIA_'+str(i+1)
+            code_to_run = 'global {media_name}_{layer} ;{media_name}_{layer} = BuiltInAnimation(anime_type="hitpoint",anime_args=("{name}",{hmax},{hbegin},{hend}),screensize = {screensize},layer={layer})'
+            code_to_run_0 = code_to_run.format(media_name=Auto_media_name,name=name_tx,hmax='%d'%heart_max,hbegin='%d'%heart_begin,hend='%d'%heart_end,screensize=str(screen_size),layer='0')
+            code_to_run_1 = code_to_run.format(media_name=Auto_media_name,name=name_tx,hmax='%d'%heart_max,hbegin='%d'%heart_begin,hend='%d'%heart_end,screensize=str(screen_size),layer='1')
+            code_to_run_2 = code_to_run.format(media_name=Auto_media_name,name=name_tx,hmax='%d'%heart_max,hbegin='%d'%heart_begin,hend='%d'%heart_end,screensize=str(screen_size),layer='2')
+            exec(code_to_run_0) # 灰色框
+            exec(code_to_run_1) # 留下的血
+            exec(code_to_run_2) # 丢掉的血
+            media_list.append(Auto_media_name+'_0')
+            media_list.append(Auto_media_name+'_1')
+            media_list.append(Auto_media_name+'_2')
+            bulitin_media[Auto_media_name+'_0'] = code_to_run_0
+            bulitin_media[Auto_media_name+'_1'] = code_to_run_1
+            bulitin_media[Auto_media_name+'_2'] = code_to_run_2
+            # 动画参数
+            this_timeline['Am3'] = Auto_media_name+'_0'
+            this_timeline['Am3_a'] = alpha_timeline * 100
+            this_timeline['Am3_t'] = 0
+            this_timeline['Am3_p'] = 'NA'
+            this_timeline['Am2'] = Auto_media_name+'_1'
+            this_timeline['Am2_a'] = alpha_timeline * 100
+            this_timeline['Am2_t'] = 0
+            this_timeline['Am2_p'] = 'NA'
+            this_timeline['Am1'] = Auto_media_name+'_2'
+            this_timeline['Am1_a'] = np.hstack([formula(0,100,frame_rate//2),
+                                                np.ones(frame_rate*2-frame_rate//2)*100,
+                                                left(100,0,frame_rate//2),
+                                                np.zeros(frame_rate*2-frame_rate//2)]) #0-0.5出现，2-2.5消失
+            this_timeline['Am1_p'] = concat_xy(np.zeros(frame_rate*4),
+                                               np.hstack([np.zeros(frame_rate*2), # 静止2秒
+                                                          left(0,-int(screen_size[1]*0.3),frame_rate//2), # 半秒切走
+                                                          int(screen_size[1]*0.3)*np.ones(frame_rate*2-frame_rate//2)])) #1.5秒停止
+            this_timeline['Am1_t'] = 0
+            # 收尾
+            render_timeline.append(this_timeline)
+            break_point[i+1]=break_point[i]+len(this_timeline.index)
+            continue
         # 异常行，报出异常
         else:
             raise ValueError('[31m[ParserError]:[0m Unrecognized line: '+ str(i+1)+'.')
@@ -716,8 +858,9 @@ def parser(stdin_text):
     timeline_diff.index = timeline_diff.index+1 #设置为第1-10帧
     timeline_diff.loc[0]='NA' #再把第0帧设置为NA
     dropframe = (render_timeline == timeline_diff.sort_index()).all(axis=1) # 这样，就是原来的第10帧和第9帧在比较了
+    bulitin_media = pd.Series(bulitin_media)
     # 这样就去掉了，和前一帧相同的帧，节约了性能
-    return render_timeline[dropframe == False].copy(),break_point
+    return render_timeline[dropframe == False].copy(),break_point,bulitin_media
 
 # 渲染函数
 def render(this_frame):
@@ -856,9 +999,11 @@ except:
 
 # 载入log文件
 stdin_text = open(stdin_log,'r',encoding='utf8').read().split('\n')
-try:
-    render_timeline,break_point = parser(stdin_text)
-except Exception as E:
+#try:
+if 1:
+    render_timeline,break_point,bulitin_media = parser(stdin_text)
+#except Exception as E:
+else:
     print(E)
     sys.exit()
 
@@ -868,6 +1013,7 @@ if output_path != None:
     timenow = '%d'%time.time()
     render_timeline.to_pickle(output_path+'/'+timenow+'.timeline')
     break_point.to_pickle(output_path+'/'+timenow+'.breakpoint')
+    bulitin_media.to_pickle(output_path+'/'+timenow+'.bulitinmedia')
     if exportXML == True:
         command = python3 + ' ./export_xml.py --TimeLine {tm} --MediaObjDefine {md} --OutputPath {of} --FramePerSecond {fps} --Width {wd} --Height {he} --Zorder {zd}'
         command = command.format(tm = output_path+'/'+timenow+'.timeline',
@@ -920,27 +1066,27 @@ for media in media_list:
 
 # 预备画面
 W,H = screen_size
-white.display(screen)
-screen.blit(note_text.render('Welcome to TRPG Replay Generator!',fgcolor=(150,150,150,255),size=0.0315*W)[0],(0.230*W,0.460*H)) # for 1080p
-screen.blit(note_text.render(edtion,fgcolor=(150,150,150,255),size=0.0278*H)[0],(0.900*W,0.963*H))
-screen.blit(note_text.render('Press space to begin.',fgcolor=(150,150,150,255),size=0.0278*H)[0],(0.417*W,0.926*H))
-pygame.display.update()
-begin = False
-while begin == False:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            sys.exit()
-        elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE:
-                pygame.time.delay(1000)
-                pygame.quit()
-                sys.exit()
-            elif event.key == pygame.K_SPACE:
-                begin = True
-                break
-for s in np.arange(5,0,-1):
-    timer(s)
+#white.display(screen)
+#screen.blit(note_text.render('Welcome to TRPG Replay Generator!',fgcolor=(150,150,150,255),size=0.0315*W)[0],(0.230*W,0.460*H)) # for 1080p
+#screen.blit(note_text.render(edtion,fgcolor=(150,150,150,255),size=0.0278*H)[0],(0.900*W,0.963*H))
+#screen.blit(note_text.render('Press space to begin.',fgcolor=(150,150,150,255),size=0.0278*H)[0],(0.417*W,0.926*H))
+#pygame.display.update()
+#begin = False
+#while begin == False:
+#    for event in pygame.event.get():
+#        if event.type == pygame.QUIT:
+#            pygame.quit()
+#            sys.exit()
+#        elif event.type == pygame.KEYDOWN:
+#            if event.key == pygame.K_ESCAPE:
+#                pygame.time.delay(1000)
+#                pygame.quit()
+#                sys.exit()
+#            elif event.key == pygame.K_SPACE:
+#                begin = True
+#                break
+#for s in np.arange(5,0,-1):
+#    timer(s)
 
 # 主循环
 n=0

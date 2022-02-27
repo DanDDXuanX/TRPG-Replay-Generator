@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.6.4'
+edtion = 'alpha 1.6.5'
 
 # 外部参数输入
 
@@ -180,6 +180,88 @@ class Animation:
     def convert(self):
         self.media = np.frompyfunc(lambda x:x.convert_alpha(),1,1)(self.media)
 
+# a1.6.5 内建动画，这是一个Animation类的子类，重构了构造函数
+class BuiltInAnimation(Animation):
+    def __init__(self,anime_type='hitpoint',anime_args=('0',0,0,0),screensize = (1920,1080),layer=0):
+        if anime_type == 'hitpoint':
+            # 载入图片
+            heart = pygame.image.load('./media/heart.png')
+            heart_shape = pygame.image.load('./media/heart_shape.png')
+            hx,hy = heart.get_size()
+            # 重设图片尺寸，根据screensize[0]
+            if screensize[0]!=1920:
+                multip = screensize[0]/1920
+                heart = pygame.transform.scale(heart,(int(hx*multip),int(hy*multip)))
+                heart_shape = pygame.transform.scale(heart_shape,(int(hx*multip),int(hy*multip)))
+                hx,hy = heart.media[0].get_size()
+            # 动画参数
+            name_tx,heart_max,heart_begin,heart_end = anime_args
+            distance = int(0.026*screensize[0]) # default = 50
+            if (heart_end==heart_begin)|(heart_max<max(heart_begin,heart_end)):
+                raise Exception()
+            total_heart = int(heart_max/2 * hx + max(0,np.ceil(heart_max/2-1)) * distance) #画布总长
+            left_heart = int(heart_end/2 * hx + max(0,np.ceil(heart_end/2-1)) * distance) #画布总长
+            lost_heart = int((heart_begin-heart_end)/2 * hx + np.floor((heart_begin-heart_end)/2) * distance)
+            # 开始制图
+            if layer==0: # 底层 阴影图
+                self.pos = ((screensize[0]-total_heart)/2,(screensize[1]-hy)/2)
+                canvas = pygame.Surface((total_heart,hy),pygame.SRCALPHA)
+                canvas.fill((0,0,0,0))
+                posx,posy = 0,0
+                self.tick = 1
+                self.loop = 1
+                for i in range(1,heart_max+1): # 偶数，低于最终血量
+                    if i%2 == 0:
+                        canvas.blit(heart_shape,(posx,posy))
+                        posx = posx + hx + distance
+                    else:
+                        pass
+                if heart_max%2 == 1: # max是奇数
+                    left_heart_shape = heart_shape.subsurface((0,0,hx/2,hy))
+                    canvas.blit(left_heart_shape,(total_heart-hx/2,0))
+            if layer==1: # 剩余的血量
+                self.pos = ((screensize[0]-total_heart)/2,(screensize[1]-hy)/2)
+                canvas = pygame.Surface((left_heart,hy),pygame.SRCALPHA)
+                canvas.fill((0,0,0,0))
+                posx,posy = 0,0
+                self.tick = 1
+                self.loop = 1
+                for i in range(1,heart_end+1): # 偶数，低于最终血量
+                    if i%2 == 0:
+                        canvas.blit(heart,(posx,posy))
+                        posx = posx + hx + distance
+                    else:
+                        pass
+                if heart_end%2 == 1: # end是奇数
+                    left_heart = heart.subsurface((0,0,hx/2,hy))
+                    canvas.blit(left_heart,(heart_end//2*(hx + distance),0))
+            elif layer==2: # 损失/恢复的血量
+                self.pos = (heart_end//2*(hx + distance)+(heart_end%2)*int(hx/2)+(screensize[0]-total_heart)/2,(screensize[1]-hy)/2)
+                canvas = pygame.Surface((lost_heart,hy),pygame.SRCALPHA)
+                canvas.fill((0,0,0,0))
+                posx,posy = 0,0
+                self.tick = 1
+                self.loop = 1
+                for i in range(1,heart_begin-heart_end+1): 
+                    if (i == 1)&(heart_end%2 == 1): # 如果end是奇数，先来半个右边
+                        right_heart = heart.subsurface((int(hx/2),0,hx/2,hy))
+                        canvas.blit(right_heart,(posx,posy))
+                        posx = posx + int(hx/2) + distance
+                    elif ((i - heart_end%2)%2 == 0): # 如果和end的差值是
+                        canvas.blit(heart,(posx,posy))
+                        posx = posx + hx + distance
+                    elif (i == heart_begin-heart_end)&(heart_begin%2 == 1): # 如果最右边边也是半个心
+                        left_heart = heart.subsurface((0,0,hx/2,hy))
+                        canvas.blit(left_heart,(posx,posy))
+                    else:
+                        pass
+            else:
+                pass
+            self.media=[canvas]
+            #剩下的需要定义的
+            self.this = 0
+            self.length=len(self.media)
+
 # 音效
 class Audio:
     def __init__(self,filepath):
@@ -258,6 +340,7 @@ def render(this_frame):
 render_timeline = pd.read_pickle(stdin_log)
 break_point = pd.read_pickle(stdin_log.replace('timeline','breakpoint'))
 stdin_name = stdin_log.replace('\\','/').split('/')[-1]
+bulitin_media = pd.read_pickle(stdin_log.replace('timeline','bulitinmedia'))
 
 cmap = {'black':(0,0,0,255),'white':(255,255,255,255),'greenscreen':(0,177,64,255)}
 
@@ -287,6 +370,10 @@ black = Background('black')
 white = Background('white')
 media_list.append('black')
 media_list.append('white')
+# alpha 1.6.5 载入导出的内建媒体
+for key,values in bulitin_media.iteritems():
+    exec(values)
+    media_list.append(key)
 
 # 合成音轨
 
