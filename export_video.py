@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.6.5'
+edtion = 'alpha 1.6.6'
 
 # 外部参数输入
 
@@ -196,9 +196,19 @@ class BuiltInAnimation(Animation):
                 hx,hy = heart.media[0].get_size()
             # 动画参数
             name_tx,heart_max,heart_begin,heart_end = anime_args
-            distance = int(0.026*screensize[0]) # default = 50
+
             if (heart_end==heart_begin)|(heart_max<max(heart_begin,heart_end)):
-                raise Exception()
+                raise ValueError('[BIAnimeError]:','Invalid argument',name_tx,heart_max,heart_begin,heart_end,'for BIAnime hitpoint!')
+            elif heart_end > heart_begin: # 如果是生命恢复
+                temp = heart_end
+                heart_end = heart_begin
+                heart_begin = temp # 则互换顺序 确保 begin一定是小于end的
+                heal_heart = True
+            else:
+                heal_heart = False
+
+            distance = int(0.026*screensize[0]) # default = 50
+
             total_heart = int(heart_max/2 * hx + max(0,np.ceil(heart_max/2-1)) * distance) #画布总长
             left_heart = int(heart_end/2 * hx + max(0,np.ceil(heart_end/2-1)) * distance) #画布总长
             lost_heart = int((heart_begin-heart_end)/2 * hx + np.floor((heart_begin-heart_end)/2) * distance)
@@ -217,8 +227,8 @@ class BuiltInAnimation(Animation):
                     else:
                         pass
                 if heart_max%2 == 1: # max是奇数
-                    left_heart_shape = heart_shape.subsurface((0,0,hx/2,hy))
-                    canvas.blit(left_heart_shape,(total_heart-hx/2,0))
+                    left_heart_shape = heart_shape.subsurface((0,0,int(hx/2),hy))
+                    canvas.blit(left_heart_shape,(total_heart-int(hx/2),0))
             if layer==1: # 剩余的血量
                 self.pos = ((screensize[0]-total_heart)/2,(screensize[1]-hy)/2)
                 canvas = pygame.Surface((left_heart,hy),pygame.SRCALPHA)
@@ -233,7 +243,7 @@ class BuiltInAnimation(Animation):
                     else:
                         pass
                 if heart_end%2 == 1: # end是奇数
-                    left_heart = heart.subsurface((0,0,hx/2,hy))
+                    left_heart = heart.subsurface((0,0,int(hx/2),hy))
                     canvas.blit(left_heart,(heart_end//2*(hx + distance),0))
             elif layer==2: # 损失/恢复的血量
                 self.pos = (heart_end//2*(hx + distance)+(heart_end%2)*int(hx/2)+(screensize[0]-total_heart)/2,(screensize[1]-hy)/2)
@@ -244,20 +254,24 @@ class BuiltInAnimation(Animation):
                 self.loop = 1
                 for i in range(1,heart_begin-heart_end+1): 
                     if (i == 1)&(heart_end%2 == 1): # 如果end是奇数，先来半个右边
-                        right_heart = heart.subsurface((int(hx/2),0,hx/2,hy))
+                        right_heart = heart.subsurface((int(hx/2),0,int(hx/2),hy))
                         canvas.blit(right_heart,(posx,posy))
                         posx = posx + int(hx/2) + distance
                     elif ((i - heart_end%2)%2 == 0): # 如果和end的差值是
                         canvas.blit(heart,(posx,posy))
                         posx = posx + hx + distance
                     elif (i == heart_begin-heart_end)&(heart_begin%2 == 1): # 如果最右边边也是半个心
-                        left_heart = heart.subsurface((0,0,hx/2,hy))
+                        left_heart = heart.subsurface((0,0,int(hx/2),hy))
                         canvas.blit(left_heart,(posx,posy))
                     else:
                         pass
             else:
                 pass
-            self.media=[canvas]
+            if (heal_heart == True)&(layer == 2): # 恢复动画
+                crop_timeline = sigmoid(0,lost_heart,frame_rate).astype(int)
+                self.media = np.frompyfunc(lambda x:canvas.subsurface(0,0,x,hy),1,1)(crop_timeline) # 裁剪动画
+            else:
+                self.media=np.array([canvas])
             #剩下的需要定义的
             self.this = 0
             self.length=len(self.media)
@@ -302,6 +316,15 @@ def parse_timeline(layer):
     else:
         clips.append((item,begin,end))
     return clips #返回一个clip的列表
+
+def normalized(X):
+    if len(X)>=2:
+        return (X-X.min())/(X.max()-X.min())
+    else:
+        return X/X # 兼容 持续时间被设置为0，1等极限情况
+
+def sigmoid(begin,end,dur,K=5):
+    return normalized(1/(1+np.exp(np.linspace(K,-K,int(dur)))))*(end-begin)+begin
 
 def split_xy(concated):
     x,y = concated.split(',')
@@ -463,7 +486,7 @@ while n < break_point.max():
     if n%frame_rate == 1:
         finish_rate = n/break_point.values.max()
         print('[export Video]:','[{0}] {1},\t{2}'.format(int(finish_rate*50)*'#'+(50-int(50*finish_rate))*' ',
-                                                        '%.1f'%(finish_rate*100)+'%','{0}/{1}'.format(n,break_point.values.max())),
+                                                        '%.1f'%(finish_rate*100)+'%','{0}/{1}'.format(n,'%d'%break_point.values.max())),
         end = "\r"
         )
     elif n == break_point.values.max():

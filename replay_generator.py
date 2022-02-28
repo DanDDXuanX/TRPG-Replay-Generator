@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.6.5'
+edtion = 'alpha 1.6.6'
 
 # 外部参数输入
 
@@ -231,9 +231,19 @@ class BuiltInAnimation(Animation):
                 hx,hy = heart.media[0].get_size()
             # 动画参数
             name_tx,heart_max,heart_begin,heart_end = anime_args
-            distance = int(0.026*screensize[0]) # default = 50
+
             if (heart_end==heart_begin)|(heart_max<max(heart_begin,heart_end)):
-                raise Exception()
+                raise ValueError('[BIAnimeError]:','Invalid argument',name_tx,heart_max,heart_begin,heart_end,'for BIAnime hitpoint!')
+            elif heart_end > heart_begin: # 如果是生命恢复
+                temp = heart_end
+                heart_end = heart_begin
+                heart_begin = temp # 则互换顺序 确保 begin一定是小于end的
+                heal_heart = True
+            else:
+                heal_heart = False
+
+            distance = int(0.026*screensize[0]) # default = 50
+
             total_heart = int(heart_max/2 * hx + max(0,np.ceil(heart_max/2-1)) * distance) #画布总长
             left_heart = int(heart_end/2 * hx + max(0,np.ceil(heart_end/2-1)) * distance) #画布总长
             lost_heart = int((heart_begin-heart_end)/2 * hx + np.floor((heart_begin-heart_end)/2) * distance)
@@ -252,8 +262,8 @@ class BuiltInAnimation(Animation):
                     else:
                         pass
                 if heart_max%2 == 1: # max是奇数
-                    left_heart_shape = heart_shape.subsurface((0,0,hx/2,hy))
-                    canvas.blit(left_heart_shape,(total_heart-hx/2,0))
+                    left_heart_shape = heart_shape.subsurface((0,0,int(hx/2),hy))
+                    canvas.blit(left_heart_shape,(total_heart-int(hx/2),0))
             if layer==1: # 剩余的血量
                 self.pos = ((screensize[0]-total_heart)/2,(screensize[1]-hy)/2)
                 canvas = pygame.Surface((left_heart,hy),pygame.SRCALPHA)
@@ -268,7 +278,7 @@ class BuiltInAnimation(Animation):
                     else:
                         pass
                 if heart_end%2 == 1: # end是奇数
-                    left_heart = heart.subsurface((0,0,hx/2,hy))
+                    left_heart = heart.subsurface((0,0,int(hx/2),hy))
                     canvas.blit(left_heart,(heart_end//2*(hx + distance),0))
             elif layer==2: # 损失/恢复的血量
                 self.pos = (heart_end//2*(hx + distance)+(heart_end%2)*int(hx/2)+(screensize[0]-total_heart)/2,(screensize[1]-hy)/2)
@@ -279,20 +289,24 @@ class BuiltInAnimation(Animation):
                 self.loop = 1
                 for i in range(1,heart_begin-heart_end+1): 
                     if (i == 1)&(heart_end%2 == 1): # 如果end是奇数，先来半个右边
-                        right_heart = heart.subsurface((int(hx/2),0,hx/2,hy))
+                        right_heart = heart.subsurface((int(hx/2),0,int(hx/2),hy))
                         canvas.blit(right_heart,(posx,posy))
                         posx = posx + int(hx/2) + distance
                     elif ((i - heart_end%2)%2 == 0): # 如果和end的差值是
                         canvas.blit(heart,(posx,posy))
                         posx = posx + hx + distance
                     elif (i == heart_begin-heart_end)&(heart_begin%2 == 1): # 如果最右边边也是半个心
-                        left_heart = heart.subsurface((0,0,hx/2,hy))
+                        left_heart = heart.subsurface((0,0,int(hx/2),hy))
                         canvas.blit(left_heart,(posx,posy))
                     else:
                         pass
             else:
                 pass
-            self.media=[canvas]
+            if (heal_heart == True)&(layer == 2): # 恢复动画
+                crop_timeline = sigmoid(0,lost_heart,frame_rate).astype(int) # 裁剪时间线
+                self.media = np.frompyfunc(lambda x:canvas.subsurface(0,0,x,hy),1,1)(crop_timeline) # 裁剪动画
+            else:
+                self.media=np.array([canvas]) # 正常的输出，单帧
             #剩下的需要定义的
             self.this = 0
             self.length=len(self.media)
@@ -330,6 +344,14 @@ class BGM:
         pygame.mixer.music.set_volume(self.volume) #设置音量
     def convert(self):
         pass
+
+# 异常定义
+
+class ParserError(Exception):
+    def __init__(self,description):
+        self.description = description
+    def __str__(self):
+        return self.description
 
 # 正则表达式定义
 
@@ -492,12 +514,12 @@ def am_methods(method_name,method_dur,this_duration,i):
             try:
                 method_args['direction'] = float(key[2:])
             except:
-                raise ValueError('[31m[ParserError]:[0m Unrecognized switch method: ['+method_name+'] appeared in dialogue line ' + str(i+1)+'.')
+                raise ParserError('[31m[ParserError]:[0m Unrecognized switch method: ['+method_name+'] appeared in dialogue line ' + str(i+1)+'.')
         else:
             try:
                 method_args['scale'] = int(key)
             except:
-                raise ValueError('[31m[ParserError]:[0m Unrecognized switch method: ['+method_name+'] appeared in dialogue line ' + str(i+1)+'.')
+                raise ParserError('[31m[ParserError]:[0m Unrecognized switch method: ['+method_name+'] appeared in dialogue line ' + str(i+1)+'.')
     # alpha
     if method_args['alpha'] == 'replace':
         alpha_timeline = np.hstack(np.ones(this_duration)) # replace的延后功能撤销！
@@ -589,14 +611,14 @@ def parser(stdin_text):
                     except:
                         print('[33m[warning]:[0m','Failed to load asterisk time in dialogue line ' + str(i+1)+'.')
                 else: #检测到复数个星标
-                    raise ValueError('[31m[ParserError]:[0m Too much asterisk time labels are set in dialogue line ' + str(i+1)+'.')
+                    raise ParserError('[31m[ParserError]:[0m Too much asterisk time labels are set in dialogue line ' + str(i+1)+'.')
 
                 # 确保时长不短于切换特效时长
                 if this_duration<(2*method_dur+1):
                     this_duration = 2*method_dur+1
             except Exception as E:
                 print(E)
-                raise ValueError('[31m[ParserError]:[0m Parse exception occurred in dialogue line ' + str(i+1)+'.')
+                raise ParserError('[31m[ParserError]:[0m Parse exception occurred in dialogue line ' + str(i+1)+'.')
 
             this_timeline=pd.DataFrame(index=range(0,this_duration),dtype=str,columns=render_arg)
             this_timeline['BG1'] = this_background
@@ -606,7 +628,7 @@ def parser(stdin_text):
 
             #各个角色：
             if len(this_charactor) > 3:
-                raise ValueError('[31m[ParserError]:[0m Too much charactor is specified in dialogue line ' + str(i+1)+'.')
+                raise ParserError('[31m[ParserError]:[0m Too much charactor is specified in dialogue line ' + str(i+1)+'.')
             for k,charactor in enumerate(this_charactor[0:3]):
                 name,alpha,subtype= charactor
                 # 处理空缺参数
@@ -621,7 +643,7 @@ def parser(stdin_text):
                     this_am = charactor_table.loc[name+subtype]['Animation']
                     this_timeline['Am'+str(k+1)] = this_am
                 except Exception as E: #这是第一次查找名字，所有的查找名字异常都raise在这里！
-                    raise ValueError('[31m[ParserError]:[0m Undefined Name '+ name+subtype +' in dialogue line ' + str(i+1)+'. due to:',E)
+                    raise ParserError('[31m[ParserError]:[0m Undefined Name '+ name+subtype +' in dialogue line ' + str(i+1)+'. due to:',E)
                 # 动画的参数
                 if (this_am!=this_am) | (this_am=='NA'):# this_am 可能为空的，需要先处理这种情况！
                     this_timeline['Am'+str(k+1)+'_t'] = 0
@@ -673,7 +695,7 @@ def parser(stdin_text):
                     word_count_timeline = (np.arange(0,this_duration,1)//(text_dur*line_limit)+1)*line_limit
                 this_timeline['Bb_main'] = UF_cut_str(this_timeline['Bb_main'],word_count_timeline)
             else:
-                raise ValueError('[31m[ParserError]:[0m Unrecognized text display method: ['+text_method+'] appeared in dialogue line ' + str(i+1)+'.')
+                raise ParserError('[31m[ParserError]:[0m Unrecognized text display method: ['+text_method+'] appeared in dialogue line ' + str(i+1)+'.')
             #音频信息
             if BGM_queue != []:
                 this_timeline.loc[0,'BGM'] = BGM_queue.pop() #从BGM_queue里取出来一个
@@ -692,13 +714,13 @@ def parser(stdin_text):
                 else:
                     delay = int(delay)
                 if '*' in se_obj:
-                    raise IOError('[31m[ParserError]:[0m Unprocessed asterisk time label appeared in dialogue line ' + str(i+1) + '. Add --SynthesisAnyway may help.')
+                    raise ParserError('[31m[ParserError]:[0m Unprocessed asterisk time label appeared in dialogue line ' + str(i+1) + '. Add --SynthesisAnyway may help.')
                 if se_obj in media_list: # 如果delay在媒体里已经定义，则视为SE
                     this_timeline.loc[delay,'SE'] = se_obj
                 elif os.path.isfile(se_obj[1:-1]) == True: #或者指向一个确定的文件，则视为语音
                     this_timeline.loc[delay,'Voice'] = se_obj
                 else:
-                    raise IOError('[31m[ParserError]:[0m The sound effect ['+se_obj+'] specified in dialogue line ' + str(i+1)+' is not exist!')
+                    raise ParserError('[31m[ParserError]:[0m The sound effect ['+se_obj+'] specified in dialogue line ' + str(i+1)+' is not exist!')
                 
             render_timeline.append(this_timeline)
             break_point[i+1]=break_point[i]+this_duration
@@ -709,7 +731,7 @@ def parser(stdin_text):
                 bgc,method,method_dur = get_background_arg(text)
                 next_background=bgc
             except:
-                raise ValueError('[31m[ParserError]:[0m Parse exception occurred in background line ' + str(i+1)+'.')
+                raise ParserError('[31m[ParserError]:[0m Parse exception occurred in background line ' + str(i+1)+'.')
                 continue
             if method=='replace': #replace 改为立刻替换 并持续n秒
                 this_timeline=pd.DataFrame(index=range(0,method_dur),dtype=str,columns=render_arg)
@@ -743,7 +765,7 @@ def parser(stdin_text):
                         this_timeline['BG1_p'] = concat_xy(formula(screen_size[0],0,method_dur),np.zeros(method_dur))
                         this_timeline['BG2_p'] = 'NA'
             else:
-                raise ValueError('[31m[ParserError]:[0m Unrecognized switch method: ['+method+'] appeared in background line ' + str(i+1)+'.')
+                raise ParserError('[31m[ParserError]:[0m Unrecognized switch method: ['+method+'] appeared in background line ' + str(i+1)+'.')
             this_background = next_background #正式切换背景
             render_timeline.append(this_timeline)
             break_point[i+1]=break_point[i]+len(this_timeline.index)
@@ -753,7 +775,7 @@ def parser(stdin_text):
             try:
                 target,args = get_seting_arg(text)
             except:
-                raise ValueError('[31m[ParserError]:[0m Parse exception occurred in setting line ' + str(i+1)+'.')
+                raise ParserError('[31m[ParserError]:[0m Parse exception occurred in setting line ' + str(i+1)+'.')
                 continue
             if target in ['speech_speed','am_method_default','am_dur_default','bg_method_default','bg_dur_default','tx_method_default','tx_dur_default','asterisk_pause']:
                 try: #如果args是整数值型
@@ -774,7 +796,7 @@ def parser(stdin_text):
                 elif args == 'stop':
                     BGM_queue.append(args)
                 else:
-                    raise IOError('[31m[ParserError]:[0m The BGM ['+args+'] specified in setting line ' + str(i+1)+' is not exist!')
+                    raise ParserError('[31m[ParserError]:[0m The BGM ['+args+'] specified in setting line ' + str(i+1)+' is not exist!')
             elif target == 'formula':
                 if args in formula_available.keys():
                     formula = formula_available[args]
@@ -784,11 +806,11 @@ def parser(stdin_text):
                         print('[33m[warning]:[0m','Using lambda formula range ',formula(0,1,2),
                               ' in line',str(i+1),', which may cause unstableness during displaying!')                            
                     except:
-                        raise ValueError('[31m[ParserError]:[0m Unsupported formula ['+args+'] is specified in setting line ' + str(i+1)+'.')
+                        raise ParserError('[31m[ParserError]:[0m Unsupported formula ['+args+'] is specified in setting line ' + str(i+1)+'.')
                 else:
-                    raise ValueError('[31m[ParserError]:[0m Unsupported formula ['+args+'] is specified in setting line ' + str(i+1)+'.')
+                    raise ParserError('[31m[ParserError]:[0m Unsupported formula ['+args+'] is specified in setting line ' + str(i+1)+'.')
             else:
-                raise ValueError('[31m[ParserError]:[0m Unsupported setting ['+target+'] is specified in setting line ' + str(i+1)+'.')
+                raise ParserError('[31m[ParserError]:[0m Unsupported setting ['+target+'] is specified in setting line ' + str(i+1)+'.')
                 continue
         # 预设动画，损失生命
         elif '<hitpoint>' in text:
@@ -798,7 +820,7 @@ def parser(stdin_text):
                 heart_begin = int(heart_begin)
                 heart_end = int(heart_end)
             except:
-                raise ValueError('[31m[ParserError]:[0m Parse exception occurred in hitpoint line ' + str(i+1)+'.')
+                raise ParserError('[31m[ParserError]:[0m Parse exception occurred in hitpoint line ' + str(i+1)+'.')
                 continue
             this_timeline=pd.DataFrame(index=range(0,frame_rate*4),dtype=str,columns=render_arg)
             # 背景
@@ -833,22 +855,30 @@ def parser(stdin_text):
             this_timeline['Am2_t'] = 0
             this_timeline['Am2_p'] = 'NA'
             this_timeline['Am1'] = Auto_media_name+'_2'
-            this_timeline['Am1_a'] = np.hstack([formula(0,100,frame_rate//2),
-                                                np.ones(frame_rate*2-frame_rate//2)*100,
-                                                left(100,0,frame_rate//2),
-                                                np.zeros(frame_rate*2-frame_rate//2)]) #0-0.5出现，2-2.5消失
-            this_timeline['Am1_p'] = concat_xy(np.zeros(frame_rate*4),
-                                               np.hstack([np.zeros(frame_rate*2), # 静止2秒
-                                                          left(0,-int(screen_size[1]*0.3),frame_rate//2), # 半秒切走
-                                                          int(screen_size[1]*0.3)*np.ones(frame_rate*2-frame_rate//2)])) #1.5秒停止
-            this_timeline['Am1_t'] = 0
+
+            if heart_begin > heart_end: # 掉血模式
+                this_timeline['Am1_a'] = np.hstack([formula(0,100,frame_rate//2),
+                                                    np.ones(frame_rate*2-frame_rate//2)*100,
+                                                    left(100,0,frame_rate//2),
+                                                    np.zeros(frame_rate*2-frame_rate//2)]) #0-0.5出现，2-2.5消失
+                this_timeline['Am1_p'] = concat_xy(np.zeros(frame_rate*4),
+                                                   np.hstack([np.zeros(frame_rate*2), # 静止2秒
+                                                              left(0,-int(screen_size[1]*0.3),frame_rate//2), # 半秒切走
+                                                              int(screen_size[1]*0.3)*np.ones(frame_rate*2-frame_rate//2)])) #1.5秒停止
+                this_timeline['Am1_t'] = 0
+            else: # 回血模式
+                this_timeline['Am1_a'] = alpha_timeline * 100 # 跟随全局血量
+                this_timeline['Am1_p'] = 'NA' # 不移动
+                this_timeline['Am1_t'] = np.hstack([np.zeros(frame_rate*1), # 第一秒静止
+                                                    np.arange(0,frame_rate,1), # 第二秒播放
+                                                    np.ones(frame_rate*2)*(frame_rate-1)]) # 后两秒静止
             # 收尾
             render_timeline.append(this_timeline)
             break_point[i+1]=break_point[i]+len(this_timeline.index)
             continue
         # 异常行，报出异常
         else:
-            raise ValueError('[31m[ParserError]:[0m Unrecognized line: '+ str(i+1)+'.')
+            raise ParserError('[31m[ParserError]:[0m Unrecognized line: '+ str(i+1)+'.')
         break_point[i+1]=break_point[i]
         
     render_timeline = pd.concat(render_timeline,axis=0)
@@ -997,13 +1027,11 @@ try:
 except:
     print('[31m[SyntaxError]:[0m Unable to load charactor table:',E)
 
-# 载入log文件
+# 载入log文件 parser()
 stdin_text = open(stdin_log,'r',encoding='utf8').read().split('\n')
-#try:
-if 1:
+try:
     render_timeline,break_point,bulitin_media = parser(stdin_text)
-#except Exception as E:
-else:
+except ParserError as E:
     print(E)
     sys.exit()
 
@@ -1066,27 +1094,27 @@ for media in media_list:
 
 # 预备画面
 W,H = screen_size
-#white.display(screen)
-#screen.blit(note_text.render('Welcome to TRPG Replay Generator!',fgcolor=(150,150,150,255),size=0.0315*W)[0],(0.230*W,0.460*H)) # for 1080p
-#screen.blit(note_text.render(edtion,fgcolor=(150,150,150,255),size=0.0278*H)[0],(0.900*W,0.963*H))
-#screen.blit(note_text.render('Press space to begin.',fgcolor=(150,150,150,255),size=0.0278*H)[0],(0.417*W,0.926*H))
-#pygame.display.update()
-#begin = False
-#while begin == False:
-#    for event in pygame.event.get():
-#        if event.type == pygame.QUIT:
-#            pygame.quit()
-#            sys.exit()
-#        elif event.type == pygame.KEYDOWN:
-#            if event.key == pygame.K_ESCAPE:
-#                pygame.time.delay(1000)
-#                pygame.quit()
-#                sys.exit()
-#            elif event.key == pygame.K_SPACE:
-#                begin = True
-#                break
-#for s in np.arange(5,0,-1):
-#    timer(s)
+white.display(screen)
+screen.blit(note_text.render('Welcome to TRPG Replay Generator!',fgcolor=(150,150,150,255),size=0.0315*W)[0],(0.230*W,0.460*H)) # for 1080p
+screen.blit(note_text.render(edtion,fgcolor=(150,150,150,255),size=0.0278*H)[0],(0.900*W,0.963*H))
+screen.blit(note_text.render('Press space to begin.',fgcolor=(150,150,150,255),size=0.0278*H)[0],(0.417*W,0.926*H))
+pygame.display.update()
+begin = False
+while begin == False:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                pygame.time.delay(1000)
+                pygame.quit()
+                sys.exit()
+            elif event.key == pygame.K_SPACE:
+                begin = True
+                break
+for s in np.arange(5,0,-1):
+    timer(s)
 
 # 主循环
 n=0

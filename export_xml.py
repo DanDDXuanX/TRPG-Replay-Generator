@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.6.4'
+edtion = 'alpha 1.6.6'
 
 # 外部参数输入
 
@@ -73,6 +73,7 @@ import glob # 匹配路径
 # 文字对象
 
 outtext_index = 0
+outanime_index = 0 
 clip_index = 0
 file_index = 0
 
@@ -112,7 +113,7 @@ class Bubble:
         self.line_distance = line_distance
         self.size = Image.open(filepath).size
         self.filename = self.path.split('/')[-1]
-        self.fileindex = 'BGfile_' + '%d'% file_index
+        self.fileindex = 'BBfile_' + '%d'% file_index
         self.PRpos = PR_center_arg(np.array(self.size),np.array(self.pos))
         file_index = file_index+1
     def display(self,begin,end,text,header=''): # 这段代码是完全没有可读性的屎，但是确实可运行，非必要不要改
@@ -222,7 +223,7 @@ class Animation:
         self.pos = pos
         self.size = Image.open(glob.glob(filepath)[0].replace('\\','/')).size # 兼容动画
         self.filename = self.path.split('/')[-1]
-        self.fileindex = 'BGfile_%d'% file_index
+        self.fileindex = 'AMfile_%d'% file_index
         self.PRpos = PR_center_arg(np.array(self.size),np.array(self.pos))
         file_index = file_index+1
     def display(self,begin,end):
@@ -248,6 +249,98 @@ class Animation:
         return clip_this
     def convert(self):
         pass
+
+# a1.6.5 内建动画，这是一个Animation类的子类，重构了构造函数
+class BuiltInAnimation(Animation):
+    def __init__(self,anime_type='hitpoint',anime_args=('0',0,0,0),screensize = (1920,1080),layer=0):
+        global file_index,outanime_index
+        if anime_type == 'hitpoint':
+            # 载入图片
+            heart = Image.open('./media/heart.png')
+            heart_shape = Image.open('./media/heart_shape.png')
+            hx,hy = heart.size
+            # 重设图片尺寸，根据screensize[0]
+            if screensize[0]!=1920:
+                multip = screensize[0]/1920
+                heart = heart.resize((hx*multip,hy*multip))
+                heart_shape = heart_shape.resize((hx*multip,hy*multip))
+                hx,hy = heart.size
+            # 动画参数
+            name_tx,heart_max,heart_begin,heart_end = anime_args
+            
+            if (heart_end==heart_begin)|(heart_max<max(heart_begin,heart_end)):
+                raise ValueError('[BIAnimeError]:','Invalid argument',name_tx,heart_max,heart_begin,heart_end,'for BIAnime hitpoint!')
+            elif heart_end > heart_begin: # 如果是生命恢复
+                temp = heart_end
+                heart_end = heart_begin
+                heart_begin = temp # 则互换顺序 确保 begin一定是小于end的
+
+            distance = int(0.026*screensize[0]) # default = 50
+
+            total_heart = int(heart_max/2 * hx + max(0,np.ceil(heart_max/2-1)) * distance) #画布总长
+            left_heart = int(heart_end/2 * hx + max(0,np.ceil(heart_end/2-1)) * distance) #画布总长
+            lost_heart = int((heart_begin-heart_end)/2 * hx + np.floor((heart_begin-heart_end)/2) * distance)
+            # 开始制图
+            if layer==0: # 底层 阴影图
+                self.pos = ((screensize[0]-total_heart)/2,(screensize[1]-hy)/2)
+                canvas = Image.new(size=(total_heart,hy),mode='RGBA',color=(0,0,0,0))
+                self.size = canvas.size
+                posx,posy = 0,0
+                for i in range(1,heart_max+1): # 偶数，低于最终血量
+                    if i%2 == 0:
+                        canvas.paste(heart_shape,(posx,posy))
+                        posx = posx + hx + distance
+                    else:
+                        pass
+                if heart_max%2 == 1: # max是奇数
+                    left_heart_shape = heart_shape.crop((0,0,int(hx/2),hy))
+                    canvas.paste(left_heart_shape,(total_heart-int(hx/2),0))
+            if layer==1: # 剩余的血量
+                self.pos = ((screensize[0]-total_heart)/2,(screensize[1]-hy)/2)
+                # 1.6.5 防止报错 剩余血量即使是空图，也要至少宽30pix
+                canvas = Image.new(size=(max(30,left_heart),hy),mode='RGBA',color=(0,0,0,0)) 
+                self.size = canvas.size
+                posx,posy = 0,0
+                for i in range(1,heart_end+1): # 偶数，低于最终血量
+                    if i%2 == 0:
+                        canvas.paste(heart,(posx,posy))
+                        posx = posx + hx + distance
+                    else:
+                        pass
+                if heart_end%2 == 1: # end是奇数
+                    left_heart = heart.crop((0,0,int(hx/2),hy))
+                    canvas.paste(left_heart,(heart_end//2*(hx + distance),0))
+            elif layer==2: # 损失/恢复的血量
+                self.pos = (heart_end//2*(hx + distance)+(heart_end%2)*int(hx/2)+(screensize[0]-total_heart)/2,(screensize[1]-hy)/2)
+                canvas = Image.new(size=(lost_heart,hy),mode='RGBA',color=(0,0,0,0))
+                self.size = canvas.size
+                posx,posy = 0,0
+                for i in range(1,heart_begin-heart_end+1): 
+                    if (i == 1)&(heart_end%2 == 1): # 如果end是奇数，先来半个右边
+                        right_heart = heart.crop((int(hx/2),0,hx,hy))
+                        canvas.paste(right_heart,(posx,posy))
+                        posx = posx + int(hx/2) + distance
+                    elif ((i - heart_end%2)%2 == 0): # 如果和end的差值是
+                        canvas.paste(heart,(posx,posy))
+                        posx = posx + hx + distance
+                    elif (i == heart_begin-heart_end)&(heart_begin%2 == 1): # 如果最右边边也是半个心
+                        left_heart = heart.crop((0,0,int(hx/2),hy))
+                        canvas.paste(left_heart,(posx,posy))
+                    else:
+                        pass
+            else:
+                pass
+            ofile = output_path+'/auto_BIA_%d'%outanime_index+'.png'
+            canvas.save(ofile)
+
+            #剩下的需要定义的
+            self.path = reformat_path(ofile) # 兼容动画Animation，只使用第一帧！
+            self.filename = 'auto_BIA_%d'%outanime_index+'.png'
+            self.fileindex = 'AMfile_%d'% file_index
+            #print(np.array(self.size),np.array(self.pos))
+            self.PRpos = PR_center_arg(np.array(self.size),np.array(self.pos))
+            outanime_index = outanime_index+1
+            file_index = file_index+1
 
 # 音效
 class Audio:
@@ -396,6 +489,7 @@ audio_clip_tplt = open('./xml_templates/tplt_audio_clip.xml','r',encoding='utf8'
 
 timeline = pd.read_pickle(stdin_log)
 break_point = pd.read_pickle(stdin_log.replace('timeline','breakpoint'))
+bulitin_media = pd.read_pickle(stdin_log.replace('timeline','bulitinmedia'))
 
 def main():
     # 载入od文件
@@ -423,7 +517,10 @@ def main():
     white = Background('white')
     media_list.append('black')
     media_list.append('white')
-    #print(media_list)
+    # alpha 1.6.5 载入导出的内建媒体
+    for key,values in bulitin_media.iteritems():
+        exec(values)
+        media_list.append(key)
 
     # 开始生成
 
