@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.6.6'
+edtion = 'alpha 1.7.0'
 
 # 外部参数输入
 
@@ -102,7 +102,7 @@ class Text:
 
     # 对话框、气泡、文本框
 class Bubble:
-    def __init__(self,filepath,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),ht_pos=(0,0),line_distance=1.5):
+    def __init__(self,filepath,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),ht_pos=(0,0),align='left',line_distance=1.5):
         global file_index
         self.path = reformat_path(filepath)
         self.MainText = Main_Text
@@ -115,6 +115,7 @@ class Bubble:
         self.filename = self.path.split('/')[-1]
         self.fileindex = 'BBfile_' + '%d'% file_index
         self.PRpos = PR_center_arg(np.array(self.size),np.array(self.pos))
+        self.align = align
         file_index = file_index+1
     def display(self,begin,end,text,header=''): # 这段代码是完全没有可读性的屎，但是确实可运行，非必要不要改
         global outtext_index,clip_tplt,clip_index
@@ -130,7 +131,15 @@ class Bubble:
         for i,s in enumerate(self.MainText.draw(text)):
             mt_text,color,font,size = s
             font_this = ImageFont.truetype(font, size)
-            draw.text((x,y+i*self.MainText.size*self.line_distance), mt_text, font = font_this, align ="left",fill = color)
+            if self.align == 'left':
+                draw.text((x,y+i*self.MainText.size*self.line_distance), mt_text, font = font_this, align ="left",fill = color)
+            else: # alpha 1.7.0 兼容居中
+                test_canvas = Image.new(mode='RGBA',size=self.size,color=(0,0,0,0))
+                test_draw = ImageDraw.Draw(test_canvas)
+                test_draw.text((x,y+i*self.MainText.size*self.line_distance,x), mt_text, font = font_this, align ="left",fill = color)
+                p1,p2,p3,p4 = test_canvas.getbbox()
+                word_w = p3 - p1
+                draw.text((x+(self.MainText.size*self.MainText.line_limit - word_w)//2,y+i*self.MainText.size*self.line_distance), mt_text, font = font_this, align ="left",fill = color)
         canvas.save(ofile)
         
         # 生成序列

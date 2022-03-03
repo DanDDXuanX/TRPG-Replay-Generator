@@ -1,8 +1,6 @@
 # 概述
 这是一基于python3 和pygame 的自动replay生成工具，旨在降低replay视频制作中的重复工作，节约时间提升效率。本工具包括主程序、语音合成、导出为PRXML、导出为视频等四个模块，使用简单处理后的log文件即可生成replay视频，并可导出可编辑的Premiere Pro序列，有较大的自定义空间。适合有一定编程基础和视频剪辑基础的用户使用。<br>
 
-[演示视频](https://www.bilibili.com/video/BV1jY411h7S3/)
-
 **环境要求：**
 
 **运行主程序replay_generator所必要的：**
@@ -36,7 +34,7 @@ python ./replay_generator.py -l ./toy/LogFile.txt -d ./toy/MediaObject.txt -t ./
 ```
 4. 进入程序后，按空格键（SPACE）开始播放，播放的过程中，按A键跳转到前一小节，D键跳转到后一小节，按空格暂停播放，ESC键终止播放并退出。
 
-# 参考文档（文档版本 alpha 1.6.0）
+# 参考文档（文档版本 alpha 1.7.0）
 
 ## 主程序replay_generator.py参数
 
@@ -82,7 +80,7 @@ Text(fontfile='C:/Windows/Fonts/simhei.ttf',fontsize=40,color=(0,0,0,255),line_l
 
 2.	**气泡 Bubble**
 ```python
-Bubble(filepath,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),ht_pos=(0,0),line_distance=1.5)
+Bubble(filepath,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),ht_pos=(0,0),align='left',line_distance=1.5)
 ```
 
 - 气泡是一个文本框，在角色发言时显示，包含了主文本、头文本、底图三个组成部分。
@@ -92,6 +90,7 @@ Bubble(filepath,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),ht_pos=
 - pos	可选参数，设置*气泡*在屏幕上的位置，是一个2元素的tuple，对应(X,Y)；默认为(0,0)，即左上角；
 - mt_pos	可选参数，设置主文本相对于气泡底图的位置，是一个2元素的tuple，对应(X,Y)；默认为(0,0)，即左上角；
 - ht_pos	可选参数，设置头文本相对于气泡底图的位置，是一个2元素的tuple，对应(X,Y)；默认为(0,0)，即左上角；
+- align	可选参数，设置主文本的对齐模式，可选项有"left"、"center"，分别对应左侧对齐和居中对齐；默认为左侧对齐；
 - line_distance	可选参数，设置了多行显示时的行距，默认值为1.5倍行距。
 
 3.	**背景 Background**
@@ -107,15 +106,18 @@ Background(filepath,pos = (0,0))
 
 4.	**立绘 Animation**
 ```python
-Animation(filepath,pos = (0,0))
+Animation(filepath,pos=(0,0),tick=1,loop=True)
 ```
 
-- 立绘指和角色绑定的个人形象图片，通常位于背景的上层，气泡的下层。
-- filepath	必要参数，指定一个图片文件的路径；
+- 立绘指和角色绑定的个人形象图片或动画，通常位于背景的上层，气泡的下层。
+- filepath	必要参数，指定一个图片文件的路径；或通过通配符指定一系列顺序命名的图片文件的路径，以设置为动态立绘。
 - pos	可选参数，指定了立绘在屏幕上的位置，是一个2元素的tuple，对应(X,Y)，默认为(0,0)，即左上角。
+- tick	可选参数，仅在动态立绘中生效，设置动态立绘的播放速度，单位为 帧/画面；默认为1，即每1帧向前切换一副画面。
+- loop	可选参数，仅在动态立绘中生效，设置动态立绘是否循环播放，可以是True或者False，设置为否时，当动态立绘的完整播放了一次之后，会停留在最后帧；默认是True，即循环播放。
 
 > 注意：一个角色可以在不同的subtype下指定不同的立绘，用于实现差分效果；使用时在log文件的对话行里指定到不同的subtype。<p>
-> 注意：如果希望实现多人同框效果，建议为同框时的立绘另外建立Animation对象，并在定义时指定合适的位置。
+> 注意：如果希望实现多人同框效果，建议为同框时的立绘另外建立Animation对象，并在定义时指定合适的位置。<p>
+> 注意：在路径中使用符号"\*"代表匹配任意字符；建议以位数相同的数字命名动态立绘。例如test_000.png、test_001.png。
 
 5.	**背景音乐 BGM**
 ```python
@@ -179,16 +181,14 @@ log文件有3种有效行，对话行，背景行和设置行，分别有其对�
 	- 只有顺位第一个角色的立绘的透明度为100，其余角色会自动被设置为半透明，在角色名后使用(alpha)可以手动指定立绘的透明度；
 	- 同一个角色如果有差分立绘，可以在角色名后使用.subtype来指定差分；未指定的将默认使用.default的立绘。
 2.	**切换效果修饰符：&lt;method=time&gt;**
-	- 目前可用的切换效果有replace和black，若语句中未指定切换效果，则参考 *method_default*；
-	- 持续时长指渐变持续的帧数；可以缺省持续时长，此时持续时长将参考 *method_dur_default*；
-	- Replace：直接替换，持续时长指切换延后时间；
-	- Black：黑场，以渐变为切换，持续时长指渐变时长。
+	- 目前可用的切换效果参考 ***动态切换效果*** 小节，若语句中未指定切换效果，则参考 *am_method_default*；
+	- 持续时长指渐变持续的帧数；可以缺省持续时长，此时持续时长将参考 *am_dur_default*；
 3.	**发言文本：^Talk#Text**
 	- 发言文本可以是大部分文本，但不建议包括英文方括号“[]”、英文尖括号“&lt;&gt;”和英文花括号“{}”，否则可能导致程序的不稳定或报错；
 	- 发言文本中可以使用井号“#”作为手动换行符，或在句首使用“^”声明手动换行模式；在手动指定换行符的行内，自动换行是失效。
 4.	**文本效果修饰符：&lt;method=time&gt;**
-	- 文本展示的效果有all，w2w，l2l，若语句中未指定展示效果，则参考 *text_method_default*；
-	- 单位时间指每显示一个字需要的帧数；可以缺省单位时间，此时单位时间将参考 *text_dur_default*；
+	- 文本展示的效果有all，w2w，l2l，若语句中未指定展示效果，则参考 *tx_method_default*；
+	- 单位时间指每显示一个字需要的帧数；可以缺省单位时间，此时单位时间将参考 *tx_dur_default*；
 	- all，一次性展示所有文本，参数此时指延迟帧数；
 	- w2w，逐字展示文本；
 	- l2l，逐行展示文本。
@@ -223,10 +223,15 @@ log文件有3种有效行，对话行，背景行和设置行，分别有其对�
 通过背景行，切换播放的背景图片。
 1.	**背景行的识别标志：&lt;background&gt;** 是背景行的必要组成部分。
 2.	**切换效果修饰符：&lt;replace=time&gt;** 背景展示修饰方法包括：
-	- cover：覆盖，新的背景会逐渐覆盖原背景，参数是整个渐变的时长
+	- cross，交叉溶解，新的背景会逐渐覆盖原背景，参数是整个渐变的时长
 	- black，黑场，原背景先隐入黑场，然后新背景再逐渐出现，参数是整个渐变的时长。
 	- white，白场，原背景先隐入白场，然后新背景再逐渐出现，参数是整个渐变的时长。
-	- replace，替换，瞬间替换，参数是替换发生的延迟时间。默认值是replace=0
+	- replace，替换，瞬间替换，参数是替换发生后的停顿时间。默认值是replace=0。
+	- delay，延时，延后替换，参数是替换发生前的延迟时间。
+	- push，推，新立绘从右侧进入画面，将旧立绘推出画面，参数是整个动画的持续时间。
+	- cover，覆盖，新立绘从右侧进入画面，覆盖在旧立绘上层，参数是整个动画的持续时间。
+3.	若语句中未指定切换效果，则参考 *bg_method_default*；
+4.	可以缺省持续时长，此时持续时长将参考 *bg_dur_default*；
 
 **背景行例子：**
 ```HTML
@@ -237,32 +242,39 @@ log文件有3种有效行，对话行，背景行和设置行，分别有其对�
 
 ### C. 设置行
 ```HTML
-<set:method_default>:<replace=0>
+<set:am_method_default>:<replace=0>
 ```
 
 通过设置行，动态地改变全局变量；
 set:后跟需要设置的全局变量名；
 可以通过set动态修改的全局变量有：
-1.	**method_default**：默认展示方法，初始值是：&lt;replace=0&gt;。
-	- 当对话行和背景行中缺省 *切换效果修饰符* 时，则使用该默认值
-	- 不建议将该默认值设置为仅背景行可用的修饰符，例如cover
-2.	**text_method_default**：默认文本展示方法，初始值是：&lt;all=1&gt;。
-	- 当对话行中缺省 *文本效果修饰符* 时，使用该默认值
-	- 例如[name]:talk，等价于[name]&lt;replace=0&gt;:talk&lt;all=1&gt;
-3.	**method_dur_default**：默认展示时间，初始值是：10，单位是帧。
-	- 当对话行和背景行的 *切换效果修饰符* 中未指定时间，则使用该默认值
+1.	**am_method_default**：立绘和气泡的默认展示方法，初始值是：&lt;replace=0&gt;。
+	- 当对话行中缺省 *切换效果修饰符* 时，则使用该默认值；
+	- 可用的选项参考 ***动态切换效果***。
+2.	**am_dur_default**：默认展示时间，初始值是：10，单位是帧。
+	- 当对话行的 *切换效果修饰符* 中未指定时间，则使用该默认值；
 	- 例如 &lt;replace&gt;，等价于&lt;replace=10&gt;
-4.	**text_dur_default**：默认文本展示时间，初始值是：8，单位是帧。
+3.	**bg_method_default**：默认展示方法，初始值是：&lt;replace=0&gt;。
+	- 当背景行中缺省 *切换效果修饰符* 时，则使用该默认值；
+	- 可用的选项有cross、black、white、replace、delay、push、cover。
+4.	**bg_dur_default**：默认展示时间，初始值是：10，单位是帧。
+	- 当背景行的 *切换效果修饰符* 中未指定时间，则使用该默认值
+	- 例如 &lt;replace&gt;，等价于&lt;replace=10&gt;
+5.	**tx_method_default**：默认文本展示方法，初始值是：&lt;all=1&gt;。
+	- 当对话行中缺省 *文本效果修饰符* 时，使用该默认值
+	- 可选的选项有 all、w2w、l2l；
+	- 例如[name]:talk，等价于[name]&lt;replace=0&gt;:talk&lt;all=1&gt;
+6.	**tx_dur_default**：默认文本展示时间，初始值是：8，单位是帧。
 	- 当对话行的&lt;文本效果修饰符&gt;中未指定时间，则使用该默认值；
 	- 例如 talk&lt;l2l&gt;，等价于talk&lt;l2l=8&gt;。
-5.	**speech_speed**：语速，初始值是：220，单位是words/min。
+7.	**speech_speed**：语速，初始值是：220，单位是words/min。
 	- 语速将影响每个小节的持续时间，当小节没有指定星标音频的时候。
-6.	**asterisk_pause**：星标音频的间隔时间，初始值是：20，单位是帧。
+8.	**asterisk_pause**：星标音频的间隔时间，初始值是：20，单位是帧。
 	- asterisk_pause仅能通过*设置行*进行设置，会应用于之后所有的星标音频。
-7.	**BGM**：背景音乐
+9.	**BGM**：背景音乐
 	- 使用&lt;set:BGM&gt;: 设置背景音乐时，需要指定一个BGM对象，或一个.ogg音频文件的路径；
 	- "&lt;set:BGM&gt;:stop"可以手动终止背景音乐的播放。
-8.	**formula**：切换效果的曲线函数，初始值是：linear，即线性。
+10.	**formula**：切换效果的曲线函数，初始值是：linear，即线性。
 	- 目前可用的formula包括linear（线性）、quadratic（二次）、quadraticR（二次反向）、sigmoid（S型）、left(左锋)和right(右峰)；
 	- formula可以接受lambda函数形式定义的自定义函数，自定义函数需要以 (begin,end,duration) 为参数；
 	- formula仅能通过*设置行*进行设置，会应用于之后所有的切换效果。
@@ -273,8 +285,8 @@ set:后跟需要设置的全局变量名；
 
 **设置行例子：**
 ```HTML
-<set:method_default>:<black=30>
-<set:text_dur_default>:10
+<set:bg_method_default>:<black=30>
+<set:tx_dur_default>:10
 <set:BGM>:'.\BGM\test.ogg'
 <set:BGM>:BGM1
 <set:formula>:sigmoid
@@ -286,9 +298,30 @@ set:后跟需要设置的全局变量名；
 1.	当一个行的第一个字符是井号“#”，则这个行被认作为注释，行内的任何内容都不会被执行；
 2.	log文件可以任意地添加空白行，且不会影响程序的正常使用。
 
-![程序的工作流程总览](./doc/workflow.png)
+### E. 动态切换效果
+
+在alpha 1.7.0版本之后，添加了大量了适用于立绘和气泡的动态切换效果，可用轻松的构建灵动的画面和各具功能性的气泡；<p>
+在对话行中的切换效果修饰符中可用设置切换效果，或者通过am_method_default设置全局的切换效果；<p>
+一个合理的method需要包含下列4类关键字中的至少一个，多个关键字之间使用下划线"\_"连接：
+
+1.	replace, delay, black: 透明度，分别对应瞬间出现（默认值），延后出现，淡入淡出；
+2.	static, leap, pass, circular: 切换动态，分别对应静止（默认值），同进同出，通过，圆周运动（实验功能）；
+2.	up, down, left, right, DG\[int\] ：切入角度，分别对应上（默认值），下，左，右，指定角度（12点方向的逆时针角度）；
+3.	major, minor, \[int\] ：动态距离，分别对应长距离（默认值），短距离，指定长度（像素）；
+
+**切换效果例子：**
+```HTML
+<black_pass=30>
+<replace=20>
+<black_leap_minor_DG30=10>
+<delay_right_circular_major=10>
+```
+
+> 注意：同一类关键字出现了多次时，以最后一次为准。
 
 ## 进阶使用
+
+![程序的工作流程总览](./doc/workflow.png)
 
 ### 修改timeline和breakpoint文件
 - timeline.pkl 和 breakpoint.pkl 文件是由 *--OutputPath* 标志输出的文件，包含了整个工程的画面和音频的时间轴信息。

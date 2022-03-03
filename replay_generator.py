@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.6.6'
+edtion = 'alpha 1.7.0'
 
 # 外部参数输入
 
@@ -82,7 +82,7 @@ import time #开发模式，显示渲染帧率
 import glob # 匹配路径
 
 
-# 类定义
+# 类定义 alpha 1.7.0
 
 # 文字对象
 class Text:
@@ -111,14 +111,23 @@ class Text:
 
 # 对话框、气泡、文本框
 class Bubble:
-    def __init__(self,filepath,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),ht_pos=(0,0),line_distance=1.5):
+    def __init__(self,filepath,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),ht_pos=(0,0),align='left',line_distance=1.5):
         self.media = pygame.image.load(filepath)
         self.pos = pos
         self.MainText = Main_Text
         self.mt_pos = mt_pos
         self.Header = Header_Text
         self.ht_pos = ht_pos
-        self.line_distance = line_distance
+        if line_distance > 1:
+            self.line_distance = line_distance
+        elif line_distance > 0:
+            print("[33m[warning]:[0m",'Line distance is set to less than 1!')
+        else:
+            raise ValueError('[31m[ArgumentError]:[0m', 'Invalid line distance:',line_distance)
+        if align in ('left','center'):
+            self.align = align
+        else:
+            raise ValueError('[31m[ArgumentError]:[0m', 'Unsupported align:',align)
     def display(self,surface,text,header='',alpha=100,adjust='NA'):
         if adjust in ['0,0','NA']:
             render_pos = self.pos
@@ -130,7 +139,11 @@ class Bubble:
             temp.blit(self.Header.draw(header)[0],self.ht_pos)
         x,y = self.mt_pos
         for i,s in enumerate(self.MainText.draw(text)):
-            temp.blit(s,(x,y+i*self.MainText.size*self.line_distance))
+            if self.align == 'left':
+                temp.blit(s,(x,y+i*self.MainText.size*self.line_distance))
+            else: # 就只可能是center了
+                word_w,word_h = s.get_size()
+                temp.blit(s,(x+(self.MainText.size*self.MainText.line_limit - word_w)//2,y+i*self.MainText.size*self.line_distance))
         if alpha !=100:
             temp.set_alpha(alpha/100*255)            
         surface.blit(temp,render_pos)
