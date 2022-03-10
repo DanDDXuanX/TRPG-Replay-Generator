@@ -1,11 +1,11 @@
 # 文本
 text1 = Text('C:/Windows/Fonts/msyh.ttc',fontsize=40,color=(100,100,100,255),line_limit=30)
 text2 = Text('C:/Windows/Fonts/msyhbd.ttc',fontsize=40,color=(100,100,100,255),line_limit=10)
-text3 = Text('./toy/media/fzxbsjt.TTF',fontsize=60,color=(32,160,205,220),line_limit=17)
+text3 = Text('./media/fzxbsjt.TTF',fontsize=60,color=(32,160,205,220),line_limit=17)
 # 气泡
 bubble1 = Bubble('./toy/media/bubble1.png',Main_Text=text1,Header_Text=text2,pos=(68,672),mt_pos=(57,115),ht_pos=(652,20),line_distance=1.2)
 bubble1_right = Bubble('./toy/media/bubble1.png',Main_Text=text1,Header_Text=text2,pos=(536,672),mt_pos=(57,115),ht_pos=(652,20),line_distance=1.2,align='center')
-bubble2 = Bubble('./toy/media/bubble2.png',Main_Text=text3,Header_Text=None,pos=(0,0),mt_pos=(436,458),line_distance=1.2,align='center')
+bubble2 = Bubble('./toy/media/bubble2.png',Main_Text=text3,Header_Text=None,pos=(0,0),mt_pos=(436,458),line_distance=1.6,align='center')
 # 背景
 bg1 = Background('./toy/media/bg1.jpg')
 bg2 = Background('./toy/media/bg2.jpg')

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.7.0'
+edtion = 'alpha 1.7.1'
 
 # 外部参数输入
 
@@ -74,7 +74,7 @@ import glob # 匹配路径
 # 文字对象
 class Text:
     pygame.font.init()
-    def __init__(self,fontfile='C:/Windows/Fonts/simhei.ttf',fontsize=40,color=(0,0,0,255),line_limit=20):
+    def __init__(self,fontfile='./media/simhei.ttf',fontsize=40,color=(0,0,0,255),line_limit=20):
         self.text_render = pygame.font.Font(fontfile,fontsize)
         self.color=color
         self.size=fontsize
@@ -195,8 +195,9 @@ class Animation:
     def convert(self):
         self.media = np.frompyfunc(lambda x:x.convert_alpha(),1,1)(self.media)
 
-# a1.6.5 内建动画，这是一个Animation类的子类，重构了构造函数
+# a1.7.1 内建动画，Animation类的子类
 class BuiltInAnimation(Animation):
+    BIA_text = Text('./media/fzxbsjt.TTF',fontsize=100,color=(255,255,255,255),line_limit=10)
     def __init__(self,anime_type='hitpoint',anime_args=('0',0,0,0),screensize = (1920,1080),layer=0):
         if anime_type == 'hitpoint':
             # 载入图片
@@ -227,12 +228,21 @@ class BuiltInAnimation(Animation):
             total_heart = int(heart_max/2 * hx + max(0,np.ceil(heart_max/2-1)) * distance) #画布总长
             left_heart = int(heart_end/2 * hx + max(0,np.ceil(heart_end/2-1)) * distance) #画布总长
             lost_heart = int((heart_begin-heart_end)/2 * hx + np.floor((heart_begin-heart_end)/2) * distance)
+
+            nametx_surf = BuiltInAnimation.BIA_text.draw(name_tx)[0] # 名牌
+            nx,ny = nametx_surf.get_size() # 名牌尺寸
             # 开始制图
             if layer==0: # 底层 阴影图
-                self.pos = ((screensize[0]-total_heart)/2,(screensize[1]-hy)/2)
-                canvas = pygame.Surface((total_heart,hy),pygame.SRCALPHA)
+                self.pos = ((screensize[0]-max(nx,total_heart))/2,(4/5*screensize[1]-hy-ny)/2)
+                canvas = pygame.Surface((max(nx,total_heart),hy+ny+screensize[1]//5),pygame.SRCALPHA)
                 canvas.fill((0,0,0,0))
-                posx,posy = 0,0
+                if nx > total_heart:
+                    canvas.blit(nametx_surf,(0,0))
+                    posx = (nx-total_heart)//2
+                else:
+                    canvas.blit(nametx_surf,((total_heart-nx)//2,0))
+                    posx = 0
+                posy = ny+screensize[1]//5
                 self.tick = 1
                 self.loop = 1
                 for i in range(1,heart_max+1): # 偶数，低于最终血量
@@ -245,7 +255,7 @@ class BuiltInAnimation(Animation):
                     left_heart_shape = heart_shape.subsurface((0,0,int(hx/2),hy))
                     canvas.blit(left_heart_shape,(total_heart-int(hx/2),0))
             if layer==1: # 剩余的血量
-                self.pos = ((screensize[0]-total_heart)/2,(screensize[1]-hy)/2)
+                self.pos = ((screensize[0]-total_heart)/2,3/5*screensize[1]+ny/2-hy/2)
                 canvas = pygame.Surface((left_heart,hy),pygame.SRCALPHA)
                 canvas.fill((0,0,0,0))
                 posx,posy = 0,0
@@ -261,7 +271,7 @@ class BuiltInAnimation(Animation):
                     left_heart = heart.subsurface((0,0,int(hx/2),hy))
                     canvas.blit(left_heart,(heart_end//2*(hx + distance),0))
             elif layer==2: # 损失/恢复的血量
-                self.pos = (heart_end//2*(hx + distance)+(heart_end%2)*int(hx/2)+(screensize[0]-total_heart)/2,(screensize[1]-hy)/2)
+                self.pos = (heart_end//2*(hx + distance)+(heart_end%2)*int(hx/2)+(screensize[0]-total_heart)/2,3/5*screensize[1]+ny/2-hy/2)
                 canvas = pygame.Surface((lost_heart,hy),pygame.SRCALPHA)
                 canvas.fill((0,0,0,0))
                 posx,posy = 0,0
@@ -283,10 +293,10 @@ class BuiltInAnimation(Animation):
             else:
                 pass
             if (heal_heart == True)&(layer == 2): # 恢复动画
-                crop_timeline = sigmoid(0,lost_heart,frame_rate).astype(int)
+                crop_timeline = sigmoid(0,lost_heart,frame_rate).astype(int) # 裁剪时间线
                 self.media = np.frompyfunc(lambda x:canvas.subsurface(0,0,x,hy),1,1)(crop_timeline) # 裁剪动画
             else:
-                self.media=np.array([canvas])
+                self.media=np.array([canvas]) # 正常的输出，单帧
             #剩下的需要定义的
             self.this = 0
             self.length=len(self.media)

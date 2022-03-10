@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.7.0'
+edtion = 'alpha 1.7.1'
 
 # 外部参数输入
 
@@ -78,7 +78,7 @@ clip_index = 0
 file_index = 0
 
 class Text:
-    def __init__(self,fontfile='C:/Windows/Fonts/simhei.ttf',fontsize=40,color=(0,0,0,255),line_limit=20):
+    def __init__(self,fontfile='./media/simhei.ttf',fontsize=40,color=(0,0,0,255),line_limit=20):
         self.color=color
         self.size=fontsize
         self.line_limit = line_limit
@@ -276,7 +276,6 @@ class BuiltInAnimation(Animation):
                 hx,hy = heart.size
             # 动画参数
             name_tx,heart_max,heart_begin,heart_end = anime_args
-            
             if (heart_end==heart_begin)|(heart_max<max(heart_begin,heart_end)):
                 raise ValueError('[BIAnimeError]:','Invalid argument',name_tx,heart_max,heart_begin,heart_end,'for BIAnime hitpoint!')
             elif heart_end > heart_begin: # 如果是生命恢复
@@ -289,12 +288,27 @@ class BuiltInAnimation(Animation):
             total_heart = int(heart_max/2 * hx + max(0,np.ceil(heart_max/2-1)) * distance) #画布总长
             left_heart = int(heart_end/2 * hx + max(0,np.ceil(heart_end/2-1)) * distance) #画布总长
             lost_heart = int((heart_begin-heart_end)/2 * hx + np.floor((heart_begin-heart_end)/2) * distance)
+            # 姓名文本
+            BIA_text = ImageFont.truetype('./media/fzxbsjt.TTF', 100)
+            test_canvas = Image.new(mode='RGBA',size=screensize,color=(0,0,0,0))
+            test_draw = ImageDraw.Draw(test_canvas)
+            test_draw.text((0,0), name_tx, font = BIA_text, align ="left",fill = (255,255,255,255))
+            p1,p2,p3,p4 = test_canvas.getbbox()
+            nx = p3 - p1
+            ny = p4 - p2
+            nametx_surf = test_canvas.crop((p1,p2,p3,p4))
             # 开始制图
             if layer==0: # 底层 阴影图
-                self.pos = ((screensize[0]-total_heart)/2,(screensize[1]-hy)/2)
-                canvas = Image.new(size=(total_heart,hy),mode='RGBA',color=(0,0,0,0))
+                self.pos = ((screensize[0]-max(nx,total_heart))/2,(4/5*screensize[1]-hy-ny)/2)
+                canvas = Image.new(size=(max(nx,total_heart),hy+ny+screensize[1]//5),mode='RGBA',color=(0,0,0,0))
                 self.size = canvas.size
-                posx,posy = 0,0
+                if nx > total_heart:
+                    canvas.paste(nametx_surf,(0,0))
+                    posx = (nx-total_heart)//2
+                else:
+                    canvas.paste(nametx_surf,((total_heart-nx)//2,0))
+                    posx = 0
+                posy = ny+screensize[1]//5
                 for i in range(1,heart_max+1): # 偶数，低于最终血量
                     if i%2 == 0:
                         canvas.paste(heart_shape,(posx,posy))
@@ -305,7 +319,7 @@ class BuiltInAnimation(Animation):
                     left_heart_shape = heart_shape.crop((0,0,int(hx/2),hy))
                     canvas.paste(left_heart_shape,(total_heart-int(hx/2),0))
             if layer==1: # 剩余的血量
-                self.pos = ((screensize[0]-total_heart)/2,(screensize[1]-hy)/2)
+                self.pos = ((screensize[0]-total_heart)/2,3/5*screensize[1]+ny/2-hy/2)
                 # 1.6.5 防止报错 剩余血量即使是空图，也要至少宽30pix
                 canvas = Image.new(size=(max(30,left_heart),hy),mode='RGBA',color=(0,0,0,0)) 
                 self.size = canvas.size
@@ -320,7 +334,7 @@ class BuiltInAnimation(Animation):
                     left_heart = heart.crop((0,0,int(hx/2),hy))
                     canvas.paste(left_heart,(heart_end//2*(hx + distance),0))
             elif layer==2: # 损失/恢复的血量
-                self.pos = (heart_end//2*(hx + distance)+(heart_end%2)*int(hx/2)+(screensize[0]-total_heart)/2,(screensize[1]-hy)/2)
+                self.pos = (heart_end//2*(hx + distance)+(heart_end%2)*int(hx/2)+(screensize[0]-total_heart)/2,3/5*screensize[1]+ny/2-hy/2)
                 canvas = Image.new(size=(lost_heart,hy),mode='RGBA',color=(0,0,0,0))
                 self.size = canvas.size
                 posx,posy = 0,0

@@ -1,14 +1,10 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.6.4'
+edtion = 'alpha 1.7.1'
 
 # 绝对的全局变量
 # 在开源发布的版本中，隐去了各个key
 URL="wss://nls-gateway.cn-shanghai.aliyuncs.com/ws/v1"
-
-AKID="Your_AccessKey"
-AKKEY="Your_AccessKey_Secret"
-APPKEY="Your_Appkey"
 
 asterisk_line_columns=['asterisk_label','character','speech_text','category','filepath']
 
@@ -22,8 +18,12 @@ import warnings
 ap = argparse.ArgumentParser(description="Speech synthesis and preprocessing from you logfile.")
 ap.add_argument("-l", "--LogFile", help='The standerd input of this programme, which is mainly composed of TRPG log.',type=str)
 ap.add_argument("-d", "--MediaObjDefine", help='Definition of the media elements, using real python code.',type=str)
-ap.add_argument("-t", "--CharacterTable", help='The correspondence between character and media elements, using tab separated text file.(.csv)',type=str)
+ap.add_argument("-t", "--CharacterTable", help='The correspondence between character and media elements, using tab separated text file or Excel table.',type=str)
 ap.add_argument("-o", "--OutputPath", help='Choose the destination directory to save the output audio files.',type=str,default='./output/')
+
+ap.add_argument("-K", "--AccessKey", help='Your AccessKey.',type=str,default="Your_AccessKey")
+ap.add_argument("-S", "--AccessKeySecret", help='Your AccessKeySecret.',type=str,default="Your_AccessKey_Secret")
+ap.add_argument("-A", "--Appkey", help='Your Appkey.',type=str,default="Your_Appkey")
 
 args = ap.parse_args()
 
@@ -31,6 +31,12 @@ char_tab = args.CharacterTable #角色和媒体对象的对应关系文件的路
 stdin_log = args.LogFile #log路径
 output_path = args.OutputPath #保存的时间轴，断点文件的目录
 media_obj = args.MediaObjDefine #媒体对象定义文件的路径
+
+# key 在这里输入了
+
+AKID = args.AccessKey
+AKKEY = args.AccessKeySecret
+APPKEY = args.Appkey
 
 try:
     for path in [stdin_log,char_tab,media_obj]:
@@ -258,7 +264,10 @@ def main():
     print('[speech synthesizer]: The processed Logfile and audio file will be saved at "'+output_path+'"')
     # 载入ct文件
     try:
-        charactor_table = pd.read_csv(char_tab,sep='\t',dtype = str)
+        if char_tab.split('.')[-1] in ['xlsx','xls']:
+            charactor_table = pd.read_excel(char_tab,dtype = str) # 支持excel格式的角色配置表
+        else:
+            charactor_table = pd.read_csv(char_tab,sep='\t',dtype = str)
         charactor_table.index = charactor_table['Name']+'.'+charactor_table['Subtype']
         if 'Voice' not in charactor_table.columns:
             raise SyntaxError('missing necessary columns.')

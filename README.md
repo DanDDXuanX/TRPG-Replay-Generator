@@ -53,6 +53,11 @@ python ./replay_generator.py -l ./toy/LogFile.txt -d ./toy/MediaObject.txt -t ./
 11. ***--SynthesisAnyway*** ：可选的标志，如果使用该标志，会对log文件中尚未处理的星标行进行语音合成；一系列WAV音频到会输出到输出目录。
 12. ***--FixScreenZoom*** ：可选的参数，仅在windows系统上生效。使用该标志以消除由于windows系统缩放倍率，而导致的窗体尺寸异常。
 
+**使用图形化界面调用程序：**
+```bash
+python ./gui.py
+```
+
 **主程序命令例子：**
 
 ```bash
@@ -152,7 +157,7 @@ Audio(filepath)
 - 用于speech_synthesizer的角色设置文件需要至少包括Name、Subtype、Voice三列，SpeechRate、PitchRate两列是可选的。
 - 每个Name需要一个Subtype是default；
 - Animation、Bubble列仅可使用*媒体定义文件*中已定义的对应的媒体对象的名称，或者使用 NA 表示缺省。
-- 可选的Voice详见[可用的语音](./doc/aliyun_available_voice.xlsx)，不需要语音的角色使用 NA 表示缺省。
+- 可选的Voice详见[可用的语音](./doc/aliyun_available_voice.md)，不需要语音的角色使用 NA 表示缺省。
 - SpeechRate、PitchRate的取值范围是(-500,500)，对应0.5倍速至2倍速。详见[接口说明](https://help.aliyun.com/document_detail/84435.html)
 
 完整的角色设置文件例子：
@@ -292,6 +297,15 @@ set:后跟需要设置的全局变量名；
 <set:formula>:sigmoid
 <set:formula>:lambda begin,end,duration:np.linspace(end,begin,duration)
 ```
+
+### D. 内建动画
+```HTML
+<hitpoint>:(张安翔,10,7,4)
+```
+
+目前支持的内建动画仅生命值损失、恢复显示，使用简单的格式调用内建动画。
+1.	**生命值显示的识别标志：&lt;hitpoint&gt;** 
+2.	括号内的参数按顺序分别是：显示的名称，总生命值，变化前的生命值，变化后的生命值。
 
 ### D. 注释行、空白行
 `#annotation`

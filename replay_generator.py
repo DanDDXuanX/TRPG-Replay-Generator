@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.7.0'
+edtion = 'alpha 1.7.1'
 
 # 外部参数输入
 
@@ -12,7 +12,7 @@ import os
 ap = argparse.ArgumentParser(description="Generating your TRPG replay video from logfile.")
 ap.add_argument("-l", "--LogFile", help='The standerd input of this programme, which is mainly composed of TRPG log.',type=str)
 ap.add_argument("-d", "--MediaObjDefine", help='Definition of the media elements, using real python code.',type=str)
-ap.add_argument("-t", "--CharacterTable", help='The correspondence between character and media elements, using tab separated text file.(.csv)',type=str)
+ap.add_argument("-t", "--CharacterTable", help='The correspondence between character and media elements, using tab separated text file or Excel table.',type=str)
 ap.add_argument("-o", "--OutputPath", help='Choose the destination directory to save the project timeline and breakpoint file.',type=str,default=None)
 # 增加一个，读取时间轴和断点文件的选项！
 ap.add_argument("-F", "--FramePerSecond", help='Set the FPS of display, default is 30 fps, larger than this may cause lag.',type=int,default=30)
@@ -87,7 +87,7 @@ import glob # 匹配路径
 # 文字对象
 class Text:
     pygame.font.init()
-    def __init__(self,fontfile='C:/Windows/Fonts/simhei.ttf',fontsize=40,color=(0,0,0,255),line_limit=20):
+    def __init__(self,fontfile='./media/simhei.ttf',fontsize=40,color=(0,0,0,255),line_limit=20):
         self.text_render = pygame.font.Font(fontfile,fontsize)
         self.color=color
         self.size=fontsize
@@ -228,8 +228,9 @@ class Animation:
     def convert(self):
         self.media = np.frompyfunc(lambda x:x.convert_alpha(),1,1)(self.media)
 
-# a1.6.5 内建动画，这是一个Animation类的子类，重构了构造函数
+# a1.7.1 内建动画，Animation类的子类
 class BuiltInAnimation(Animation):
+    BIA_text = Text('./media/fzxbsjt.TTF',fontsize=100,color=(255,255,255,255),line_limit=10)
     def __init__(self,anime_type='hitpoint',anime_args=('0',0,0,0),screensize = (1920,1080),layer=0):
         if anime_type == 'hitpoint':
             # 载入图片
@@ -260,12 +261,21 @@ class BuiltInAnimation(Animation):
             total_heart = int(heart_max/2 * hx + max(0,np.ceil(heart_max/2-1)) * distance) #画布总长
             left_heart = int(heart_end/2 * hx + max(0,np.ceil(heart_end/2-1)) * distance) #画布总长
             lost_heart = int((heart_begin-heart_end)/2 * hx + np.floor((heart_begin-heart_end)/2) * distance)
+
+            nametx_surf = BuiltInAnimation.BIA_text.draw(name_tx)[0] # 名牌
+            nx,ny = nametx_surf.get_size() # 名牌尺寸
             # 开始制图
             if layer==0: # 底层 阴影图
-                self.pos = ((screensize[0]-total_heart)/2,(screensize[1]-hy)/2)
-                canvas = pygame.Surface((total_heart,hy),pygame.SRCALPHA)
+                self.pos = ((screensize[0]-max(nx,total_heart))/2,(4/5*screensize[1]-hy-ny)/2)
+                canvas = pygame.Surface((max(nx,total_heart),hy+ny+screensize[1]//5),pygame.SRCALPHA)
                 canvas.fill((0,0,0,0))
-                posx,posy = 0,0
+                if nx > total_heart:
+                    canvas.blit(nametx_surf,(0,0))
+                    posx = (nx-total_heart)//2
+                else:
+                    canvas.blit(nametx_surf,((total_heart-nx)//2,0))
+                    posx = 0
+                posy = ny+screensize[1]//5
                 self.tick = 1
                 self.loop = 1
                 for i in range(1,heart_max+1): # 偶数，低于最终血量
@@ -278,7 +288,7 @@ class BuiltInAnimation(Animation):
                     left_heart_shape = heart_shape.subsurface((0,0,int(hx/2),hy))
                     canvas.blit(left_heart_shape,(total_heart-int(hx/2),0))
             if layer==1: # 剩余的血量
-                self.pos = ((screensize[0]-total_heart)/2,(screensize[1]-hy)/2)
+                self.pos = ((screensize[0]-total_heart)/2,3/5*screensize[1]+ny/2-hy/2)
                 canvas = pygame.Surface((left_heart,hy),pygame.SRCALPHA)
                 canvas.fill((0,0,0,0))
                 posx,posy = 0,0
@@ -294,7 +304,7 @@ class BuiltInAnimation(Animation):
                     left_heart = heart.subsurface((0,0,int(hx/2),hy))
                     canvas.blit(left_heart,(heart_end//2*(hx + distance),0))
             elif layer==2: # 损失/恢复的血量
-                self.pos = (heart_end//2*(hx + distance)+(heart_end%2)*int(hx/2)+(screensize[0]-total_heart)/2,(screensize[1]-hy)/2)
+                self.pos = (heart_end//2*(hx + distance)+(heart_end%2)*int(hx/2)+(screensize[0]-total_heart)/2,3/5*screensize[1]+ny/2-hy/2)
                 canvas = pygame.Surface((lost_heart,hy),pygame.SRCALPHA)
                 canvas.fill((0,0,0,0))
                 posx,posy = 0,0
@@ -421,8 +431,11 @@ formula_available={'linear':linear,'quadratic':quadratic,'quadraticR':quadraticR
 
 # 可以<set:keyword>动态调整的全局变量
 
-am_method_default = '<replace=0>' #默认切换效果（文本框和立绘）
-am_dur_default = 10 #默认切换效果持续时间（文本框和立绘）
+am_method_default = '<replace=0>' #默认切换效果（立绘）
+am_dur_default = 10 #默认切换效果持续时间（立绘）
+
+bb_method_default = '<replace=0>' #默认切换效果（文本框）
+bb_dur_default = 10 #默认切换效果持续时间（文本框）
 
 bg_method_default = '<replace=0>' #默认切换效果（背景）
 bg_dur_default = 10 #默认切换效果持续时间（背景）
@@ -442,13 +455,20 @@ def get_dialogue_arg(text):
     this_duration = int(len(ts)/(speech_speed/60/frame_rate))
     this_charactor = RE_characor.findall(cr)
     # 切换参数
-    if cre=='':
-        cre = am_method_default
-    method,method_dur = RE_modify.findall(cre)[0] #<black=\d+> 
-    if method_dur == '':
-        method_dur = am_dur_default
+    if cre=='': # 没有指定 都走默认值
+        am_method,am_dur = RE_modify.findall(am_method_default)[0]
+        bb_method,bb_dur = RE_modify.findall(bb_method_default)[0]
+    else: # 有指定，变得相同
+        am_method,am_dur = RE_modify.findall(cre)[0] 
+        bb_method,bb_dur = am_method,am_dur
+    if am_dur == '':# 没有指定 都走默认值
+        am_dur = am_dur_default
+    else:# 有指定，变得相同
+        am_dur = int(am_dur.replace('=',''))
+    if bb_dur == '':
+        bb_dur = bb_dur_default
     else:
-        method_dur = int(method_dur.replace('=',''))
+        bb_dur = int(bb_dur.replace('=',''))
     # 文本显示参数
     if tse=='':
         tse = tx_method_default
@@ -463,7 +483,7 @@ def get_dialogue_arg(text):
     else:
         this_sound = RE_sound.findall(se)
 
-    return (this_charactor,this_duration,method,method_dur,ts,text_method,text_dur,this_sound)
+    return (this_charactor,this_duration,am_method,am_dur,bb_method,bb_dur,ts,text_method,text_dur,this_sound)
 
 # 解析背景行 <background>
 def get_background_arg(text):
@@ -612,7 +632,7 @@ def parser(stdin_text):
         elif text[0] == '[':
             try:
                 # 从ts长度预设的 this_duration
-                this_charactor,this_duration,method,method_dur,ts,text_method,text_dur,this_sound = get_dialogue_arg(text)
+                this_charactor,this_duration,am_method,am_dur,bb_method,bb_dur,ts,text_method,text_dur,this_sound = get_dialogue_arg(text)
                 # a 1.3 从音频中加载持续时长 {SE1;*78} 注意，这里只需要载入星标时间，检查异常不在这里做：
                 asterisk_timeset = RE_asterisk.findall('\t'.join(this_sound)) #在音频标志中读取
                 if len(asterisk_timeset) == 0:  #没检测到星标
@@ -627,8 +647,8 @@ def parser(stdin_text):
                     raise ParserError('[31m[ParserError]:[0m Too much asterisk time labels are set in dialogue line ' + str(i+1)+'.')
 
                 # 确保时长不短于切换特效时长
-                if this_duration<(2*method_dur+1):
-                    this_duration = 2*method_dur+1
+                if this_duration<(2*max(am_dur,bb_dur)+1):
+                    this_duration = 2*max(am_dur,bb_dur)+1
             except Exception as E:
                 print(E)
                 raise ParserError('[31m[ParserError]:[0m Parse exception occurred in dialogue line ' + str(i+1)+'.')
@@ -637,7 +657,8 @@ def parser(stdin_text):
             this_timeline['BG1'] = this_background
             this_timeline['BG1_a'] = 100
 
-            alpha_timeline,pos_timeline = am_methods(method,method_dur,this_duration,i) # 未来的版本中可能会被对象的binding_method 替代掉！
+            alpha_timeline_A,pos_timeline_A = am_methods(am_method,am_dur,this_duration,i) # 未来的版本中可能会被对象的binding_method 替代掉！
+            alpha_timeline_B,pos_timeline_B = am_methods(bb_method,bb_dur,this_duration,i)
 
             #各个角色：
             if len(this_charactor) > 3:
@@ -675,15 +696,15 @@ def parser(stdin_text):
                     this_timeline['Bb'] = charactor_table.loc[name+subtype]['Bubble'] # 异常处理，未定义的名字
                     this_timeline['Bb_main'] = ts
                     this_timeline['Bb_header'] = name
-                    this_timeline['Bb_a'] = alpha_timeline*100
-                    this_timeline['Bb_p'] = pos_timeline
+                    this_timeline['Bb_a'] = alpha_timeline_B*100
+                    this_timeline['Bb_p'] = pos_timeline_B
                 #透明度参数
                 if (k!=0)&(alpha==100):#如果非第一角色，且没有指定透明度，则使用正常透明度60%
-                    this_timeline['Am'+str(k+1)+'_a']=alpha_timeline*60
+                    this_timeline['Am'+str(k+1)+'_a']=alpha_timeline_A*60
                 else:#否则，使用正常透明度
-                    this_timeline['Am'+str(k+1)+'_a']=alpha_timeline*alpha
+                    this_timeline['Am'+str(k+1)+'_a']=alpha_timeline_A*alpha
                 # 位置时间轴信息
-                this_timeline['Am'+str(k+1)+'_p'] = pos_timeline
+                this_timeline['Am'+str(k+1)+'_p'] = pos_timeline_A
 
             # 针对文本内容的警告
             this_line_limit = eval(this_timeline['Bb'][0]+'.MainText.line_limit') #获取行长，用来展示各类警告信息
@@ -790,7 +811,7 @@ def parser(stdin_text):
             except:
                 raise ParserError('[31m[ParserError]:[0m Parse exception occurred in setting line ' + str(i+1)+'.')
                 continue
-            if target in ['speech_speed','am_method_default','am_dur_default','bg_method_default','bg_dur_default','tx_method_default','tx_dur_default','asterisk_pause']:
+            if target in ['speech_speed','am_method_default','am_dur_default','bb_method_default','bb_dur_default','bg_method_default','bg_dur_default','tx_method_default','tx_dur_default','asterisk_pause']:
                 try: #如果args是整数值型
                     test = int(args)
                     if test < 0:
@@ -1035,7 +1056,10 @@ media_list.append('white')
 
 # 载入ct文件
 try:
-    charactor_table = pd.read_csv(char_tab,sep='\t')
+    if char_tab.split('.')[-1] in ['xlsx','xls']:
+        charactor_table = pd.read_excel(char_tab,dtype = str) # 支持excel格式的角色配置表
+    else:
+        charactor_table = pd.read_csv(char_tab,sep='\t',dtype = str)
     charactor_table.index = charactor_table['Name']+'.'+charactor_table['Subtype']
 except:
     print('[31m[SyntaxError]:[0m Unable to load charactor table:',E)
@@ -1090,7 +1114,10 @@ pygame.init()
 pygame.display.set_caption('TRPG Replay Generator '+edtion)
 fps_clock=pygame.time.Clock()
 screen = pygame.display.set_mode(screen_size)
-note_text = pygame.freetype.Font('C:/Windows/Fonts/msyh.ttc')
+try: # 系统字体
+    note_text = pygame.freetype.Font('C:/Windows/Fonts/msyh.ttc')
+except:
+    note_text = pygame.freetype.Font('./media/simhei.ttf')
 
 # 建立音频轨道
 VOICE = pygame.mixer.Channel(1)
@@ -1108,6 +1135,7 @@ for media in media_list:
 # 预备画面
 W,H = screen_size
 white.display(screen)
+screen.blit(pygame.transform.scale(pygame.image.load('./doc/icon.png'),(H//5,H//5)),(0.01*H,0.79*H))
 screen.blit(note_text.render('Welcome to TRPG Replay Generator!',fgcolor=(150,150,150,255),size=0.0315*W)[0],(0.230*W,0.460*H)) # for 1080p
 screen.blit(note_text.render(edtion,fgcolor=(150,150,150,255),size=0.0278*H)[0],(0.900*W,0.963*H))
 screen.blit(note_text.render('Press space to begin.',fgcolor=(150,150,150,255),size=0.0278*H)[0],(0.417*W,0.926*H))
