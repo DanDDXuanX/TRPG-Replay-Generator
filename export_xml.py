@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.7.1'
+edtion = 'alpha 1.7.2'
 
 # 外部参数输入
 
@@ -422,6 +422,10 @@ def reformat_path(path):#only use for windows path format
         raise ValueError('invalid path type')
     if '\\' in path: #是不是反斜杠？
         path = path.replace('\\','/') 
+    if ('&' in path)|('<' in path)|('>' in path):
+        path = path.replace('&','&amp;').replace('<','&lt;').replace('>','&gt;') # aplha1.7.2 xml 转移的bug
+    if ('"' in path)|("'" in path):
+        path = path.replace('"','&quot;').replace("'",'&apos;')
     if path[0] == '.':#是不是./123/型
         path = cwd + path[1:]
     if path[0:2] not in ['C:','D:','E:','F:','G:','H:']: #是不是123/型

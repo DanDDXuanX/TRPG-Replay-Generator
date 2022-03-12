@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.7.1'
+edtion = 'alpha 1.7.2'
 
 # 外部参数输入
 
@@ -14,13 +14,17 @@ ap.add_argument("-l", "--LogFile", help='The standerd input of this programme, w
 ap.add_argument("-d", "--MediaObjDefine", help='Definition of the media elements, using real python code.',type=str)
 ap.add_argument("-t", "--CharacterTable", help='The correspondence between character and media elements, using tab separated text file or Excel table.',type=str)
 ap.add_argument("-o", "--OutputPath", help='Choose the destination directory to save the project timeline and breakpoint file.',type=str,default=None)
-# 增加一个，读取时间轴和断点文件的选项！
+# 选项
 ap.add_argument("-F", "--FramePerSecond", help='Set the FPS of display, default is 30 fps, larger than this may cause lag.',type=int,default=30)
 ap.add_argument("-W", "--Width", help='Set the resolution of display, default is 1920, larger than this may cause lag.',type=int,default=1920)
 ap.add_argument("-H", "--Height", help='Set the resolution of display, default is 1080, larger than this may cause lag.',type=int,default=1080)
 ap.add_argument("-Z", "--Zorder", help='Set the display order of layers, not recommended to change the values unless necessary!',type=str,
                 default='BG3,BG2,BG1,Am3,Am2,Am1,Bb')
-
+# 用于语音合成的key
+ap.add_argument("-K", "--AccessKey", help='Your AccessKey, to use with --SynthsisAnyway',type=str,default="Your_AccessKey")
+ap.add_argument("-S", "--AccessKeySecret", help='Your AccessKeySecret, to use with --SynthsisAnyway',type=str,default="Your_AccessKey_Secret")
+ap.add_argument("-A", "--Appkey", help='Your Appkey, to use with --SynthsisAnyway',type=str,default="Your_Appkey")
+# Flags
 ap.add_argument('--ExportXML',help='Export a xml file to load in Premiere Pro, some .png file will be created at same time.',action='store_true')
 ap.add_argument('--ExportVideo',help='Export MP4 video file, this will disables interface display',action='store_true')
 ap.add_argument('--SynthesisAnyway',help='Execute speech_synthezier first, and process all unprocessed asterisk time label.',action='store_true')
@@ -36,6 +40,10 @@ output_path = args.OutputPath #保存的时间轴，断点文件的目录
 screen_size = (args.Width,args.Height) #显示的分辨率
 frame_rate = args.FramePerSecond #帧率 单位fps
 zorder = args.Zorder.split(',') #渲染图层顺序
+
+AKID = args.AccessKey
+AKKEY = args.AccessKeySecret
+APPKEY = args.Appkey
 
 exportXML = args.ExportXML #导出为XML
 exportVideo = args.ExportVideo #导出为视频
@@ -371,8 +379,8 @@ class BGM:
 # 异常定义
 
 class ParserError(Exception):
-    def __init__(self,description):
-        self.description = description
+    def __init__(self,*description):
+        self.description = ' '.join(map(str,description))
     def __str__(self):
         return self.description
 
@@ -922,7 +930,7 @@ def parser(stdin_text):
     timeline_diff.index = timeline_diff.index+1 #设置为第1-10帧
     timeline_diff.loc[0]='NA' #再把第0帧设置为NA
     dropframe = (render_timeline == timeline_diff.sort_index()).all(axis=1) # 这样，就是原来的第10帧和第9帧在比较了
-    bulitin_media = pd.Series(bulitin_media)
+    bulitin_media = pd.Series(bulitin_media,dtype=str)
     # 这样就去掉了，和前一帧相同的帧，节约了性能
     return render_timeline[dropframe == False].copy(),break_point,bulitin_media
 
@@ -1016,8 +1024,8 @@ def pause_SE(stats):
 # 检查是否需要先做语音合成
 
 if synthfirst == True:
-    command = python3 +' ./speech_synthesizer.py --LogFile {lg} --MediaObjDefine {md} --CharacterTable {ct} --OutputPath {of}'
-    command = command.format(lg = stdin_log.replace('\\','/'),md = media_obj.replace('\\','/'), of = output_path, ct = char_tab.replace('\\','/'))
+    command = python3 +' ./speech_synthesizer.py --LogFile {lg} --MediaObjDefine {md} --CharacterTable {ct} --OutputPath {of} --AccessKey {AK} --AccessKeySecret {AS} --Appkey {AP}'
+    command = command.format(lg = stdin_log.replace('\\','/'),md = media_obj.replace('\\','/'), of = output_path, ct = char_tab.replace('\\','/'), AK = AKID,AS = AKKEY,AP = APPKEY)
     print('[replay generator] Flag --SynthesisAnyway detected, running command:\n','[32m'+command+'[0m')
     try:
         os.system(command)
@@ -1061,7 +1069,7 @@ try:
     else:
         charactor_table = pd.read_csv(char_tab,sep='\t',dtype = str)
     charactor_table.index = charactor_table['Name']+'.'+charactor_table['Subtype']
-except:
+except Exception as E:
     print('[31m[SyntaxError]:[0m Unable to load charactor table:',E)
 
 # 载入log文件 parser()
