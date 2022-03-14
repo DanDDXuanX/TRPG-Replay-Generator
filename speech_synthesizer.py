@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.7.2'
+edtion = 'alpha 1.7.3'
 
 # 绝对的全局变量
 # 在开源发布的版本中，隐去了各个key
@@ -62,7 +62,6 @@ except Exception as E:
 
 # 包导入
 
-import nls
 import pandas as pd
 import numpy as np
 from pygame import mixer
@@ -73,6 +72,9 @@ import re
 # 阿里云的TTS引擎
 class TTS_engine:
     def __init__(self,name='unnamed',voice = 'ailun',speech_rate=0,pitch_rate=0,volume=50,aformat='wav'):
+        if 'nls' not in sys.modules: # 兼容没有安装nls的使用 
+            global nls
+            import nls
         self.ID = name
         self.voice = voice
         self.aformat = aformat
@@ -85,7 +87,7 @@ class TTS_engine:
                     appkey=APPKEY,
                     on_data=self.on_data,
                     on_close=self.on_close,
-                    callback_args=[self.ID,]
+                    callback_args=[self.ID,self.voice]
                 )
     def start(self,text,ofile):
         self.ofile = open(ofile,'wb')
@@ -97,14 +99,13 @@ class TTS_engine:
             print_text = text[0:5]+'...'
         else:
             print_text = text
-        print("{0} -> '{1}'".format(print_text,ofile))
+        print("[{0}({1})]:{2} -> '{3}'".format(self.ID,self.voice,print_text,ofile))
     def on_close(self, *args):
         #print("on_close: args=>{}".format(args))
         try:
             self.ofile.close()
         except Exception as E:
             print("[31m[TTSError]:[0m Close file failed since:", E)
-
     def on_data(self, data, *args):
         try:
             self.ofile.write(data)
@@ -128,7 +129,7 @@ aliyun_voice_lib = [
 
 RE_dialogue = re.compile('^\[([\w\.\;\(\)\,]+)\](<[\w\=\d]+>)?:(.+?)(<[\w\=\d]+>)?({.+})?$')
 RE_characor = re.compile('(\w+)(\(\d*\))?(\.\w+)?')
-RE_asterisk = re.compile('(\{([\w\.\\\/\'\":]*?[,;])?\*([\w\.\,，]*)?\})')
+RE_asterisk = re.compile('(\{([^\{\}]*?[,;])?\*([\w\.\,，]*)?\})')
 
 media_list=[]
 
@@ -232,6 +233,7 @@ def synthesizer(key,asterisk):
     else:
         charactor_info = charactor_table.loc[asterisk['character']]
     if charactor_info['TTS'] == 'None': #如果这个角色本身就不带有发言
+        print('[33m[warning]:[0m No voice is specified for ',asterisk['character'])
         return 'None',False
     else:
         ofile = output_path+'/'+'auto_AU_%d'%key+'.wav'
@@ -270,11 +272,15 @@ def main():
             charactor_table = pd.read_csv(char_tab,sep='\t',dtype = str)
         charactor_table.index = charactor_table['Name']+'.'+charactor_table['Subtype']
         if 'Voice' not in charactor_table.columns:
-            raise SyntaxError('missing necessary columns.')
+            print('[33m[warning]:[0m','Missing \'Voice\' columns.')
     except Exception as E:
         print('[31m[SyntaxError]:[0m Unable to load charactor table:',E)
 
     # 填补缺省值
+    if 'Voice' not in charactor_table.columns:
+        charactor_table['Voice'] = 'NA'
+    else:
+        charactor_table['Voice'] = charactor_table['Voice'].fillna('NA')
     if 'SpeechRate' not in charactor_table.columns:
         charactor_table['SpeechRate'] = 0
     else:
@@ -296,7 +302,11 @@ def main():
         else:
             TTS[key] = TTS_define_tplt.format(key,value.Voice,value.SpeechRate,value.PitchRate)
     # 应用并保存在charactor_table内
-    charactor_table['TTS'] = TTS.map(lambda x:eval(x))
+    try:
+        charactor_table['TTS'] = TTS.map(lambda x:eval(x))
+    except ModuleNotFoundError as E:
+        print('[31m[ImportError]:[0m ',E,'check https://help.aliyun.com/document_detail/374323.html. Execution terminated!')
+        sys.exit()
 
     # 载入od文件
     object_define_text = open(media_obj,'r',encoding='utf-8').read().split('\n')
@@ -344,7 +354,7 @@ def main():
     refresh = asterisk_line[(asterisk_line.category==3)|(asterisk_line.synth_status==True)].dropna().copy() #检定是否成功合成
 
     if len(refresh.index) == 0: #如果未合成任何语音
-        print('[33m[warning]:[0m','There is no vaild asterisk label to synthesis, execution terminated!')
+        print('[33m[warning]:[0m','No vaild asterisk label synthesised, execution terminated!')
         sys.exit()
 
     # 读取音频时长

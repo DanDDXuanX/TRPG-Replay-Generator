@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.7.2'
+edtion = 'alpha 1.7.3'
 
 # 外部参数输入
 
@@ -381,7 +381,6 @@ def render(this_frame):
                                                                                                '\"'+this_frame[layer+'_header']+'\"',
                                                                                                '\"'+this_frame[layer+'_p']+'\"'))
     return 1
-
 
 # 载入timeline 和 breakpoint
 

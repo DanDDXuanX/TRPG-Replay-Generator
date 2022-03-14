@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.7.2'
+edtion = 'alpha 1.7.3'
 
 # 外部参数输入
 
@@ -392,9 +392,10 @@ RE_setting = re.compile('^<set:([\w\_]+)>:(.+)$')
 RE_characor = re.compile('(\w+)(\(\d*\))?(\.\w+)?')
 RE_modify = re.compile('<(\w+)(=\d+)?>')
 RE_sound = re.compile('({.+?})')
-RE_asterisk = re.compile('(\{([\w\.\\\/\'\":]*?[,;])?\*([\w\.\,，]*)?\})') # a 1.4.3 修改了星标的正则（和ss一致）
+RE_asterisk = re.compile('(\{([^\{\}]*?[,;])?\*([\w\.\,，]*)?\})') # v 1.7.3 修改匹配模式以匹配任何可能的字符（除了花括号）
 RE_hitpoint = re.compile('<hitpoint>:\((.+?),(\d+),(\d+),(\d+)\)') # a 1.6.5 血条预设动画
 #RE_asterisk = re.compile('\{\w+[;,]\*(\d+\.?\d*)\}') # 这种格式对于{path;*time的}的格式无效！
+#RE_asterisk = re.compile('(\{([\w\.\\\/\'\":]*?[,;])?\*([\w\.\,，]*)?\})') # a 1.4.3 修改了星标的正则（和ss一致）,这种对于有复杂字符的路径无效！
 
 # 绝对的全局变量
 
@@ -1040,6 +1041,9 @@ if synthfirst == True:
 
 # 载入od文件
 object_define_text = open(media_obj,'r',encoding='utf-8').read().split('\n')
+if object_define_text[0][0] == '\ufeff': # 139 debug
+    print('[33m[warning]:[0m','UTF8 BOM recognized in MediaDef, it will be drop from the begin of file!')
+    object_define_text[0] = object_define_text[0][1:]
 
 media_list=[]
 for i,text in enumerate(object_define_text):
@@ -1069,11 +1073,16 @@ try:
     else:
         charactor_table = pd.read_csv(char_tab,sep='\t',dtype = str)
     charactor_table.index = charactor_table['Name']+'.'+charactor_table['Subtype']
+    if ('Animation' not in charactor_table.columns) | ('Bubble' not in charactor_table.columns): # 139debug
+        raise SyntaxError('missing necessary columns.')
 except Exception as E:
     print('[31m[SyntaxError]:[0m Unable to load charactor table:',E)
 
 # 载入log文件 parser()
 stdin_text = open(stdin_log,'r',encoding='utf8').read().split('\n')
+if stdin_text[0][0] == '\ufeff': # 139 debug
+    print('[33m[warning]:[0m','UTF8 BOM recognized in Logfile, it will be drop from the begin of file!')
+    stdin_text[0] = stdin_text[0][1:]
 try:
     render_timeline,break_point,bulitin_media = parser(stdin_text)
 except ParserError as E:

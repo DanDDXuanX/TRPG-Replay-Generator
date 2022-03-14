@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.7.2'
+edtion = 'alpha 1.7.3'
 
 import tkinter as tk
 from tkinter import ttk
@@ -11,7 +11,7 @@ from tkinter import colorchooser
 from PIL import Image,ImageTk,ImageFont,ImageDraw
 import webbrowser
 import os
-#import sys
+import sys
 import re
 
 # preview 的类 定义
@@ -51,13 +51,23 @@ class Bubble:
     def preview(self):
         def pos_add(pos1,pos2):
             return pos1[0]+pos2[0],pos1[1]+pos2[1]
+        draw = ImageDraw.Draw(image_canvas)
+        p_x,p_y = self.pos
+        h_x,h_y = pos_add(self.ht_pos,self.pos)
+        m_x,m_y = pos_add(self.mt_pos,self.pos)
         if self.media.mode == 'RGBA':
             image_canvas.paste(self.media,self.pos,mask=self.media.split()[-1])
         else:
             image_canvas.paste(self.media,self.pos)
+        draw.line([p_x-100,p_y,p_x+100,p_y],fill='green',width=2)
+        draw.line([p_x,p_y-100,p_x,p_y+100],fill='green',width=2)
+        draw.text((p_x,p_y),'({0},{1})'.format(p_x,p_y),font=label_pos_show_text,fill='green')
         if self.Header != None:
             draw_text = self.Header.draw()
             image_canvas.paste(draw_text,pos_add(self.ht_pos,self.pos),draw_text.split()[-1])
+            draw.line([h_x-100,h_y,h_x+100,h_y],fill='blue',width=2)
+            draw.line([h_x,h_y-50,h_x,h_y+50],fill='blue',width=2)
+            draw.text((h_x,h_y-35),'({0},{1})'.format(h_x-p_x,h_y-p_y),font=label_pos_show_text,fill='blue')
         if self.MainText != None:
             tx_w = self.MainText.size*self.MainText.line_limit
             tx_h = self.line_distance*self.MainText.size
@@ -65,19 +75,9 @@ class Bubble:
             for i,l in enumerate(range(self.MainText.line_limit,0,-self.MainText.line_limit//4)):
                 draw_text = self.MainText.draw(l)
                 image_canvas.paste(draw_text,pos_add(self.pos,(int(mx+(tx_w-draw_text.size[0])//2*(self.align=='center')),int(my+i*tx_h))),draw_text.split()[-1])
-        draw = ImageDraw.Draw(image_canvas)
-        p_x,p_y = self.pos
-        h_x,h_y = pos_add(self.ht_pos,self.pos)
-        m_x,m_y = pos_add(self.mt_pos,self.pos)
-        draw.line([p_x-100,p_y,p_x+100,p_y],fill='green',width=2)
-        draw.line([p_x,p_y-100,p_x,p_y+100],fill='green',width=2)
-        draw.text((p_x,p_y),'({0},{1})'.format(p_x,p_y),font=label_pos_show_text,fill='green')
-        draw.line([h_x-100,h_y,h_x+100,h_y],fill='blue',width=2)
-        draw.line([h_x,h_y-50,h_x,h_y+50],fill='blue',width=2)
-        draw.text((h_x,h_y-35),'({0},{1})'.format(h_x-p_x,h_y-p_y),font=label_pos_show_text,fill='blue')
-        draw.line([m_x-100,m_y,m_x+100,m_y],fill='blue',width=2)
-        draw.line([m_x,m_y-50,m_x,m_y+50],fill='blue',width=2)
-        draw.text((m_x,m_y-35),'({0},{1})'.format(m_x-p_x,m_y-p_y),font=label_pos_show_text,fill='blue')
+            draw.line([m_x-100,m_y,m_x+100,m_y],fill='blue',width=2)
+            draw.line([m_x,m_y-50,m_x,m_y+50],fill='blue',width=2)
+            draw.text((m_x,m_y-35),'({0},{1})'.format(m_x-p_x,m_y-p_y),font=label_pos_show_text,fill='blue')
 class Background:
     cmap = {'black':(0,0,0,255),'white':(255,255,255,255),'greenscreen':(0,177,64,255)}
     def __init__(self,filepath,pos = (0,0)):
@@ -632,8 +632,8 @@ def Main_windows():
     exportmp4 = tk.IntVar(Main_windows)
     fixscrzoom = tk.IntVar(Main_windows)
     # 获取python解释器的路径
-    #python3 = sys.executable.replace('\\','/')
-    python3 = 'python' # exe发布版
+    python3 = sys.executable.replace('\\','/')
+    #python3 = 'python' # exe发布版
 
     # 标签页选项
     tab1 = tk.Radiobutton(Main_windows,text="主程序", font=big_text,command=printFrame,variable=tab,value=1,indicatoron=False)
@@ -726,13 +726,13 @@ def Main_windows():
     optional_s = tk.LabelFrame(synth_frame,text='选项')
     optional_s.place(x=10,y=210,width=600,height=110)
 
-    tk.Label(optional_s, text="AccessKey：",anchor=tk.W).place(x=10,y=0,width=110,height=25)
-    tk.Label(optional_s, text="AccessKeySecret：",anchor=tk.W).place(x=10,y=30,width=110,height=25)
-    tk.Label(optional_s, text="Appkey：",anchor=tk.W).place(x=10,y=60,width=110,height=25)
+    tk.Label(optional_s, text="Appkey：",anchor=tk.W).place(x=10,y=0,width=110,height=25)
+    tk.Label(optional_s, text="AccessKey：",anchor=tk.W).place(x=10,y=30,width=110,height=25)
+    tk.Label(optional_s, text="AccessKeySecret：",anchor=tk.W).place(x=10,y=60,width=110,height=25)
 
-    tk.Entry(optional_s, textvariable=AccessKey).place(x=120,y=0,width=390,height=25)
-    tk.Entry(optional_s, textvariable=AccessKeySecret).place(x=120,y=30,width=390,height=25)
-    tk.Entry(optional_s, textvariable=Appkey).place(x=120,y=60,width=390,height=25)
+    tk.Entry(optional_s, textvariable=Appkey).place(x=120,y=0,width=390,height=25)
+    tk.Entry(optional_s, textvariable=AccessKey).place(x=120,y=30,width=390,height=25)
+    tk.Entry(optional_s, textvariable=AccessKeySecret).place(x=120,y=60,width=390,height=25)
 
     flag_s = tk.LabelFrame(synth_frame,text='标志')
     flag_s.place(x=10,y=320,width=600,height=110)
