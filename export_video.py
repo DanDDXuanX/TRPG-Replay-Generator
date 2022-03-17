@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.7.3'
+edtion = 'alpha 1.7.4'
 
 # 外部参数输入
 
@@ -79,6 +79,8 @@ class Text:
         self.color=color
         self.size=fontsize
         self.line_limit = line_limit
+    def render(self,tx):
+        return self.text_render.render(tx,True,self.color)
     def draw(self,text):
         out_text = []
         if ('#' in text) | (text[0]=='^'): #如果有手动指定的换行符 # bug:如果手动换行，但是第一个#在30字以外，异常的显示
@@ -86,15 +88,29 @@ class Text:
                 text = text[1:]
             text_line = text.split('#')
             for tx in text_line:
-                out_text.append(self.text_render.render(tx,True,self.color))
+                out_text.append(self.render(tx))
         elif len(text) > self.line_limit: #如果既没有主动指定，字符长度也超限
             for i in range(0,len(text)//self.line_limit+1):#较为简单粗暴的自动换行
-                out_text.append(self.text_render.render(text[i*self.line_limit:(i+1)*self.line_limit],True,self.color))
+                out_text.append(self.render(text[i*self.line_limit:(i+1)*self.line_limit]))
         else:
-            out_text = [self.text_render.render(text,True,self.color)]
+            out_text = [self.render(text)]
         return out_text
     def convert(self):
         pass
+
+class StrokeText(Text):
+    pygame.font.init()
+    def __init__(self,fontfile='./media/simhei.ttf',fontsize=40,color=(0,0,0,255),line_limit=20,edge_color=(255,255,255,255)):
+        super().__init__(fontfile=fontfile,fontsize=fontsize,color=color,line_limit=line_limit) # 继承
+        self.edge_color=edge_color
+    def render(self,tx):
+        edge = self.text_render.render(tx,True,self.edge_color)
+        face = self.text_render.render(tx,True,self.color)
+        canvas = pygame.Surface((edge.get_size()[0]+2,edge.get_size()[1]+2),pygame.SRCALPHA)
+        for pos in [(0,0),(0,1),(0,2),(1,0),(1,2),(2,0),(2,1),(2,2)]:
+            canvas.blit(edge,pos)
+        canvas.blit(face,(1,1))
+        return canvas
 
 # 对话框、气泡、文本框
 class Bubble:
@@ -186,12 +202,6 @@ class Animation:
             surface.blit(temp,render_pos)
         else:
             surface.blit(self.media[int(self.this)],render_pos)
-        #self.this = self.this + 1/self.tick
-        #if self.this >= self.length - 1: # 在timeline 简并 之后会出现bug！
-        #    if self.loop == True:
-        #        self.this = 0
-        #    else:
-        #        self.this = self.length - 1
     def convert(self):
         self.media = np.frompyfunc(lambda x:x.convert_alpha(),1,1)(self.media)
 

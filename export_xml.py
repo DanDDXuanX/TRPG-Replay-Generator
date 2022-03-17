@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.7.3'
+edtion = 'alpha 1.7.4'
 
 # 外部参数输入
 
@@ -83,6 +83,12 @@ class Text:
         self.size=fontsize
         self.line_limit = line_limit
         self.fontpath = fontfile
+    def render(self,tx):
+        font_this = ImageFont.truetype(self.fontpath, self.size)
+        text_this = Image.new(mode='RGBA',size=(self.size*(len(tx)+1),self.size*2),color=(0,0,0,0)) # 画布贪婪为2x高度，+1宽度
+        draw_this = ImageDraw.Draw(text_this)
+        draw_this.text((0,0),tx,font = font_this,align ="left",fill = self.color)
+        return text_this
     def draw(self,text):
         out_text = []
         if ('#' in text) | (text[0]=='^'): #如果有手动指定的换行符
@@ -90,15 +96,28 @@ class Text:
                 text = text[1:]
             text_line = text.split('#')
             for tx in text_line:
-                out_text.append((tx,self.color,self.fontpath,self.size))
+                out_text.append(self.render(tx))
         elif len(text) > self.line_limit: #如果既没有主动指定，字符长度也超限
             for i in range(0,len(text)//self.line_limit+1):
-                out_text.append((text[i*self.line_limit:(i+1)*self.line_limit],self.color,self.fontpath,self.size))
+                out_text.append(self.render(text[i*self.line_limit:(i+1)*self.line_limit]))
         else:
-            out_text = [(text,self.color,self.fontpath,self.size)]
+            out_text = [self.render(text)]
         return out_text
     def convert(self):
         pass
+
+class StrokeText(Text):
+    def __init__(self,fontfile='./media/simhei.ttf',fontsize=40,color=(0,0,0,255),line_limit=20,edge_color=(255,255,255,255)):
+        super().__init__(fontfile=fontfile,fontsize=fontsize,color=color,line_limit=line_limit) # 继承
+        self.edge_color=edge_color
+    def render(self,tx):
+        font_this = ImageFont.truetype(self.fontpath, self.size)
+        text_this = Image.new(mode='RGBA',size=(self.size*(len(tx)+1),self.size*2),color=(0,0,0,0)) # 画布贪婪为2x高度，+1宽度
+        draw_this = ImageDraw.Draw(text_this)
+        for pos in [(0,0),(0,1),(0,2),(1,0),(1,2),(2,0),(2,1),(2,2)]:
+            draw_this.text(pos,tx,font = font_this,align ="left",fill = self.edge_color)
+        draw_this.text((1,1),tx,font = font_this,align ="left",fill = self.color)
+        return text_this
 
     # 对话框、气泡、文本框
 class Bubble:
@@ -122,24 +141,22 @@ class Bubble:
         # 生成文本图片
         ofile = output_path+'/auto_TX_%d'%outtext_index+'.png'
         canvas = Image.new(mode='RGBA',size=self.size,color=(0,0,0,0))
-        draw = ImageDraw.Draw(canvas)
         if (self.Header!=None) & (header!=''):    # Header 有定义，且输入文本不为空
-            ht_text,color,font,size = self.Header.draw(header)[0]
-            font_this = ImageFont.truetype(font, size)
-            draw.text(self.ht_pos, ht_text, font = font_this, align ="left",fill = color)
+            ht_text = self.Header.draw(header)[0]
+            p1,p2,p3,p4 = ht_text.getbbox()
+            canvas.paste(ht_text.crop((p1,p2,p3,p4)),(self.ht_pos[0]+p1,self.ht_pos[1]+p2)) # 兼容微软雅黑这种，bbox到处飘的字体
         x,y = self.mt_pos
-        for i,s in enumerate(self.MainText.draw(text)):
-            mt_text,color,font,size = s
-            font_this = ImageFont.truetype(font, size)
+        for i,mt_text in enumerate(self.MainText.draw(text)): 
+            p1,p2,p3,p4 = mt_text.getbbox() # 先按照bboxcrop，然后按照原位置放置
             if self.align == 'left':
-                draw.text((x,y+i*self.MainText.size*self.line_distance), mt_text, font = font_this, align ="left",fill = color)
+                canvas.paste(mt_text.crop((p1,p2,p3,p4)),(x+p1,int(y+i*self.MainText.size*self.line_distance+p2)))
             else: # alpha 1.7.0 兼容居中
-                test_canvas = Image.new(mode='RGBA',size=self.size,color=(0,0,0,0))
-                test_draw = ImageDraw.Draw(test_canvas)
-                test_draw.text((x,y+i*self.MainText.size*self.line_distance,x), mt_text, font = font_this, align ="left",fill = color)
-                p1,p2,p3,p4 = test_canvas.getbbox()
                 word_w = p3 - p1
-                draw.text((x+(self.MainText.size*self.MainText.line_limit - word_w)//2,y+i*self.MainText.size*self.line_distance), mt_text, font = font_this, align ="left",fill = color)
+                canvas.paste(mt_text.crop((p1,p2,p3,p4)),
+                             (x + p1 + (self.MainText.size*self.MainText.line_limit - word_w)//2,
+                              int(y+i*self.MainText.size*self.line_distance+p2)
+                             )
+                            )
         canvas.save(ofile)
         
         # 生成序列
