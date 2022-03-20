@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.7.3'
+edtion = 'alpha 1.7.5'
 
 # 绝对的全局变量
 # 在开源发布的版本中，隐去了各个key
@@ -310,6 +310,9 @@ def main():
 
     # 载入od文件
     object_define_text = open(media_obj,'r',encoding='utf-8').read().split('\n')
+    if object_define_text[0][0] == '\ufeff': # 139 debug
+        print('[33m[warning]:[0m','UTF8 BOM recognized in MediaDef, it will be drop from the begin of file!')
+        object_define_text[0] = object_define_text[0][1:]
     
     for i,text in enumerate(object_define_text):
         if text == '':
@@ -327,6 +330,9 @@ def main():
 
     # 载入log文件
     stdin_text = open(stdin_log,'r',encoding='utf8').read().split('\n')
+    if stdin_text[0][0] == '\ufeff': # 139 debug
+        print('[33m[warning]:[0m','UTF8 BOM recognized in Logfile, it will be drop from the begin of file!')
+        stdin_text[0] = stdin_text[0][1:]
     try:
         asterisk_line = parser(stdin_text)
     except Exception as E:

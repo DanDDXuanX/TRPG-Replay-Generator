@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.7.4'
+edtion = 'alpha 1.7.5'
 
 # 外部参数输入
 
@@ -101,7 +101,10 @@ class Text:
         self.size=fontsize
         self.line_limit = line_limit
     def render(self,tx):
-        return self.text_render.render(tx,True,self.color)
+        face = self.text_render.render(tx,True,self.color[0:3])
+        if self.color[3] < 255:
+            face.set_alpha(self.color[3])
+        return face
     def draw(self,text):
         out_text = []
         if ('#' in text) | (text[0]=='^'): #如果有手动指定的换行符 # bug:如果手动换行，但是第一个#在30字以外，异常的显示
@@ -126,8 +129,12 @@ class StrokeText(Text):
         super().__init__(fontfile=fontfile,fontsize=fontsize,color=color,line_limit=line_limit) # 继承
         self.edge_color=edge_color
     def render(self,tx):
-        edge = self.text_render.render(tx,True,self.edge_color)
-        face = self.text_render.render(tx,True,self.color)
+        edge = self.text_render.render(tx,True,self.edge_color[0:3])
+        face = self.text_render.render(tx,True,self.color[0:3])
+        if self.edge_color[3] < 255:
+            edge.set_alpha(self.edge_color[3])
+        if self.color[3] < 255:
+            face.set_alpha(self.color[3])
         canvas = pygame.Surface((edge.get_size()[0]+2,edge.get_size()[1]+2),pygame.SRCALPHA)
         for pos in [(0,0),(0,1),(0,2),(1,0),(1,2),(2,0),(2,1),(2,2)]:
             canvas.blit(edge,pos)
@@ -227,11 +234,11 @@ class Animation:
     def convert(self):
         self.media = np.frompyfunc(lambda x:x.convert_alpha(),1,1)(self.media)
 
-# a1.7.1 内建动画，Animation类的子类
+# a1.7.5 内建动画，Animation类的子类
 class BuiltInAnimation(Animation):
-    BIA_text = Text('./media/fzxbsjt.TTF',fontsize=100,color=(255,255,255,255),line_limit=10)
     def __init__(self,anime_type='hitpoint',anime_args=('0',0,0,0),screensize = (1920,1080),layer=0):
-        if anime_type == 'hitpoint':
+        BIA_text = Text('./media/fzxbsjt.TTF',fontsize=int(0.0521*screensize[0]),color=(255,255,255,255),line_limit=10)
+        if anime_type == 'hitpoint': # anime_args=('0',0,0,0)
             # 载入图片
             heart = pygame.image.load('./media/heart.png')
             heart_shape = pygame.image.load('./media/heart_shape.png')
@@ -241,7 +248,7 @@ class BuiltInAnimation(Animation):
                 multip = screensize[0]/1920
                 heart = pygame.transform.scale(heart,(int(hx*multip),int(hy*multip)))
                 heart_shape = pygame.transform.scale(heart_shape,(int(hx*multip),int(hy*multip)))
-                hx,hy = heart.media[0].get_size()
+                hx,hy = heart.get_size()
             # 动画参数
             name_tx,heart_max,heart_begin,heart_end = anime_args
 
@@ -261,7 +268,7 @@ class BuiltInAnimation(Animation):
             left_heart = int(heart_end/2 * hx + max(0,np.ceil(heart_end/2-1)) * distance) #画布总长
             lost_heart = int((heart_begin-heart_end)/2 * hx + np.floor((heart_begin-heart_end)/2) * distance)
 
-            nametx_surf = BuiltInAnimation.BIA_text.draw(name_tx)[0] # 名牌
+            nametx_surf = BIA_text.draw(name_tx)[0] # 名牌
             nx,ny = nametx_surf.get_size() # 名牌尺寸
             # 开始制图
             if layer==0: # 底层 阴影图
@@ -286,7 +293,7 @@ class BuiltInAnimation(Animation):
                 if heart_max%2 == 1: # max是奇数
                     left_heart_shape = heart_shape.subsurface((0,0,int(hx/2),hy))
                     canvas.blit(left_heart_shape,(total_heart-int(hx/2),0))
-            if layer==1: # 剩余的血量
+            elif layer==1: # 剩余的血量
                 self.pos = ((screensize[0]-total_heart)/2,3/5*screensize[1]+ny/2-hy/2)
                 canvas = pygame.Surface((left_heart,hy),pygame.SRCALPHA)
                 canvas.fill((0,0,0,0))
@@ -330,6 +337,122 @@ class BuiltInAnimation(Animation):
             else:
                 self.media=np.array([canvas]) # 正常的输出，单帧
             #剩下的需要定义的
+            self.this = 0
+            self.length=len(self.media)
+        if anime_type == 'dice': # anime_args=('name',max,check,face) #骰子
+            def get_possible_digit(dice_max):
+                dice_max = 10**(int(np.log10(dice_max))+1)-1
+                possible = {}
+                for i in range(0,100):
+                    if dice_max//(10**i)>=10:
+                        possible[i] = list(range(0,10))
+                    elif dice_max//(10**i)>=1:
+                        possible[i] = list(range(0,1+dice_max//(10**i)))
+                    else:
+                        break
+                dice_value = np.repeat('',10)
+                for i in possible.keys():
+                    digit = np.array(possible[i])
+                    np.random.shuffle(digit) # 乱序
+                    if len(digit)<10:
+                        digit = np.hstack([digit,np.repeat('',10-len(digit))])
+                    dice_value = np.frompyfunc(lambda x,y:x+y,2,1)(digit.astype(str),dice_value)
+                return max(possible.keys())+1,dice_value
+            # 动画参数
+            # 检查参数合法性
+            for die in anime_args:
+                try:
+                    # 转换为int类型，NA转换为-1
+                    name_tx,dice_max,dice_check,dice_face = die
+                    dice_max,dice_face,dice_check = map(lambda x:-1 if x=='NA' else int(x),(dice_max,dice_face,dice_check))
+                except ValueError as E: #too many values to unpack,not enough values to unpack
+                    raise ValueError('[BIAnimeError]:','Invalid syntax:',str(die),E)
+                if (dice_face>dice_max)|(dice_check<-1)|(dice_check>dice_max)|(dice_face<=0)|(dice_max<=0):
+                    raise ValueError('[BIAnimeError]:','Invalid argument',name_tx,dice_max,dice_check,dice_face,'for BIAnime dice!')
+            # 最多4个
+            N_dice = len(anime_args)
+            if N_dice > 4:
+                N_dice=4
+                anime_args = anime_args[0:4]# 最多4个
+            #y_anchor = {4:180,3:270,2:360,1:450}[N_dice] # sep=180 x[600,1400]
+            y_anchor = {4:int(0.1667*screensize[1]),3:int(0.25*screensize[1]),2:int(0.3333*screensize[1]),1:int(0.4167*screensize[1])}[N_dice]
+            y_unit = int(0.1667*screensize[1])
+            if layer==0: # 底层 名字 /检定
+                canvas = pygame.Surface(screensize,pygame.SRCALPHA)
+                for i,die in enumerate(anime_args): 
+                    name_tx,dice_max,dice_check,dice_face = die
+                    dice_max,dice_face,dice_check = map(lambda x:-1 if x=='NA' else int(x),(dice_max,dice_face,dice_check))
+                    # 渲染
+                    name_surf = BIA_text.render(name_tx)
+                    nx,ny = name_surf.get_size()
+                    canvas.blit(name_surf,(int(0.3125*screensize[0])-nx//2,y_anchor+i*y_unit+(y_unit-ny)//2)) # 0.3125*screensize[0] = 600
+                    if dice_check != -1:
+                        check_surf = BIA_text.render('/%d'%dice_check)
+                        cx,cy = check_surf.get_size()
+                        canvas.blit(check_surf,(int(0.7292*screensize[0]),y_anchor+i*y_unit+(y_unit-ny)//2)) # 0.7292*screensize[0] = 1400
+                self.media = np.array([canvas])
+                self.pos = (0,0)
+                self.tick = 1
+                self.loop = 1
+            elif layer==1:
+                #画布
+                canvas = []
+                for i in range(0,int(2.5*frame_rate)):
+                    canvas_frame = pygame.Surface((int(0.1458*screensize[0]),y_unit*N_dice),pygame.SRCALPHA) # 0.1458*screensize[0] = 280
+                    canvas.append(canvas_frame)
+                # 骰子
+                for l,die in enumerate(anime_args): 
+                    name_tx,dice_max,dice_check,dice_face = die
+                    dice_max,dice_face,dice_check = map(lambda x:-1 if x=='NA' else int(x),(dice_max,dice_face,dice_check))
+                    cols,possible_digit = get_possible_digit(dice_max)
+                    dx,dy = BIA_text.render(possible_digit[0]).get_size()
+                    # running cols
+                    run_surf = pygame.Surface((dx,dy*len(possible_digit)),pygame.SRCALPHA)
+                    for i,digit in enumerate(possible_digit):
+                        digit_this = BIA_text.render(digit)
+                        run_surf.blit(digit_this,(dx-digit_this.get_size()[0],dy*i))
+                    run_cols = np.frompyfunc(lambda x:run_surf.subsurface(x*(dx//cols),0,dx//cols,dy*10),1,1)(np.arange(0,cols))
+                    # range
+                    slot_surf = []
+                    for i in range(0,int(2.5*frame_rate)):
+                        slot_frame = pygame.Surface((dx,dy),pygame.SRCALPHA)
+                        slot_surf.append(slot_frame)
+                    for i in range(0,cols):
+                        if cols == 1:
+                            speed_multiplier = 1
+                        else:
+                            speed_multiplier = np.linspace(2,1,cols)[i]
+                        speed = speed_multiplier*dy*11/2.5/frame_rate
+                        for t in range(0,int(2.5*frame_rate/speed_multiplier)):
+                            slot_surf[t].blit(run_cols[i],(i*dx//cols,int(dy-t*speed)))
+                    for t in range(0,int(2.5*frame_rate/speed_multiplier)):
+                        canvas[t].blit(slot_surf[t],(int(0.1458*screensize[0]-dx-0.0278*screensize[1]),(l+1)*y_unit-dy-int(0.0278*screensize[1]))) #0.0278*screensize[1] = 30
+                self.media = np.array(canvas)
+                self.pos = (int(0.5833*screensize[0]),y_anchor)
+                self.tick = 1
+                self.loop = 1
+            elif layer==2:
+                dice_cmap={3:(124,191,85,255),1:(94,188,235,255),0:(245,192,90,255),2:(233,86,85,255),-1:(255,255,255,255)}
+                canvas = pygame.Surface((int(0.1458*screensize[0]),y_unit*N_dice),pygame.SRCALPHA)
+                for i,die in enumerate(anime_args): 
+                    name_tx,dice_max,dice_check,dice_face = die
+                    dice_max,dice_face,dice_check = map(lambda x:-1 if x=='NA' else int(x),(dice_max,dice_face,dice_check))
+                    # 渲染 0.0651
+                    significant = 0.05 # 大成功失败阈值
+                    if dice_check == -1:
+                        color_flag = -1
+                    else:
+                        color_flag = ((dice_face/dice_max<=significant)|(dice_face/dice_max>(1-significant)))*2 + (dice_face<=dice_check)
+                    BIA_color_Text = Text('./media/fzxbsjt.TTF',fontsize=int(0.0651*screensize[0]),color=dice_cmap[color_flag],line_limit=10) # 1.25
+                    face_surf = BIA_color_Text.render(str(dice_face))
+                    fx,fy = face_surf.get_size()
+                    canvas.blit(face_surf,(int(0.1458*screensize[0]-fx-0.0278*screensize[1]),(i+1)*y_unit-fy-int(0.0278*screensize[1])))
+                self.media = np.array([canvas])
+                self.pos = (int(0.5833*screensize[0]),y_anchor) # 0.5833*screensize[0] = 1120
+                self.tick = 1
+                self.loop = 1
+            else:
+                pass
             self.this = 0
             self.length=len(self.media)
 
@@ -385,6 +508,7 @@ RE_modify = re.compile('<(\w+)(=\d+)?>')
 RE_sound = re.compile('({.+?})')
 RE_asterisk = re.compile('(\{([^\{\}]*?[,;])?\*([\w\.\,，]*)?\})') # v 1.7.3 修改匹配模式以匹配任何可能的字符（除了花括号）
 RE_hitpoint = re.compile('<hitpoint>:\((.+?),(\d+),(\d+),(\d+)\)') # a 1.6.5 血条预设动画
+RE_dice = re.compile('\((.+?),(\d+),([\d]+|NA),(\d+)\)') # a 1.7.5 骰子预设动画，老虎机
 #RE_asterisk = re.compile('\{\w+[;,]\*(\d+\.?\d*)\}') # 这种格式对于{path;*time的}的格式无效！
 #RE_asterisk = re.compile('(\{([\w\.\\\/\'\":]*?[,;])?\*([\w\.\,，]*)?\})') # a 1.4.3 修改了星标的正则（和ss一致）,这种对于有复杂字符的路径无效！
 
@@ -906,6 +1030,64 @@ def parser(stdin_text):
                 this_timeline['Am1_t'] = np.hstack([np.zeros(frame_rate*1), # 第一秒静止
                                                     np.arange(0,frame_rate,1), # 第二秒播放
                                                     np.ones(frame_rate*2)*(frame_rate-1)]) # 后两秒静止
+            # 收尾
+            render_timeline.append(this_timeline)
+            break_point[i+1]=break_point[i]+len(this_timeline.index)
+            continue
+        # 预设动画，骰子
+        elif text[0:7]=='<dice>:':
+            try:
+                dice_args = RE_dice.findall(text[7:])
+                if len(dice_args) == 0:
+                    raise SyntaxError('Invalid syntax, no dice args is specified!')
+            except:
+                raise ParserError('[31m[ParserError]:[0m Parse exception occurred in dice line ' + str(i+1)+'.')
+                continue
+            this_timeline=pd.DataFrame(index=range(0,frame_rate*5),dtype=str,columns=render_arg) # 5s
+            # 背景
+            alpha_timeline = np.hstack([formula(0,1,frame_rate//2),np.ones(frame_rate*4-frame_rate//2),formula(1,0,frame_rate)])
+            this_timeline['BG1'] = 'black' # 黑色背景
+            this_timeline['BG1_a'] = alpha_timeline * 80
+            this_timeline['BG2'] = this_background
+            this_timeline['BG2_a'] = 100
+            # 新建内建动画
+            Auto_media_name = 'BIA_'+str(i+1)
+            code_to_run = 'global {media_name}_{layer} ;{media_name}_{layer} = BuiltInAnimation(anime_type="dice",anime_args={dice_args},screensize = {screensize},layer={layer})'
+            code_to_run_0 = code_to_run.format(media_name=Auto_media_name,dice_args=str(dice_args),screensize=str(screen_size),layer='0')
+            code_to_run_1 = code_to_run.format(media_name=Auto_media_name,dice_args=str(dice_args),screensize=str(screen_size),layer='1')
+            code_to_run_2 = code_to_run.format(media_name=Auto_media_name,dice_args=str(dice_args),screensize=str(screen_size),layer='2')
+            exec(code_to_run_0) # 描述和检定值
+            exec(code_to_run_1) # 老虎机
+            exec(code_to_run_2) # 输出结果
+            media_list.append(Auto_media_name+'_0')
+            media_list.append(Auto_media_name+'_1')
+            media_list.append(Auto_media_name+'_2')
+            bulitin_media[Auto_media_name+'_0'] = code_to_run_0
+            bulitin_media[Auto_media_name+'_1'] = code_to_run_1
+            bulitin_media[Auto_media_name+'_2'] = code_to_run_2
+            # 动画参数0
+            this_timeline['Am3'] = Auto_media_name+'_0'
+            this_timeline['Am3_a'] = alpha_timeline * 100
+            this_timeline['Am3_t'] = 0
+            this_timeline['Am3_p'] = 'NA'
+            # 1
+            this_timeline['Am2'] = np.hstack([np.repeat(Auto_media_name+'_1',int(frame_rate*2.5)),np.repeat('NA',frame_rate*5-int(frame_rate*2.5))]) # 2.5s
+            this_timeline['Am2_a'] = np.hstack([formula(0,100,frame_rate//2),
+                                                np.ones(int(frame_rate*2.5)-2*frame_rate//2)*100,
+                                                formula(100,0,frame_rate//2),
+                                                np.zeros(frame_rate*5-int(frame_rate*2.5))])
+            this_timeline['Am2_t'] = np.hstack([np.arange(0,int(frame_rate*2.5)),np.zeros(frame_rate*5-int(frame_rate*2.5))])
+            this_timeline['Am2_p'] = 'NA'
+            # 2
+            this_timeline['Am1'] = np.hstack([np.repeat('NA',frame_rate*5-int(frame_rate*2.5)),np.repeat(Auto_media_name+'_2',int(frame_rate*2.5))])
+            this_timeline['Am1_a'] = np.hstack([np.zeros(frame_rate*5-int(frame_rate*2.5)),
+                                                formula(0,100,frame_rate//2),
+                                                np.ones(int(frame_rate*2.5)-frame_rate//2-frame_rate)*100,
+                                                formula(100,0,frame_rate)])
+            this_timeline['Am1_t'] = 0
+            this_timeline['Am1_p'] = 'NA'
+            # SE
+            this_timeline.loc[frame_rate//3,'SE'] = "'./media/SE_dice.wav'"
             # 收尾
             render_timeline.append(this_timeline)
             break_point[i+1]=break_point[i]+len(this_timeline.index)

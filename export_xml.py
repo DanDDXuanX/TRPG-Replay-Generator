@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.7.4'
+edtion = 'alpha 1.7.5'
 
 # 外部参数输入
 
@@ -143,11 +143,17 @@ class Bubble:
         canvas = Image.new(mode='RGBA',size=self.size,color=(0,0,0,0))
         if (self.Header!=None) & (header!=''):    # Header 有定义，且输入文本不为空
             ht_text = self.Header.draw(header)[0]
-            p1,p2,p3,p4 = ht_text.getbbox()
-            canvas.paste(ht_text.crop((p1,p2,p3,p4)),(self.ht_pos[0]+p1,self.ht_pos[1]+p2)) # 兼容微软雅黑这种，bbox到处飘的字体
+            try:
+                p1,p2,p3,p4 = ht_text.getbbox() # 如果是空图的话，getbbox返回None，会发生TypeError
+                canvas.paste(ht_text.crop((p1,p2,p3,p4)),(self.ht_pos[0]+p1,self.ht_pos[1]+p2)) # 兼容微软雅黑这种，bbox到处飘的字体
+            except TypeError:
+                pass
         x,y = self.mt_pos
-        for i,mt_text in enumerate(self.MainText.draw(text)): 
-            p1,p2,p3,p4 = mt_text.getbbox() # 先按照bboxcrop，然后按照原位置放置
+        for i,mt_text in enumerate(self.MainText.draw(text)):
+            try:
+                p1,p2,p3,p4 = mt_text.getbbox() # 先按照bboxcrop，然后按照原位置放置
+            except TypeError: # 如果遇到了空图导致的TypeError，直接跳过这一循环，走到下一行
+                continue
             if self.align == 'left':
                 canvas.paste(mt_text.crop((p1,p2,p3,p4)),(x+p1,int(y+i*self.MainText.size*self.line_distance+p2)))
             else: # alpha 1.7.0 兼容居中
@@ -288,8 +294,8 @@ class BuiltInAnimation(Animation):
             # 重设图片尺寸，根据screensize[0]
             if screensize[0]!=1920:
                 multip = screensize[0]/1920
-                heart = heart.resize((hx*multip,hy*multip))
-                heart_shape = heart_shape.resize((hx*multip,hy*multip))
+                heart = heart.resize((int(hx*multip),int(hy*multip)))
+                heart_shape = heart_shape.resize((int(hx*multip),int(hy*multip)))
                 hx,hy = heart.size
             # 动画参数
             name_tx,heart_max,heart_begin,heart_end = anime_args
@@ -306,11 +312,14 @@ class BuiltInAnimation(Animation):
             left_heart = int(heart_end/2 * hx + max(0,np.ceil(heart_end/2-1)) * distance) #画布总长
             lost_heart = int((heart_begin-heart_end)/2 * hx + np.floor((heart_begin-heart_end)/2) * distance)
             # 姓名文本
-            BIA_text = ImageFont.truetype('./media/fzxbsjt.TTF', 100)
+            BIA_text = ImageFont.truetype('./media/fzxbsjt.TTF', int(0.0521*screensize[0])) # 1080p:size=100
             test_canvas = Image.new(mode='RGBA',size=screensize,color=(0,0,0,0))
             test_draw = ImageDraw.Draw(test_canvas)
             test_draw.text((0,0), name_tx, font = BIA_text, align ="left",fill = (255,255,255,255))
-            p1,p2,p3,p4 = test_canvas.getbbox()
+            try:
+                p1,p2,p3,p4 = test_canvas.getbbox()
+            except TypeError:
+                p1,p2,p3,p4 = (0,0,1,int(0.0521*screensize[0])) # nx=1 ny =fontsize
             nx = p3 - p1
             ny = p4 - p2
             nametx_surf = test_canvas.crop((p1,p2,p3,p4))
@@ -335,7 +344,7 @@ class BuiltInAnimation(Animation):
                 if heart_max%2 == 1: # max是奇数
                     left_heart_shape = heart_shape.crop((0,0,int(hx/2),hy))
                     canvas.paste(left_heart_shape,(total_heart-int(hx/2),0))
-            if layer==1: # 剩余的血量
+            elif layer==1: # 剩余的血量
                 self.pos = ((screensize[0]-total_heart)/2,3/5*screensize[1]+ny/2-hy/2)
                 # 1.6.5 防止报错 剩余血量即使是空图，也要至少宽30pix
                 canvas = Image.new(size=(max(30,left_heart),hy),mode='RGBA',color=(0,0,0,0)) 
@@ -381,7 +390,94 @@ class BuiltInAnimation(Animation):
             self.PRpos = PR_center_arg(np.array(self.size),np.array(self.pos))
             outanime_index = outanime_index+1
             file_index = file_index+1
-
+        if anime_type == 'dice':
+            for die in anime_args:
+                try:
+                    # 转换为int类型，NA转换为-1
+                    name_tx,dice_max,dice_check,dice_face = die
+                    dice_max,dice_face,dice_check = map(lambda x:-1 if x=='NA' else int(x),(dice_max,dice_face,dice_check))
+                except ValueError as E: #too many values to unpack,not enough values to unpack
+                    raise ValueError('[BIAnimeError]:','Invalid syntax:',str(die),E)
+                if (dice_face>dice_max)|(dice_check<-1)|(dice_check>dice_max)|(dice_face<=0)|(dice_max<=0):
+                    raise ValueError('[BIAnimeError]:','Invalid argument',name_tx,dice_max,dice_check,dice_face,'for BIAnime dice!')
+            N_dice = len(anime_args)
+            if N_dice > 4:
+                N_dice=4
+                anime_args = anime_args[0:4]# 最多4个
+            y_anchor = {4:int(0.1667*screensize[1]),3:int(0.25*screensize[1]),2:int(0.3333*screensize[1]),1:int(0.4167*screensize[1])}[N_dice]
+            y_unit = int(0.1667*screensize[1])
+            BIA_text = ImageFont.truetype('./media/fzxbsjt.TTF', int(0.0521*screensize[0]))
+            if layer==0: # 底层 名字 /检定
+                canvas = Image.new(mode='RGBA',size=screensize,color=(0,0,0,0))
+                for i,die in enumerate(anime_args): 
+                    name_tx,dice_max,dice_check,dice_face = die
+                    dice_max,dice_face,dice_check = map(lambda x:-1 if x=='NA' else int(x),(dice_max,dice_face,dice_check))
+                    # 渲染
+                    test_canvas = Image.new(mode='RGBA',size=screensize,color=(0,0,0,0))
+                    test_draw = ImageDraw.Draw(test_canvas)
+                    test_draw.text((0,0), name_tx, font = BIA_text, align ="left",fill = (255,255,255,255))
+                    try:
+                        p1,p2,p3,p4 = test_canvas.getbbox() # 重新包装为函数？
+                    except TypeError:
+                        p1,p2,p3,p4 = (0,0,1,int(0.0521*screensize[0])) # nx=1 ny =fontsize
+                    nx = p3 - p1
+                    ny = p4 - p2
+                    name_surf = test_canvas.crop((p1,p2,p3,p4))
+                    canvas.paste(name_surf,(int(0.3125*screensize[0])-nx//2,y_anchor+i*y_unit+(y_unit-ny)//2)) # 0.3125*screensize[0] = 600
+                    if dice_check != -1:
+                        test_canvas = Image.new(mode='RGBA',size=screensize,color=(0,0,0,0))
+                        test_draw = ImageDraw.Draw(test_canvas)
+                        test_draw.text((0,0), '/%d'%dice_check, font = BIA_text, align ="left",fill = (255,255,255,255))
+                        try:
+                            p1,p2,p3,p4 = test_canvas.getbbox()
+                        except TypeError:
+                            p1,p2,p3,p4 = (0,0,1,int(0.0521*screensize[0])) # nx=1 ny =fontsize
+                        cx = p3 - p1
+                        cy = p4 - p2
+                        check_surf = test_canvas.crop((p1,p2,p3,p4))
+                        canvas.paste(check_surf,(int(0.7292*screensize[0]),y_anchor+i*y_unit+(y_unit-ny)//2)) # 0.7292*screensize[0] = 1400
+                self.size = screen_size
+                self.pos = (0,0)
+            elif layer==1: #无法显示动态，留空白
+                canvas = Image.new(mode='RGBA',size=(int(0.1458*screensize[0]),y_unit*N_dice),color=(0,0,0,0))
+                self.size = (int(0.1458*screensize[0]),y_unit*N_dice)
+                self.pos = (int(0.5833*screensize[0]),y_anchor)
+            elif layer==2:
+                dice_cmap={3:(124,191,85,255),1:(94,188,235,255),0:(245,192,90,255),2:(233,86,85,255),-1:(255,255,255,255)}
+                canvas = Image.new(mode='RGBA',size=(int(0.1458*screensize[0]),y_unit*N_dice),color=(0,0,0,0))
+                self.size = (int(0.1458*screensize[0]),y_unit*N_dice)
+                self.pos = (int(0.5833*screensize[0]),y_anchor)
+                for i,die in enumerate(anime_args): 
+                    name_tx,dice_max,dice_check,dice_face = die
+                    dice_max,dice_face,dice_check = map(lambda x:-1 if x=='NA' else int(x),(dice_max,dice_face,dice_check))
+                    significant = 0.05 # 大成功失败阈值
+                    if dice_check == -1:
+                        color_flag = -1
+                    else:
+                        color_flag = ((dice_face/dice_max<=significant)|(dice_face/dice_max>(1-significant)))*2 + (dice_face<=dice_check)
+                    BIA_color_Text = ImageFont.truetype('./media/fzxbsjt.TTF', int(0.0651*screensize[0]))
+                    test_canvas = Image.new(mode='RGBA',size=(int(0.1458*screensize[0]),y_unit),color=(0,0,0,0))
+                    test_draw = ImageDraw.Draw(test_canvas)
+                    test_draw.text((0,0),str(dice_face),font=BIA_color_Text,align="left",fill=dice_cmap[color_flag])
+                    try:
+                        p1,p2,p3,p4 = test_canvas.getbbox()
+                    except TypeError:
+                        p1,p2,p3,p4 = (0,0,1,int(0.0651*screensize[0])) # nx=1 ny =fontsize
+                    fx = p3 - p1
+                    fy = p4 - p2
+                    face_surf = test_canvas.crop((p1,p2,p3,p4))
+                    canvas.paste(face_surf,(int(0.1458*screensize[0]-fx-0.0278*screensize[1]),(i+1)*y_unit-fy-int(0.0278*screensize[1])))
+            else:
+                pass
+            ofile = output_path+'/auto_BIA_%d'%outanime_index+'.png'
+            canvas.save(ofile)
+            self.path = reformat_path(ofile) # 兼容动画Animation，只使用第一帧！
+            self.filename = 'auto_BIA_%d'%outanime_index+'.png'
+            self.fileindex = 'AMfile_%d'% file_index
+            self.PRpos = PR_center_arg(np.array(self.size),np.array(self.pos))
+            outanime_index = outanime_index+1
+            file_index = file_index+1
+            
 # 音效
 class Audio:
     def __init__(self,filepath):
@@ -470,7 +566,8 @@ def parse_timeline(layer):
         else: #如果不满足断点要求，那么就什么都不做
             pass
     # 循环结束之后，最后检定一次是否需要输出一个clips
-    end = key
+    #end = key # alpha 1.7.5 debug: 循环结束时的key有可能并不是时间轴的终点
+    end = int(break_point.max()) # 因为有可能到终点为止，所有帧都是一样的，而导致被去重略去
     if (item == 'NA') | (item!=item):
         pass
     else:
@@ -501,7 +598,8 @@ def parse_timeline_bubble(layer):
         main_text = values[layer + '_main']
         header_text = values[layer + '_header']
     # 循环结束之后，最后检定一次是否需要输出一个clips
-    end = key
+    #end = key
+    end = int(break_point.max()) # alpha 1.7.5 debug: 而breakpoint的最大值一定是时间轴的终点
     if (item == 'NA') | (item!=item):
         pass
     else:
@@ -542,6 +640,10 @@ def main():
     print('[export XML]: The output xml file and refered png files will be saved at "'+output_path+'"')
 
     object_define_text = open(media_obj,'r',encoding='utf-8').read().split('\n')
+    if object_define_text[0][0] == '\ufeff': # 139 debug
+        print('[33m[warning]:[0m','UTF8 BOM recognized in MediaDef, it will be drop from the begin of file!')
+        object_define_text[0] = object_define_text[0][1:]
+
     media_list=[]
     for i,text in enumerate(object_define_text):
         if text == '':
