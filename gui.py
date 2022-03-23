@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.7.5'
+edtion = 'alpha 1.7.6'
 
 import tkinter as tk
 from tkinter import ttk
@@ -33,11 +33,14 @@ class Text:
         test_draw.text((0,0), ('测试文本'*50)[0:lenth], font = self.text_render,fill = self.color)
         p1,p2,p3,p4 = test_canvas.getbbox()
         return test_canvas.crop((0,0,p3,p4))
-    def preview(self):
+    def preview(self,prevpos='None'):
         can_W,can_H = image_canvas.size
         draw_text = self.draw()
         txt_w,txt_h = draw_text.size
-        image_canvas.paste(draw_text,((can_W-txt_w)//2,(can_H-txt_h)//2),mask=draw_text.split()[-1])
+        if prevpos=='None':
+            image_canvas.paste(draw_text,((can_W-txt_w)//2,(can_H-txt_h)//2),mask=draw_text.split()[-1])
+        else:
+            image_canvas.paste(draw_text,prevpos,mask=draw_text.split()[-1])
 class StrokeText(Text):
     def __init__(self,fontfile='./media/simhei.ttf',fontsize=40,color=(0,0,0,255),line_limit=20,edge_color=(255,255,255,255)):
         super().__init__(fontfile=fontfile,fontsize=fontsize,color=color,line_limit=line_limit)
@@ -135,7 +138,80 @@ class Animation:
         draw.line([p_x,p_y-100,p_x,p_y+100],fill='green',width=2)
         draw.text((p_x,p_y),'({0},{1})'.format(p_x,p_y),font=label_pos_show_text,fill='green')
 
-# 编辑区，媒体定义窗
+# 选择位置窗
+def open_PosSelect(bgfigure='',postype='green',current_pos=''):
+    def close_window():
+        posselect_return = current_pos
+        PosSelect_window.destroy()
+        PosSelect_window.quit()
+    def comfirm_pos():
+        nonlocal posselect_return
+        posselect_return = '({0},{1})'.format(p_x,p_y)
+        PosSelect_window.destroy()
+        PosSelect_window.quit()
+    def get_click(event=None):
+        nonlocal select_canvas,select_canvas_show,p_x,p_y
+        try:
+            p_x,p_y = 2*event.x,2*event.y
+        except:
+            pass
+        select_draw = ImageDraw.Draw(select_canvas)
+        select_canvas.paste(select_blank,(0,0))
+        if postype=='green':
+            select_draw.line([p_x-100,p_y,p_x+100,p_y],fill='green',width=2)
+            select_draw.line([p_x,p_y-100,p_x,p_y+100],fill='green',width=2)
+            select_draw.text((p_x,p_y),'({0},{1})'.format(p_x,p_y),font=label_pos_show_text,fill='green')
+        elif postype=='blue':
+            select_draw.line([p_x-100,p_y,p_x+100,p_y],fill='blue',width=2)
+            select_draw.line([p_x,p_y-50,p_x,p_y+50],fill='blue',width=2)
+            select_draw.text((p_x,p_y-35),'({0},{1})'.format(p_x,p_y),font=label_pos_show_text,fill='blue')
+        select_canvas_show = ImageTk.PhotoImage(select_canvas.resize((can_W,can_H)))
+        sele_preview.config(image=select_canvas_show)
+    if postype=='green':
+        fig_W,fig_H = image_canvas.size
+        select_canvas = Image.open('./doc/canvas.png').crop((0,0,fig_W,fig_H))
+    elif postype=='blue':
+        try:
+            select_canvas = Image.open(bgfigure)
+        except Exception as E:
+            messagebox.showwarning(title='无法载入气泡底图！',message=E)
+            fig_W,fig_H = image_canvas.size
+            select_canvas = Image.open('./doc/canvas.png').crop((0,0,fig_W,fig_H))
+    else:
+        return False
+
+    posselect_return = ''
+    can_W,can_H = select_canvas.size[0]//2,select_canvas.size[1]//2
+    select_canvas_show = ImageTk.PhotoImage(select_canvas.resize((can_W,can_H)))
+    select_blank = select_canvas.copy()
+
+    PosSelect_window = tk.Toplevel()
+    PosSelect_window.resizable(0,0)
+    PosSelect_window.iconbitmap('./doc/icon.ico')
+    PosSelect_window.config(background ='#e0e0e0')
+    #Objdef_windows.attributes('-topmost', True)
+    PosSelect_window.title('选择位置')
+    PosSelect_window.protocol('WM_DELETE_WINDOW',close_window)
+    PosSelect_window.transient(Objdef_windows)
+    PosSelect_window.geometry("{0}x{1}".format(can_W+40,can_H+90))
+
+    sele_frame = tk.Frame(PosSelect_window)
+    sele_frame.place(x=10,y=10,height=can_H+20,width=can_W+20)
+    sele_preview = tk.Label(sele_frame,bg='black')
+    sele_preview.config(image=select_canvas_show)
+    sele_preview.place(x=10,y=10,height=can_H,width=can_W)
+    sele_preview.bind("<Button-1>",get_click)
+    tk.Button(PosSelect_window,text='确定',command=comfirm_pos).place(x=can_W//2-20,y=can_H+40,width=80,height=40)
+    # 初始位置
+    try:
+        p_x,p_y = re.findall('\((\d+),(\d+)\)',current_pos)[0]
+        p_x,p_y= int(p_x),int(p_y)
+    except:
+        p_x,p_y= 0,0
+    get_click()
+    sele_preview.mainloop()
+    return posselect_return
+# 媒体定义窗
 def open_Media_def_window(i_name='None',i_type='None',i_args='None'):
     global obj_return_value,type_display,Mediatype,o_name,o_type,Objdef_windows
     obj_return_value = False
@@ -171,6 +247,12 @@ def open_Media_def_window(i_name='None',i_type='None',i_args='None'):
         obj_return_value = False
         Objdef_windows.destroy()
         Objdef_windows.quit()
+    def call_possele(target): # target是一个stringVar，pos的
+        if target in [mt_pos,ht_pos]:
+            get = open_PosSelect(bgfigure=filepath.get(),postype='blue',current_pos=target.get())
+        elif target is pos:
+            get = open_PosSelect(bgfigure='',postype='green',current_pos=target.get())
+        target.set(get) # 设置为的得到的返回值
 
     Objdef_windows = tk.Toplevel()
     Objdef_windows.resizable(0,0)
@@ -341,9 +423,9 @@ def open_Media_def_window(i_name='None',i_type='None',i_args='None'):
     tk.Button(Bubble_frame,text='浏览',command=lambda:browse_file(filepath)).place(x=230,y=10,width=60,height=25)
     tk.Label(Bubble_frame,text='(选择)').place(x=230,y=40,width=60,height=25)
     tk.Label(Bubble_frame,text='(选择)').place(x=230,y=70,width=60,height=25)
-    tk.Label(Bubble_frame,text='(X,Y)').place(x=230,y=100,width=60,height=25)
-    tk.Label(Bubble_frame,text='(X,Y)').place(x=230,y=130,width=60,height=25)
-    tk.Label(Bubble_frame,text='(X,Y)').place(x=230,y=160,width=60,height=25)
+    tk.Button(Bubble_frame,text='选择',command=lambda:call_possele(pos)).place(x=230,y=100,width=60,height=25)
+    tk.Button(Bubble_frame,text='选择',command=lambda:call_possele(mt_pos)).place(x=230,y=130,width=60,height=25)
+    tk.Button(Bubble_frame,text='选择',command=lambda:call_possele(ht_pos)).place(x=230,y=160,width=60,height=25)
     tk.Label(Bubble_frame,text='(选择)').place(x=230,y=190,width=60,height=25)
     tk.Label(Bubble_frame,text='(小数)').place(x=230,y=220,width=60,height=25)
 
@@ -353,7 +435,7 @@ def open_Media_def_window(i_name='None',i_type='None',i_args='None'):
     ttk.Entry(Background_frame,textvariable=filepath).place(x=80,y=10,width=150,height=25)
     ttk.Entry(Background_frame,textvariable=pos).place(x=80,y=40,width=150,height=25)
     tk.Button(Background_frame,text='浏览',command=lambda:browse_file(filepath)).place(x=230,y=10,width=60,height=25)
-    tk.Label(Background_frame,text='(X,Y)').place(x=230,y=40,width=60,height=25)
+    tk.Button(Background_frame,text='选择',command=lambda:call_possele(pos)).place(x=230,y=40,width=60,height=25)
 
     # Animation
     tk.Label(Animation_frame,text='立绘文件').place(x=10,y=10,width=70,height=25)
@@ -365,7 +447,7 @@ def open_Media_def_window(i_name='None',i_type='None',i_args='None'):
     ttk.Entry(Animation_frame,textvariable=tick).place(x=80,y=70,width=150,height=25)
     ttk.Entry(Animation_frame,textvariable=loop).place(x=80,y=100,width=150,height=25)
     tk.Button(Animation_frame,text='浏览',command=lambda:browse_file(filepath)).place(x=230,y=10,width=60,height=25)
-    tk.Label(Animation_frame,text='(X,Y)').place(x=230,y=40,width=60,height=25)
+    tk.Button(Animation_frame,text='选择',command=lambda:call_possele(pos)).place(x=230,y=40,width=60,height=25)
     tk.Label(Animation_frame,text='(整数)').place(x=230,y=70,width=60,height=25)
     tk.Label(Animation_frame,text='(0/1)').place(x=230,y=100,width=60,height=25)
 
@@ -390,6 +472,7 @@ def open_Media_def_window(i_name='None',i_type='None',i_args='None'):
 
     Objdef_windows.mainloop()
     return obj_return_value
+# 编辑区
 def open_Edit_windows(Edit_filepath='',fig_W=960,fig_H=540):
 
     global Edit_windows # 窗体本身
@@ -591,10 +674,7 @@ def choose_color(text_obj):
     except:
         text_obj.set('')
     
-
 # 主界面的函数
-
-# main:
 def open_Main_windows():
     global frame_display,Main_windows
     def printFrame():
