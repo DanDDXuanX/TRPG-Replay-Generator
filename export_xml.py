@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.7.5'
+edtion = 'alpha 1.7.7'
 
 # 外部参数输入
 
@@ -618,6 +618,7 @@ cmap = {'black':(0,0,0,255),'white':(255,255,255,255),'greenscreen':(0,177,64,25
 Is_NTSC = str(frame_rate % 30 == 0)
 Audio_type = 'Stereo'
 stdin_name = stdin_log.replace('\\','/').split('/')[-1]
+occupied_variable_name = open('./media/occupied_variable_name.list','r',encoding='utf8').read().split('\n')
 
 # 载入xml 模板文件
 
@@ -655,6 +656,8 @@ def main():
                 exec(text) #对象实例化
                 obj_name = text.split('=')[0]
                 obj_name = obj_name.replace(' ','')
+                if obj_name in occupied_variable_name:
+                    raise SyntaxError('Obj name occupied')
                 media_list.append(obj_name) #记录新增对象名称
             except Exception as E:
                 print('[31m[SyntaxError]:[0m "'+text+'" appeared in media define file line ' + str(i+1)+' is invalid syntax.')
@@ -718,6 +721,5 @@ def main():
     ofile.write(main_output)
     ofile.close()
     print('[export XML]: Done!')
-
 if __name__ == '__main__':
     main()

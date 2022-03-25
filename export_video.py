@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.7.5'
+edtion = 'alpha 1.7.7'
 
 # 外部参数输入
 
@@ -19,6 +19,7 @@ ap.add_argument("-W", "--Width", help='Set the resolution of display, default is
 ap.add_argument("-H", "--Height", help='Set the resolution of display, default is 1080, larger than this may cause lag.',type=int,default=1080)
 ap.add_argument("-Z", "--Zorder", help='Set the display order of layers, not recommended to change the values unless necessary!',type=str,
                 default='BG3,BG2,BG1,Am3,Am2,Am1,Bb')
+ap.add_argument("-Q", "--Quality", help='Choose the quality (ffmpeg crf) of output video.',type=int,default=24)
 args = ap.parse_args()
 
 media_obj = args.MediaObjDefine #媒体对象定义文件的路径
@@ -29,6 +30,8 @@ output_path = args.OutputPath #保存的时间轴，断点文件的目录
 screen_size = (args.Width,args.Height) #显示的分辨率
 frame_rate = args.FramePerSecond #帧率 单位fps
 zorder = args.Zorder.split(',') #渲染图层顺序
+
+crf = args.Quality # 导出视频的质量值
 
 try:
     for path in [stdin_log,media_obj]:
@@ -516,8 +519,10 @@ def render(this_frame):
                                                                                                '\"'+this_frame[layer+'_p']+'\"'))
     return 1
 
-# 载入timeline 和 breakpoint
+# 被占用的变量名 # 1.7.7
+occupied_variable_name = open('./media/occupied_variable_name.list','r',encoding='utf8').read().split('\n')
 
+# 载入timeline 和 breakpoint
 render_timeline = pd.read_pickle(stdin_log)
 break_point = pd.read_pickle(stdin_log.replace('timeline','breakpoint'))
 stdin_name = stdin_log.replace('\\','/').split('/')[-1]
@@ -546,6 +551,8 @@ for i,text in enumerate(object_define_text):
             exec(text) #对象实例化
             obj_name = text.split('=')[0]
             obj_name = obj_name.replace(' ','')
+            if obj_name in occupied_variable_name:
+                raise SyntaxError('Obj name occupied')
             media_list.append(obj_name) #记录新增对象名称
         except Exception as E:
             print('[31m[SyntaxError]:[0m "'+text+'" appeared in media define file line ' + str(i+1)+' is invalid syntax:',E)
@@ -620,7 +627,7 @@ output_engine = (
     .input('pipe:',format='rawvideo',r=frame_rate,pix_fmt='rgb24', s='{0}x{1}'.format(screen_size[1],screen_size[0])) # 视频来源
     .output(ffmpeg.input(output_path+'/'+stdin_name+'.mp3').audio,
             output_path+'/'+stdin_name+'.mp4',
-            pix_fmt='yuv420p',r=frame_rate,crf=24,
+            pix_fmt='yuv420p',r=frame_rate,crf=crf,
             **{'loglevel':'quiet','vf':'transpose=0'}) # 输出
     .overwrite_output()
     .run_async(pipe_stdin=True)

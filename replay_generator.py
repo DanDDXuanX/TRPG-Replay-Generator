@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.7.5'
+edtion = 'alpha 1.7.7'
 
 # 外部参数输入
 
@@ -8,7 +8,16 @@ import argparse
 import sys
 import os
 
+# 退出程序
+def system_terminated(exit_type='Error'):
+    exit_print = {'Error':'A major error occurred. Execution terminated!',
+                  'User':'Display terminated, due to user commands.',
+                  'Video':'Video exported. Execution terminated!',
+                  'End':'Display finished!'}
+    print('[replay generator]: '+exit_print[exit_type])
+    sys.exit()
 
+# 参数处理
 ap = argparse.ArgumentParser(description="Generating your TRPG replay video from logfile.")
 ap.add_argument("-l", "--LogFile", help='The standerd input of this programme, which is mainly composed of TRPG log.',type=str)
 ap.add_argument("-d", "--MediaObjDefine", help='Definition of the media elements, using real python code.',type=str)
@@ -77,7 +86,7 @@ try:
         print("[33m[warning]:[0m",'Resolution is set to more than 3M, which may cause lag in the display!')
 except Exception as E:
     print(E)
-    sys.exit()
+    system_terminated('Error')
 
 # 包导入
 
@@ -523,6 +532,8 @@ render_arg = ['BG1','BG1_a','BG1_p','BG2','BG2_a','BG2_p','BG3','BG3_a','BG3_p',
               'Am1','Am1_t','Am1_a','Am1_p','Am2','Am2_t','Am2_a','Am2_p','Am3','Am3_t','Am3_a','Am3_p',
               'Bb','Bb_main','Bb_header','Bb_a','Bb_p','BGM','Voice','SE']
 # 1.6.3 Am的更新，再新增一列，动画的帧！
+# 被占用的变量名 # 1.7.7
+occupied_variable_name = open('./media/occupied_variable_name.list','r',encoding='utf8').read().split('\n')
 
 # 数学函数定义 formula
 
@@ -1195,12 +1206,14 @@ def pause_SE(stats):
 
 # Main():
 
+print('[replay generator]: Welcome to use TRPG-replay-generator '+edtion)
+
 # 检查是否需要先做语音合成
 
 if synthfirst == True:
     command = python3 +' ./speech_synthesizer.py --LogFile {lg} --MediaObjDefine {md} --CharacterTable {ct} --OutputPath {of} --AccessKey {AK} --AccessKeySecret {AS} --Appkey {AP}'
     command = command.format(lg = stdin_log.replace('\\','/'),md = media_obj.replace('\\','/'), of = output_path, ct = char_tab.replace('\\','/'), AK = AKID,AS = AKKEY,AP = APPKEY)
-    print('[replay generator] Flag --SynthesisAnyway detected, running command:\n','[32m'+command+'[0m')
+    print('[replay generator]: Flag --SynthesisAnyway detected, running command:\n','[32m'+command+'[0m')
     try:
         os.system(command)
         # 将当前的标准输入调整为处理后的log文件
@@ -1213,6 +1226,7 @@ if synthfirst == True:
         print('[33m[warning]:[0m Failed to synthesis speech, due to:',E)
 
 # 载入od文件
+print('[replay generator]: Loading media definition file.')
 object_define_text = open(media_obj,'r',encoding='utf-8').read().split('\n')
 if object_define_text[0][0] == '\ufeff': # 139 debug
     print('[33m[warning]:[0m','UTF8 BOM recognized in MediaDef, it will be drop from the begin of file!')
@@ -1229,10 +1243,12 @@ for i,text in enumerate(object_define_text):
             exec(text) #对象实例化
             obj_name = text.split('=')[0]
             obj_name = obj_name.replace(' ','')
+            if obj_name in occupied_variable_name:
+                raise SyntaxError('Obj name occupied')
             media_list.append(obj_name) #记录新增对象名称
         except Exception as E:
-            print('[31m[SyntaxError]:[0m "'+text+'" appeared in media define file line ' + str(i+1)+' is invalid syntax.')
-            sys.exit()
+            print('[31m[SyntaxError]:[0m "'+text+'" appeared in media define file line ' + str(i+1)+' is invalid syntax:',E)
+            system_terminated('Error')
 black = Background('black')
 white = Background('white')
 media_list.append('black')
@@ -1240,6 +1256,7 @@ media_list.append('white')
 #print(media_list)
 
 # 载入ct文件
+print('[replay generator]: Loading charactor table.')
 try:
     if char_tab.split('.')[-1] in ['xlsx','xls']:
         charactor_table = pd.read_excel(char_tab,dtype = str) # 支持excel格式的角色配置表
@@ -1250,9 +1267,15 @@ try:
         raise SyntaxError('missing necessary columns.')
 except Exception as E:
     print('[31m[SyntaxError]:[0m Unable to load charactor table:',E)
+    system_terminated('Error')
 
 # 载入log文件 parser()
-stdin_text = open(stdin_log,'r',encoding='utf8').read().split('\n')
+print('[replay generator]: Parsing Log file.')
+try:
+    stdin_text = open(stdin_log,'r',encoding='utf8').read().split('\n')
+except UnicodeDecodeError as E:
+    print('[31m[DecodeError]:[0m',E)
+    system_terminated('Error')
 if stdin_text[0][0] == '\ufeff': # 139 debug
     print('[33m[warning]:[0m','UTF8 BOM recognized in Logfile, it will be drop from the begin of file!')
     stdin_text[0] = stdin_text[0][1:]
@@ -1260,11 +1283,11 @@ try:
     render_timeline,break_point,bulitin_media = parser(stdin_text)
 except ParserError as E:
     print(E)
-    sys.exit()
+    system_terminated('Error')
 
 # 判断是否指定输出路径，准备各种输出选项
 if output_path != None:
-    print('[replay generator] The timeline and breakpoint file will be save at '+output_path)
+    print('[replay generator]: The timeline and breakpoint file will be save at '+output_path)
     timenow = '%d'%time.time()
     render_timeline.to_pickle(output_path+'/'+timenow+'.timeline')
     break_point.to_pickle(output_path+'/'+timenow+'.breakpoint')
@@ -1274,7 +1297,7 @@ if output_path != None:
         command = command.format(tm = output_path+'/'+timenow+'.timeline',
                                  md = media_obj.replace('\\','/'), of = output_path.replace('\\','/'), 
                                  fps = frame_rate, wd = screen_size[0], he = screen_size[1], zd = ','.join(zorder))
-        print('[replay generator] Flag --ExportXML detected, running command:\n','[32m'+command+'[0m')
+        print('[replay generator]: Flag --ExportXML detected, running command:\n','[32m'+command+'[0m')
         try:
             os.system(command)
         except Exception as E:
@@ -1284,12 +1307,12 @@ if output_path != None:
         command = command.format(tm = output_path+'/'+timenow+'.timeline',
                                  md = media_obj.replace('\\','/'), of = output_path.replace('\\','/'), 
                                  fps = frame_rate, wd = screen_size[0], he = screen_size[1], zd = ','.join(zorder))
-        print('[replay generator] Flag --ExportVideo detected, running command:\n','[32m'+command+'[0m')
+        print('[replay generator]: Flag --ExportVideo detected, running command:\n','[32m'+command+'[0m')
         try:
             os.system(command)
         except Exception as E:
             print('[33m[warning]:[0m Failed to export Video, due to:',E)
-        sys.exit() # 如果导出为视频，则提前终止程序
+        system_terminated('Video') # 如果导出为视频，则提前终止程序
 
 # 初始化界面
 
@@ -1320,12 +1343,12 @@ for media in media_list:
         exec(media+'.convert()')
     except Exception as E:
         print('[31m[MediaError]:[0m Exception during converting',media,':',E)
-        sys.exit()
+        system_terminated('Error')
 
 # 预备画面
 W,H = screen_size
 white.display(screen)
-screen.blit(pygame.transform.scale(pygame.image.load('./doc/icon.png'),(H//5,H//5)),(0.01*H,0.79*H))
+screen.blit(pygame.transform.scale(pygame.image.load('./media/icon.png'),(H//5,H//5)),(0.01*H,0.79*H))
 screen.blit(note_text.render('Welcome to TRPG Replay Generator!',fgcolor=(150,150,150,255),size=0.0315*W)[0],(0.230*W,0.460*H)) # for 1080p
 screen.blit(note_text.render(edtion,fgcolor=(150,150,150,255),size=0.0278*H)[0],(0.900*W,0.963*H))
 screen.blit(note_text.render('Press space to begin.',fgcolor=(150,150,150,255),size=0.0278*H)[0],(0.417*W,0.926*H))
@@ -1335,12 +1358,12 @@ while begin == False:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
-            sys.exit()
+            system_terminated('User')
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 pygame.time.delay(1000)
                 pygame.quit()
-                sys.exit()
+                system_terminated('User')
             elif event.key == pygame.K_SPACE:
                 begin = True
                 break
@@ -1356,13 +1379,13 @@ while n < break_point.max():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
-                sys.exit()
+                system_terminated('User')
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     stop_SE()
                     pygame.time.delay(1000)
                     pygame.quit()
-                    sys.exit()
+                    system_terminated('User')
                 elif event.key == pygame.K_a:
                     n=break_point[(break_point-n)<0].max()
                     n=break_point[(break_point-n)<0].max()
@@ -1393,6 +1416,6 @@ while n < break_point.max():
     except Exception as E:
         print(E)
         pygame.quit()
-        sys.exit()
+        system_terminated('Error')
 pygame.quit()
-sys.exit()
+system_terminated('End')

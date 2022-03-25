@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.7.6'
+edtion = 'alpha 1.7.7'
 
 import tkinter as tk
 from tkinter import ttk
@@ -18,7 +18,10 @@ import re
 label_pos_show_text = ImageFont.truetype('./media/fzxbsjt.TTF', 30)
 RE_mediadef_args = re.compile('(fontfile|fontsize|color|line_limit|filepath|Main_Text|Header_Text|pos|mt_pos|ht_pos|align|line_distance|tick|loop|volume|edge_color)?=?([^,()]+|\([\d,\ ]+\))')
 RE_parse_mediadef = re.compile('(\w+)[=\ ]+(Text|StrokeText|Bubble|Animation|Background|BGM|Audio)(\(.+\))')
+RE_vaildname = re.compile('^\w+$')
+occupied_variable_name = open('./media/occupied_variable_name.list','r',encoding='utf8').read().split('\n')
 
+# global image_canvas
 class Text:
     def __init__(self,fontfile='./media/simhei.ttf',fontsize=40,color=(0,0,0,255),line_limit=20):
         self.text_render = ImageFont.truetype(fontfile, fontsize)
@@ -139,25 +142,42 @@ class Animation:
         draw.text((p_x,p_y),'({0},{1})'.format(p_x,p_y),font=label_pos_show_text,fill='green')
 
 # 选择位置窗
-def open_PosSelect(bgfigure='',postype='green',current_pos=''):
-    def close_window():
+def open_PosSelect(father,bgfigure='',postype='green',current_pos=''):
+    def close_window(): # 取消 关闭窗口
+        nonlocal posselect_return
         posselect_return = current_pos
         PosSelect_window.destroy()
         PosSelect_window.quit()
-    def comfirm_pos():
+    def comfirm_pos(): # 确认
         nonlocal posselect_return
         posselect_return = '({0},{1})'.format(p_x,p_y)
         PosSelect_window.destroy()
         PosSelect_window.quit()
-    def get_click(event=None):
-        nonlocal select_canvas,select_canvas_show,p_x,p_y
-        try:
-            p_x,p_y = 2*event.x,2*event.y
-        except:
+    def get_click(event=None): # 鼠标点击、方向键
+        nonlocal select_canvas,select_canvas_show,cursor_figure,p_x,p_y
+        direction_key = {'Up':(0,-1),'Down':(0,1),'Left':(-1,0),'Right':(1,0)}
+        # 处理事件
+        if event is None:
             pass
+        elif event.type=='2': # tk.EventType.KeyPress
+            try: # 获取键盘方向键
+                p_x = p_x+direction_key[event.keysym][0]
+                p_y = p_y+direction_key[event.keysym][1]
+            except KeyError as E:
+                pass # 则不变
+        elif event.type=='4': # tk.EventType.ButtonPress
+            try: # 获取鼠标点击位置
+                p_x,p_y = 2*event.x,2*event.y
+            except:
+                pass # 则不变
+        else:
+            pass
+        # 初始化图像
         select_draw = ImageDraw.Draw(select_canvas)
         select_canvas.paste(select_blank,(0,0))
+        # 画十字选择点
         if postype=='green':
+            select_canvas.paste(cursor_figure,(p_x,p_y),mask=cursor_figure) # cursor_figure
             select_draw.line([p_x-100,p_y,p_x+100,p_y],fill='green',width=2)
             select_draw.line([p_x,p_y-100,p_x,p_y+100],fill='green',width=2)
             select_draw.text((p_x,p_y),'({0},{1})'.format(p_x,p_y),font=label_pos_show_text,fill='green')
@@ -165,43 +185,54 @@ def open_PosSelect(bgfigure='',postype='green',current_pos=''):
             select_draw.line([p_x-100,p_y,p_x+100,p_y],fill='blue',width=2)
             select_draw.line([p_x,p_y-50,p_x,p_y+50],fill='blue',width=2)
             select_draw.text((p_x,p_y-35),'({0},{1})'.format(p_x,p_y),font=label_pos_show_text,fill='blue')
+        # 更新到图片上
         select_canvas_show = ImageTk.PhotoImage(select_canvas.resize((can_W,can_H)))
         sele_preview.config(image=select_canvas_show)
-    if postype=='green':
+    # 载入底图
+    if postype=='green': # pos
         fig_W,fig_H = image_canvas.size
-        select_canvas = Image.open('./doc/canvas.png').crop((0,0,fig_W,fig_H))
-    elif postype=='blue':
+        select_canvas = Image.open('./media/canvas.png').crop((0,0,fig_W,fig_H))
+        try: # 附图
+            cursor_figure = Image.open(bgfigure)
+            if cursor_figure.mode != 'RGBA': # 如果没有alpha通道
+                cursor_figure.putalpha(255)
+        except:
+            cursor_figure = Image.new(mode='RGBA',size=(1,1),color=(0,0,0,0))
+    elif postype=='blue': # mtpos htpos
         try:
             select_canvas = Image.open(bgfigure)
         except Exception as E:
             messagebox.showwarning(title='无法载入气泡底图！',message=E)
             fig_W,fig_H = image_canvas.size
-            select_canvas = Image.open('./doc/canvas.png').crop((0,0,fig_W,fig_H))
+            select_canvas = Image.open('./media/canvas.png').crop((0,0,fig_W,fig_H))
+        cursor_figure = Image.new(mode='RGBA',size=(1,1),color=(0,0,0,0))
     else:
         return False
 
-    posselect_return = ''
+    posselect_return = '' # 返回值
     can_W,can_H = select_canvas.size[0]//2,select_canvas.size[1]//2
     select_canvas_show = ImageTk.PhotoImage(select_canvas.resize((can_W,can_H)))
     select_blank = select_canvas.copy()
 
-    PosSelect_window = tk.Toplevel()
+    PosSelect_window = tk.Toplevel(father)
     PosSelect_window.resizable(0,0)
-    PosSelect_window.iconbitmap('./doc/icon.ico')
+    PosSelect_window.iconbitmap('./media/icon.ico')
     PosSelect_window.config(background ='#e0e0e0')
     #Objdef_windows.attributes('-topmost', True)
     PosSelect_window.title('选择位置')
     PosSelect_window.protocol('WM_DELETE_WINDOW',close_window)
-    PosSelect_window.transient(Objdef_windows)
+    PosSelect_window.transient(father)
     PosSelect_window.geometry("{0}x{1}".format(can_W+40,can_H+90))
+    PosSelect_window.bind("<Key>",get_click) # 获取键盘事件
 
     sele_frame = tk.Frame(PosSelect_window)
     sele_frame.place(x=10,y=10,height=can_H+20,width=can_W+20)
-    sele_preview = tk.Label(sele_frame,bg='black')
+    sele_preview = tk.Label(sele_frame,bg='#f0f0f0')
     sele_preview.config(image=select_canvas_show)
     sele_preview.place(x=10,y=10,height=can_H,width=can_W)
-    sele_preview.bind("<Button-1>",get_click)
-    tk.Button(PosSelect_window,text='确定',command=comfirm_pos).place(x=can_W//2-20,y=can_H+40,width=80,height=40)
+    sele_preview.bind("<Button-1>",get_click) # 获取鼠标点击事件
+    
+    ttk.Button(PosSelect_window,text='确定',command=comfirm_pos).place(x=can_W//2-20,y=can_H+40,width=80,height=40)
     # 初始位置
     try:
         p_x,p_y = re.findall('\((\d+),(\d+)\)',current_pos)[0]
@@ -212,11 +243,10 @@ def open_PosSelect(bgfigure='',postype='green',current_pos=''):
     sele_preview.mainloop()
     return posselect_return
 # 媒体定义窗
-def open_Media_def_window(i_name='None',i_type='None',i_args='None'):
-    global obj_return_value,type_display,Mediatype,o_name,o_type,Objdef_windows
+def open_Media_def_window(father,i_name='None',i_type='None',i_args='None'):
     obj_return_value = False
     def show_selected_options(event):
-        global type_display
+        nonlocal type_display
         type_display.place_forget()
         try:
             select = Mediatype[o_type.get()]
@@ -225,11 +255,13 @@ def open_Media_def_window(i_name='None',i_type='None',i_args='None'):
         select.place(x=10,y=40,width=300,height=270)
         type_display = select
     def comfirm_obj():
-        global obj_return_value
+        nonlocal obj_return_value
         if '' in [o_name.get(),o_type.get()]:
             messagebox.showerror(title='错误',message='缺少必要的参数！')
-        elif (o_name.get() in dir()):
+        elif o_name.get() in occupied_variable_name:
             messagebox.showerror(title='错误',message='已被占用的变量名！') #############改这里！
+        elif (len(re.findall('^\w+$',o_name.get()))==0) | (o_name.get()[0].isdigit()): # 全字符是\w，且首字符不是数字
+            messagebox.showerror(title='错误',message='非法的变量名！') 
         else:
             get_args = {
                 'fontfile':fontfile.get(),'fontsize':fontsize.get(),'color':color.get(),'line_limit':line_limit.get(),
@@ -244,25 +276,26 @@ def open_Media_def_window(i_name='None',i_type='None',i_args='None'):
             Objdef_windows.destroy()
             Objdef_windows.quit()
     def close_window():
+        nonlocal obj_return_value
         obj_return_value = False
         Objdef_windows.destroy()
         Objdef_windows.quit()
     def call_possele(target): # target是一个stringVar，pos的
         if target in [mt_pos,ht_pos]:
-            get = open_PosSelect(bgfigure=filepath.get(),postype='blue',current_pos=target.get())
+            get = open_PosSelect(father=Objdef_windows,bgfigure=filepath.get(),postype='blue',current_pos=target.get())
         elif target is pos:
-            get = open_PosSelect(bgfigure='',postype='green',current_pos=target.get())
+            get = open_PosSelect(father=Objdef_windows,bgfigure=filepath.get(),postype='green',current_pos=target.get())
         target.set(get) # 设置为的得到的返回值
 
-    Objdef_windows = tk.Toplevel()
+    Objdef_windows = tk.Toplevel(father)
     Objdef_windows.resizable(0,0)
     Objdef_windows.geometry("340x380")
-    Objdef_windows.iconbitmap('./doc/icon.ico')
+    Objdef_windows.iconbitmap('./media/icon.ico')
     Objdef_windows.config(background ='#e0e0e0')
     #Objdef_windows.attributes('-topmost', True)
     Objdef_windows.title('Media Define.')
     Objdef_windows.protocol('WM_DELETE_WINDOW',close_window)
-    Objdef_windows.transient(Edit_windows)
+    Objdef_windows.transient(father)
 
     # 主框
     objdef = tk.Frame(Objdef_windows)
@@ -370,115 +403,111 @@ def open_Media_def_window(i_name='None',i_type='None',i_args='None'):
                 exec('{0}.set("{1}")'.format(keyword,value))
 
     # Text_frame:
-    tk.Label(Text_frame,text='字体文件').place(x=10,y=10,width=70,height=25)
-    tk.Label(Text_frame,text='字体大小').place(x=10,y=40,width=70,height=25)
-    tk.Label(Text_frame,text='字体颜色').place(x=10,y=70,width=70,height=25)
-    tk.Label(Text_frame,text='单行字数').place(x=10,y=100,width=70,height=25)
-    ttk.Entry(Text_frame,textvariable=fontfile).place(x=80,y=10,width=150,height=25)
-    ttk.Entry(Text_frame,textvariable=fontsize).place(x=80,y=40,width=150,height=25)
-    ttk.Entry(Text_frame,textvariable=color).place(x=80,y=70,width=150,height=25)
-    ttk.Entry(Text_frame,textvariable=line_limit).place(x=80,y=100,width=150,height=25)
-    tk.Button(Text_frame,text='浏览',command=lambda:browse_file(fontfile)).place(x=230,y=10,width=60,height=25)
+    ttk.Label(Text_frame,text='字体文件').place(x=10,y=10,width=65,height=25)
+    ttk.Label(Text_frame,text='字体大小').place(x=10,y=40,width=65,height=25)
+    ttk.Label(Text_frame,text='字体颜色').place(x=10,y=70,width=65,height=25)
+    ttk.Label(Text_frame,text='单行字数').place(x=10,y=100,width=65,height=25)
+    ttk.Entry(Text_frame,textvariable=fontfile).place(x=75,y=10,width=150,height=25)
+    ttk.Entry(Text_frame,textvariable=fontsize).place(x=75,y=40,width=150,height=25)
+    ttk.Entry(Text_frame,textvariable=color).place(x=75,y=70,width=150,height=25)
+    ttk.Entry(Text_frame,textvariable=line_limit).place(x=75,y=100,width=150,height=25)
+    ttk.Button(Text_frame,text='浏览',command=lambda:browse_file(fontfile)).place(x=230,y=10,width=60,height=25)
     ttk.Label(Text_frame,text='(整数)').place(x=230,y=40,width=60,height=25)
-    tk.Button(Text_frame,text='选择',command=lambda:choose_color(color)).place(x=230,y=70,width=60,height=25)
+    ttk.Button(Text_frame,text='选择',command=lambda:choose_color(color)).place(x=230,y=70,width=60,height=25)
     ttk.Label(Text_frame,text='(整数)').place(x=230,y=100,width=60,height=25)
 
     # StrokeText_frame
-    tk.Label(StrokeText_frame,text='字体文件').place(x=10,y=10,width=70,height=25)
-    tk.Label(StrokeText_frame,text='字体大小').place(x=10,y=40,width=70,height=25)
-    tk.Label(StrokeText_frame,text='字体颜色').place(x=10,y=70,width=70,height=25)
-    tk.Label(StrokeText_frame,text='单行字数').place(x=10,y=100,width=70,height=25)
-    tk.Label(StrokeText_frame,text='描边颜色').place(x=10,y=130,width=70,height=25)
-    ttk.Entry(StrokeText_frame,textvariable=fontfile).place(x=80,y=10,width=150,height=25)
-    ttk.Entry(StrokeText_frame,textvariable=fontsize).place(x=80,y=40,width=150,height=25)
-    ttk.Entry(StrokeText_frame,textvariable=color).place(x=80,y=70,width=150,height=25)
-    ttk.Entry(StrokeText_frame,textvariable=line_limit).place(x=80,y=100,width=150,height=25)
-    ttk.Entry(StrokeText_frame,textvariable=edge_color).place(x=80,y=130,width=150,height=25)
-    tk.Button(StrokeText_frame,text='浏览',command=lambda:browse_file(fontfile)).place(x=230,y=10,width=60,height=25)
-    tk.Label(StrokeText_frame,text='(整数)').place(x=230,y=40,width=60,height=25)
-    tk.Button(StrokeText_frame,text='选择',command=lambda:choose_color(color)).place(x=230,y=70,width=60,height=25)
-    tk.Label(StrokeText_frame,text='(整数)').place(x=230,y=100,width=60,height=25)
-    tk.Button(StrokeText_frame,text='选择',command=lambda:choose_color(edge_color)).place(x=230,y=130,width=60,height=25)
+    ttk.Label(StrokeText_frame,text='字体文件').place(x=10,y=10,width=65,height=25)
+    ttk.Label(StrokeText_frame,text='字体大小').place(x=10,y=40,width=65,height=25)
+    ttk.Label(StrokeText_frame,text='字体颜色').place(x=10,y=70,width=65,height=25)
+    ttk.Label(StrokeText_frame,text='单行字数').place(x=10,y=100,width=65,height=25)
+    ttk.Label(StrokeText_frame,text='描边颜色').place(x=10,y=130,width=65,height=25)
+    ttk.Entry(StrokeText_frame,textvariable=fontfile).place(x=75,y=10,width=150,height=25)
+    ttk.Entry(StrokeText_frame,textvariable=fontsize).place(x=75,y=40,width=150,height=25)
+    ttk.Entry(StrokeText_frame,textvariable=color).place(x=75,y=70,width=150,height=25)
+    ttk.Entry(StrokeText_frame,textvariable=line_limit).place(x=75,y=100,width=150,height=25)
+    ttk.Entry(StrokeText_frame,textvariable=edge_color).place(x=75,y=130,width=150,height=25)
+    ttk.Button(StrokeText_frame,text='浏览',command=lambda:browse_file(fontfile)).place(x=230,y=10,width=60,height=25)
+    ttk.Label(StrokeText_frame,text='(整数)').place(x=230,y=40,width=60,height=25)
+    ttk.Button(StrokeText_frame,text='选择',command=lambda:choose_color(color)).place(x=230,y=70,width=60,height=25)
+    ttk.Label(StrokeText_frame,text='(整数)').place(x=230,y=100,width=60,height=25)
+    ttk.Button(StrokeText_frame,text='选择',command=lambda:choose_color(edge_color)).place(x=230,y=130,width=60,height=25)
 
     # Bubble_frame
-    tk.Label(Bubble_frame,text='底图文件').place(x=10,y=10,width=70,height=25)
-    tk.Label(Bubble_frame,text='主文本字体').place(x=10,y=40,width=70,height=25)
-    tk.Label(Bubble_frame,text='头文本字体').place(x=10,y=70,width=70,height=25)
-    tk.Label(Bubble_frame,text='底图位置').place(x=10,y=100,width=70,height=25)
-    tk.Label(Bubble_frame,text='主文本位置').place(x=10,y=130,width=70,height=25)
-    tk.Label(Bubble_frame,text='头文本位置').place(x=10,y=160,width=70,height=25)
-    tk.Label(Bubble_frame,text='对齐模式').place(x=10,y=190,width=70,height=25)
-    tk.Label(Bubble_frame,text='主文本行距').place(x=10,y=220,width=70,height=25)
-    ttk.Entry(Bubble_frame,textvariable=filepath).place(x=80,y=10,width=150,height=25)
-    #tk.Entry(Bubble_frame,textvariable=Main_Text).place(x=80,y=40,width=150,height=25)
-    #tk.Entry(Bubble_frame,textvariable=Header_Text).place(x=80,y=70,width=150,height=25)
-    ttk.Combobox(Bubble_frame,textvariable=Main_Text,value=available_Text).place(x=80,y=40,width=150,height=25)
-    ttk.Combobox(Bubble_frame,textvariable=Header_Text,value=available_Text).place(x=80,y=70,width=150,height=25)
-    ttk.Entry(Bubble_frame,textvariable=pos).place(x=80,y=100,width=150,height=25)
-    ttk.Entry(Bubble_frame,textvariable=mt_pos).place(x=80,y=130,width=150,height=25)
-    ttk.Entry(Bubble_frame,textvariable=ht_pos).place(x=80,y=160,width=150,height=25)
-    #tk.Entry(Bubble_frame,textvariable=align).place(x=80,y=190,width=150,height=25)
-    ttk.Combobox(Bubble_frame,textvariable=align,value=['left','center']).place(x=80,y=190,width=150,height=25)
-    ttk.Entry(Bubble_frame,textvariable=line_distance).place(x=80,y=220,width=150,height=25)
-    tk.Button(Bubble_frame,text='浏览',command=lambda:browse_file(filepath)).place(x=230,y=10,width=60,height=25)
-    tk.Label(Bubble_frame,text='(选择)').place(x=230,y=40,width=60,height=25)
-    tk.Label(Bubble_frame,text='(选择)').place(x=230,y=70,width=60,height=25)
-    tk.Button(Bubble_frame,text='选择',command=lambda:call_possele(pos)).place(x=230,y=100,width=60,height=25)
-    tk.Button(Bubble_frame,text='选择',command=lambda:call_possele(mt_pos)).place(x=230,y=130,width=60,height=25)
-    tk.Button(Bubble_frame,text='选择',command=lambda:call_possele(ht_pos)).place(x=230,y=160,width=60,height=25)
-    tk.Label(Bubble_frame,text='(选择)').place(x=230,y=190,width=60,height=25)
-    tk.Label(Bubble_frame,text='(小数)').place(x=230,y=220,width=60,height=25)
+    ttk.Label(Bubble_frame,text='底图文件').place(x=10,y=10,width=65,height=25)
+    ttk.Label(Bubble_frame,text='主文本字体').place(x=10,y=40,width=65,height=25)
+    ttk.Label(Bubble_frame,text='头文本字体').place(x=10,y=70,width=65,height=25)
+    ttk.Label(Bubble_frame,text='底图位置').place(x=10,y=100,width=65,height=25)
+    ttk.Label(Bubble_frame,text='主文本位置').place(x=10,y=130,width=65,height=25)
+    ttk.Label(Bubble_frame,text='头文本位置').place(x=10,y=160,width=65,height=25)
+    ttk.Label(Bubble_frame,text='对齐模式').place(x=10,y=190,width=65,height=25)
+    ttk.Label(Bubble_frame,text='主文本行距').place(x=10,y=220,width=65,height=25)
+    ttk.Entry(Bubble_frame,textvariable=filepath).place(x=75,y=10,width=150,height=25)
+    #tk.Entry(Bubble_frame,textvariable=Main_Text).place(x=75,y=40,width=150,height=25)
+    #tk.Entry(Bubble_frame,textvariable=Header_Text).place(x=75,y=70,width=150,height=25)
+    ttk.Combobox(Bubble_frame,textvariable=Main_Text,value=available_Text).place(x=75,y=40,width=150,height=25)
+    ttk.Combobox(Bubble_frame,textvariable=Header_Text,value=available_Text).place(x=75,y=70,width=150,height=25)
+    ttk.Entry(Bubble_frame,textvariable=pos).place(x=75,y=100,width=150,height=25)
+    ttk.Entry(Bubble_frame,textvariable=mt_pos).place(x=75,y=130,width=150,height=25)
+    ttk.Entry(Bubble_frame,textvariable=ht_pos).place(x=75,y=160,width=150,height=25)
+    #tk.Entry(Bubble_frame,textvariable=align).place(x=75,y=190,width=150,height=25)
+    ttk.Combobox(Bubble_frame,textvariable=align,value=['left','center']).place(x=75,y=190,width=150,height=25)
+    ttk.Entry(Bubble_frame,textvariable=line_distance).place(x=75,y=220,width=150,height=25)
+    ttk.Button(Bubble_frame,text='浏览',command=lambda:browse_file(filepath)).place(x=230,y=10,width=60,height=25)
+    ttk.Label(Bubble_frame,text='(选择)').place(x=230,y=40,width=60,height=25)
+    ttk.Label(Bubble_frame,text='(选择)').place(x=230,y=70,width=60,height=25)
+    ttk.Button(Bubble_frame,text='选择',command=lambda:call_possele(pos)).place(x=230,y=100,width=60,height=25)
+    ttk.Button(Bubble_frame,text='选择',command=lambda:call_possele(mt_pos)).place(x=230,y=130,width=60,height=25)
+    ttk.Button(Bubble_frame,text='选择',command=lambda:call_possele(ht_pos)).place(x=230,y=160,width=60,height=25)
+    ttk.Label(Bubble_frame,text='(选择)').place(x=230,y=190,width=60,height=25)
+    ttk.Label(Bubble_frame,text='(小数)').place(x=230,y=220,width=60,height=25)
 
     # Background
-    tk.Label(Background_frame,text='背景文件').place(x=10,y=10,width=70,height=25)
-    tk.Label(Background_frame,text='背景位置').place(x=10,y=40,width=70,height=25)
-    ttk.Entry(Background_frame,textvariable=filepath).place(x=80,y=10,width=150,height=25)
-    ttk.Entry(Background_frame,textvariable=pos).place(x=80,y=40,width=150,height=25)
-    tk.Button(Background_frame,text='浏览',command=lambda:browse_file(filepath)).place(x=230,y=10,width=60,height=25)
-    tk.Button(Background_frame,text='选择',command=lambda:call_possele(pos)).place(x=230,y=40,width=60,height=25)
+    ttk.Label(Background_frame,text='背景文件').place(x=10,y=10,width=65,height=25)
+    ttk.Label(Background_frame,text='背景位置').place(x=10,y=40,width=65,height=25)
+    ttk.Entry(Background_frame,textvariable=filepath).place(x=75,y=10,width=150,height=25)
+    ttk.Entry(Background_frame,textvariable=pos).place(x=75,y=40,width=150,height=25)
+    ttk.Button(Background_frame,text='浏览',command=lambda:browse_file(filepath)).place(x=230,y=10,width=60,height=25)
+    ttk.Button(Background_frame,text='选择',command=lambda:call_possele(pos)).place(x=230,y=40,width=60,height=25)
 
     # Animation
-    tk.Label(Animation_frame,text='立绘文件').place(x=10,y=10,width=70,height=25)
-    tk.Label(Animation_frame,text='立绘位置').place(x=10,y=40,width=70,height=25)
-    tk.Label(Animation_frame,text='动画时刻').place(x=10,y=70,width=70,height=25)
-    tk.Label(Animation_frame,text='动画循环').place(x=10,y=100,width=70,height=25)
-    ttk.Entry(Animation_frame,textvariable=filepath).place(x=80,y=10,width=150,height=25)
-    ttk.Entry(Animation_frame,textvariable=pos).place(x=80,y=40,width=150,height=25)
-    ttk.Entry(Animation_frame,textvariable=tick).place(x=80,y=70,width=150,height=25)
-    ttk.Entry(Animation_frame,textvariable=loop).place(x=80,y=100,width=150,height=25)
-    tk.Button(Animation_frame,text='浏览',command=lambda:browse_file(filepath)).place(x=230,y=10,width=60,height=25)
-    tk.Button(Animation_frame,text='选择',command=lambda:call_possele(pos)).place(x=230,y=40,width=60,height=25)
-    tk.Label(Animation_frame,text='(整数)').place(x=230,y=70,width=60,height=25)
-    tk.Label(Animation_frame,text='(0/1)').place(x=230,y=100,width=60,height=25)
+    ttk.Label(Animation_frame,text='立绘文件').place(x=10,y=10,width=65,height=25)
+    ttk.Label(Animation_frame,text='立绘位置').place(x=10,y=40,width=65,height=25)
+    ttk.Label(Animation_frame,text='动画时刻').place(x=10,y=70,width=65,height=25)
+    ttk.Label(Animation_frame,text='动画循环').place(x=10,y=100,width=65,height=25)
+    ttk.Entry(Animation_frame,textvariable=filepath).place(x=75,y=10,width=150,height=25)
+    ttk.Entry(Animation_frame,textvariable=pos).place(x=75,y=40,width=150,height=25)
+    ttk.Entry(Animation_frame,textvariable=tick).place(x=75,y=70,width=150,height=25)
+    ttk.Entry(Animation_frame,textvariable=loop).place(x=75,y=100,width=150,height=25)
+    ttk.Button(Animation_frame,text='浏览',command=lambda:browse_file(filepath)).place(x=230,y=10,width=60,height=25)
+    ttk.Button(Animation_frame,text='选择',command=lambda:call_possele(pos)).place(x=230,y=40,width=60,height=25)
+    ttk.Label(Animation_frame,text='(整数)').place(x=230,y=70,width=60,height=25)
+    ttk.Label(Animation_frame,text='(0/1)').place(x=230,y=100,width=60,height=25)
 
     # BGM
-    tk.Label(BGM_frame,text='音乐文件').place(x=10,y=10,width=70,height=25)
-    tk.Label(BGM_frame,text='音乐音量').place(x=10,y=40,width=70,height=25)
-    tk.Label(BGM_frame,text='音乐循环').place(x=10,y=70,width=70,height=25)
-    ttk.Entry(BGM_frame,textvariable=filepath).place(x=80,y=10,width=150,height=25)
-    ttk.Entry(BGM_frame,textvariable=volume).place(x=80,y=40,width=150,height=25)
-    ttk.Entry(BGM_frame,textvariable=loop).place(x=80,y=70,width=150,height=25)
-    tk.Button(BGM_frame,text='浏览',command=lambda:browse_file(filepath)).place(x=230,y=10,width=60,height=25)
-    tk.Label(BGM_frame,text='(0-100)').place(x=230,y=40,width=60,height=25)
-    tk.Label(BGM_frame,text='(0/1)').place(x=230,y=70,width=60,height=25)
+    ttk.Label(BGM_frame,text='音乐文件').place(x=10,y=10,width=65,height=25)
+    ttk.Label(BGM_frame,text='音乐音量').place(x=10,y=40,width=65,height=25)
+    ttk.Label(BGM_frame,text='音乐循环').place(x=10,y=70,width=65,height=25)
+    ttk.Entry(BGM_frame,textvariable=filepath).place(x=75,y=10,width=150,height=25)
+    ttk.Entry(BGM_frame,textvariable=volume).place(x=75,y=40,width=150,height=25)
+    ttk.Entry(BGM_frame,textvariable=loop).place(x=75,y=70,width=150,height=25)
+    ttk.Button(BGM_frame,text='浏览',command=lambda:browse_file(filepath)).place(x=230,y=10,width=60,height=25)
+    ttk.Label(BGM_frame,text='(0-100)').place(x=230,y=40,width=60,height=25)
+    ttk.Label(BGM_frame,text='(0/1)').place(x=230,y=70,width=60,height=25)
 
     # Audio_frame
-    tk.Label(Audio_frame,text='音效文件').place(x=10,y=10,width=70,height=25)
-    ttk.Entry(Audio_frame,textvariable=filepath).place(x=80,y=10,width=150,height=25)
-    tk.Button(Audio_frame,text='浏览',command=lambda:browse_file(filepath)).place(x=230,y=10,width=60,height=25)
+    ttk.Label(Audio_frame,text='音效文件').place(x=10,y=10,width=65,height=25)
+    ttk.Entry(Audio_frame,textvariable=filepath).place(x=75,y=10,width=150,height=25)
+    ttk.Button(Audio_frame,text='浏览',command=lambda:browse_file(filepath)).place(x=230,y=10,width=60,height=25)
 
     # 完成
-    tk.Button(objdef,text='确认',command=comfirm_obj).place(x=130,y=320,height=30,width=60)
+    ttk.Button(objdef,text='确认',command=comfirm_obj).place(x=130,y=320,height=30,width=60)
 
     Objdef_windows.mainloop()
     return obj_return_value
 # 编辑区
-def open_Edit_windows(Edit_filepath='',fig_W=960,fig_H=540):
-
-    global Edit_windows # 窗体本身
-    global selected,selected_name,selected_type,selected_args # 选中值
-    global image_canvas,show_canvas # 预览的画布
-    global edit_return_value # 编辑器的最终返回值
+def open_Edit_windows(father,Edit_filepath='',fig_W=960,fig_H=540):
+    global image_canvas # 预览的画布
     global available_Text # 所有的可用文本名
     selected_name,selected_type,selected_args = 'None','None','None'
     selected = 0
@@ -487,7 +516,7 @@ def open_Edit_windows(Edit_filepath='',fig_W=960,fig_H=540):
 
     def new_obj(): # 新建
         Edit_windows.attributes('-disabled',True)
-        new_obj = open_Media_def_window()
+        new_obj = open_Media_def_window(father=Edit_windows)
         Edit_windows.attributes('-disabled',False)
         Edit_windows.lift()
         Edit_windows.focus_force()
@@ -496,13 +525,13 @@ def open_Edit_windows(Edit_filepath='',fig_W=960,fig_H=540):
             if new_obj[1] in ['Text','StrokeText']: # 如果新建了文本
                 available_Text.append(new_obj[0])
     def preview_obj(): # 预览
-        global image_canvas,show_canvas # 必须是全局变量，否则在函数后就被回收了，不再显示
+        global image_canvas
+        nonlocal show_canvas # 必须是全局变量，否则在函数后就被回收了，不再显示
         if selected_type in ['Text','StrokeText','Bubble','Background','Animation']: # 执行
             try:
                 image_canvas.paste(blank_canvas,(0,0),mask=blank_canvas)
                 exec('global {name};{name}={type}{args}'.format(name=selected_name,type=selected_type,args=selected_args))
                 exec('global {name};{name}.preview()'.format(name=selected_name))
-                #image_canvas.show()
                 show_canvas = ImageTk.PhotoImage(image_canvas.resize((fig_W//2,fig_H//2)))
                 preview_canvas.config(image =show_canvas)
             except NameError as E: # 使用了尚未定义的对象！
@@ -518,12 +547,12 @@ def open_Edit_windows(Edit_filepath='',fig_W=960,fig_H=540):
         else:
             messagebox.showerror(title='错误',message='不支持的媒体定义类型：'+selected_type)
     def edit_obj(): # 编辑
-        global selected,selected_name,selected_type,selected_args
+        nonlocal selected,selected_name,selected_type,selected_args
         if selected == 0:
             pass
         else:
             Edit_windows.attributes('-disabled',True)
-            new_obj = open_Media_def_window(selected_name,selected_type,selected_args)
+            new_obj = open_Media_def_window(Edit_windows,selected_name,selected_type,selected_args)
             Edit_windows.attributes('-disabled',False)
             Edit_windows.lift()
             Edit_windows.focus_force()
@@ -534,7 +563,7 @@ def open_Edit_windows(Edit_filepath='',fig_W=960,fig_H=540):
                 mediainfo.item(selected,values=new_obj)
                 selected_name,selected_type,selected_args = new_obj
     def del_obj(): # 删除
-        global selected,selected_name,selected_type,selected_args
+        nonlocal selected,selected_name,selected_type,selected_args
         if selected == 0:
             pass
         else:
@@ -544,7 +573,7 @@ def open_Edit_windows(Edit_filepath='',fig_W=960,fig_H=540):
             selected = 0
             selected_name,selected_type,selected_args = 'None','None','None'
     def finish(saveas=False): # 完成
-        global edit_return_value
+        nonlocal edit_return_value
         if (Edit_filepath != '')&(saveas==False):
             ofile = open(Edit_filepath,'w',encoding='utf8')
             edit_return_value = Edit_filepath
@@ -562,12 +591,15 @@ def open_Edit_windows(Edit_filepath='',fig_W=960,fig_H=540):
         Edit_windows.destroy()
         Edit_windows.quit()
     def close_window():
-        messagebox.askyesno(title='确认退出？',message='未保存的改动将会丢失！')
-        edit_return_value = False
-        Edit_windows.destroy()
-        Edit_windows.quit()
+        nonlocal edit_return_value
+        if messagebox.askyesno(title='确认退出？',message='未保存的改动将会丢失！') == True:
+            edit_return_value = False
+            Edit_windows.destroy()
+            Edit_windows.quit()
+        else:
+            pass
     def treeviewClick(event):  # 选中列单击
-        global selected,selected_name,selected_type,selected_args
+        nonlocal selected,selected_name,selected_type,selected_args
         try:
             selected = mediainfo.selection()
             selected_name,selected_type,selected_args = mediainfo.item(selected, "values")
@@ -577,14 +609,14 @@ def open_Edit_windows(Edit_filepath='',fig_W=960,fig_H=540):
 
     window_W , window_H = fig_W//2+40,fig_H//2+440
 
-    Edit_windows = tk.Toplevel()
+    Edit_windows = tk.Toplevel(father)
     Edit_windows.resizable(0,0)
     Edit_windows.geometry("{W}x{H}".format(W=window_W,H=window_H))
-    Edit_windows.iconbitmap('./doc/icon.ico')
+    Edit_windows.iconbitmap('./media/icon.ico')
     Edit_windows.config(background ='#e0e0e0')
     Edit_windows.title('TRPG Replay Generator MediaDef Editer.')
     Edit_windows.protocol('WM_DELETE_WINDOW',close_window)
-    Edit_windows.transient(Main_windows)
+    Edit_windows.transient(father)
 
     frame_edit = tk.Frame(Edit_windows)
     frame_edit.place(x=10,y=10,height=window_H-20,width=window_W-20)
@@ -594,8 +626,8 @@ def open_Edit_windows(Edit_filepath='',fig_W=960,fig_H=540):
     mediainfo_frame = tk.LabelFrame(frame_edit,text='媒体对象')
     mediainfo_frame.place(x=10,y=10,height=390,width=fig_W//2)
 
-    ybar = tk.Scrollbar(mediainfo_frame,orient='vertical')
-    xbar = tk.Scrollbar(mediainfo_frame,orient='horizontal')
+    ybar = ttk.Scrollbar(mediainfo_frame,orient='vertical')
+    xbar = ttk.Scrollbar(mediainfo_frame,orient='horizontal')
     mediainfo = ttk.Treeview(mediainfo_frame,columns=['name','type','args'],show = "headings",selectmode = tk.BROWSE,yscrollcommand=ybar.set,xscrollcommand=xbar.set)
     ybar.config(command=mediainfo.yview)
     xbar.config(command=mediainfo.xview)
@@ -617,15 +649,15 @@ def open_Edit_windows(Edit_filepath='',fig_W=960,fig_H=540):
     button_w = (fig_W//2-20)//8
     button_x = lambda x:10+(fig_W//2-20-button_w)//5*x
 
-    tk.Button(mediainfo_frame,text='预览',command=preview_obj).place(x=button_x(0),y=320,width=button_w,height=40)
-    tk.Button(mediainfo_frame,text='新建',command=new_obj).place(x=button_x(1),y=320,width=button_w,height=40)
-    tk.Button(mediainfo_frame,text='编辑',command=edit_obj).place(x=button_x(2),y=320,width=button_w,height=40)
-    tk.Button(mediainfo_frame,text='删除',command=del_obj).place(x=button_x(3),y=320,width=button_w,height=40)
-    tk.Button(mediainfo_frame,text='保存',command=lambda:finish(False)).place(x=button_x(4),y=320,width=button_w,height=40)
-    tk.Button(mediainfo_frame,text='另存',command=lambda:finish(True)).place(x=button_x(5),y=320,width=button_w,height=40)
+    ttk.Button(mediainfo_frame,text='预览',command=preview_obj).place(x=button_x(0),y=320,width=button_w,height=40)
+    ttk.Button(mediainfo_frame,text='新建',command=new_obj).place(x=button_x(1),y=320,width=button_w,height=40)
+    ttk.Button(mediainfo_frame,text='编辑',command=edit_obj).place(x=button_x(2),y=320,width=button_w,height=40)
+    ttk.Button(mediainfo_frame,text='删除',command=del_obj).place(x=button_x(3),y=320,width=button_w,height=40)
+    ttk.Button(mediainfo_frame,text='保存',command=lambda:finish(False)).place(x=button_x(4),y=320,width=button_w,height=40)
+    ttk.Button(mediainfo_frame,text='另存',command=lambda:finish(True)).place(x=button_x(5),y=320,width=button_w,height=40)
 
     # 预览图
-    image_canvas = Image.open('./doc/canvas.png').crop((0,0,fig_W,fig_H))
+    image_canvas = Image.open('./media/canvas.png').crop((0,0,fig_W,fig_H))
     blank_canvas = image_canvas.copy()
     blank_canvas.putalpha(220)
     show_canvas = ImageTk.PhotoImage(image_canvas.resize((fig_W//2,fig_H//2)))
@@ -635,20 +667,25 @@ def open_Edit_windows(Edit_filepath='',fig_W=960,fig_H=540):
 
     # 载入文件
     if Edit_filepath!='': # 如果有指定输入文件
-        mediadef_text = open(Edit_filepath,'r',encoding='utf8').read().split('\n')
-        warning_line = []
-        for i,line in enumerate(mediadef_text):
-            parseline = RE_parse_mediadef.findall(line)
-            if len(parseline) == 1:
-                mediainfo.insert('','end',values = parseline[0])
-                if parseline[0][1] in ['Text','StrokeText']:
-                    available_Text.append(parseline[0][0])
+        try:
+            mediadef_text = open(Edit_filepath,'r',encoding='utf8').read().split('\n')
+            warning_line = []
+            for i,line in enumerate(mediadef_text):
+                parseline = RE_parse_mediadef.findall(line)
+                if len(parseline) == 1:
+                    mediainfo.insert('','end',values = parseline[0])
+                    if parseline[0][1] in ['Text','StrokeText']:
+                        available_Text.append(parseline[0][0])
+                else:
+                    warning_line.append(i+1)
+            if warning_line == []:
+                messagebox.showinfo(title='完毕',message='载入完毕，共载入{i}条记录！'.format(i=i+1))
             else:
-                warning_line.append(i+1)
-        if warning_line == []:
-            messagebox.showinfo(title='完毕',message='载入完毕，共载入{i}条记录！'.format(i=i+1))
-        else:
-            messagebox.showwarning(title='完毕',message='载入完毕，共载入{i}条记录，\n第{warning}行因为无法解析而被舍弃！'.format(i=i+1-len(warning_line),warning=','.join(map(str,warning_line))))
+                messagebox.showwarning(title='完毕',message='载入完毕，共载入{i}条记录，\n第{warning}行因为无法解析而被舍弃！'.format(i=i+1-len(warning_line),warning=','.join(map(str,warning_line))))
+        except UnicodeDecodeError:
+            messagebox.showerror(title='错误',message='无法载入文件，请检查文本文件编码！')
+    else:
+        pass
 
     Edit_windows.mainloop()
     return edit_return_value
@@ -659,6 +696,10 @@ def browse_file(text_obj,method='file',changebotton=False):
         getname = filedialog.askopenfilename()
     else:
         getname = filedialog.askdirectory()
+    if (' ' in getname) | ('$' in getname):
+        messagebox.showwarning(title='警告',message='请勿使用包含空格或特殊符号的路径！')
+        text_obj.set('')
+        return None
     text_obj.set(getname)
     if changebotton != False:
         if os.path.isfile(getname):
@@ -676,20 +717,18 @@ def choose_color(text_obj):
     
 # 主界面的函数
 def open_Main_windows():
-    global frame_display,Main_windows
     def printFrame():
-        global frame_display
+        nonlocal frame_display
         frame_display.place_forget()
         select = tab_frame[tab.get()]
         select.place(x=10,y=50)
-        #frame_item(select)
         frame_display = select
     def call_Edit_windows():
         Edit_filepath=media_define.get()
         fig_W = project_W.get()
         fig_H = project_H.get()
         Main_windows.attributes('-disabled',True)
-        return_from_Edit = open_Edit_windows(Edit_filepath,fig_W,fig_H)
+        return_from_Edit = open_Edit_windows(Main_windows,Edit_filepath,fig_W,fig_H)
         Main_windows.attributes('-disabled',False)
         Main_windows.lift()
         Main_windows.focus_force()
@@ -751,15 +790,15 @@ def open_Main_windows():
             except:
                 messagebox.showwarning(title='警告',message='似乎有啥不对劲的事情发生了！')
     def run_command_mp4():
-        command = python3 + ' ./export_video.py --TimeLine {tm} --MediaObjDefine {md} --OutputPath {of} --FramePerSecond {fps} --Width {wd} --Height {he} --Zorder {zd}'
+        command = python3 + ' ./export_video.py --TimeLine {tm} --MediaObjDefine {md} --OutputPath {of} --FramePerSecond {fps} --Width {wd} --Height {he} --Zorder {zd} --Quality {ql}'
         if '' in [timeline_file.get(),media_define.get(),output_path.get(),
-                  project_W.get(),project_H.get(),project_F.get(),project_Z.get()]:
+                  project_W.get(),project_H.get(),project_F.get(),project_Z.get(),project_Q.get()]:
             messagebox.showerror(title='错误',message='缺少必要的参数！')
         else:
             command = command.format(tm = timeline_file.get().replace('\\','/'),
                                      md = media_define.get().replace('\\','/'), of = output_path.get().replace('\\','/'), 
                                      fps = project_F.get(), wd = project_W.get(),
-                                     he = project_H.get(), zd = project_Z.get())
+                                     he = project_H.get(), zd = project_Z.get(), ql = project_Q.get())
             try:
                 print('[32m'+command+'[0m')
                 os.system(command)
@@ -771,7 +810,7 @@ def open_Main_windows():
     Main_windows = tk.Tk()
     Main_windows.resizable(0,0)
     Main_windows.geometry("640x550")
-    Main_windows.iconbitmap('./doc/icon.ico')
+    Main_windows.iconbitmap('./media/icon.ico')
     Main_windows.config(background ='#e0e0e0')
     Main_windows.title('TRPG Replay Generator ' + edtion)
 
@@ -795,10 +834,12 @@ def open_Main_windows():
     project_H = tk.IntVar(Main_windows)
     project_F = tk.IntVar(Main_windows)
     project_Z = tk.StringVar(Main_windows)
+    project_Q = tk.IntVar(Main_windows)
     project_W.set(1920)
     project_H.set(1080)
     project_F.set(30)
     project_Z.set('BG3,BG2,BG1,Am3,Am2,Am1,Bb')
+    project_Q.set(24)
     # 语音合成的key
     AccessKey = tk.StringVar(Main_windows)
     Appkey = tk.StringVar(Main_windows)
@@ -880,7 +921,7 @@ def open_Main_windows():
     tk.Checkbutton(flag,text="导出为.mp4视频",variable=exportmp4,anchor=tk.W).place(x=200,y=50,width=150,height=30)
     tk.Checkbutton(flag,text="取消系统缩放",variable=fixscrzoom,anchor=tk.W).place(x=200,y=5,width=150,height=30)
 
-    my_logo = ImageTk.PhotoImage(Image.open('./doc/icon.png').resize((75,75)))
+    my_logo = ImageTk.PhotoImage(Image.open('./media/icon.png').resize((75,75)))
     tk.Button(flag,image = my_logo,command=lambda: webbrowser.open('https://github.com/DanDDXuanX/TRPG-Replay-Generator'),relief='flat').place(x=500,y=0)
 
     # 开始
@@ -917,7 +958,7 @@ def open_Main_windows():
     flag_s = tk.LabelFrame(synth_frame,text='标志')
     flag_s.place(x=10,y=320,width=600,height=110)
 
-    aliyun_logo = ImageTk.PhotoImage(Image.open('./doc/aliyun.png'))
+    aliyun_logo = ImageTk.PhotoImage(Image.open('./media/aliyun.png'))
     tk.Label(flag_s,image = aliyun_logo).place(x=20,y=13)
     tk.Label(flag_s,text='本项功能由阿里云语音合成支持，了解更多：').place(x=300,y=20)
     tk.Button(flag_s,text='https://ai.aliyun.com/nls/',command=lambda: webbrowser.open('https://ai.aliyun.com/nls/'),fg='blue',relief='flat').place(x=300,y=40)
@@ -957,8 +998,8 @@ def open_Main_windows():
     flag_x = tk.LabelFrame(xml_frame,text='标志')
     flag_x.place(x=10,y=320,width=600,height=110)
 
-    PR_logo = ImageTk.PhotoImage(Image.open('./doc/PR.png'))
-    #Eta_logo = ImageTk.PhotoImage(Image.open('./doc/eta.png'))
+    PR_logo = ImageTk.PhotoImage(Image.open('./media/PR.png'))
+    #Eta_logo = ImageTk.PhotoImage(Image.open('./media/eta.png'))
     tk.Label(flag_x,image = PR_logo).place(x=20,y=10)
     #tk.Label(flag_x,text='通向Premiere Pro世界的通道，感谢伊塔的Idea，了解更多：').place(x=110,y=30)
     tk.Label(flag_x,text='通向Premiere Pro世界的通道').place(x=110,y=30)
@@ -990,16 +1031,18 @@ def open_Main_windows():
     tk.Label(optional_v,text="分辨率-高:",anchor=tk.W).place(x=160,y=5,width=70,height=30)
     tk.Label(optional_v,text="帧率:",anchor=tk.W).place(x=310,y=5,width=70,height=30)
     tk.Label(optional_v,text="图层顺序:",anchor=tk.W).place(x=10,y=50,width=70,height=30)
+    tk.Label(optional_v,text="质量:",anchor=tk.W).place(x=310,y=50,width=70,height=30)
 
     tk.Entry(optional_v,textvariable=project_W).place(x=80,y=5,width=70,height=25)
     tk.Entry(optional_v,textvariable=project_H).place(x=230,y=5,width=70,height=25)
     tk.Entry(optional_v,textvariable=project_F).place(x=380,y=5,width=70,height=25)
-    tk.Entry(optional_v,textvariable=project_Z).place(x=80,y=50,width=370,height=25)
+    tk.Entry(optional_v,textvariable=project_Z).place(x=80,y=50,width=220,height=25)
+    tk.Entry(optional_v,textvariable=project_Q).place(x=380,y=50,width=70,height=25)
 
     flag_v = tk.LabelFrame(mp4_frame,text='标志')
     flag_v.place(x=10,y=320,width=600,height=110)
 
-    ffmpeg_logo = ImageTk.PhotoImage(Image.open('./doc/ffmpeg.png'))
+    ffmpeg_logo = ImageTk.PhotoImage(Image.open('./media/ffmpeg.png'))
     tk.Label(flag_v,image = ffmpeg_logo).place(x=20,y=10)
     tk.Label(flag_v,text='本项功能调用ffmpeg实现，了解更多：').place(x=300,y=20)
     tk.Button(flag_v,text='https://ffmpeg.org/',command=lambda: webbrowser.open('https://ffmpeg.org/'),fg='blue',relief='flat').place(x=300,y=40)
