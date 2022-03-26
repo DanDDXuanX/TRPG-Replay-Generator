@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.7.8'
+edtion = 'alpha 1.8.0'
 
 # 外部参数输入
 
@@ -214,6 +214,13 @@ class Animation:
             surface.blit(temp,render_pos)
         else:
             surface.blit(self.media[int(self.this)],render_pos)
+    def get_tick(self,duration): # 1.8.0
+        if self.length > 1: # 如果length > 1 说明是多帧的动画！
+            tick_lineline = (np.arange(0,duration if self.loop else self.length,1/self.tick)[0:duration]%(self.length))
+            tick_lineline = np.hstack([tick_lineline,(self.length-1)*np.ones(duration-len(tick_lineline))]).astype(int)
+        else:
+            tick_lineline = np.zeros(duration).astype(int)
+        return tick_lineline
     def convert(self):
         self.media = np.frompyfunc(lambda x:x.convert_alpha(),1,1)(self.media)
 

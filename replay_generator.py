@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.7.8'
+edtion = 'alpha 1.8.0'
 
 # 外部参数输入
 
@@ -33,6 +33,8 @@ ap.add_argument("-Z", "--Zorder", help='Set the display order of layers, not rec
 ap.add_argument("-K", "--AccessKey", help='Your AccessKey, to use with --SynthsisAnyway',type=str,default="Your_AccessKey")
 ap.add_argument("-S", "--AccessKeySecret", help='Your AccessKeySecret, to use with --SynthsisAnyway',type=str,default="Your_AccessKey_Secret")
 ap.add_argument("-A", "--Appkey", help='Your Appkey, to use with --SynthsisAnyway',type=str,default="Your_Appkey")
+# 用于导出视频的质量值
+ap.add_argument("-Q", "--Quality", help='Choose the quality (ffmpeg crf) of output video, to use with --ExportVideo.',type=int,default=24)
 # Flags
 ap.add_argument('--ExportXML',help='Export a xml file to load in Premiere Pro, some .png file will be created at same time.',action='store_true')
 ap.add_argument('--ExportVideo',help='Export MP4 video file, this will disables interface display',action='store_true')
@@ -53,6 +55,8 @@ zorder = args.Zorder.split(',') #渲染图层顺序
 AKID = args.AccessKey
 AKKEY = args.AccessKeySecret
 APPKEY = args.Appkey
+
+crf = args.Quality # 导出视频的质量值
 
 exportXML = args.ExportXML #导出为XML
 exportVideo = args.ExportVideo #导出为视频
@@ -240,6 +244,13 @@ class Animation:
             surface.blit(temp,render_pos)
         else:
             surface.blit(self.media[int(self.this)],render_pos)
+    def get_tick(self,duration): # 1.8.0
+        if self.length > 1: # 如果length > 1 说明是多帧的动画！
+            tick_lineline = (np.arange(0,duration if self.loop else self.length,1/self.tick)[0:duration]%(self.length))
+            tick_lineline = np.hstack([tick_lineline,(self.length-1)*np.ones(duration-len(tick_lineline))]).astype(int)
+        else:
+            tick_lineline = np.zeros(duration).astype(int)
+        return tick_lineline
     def convert(self):
         self.media = np.frompyfunc(lambda x:x.convert_alpha(),1,1)(self.media)
 
@@ -828,15 +839,7 @@ def parser(stdin_text):
                 if (this_am!=this_am) | (this_am=='NA'):# this_am 可能为空的，需要先处理这种情况！
                     this_timeline['Am'+str(k+1)+'_t'] = 0
                 else:
-                    if eval(this_am+'.length') > 1: # 如果length > 1 说明是多帧的动画！
-                        tk = eval(this_am+'.tick')
-                        lp = eval(this_am+'.loop')
-                        lt = eval(this_am+'.length')
-                        tick_lineline = (np.arange(0,this_duration if lp else lt,1/tk)[0:this_duration]%(lt))
-                        tick_lineline = np.hstack([tick_lineline,(lt-1)*np.ones(this_duration-len(tick_lineline))]).astype(int)
-                        this_timeline['Am'+str(k+1)+'_t'] = tick_lineline
-                    else:
-                        this_timeline['Am'+str(k+1)+'_t'] = 0
+                    this_timeline['Am'+str(k+1)+'_t'] = eval('{am}.get_tick({dur})'.format(am=this_am,dur=this_duration))
                 # 气泡的参数
                 if k == 0:
                     this_bb = charactor_table.loc[name+subtype]['Bubble']
@@ -1227,7 +1230,7 @@ print('[replay generator]: Welcome to use TRPG-replay-generator '+edtion)
 if synthfirst == True:
     command = python3 +' ./speech_synthesizer.py --LogFile {lg} --MediaObjDefine {md} --CharacterTable {ct} --OutputPath {of} --AccessKey {AK} --AccessKeySecret {AS} --Appkey {AP}'
     command = command.format(lg = stdin_log.replace('\\','/'),md = media_obj.replace('\\','/'), of = output_path, ct = char_tab.replace('\\','/'), AK = AKID,AS = AKKEY,AP = APPKEY)
-    print('[replay generator]: Flag --SynthesisAnyway detected, running command:\n','[32m'+command+'[0m')
+    print('[replay generator]: Flag --SynthesisAnyway detected, running command:\n'+'[32m'+command+'[0m')
     try:
         os.system(command)
         # 将当前的标准输入调整为处理后的log文件
@@ -1313,17 +1316,17 @@ if output_path != None:
         command = command.format(tm = output_path+'/'+timenow+'.timeline',
                                  md = media_obj.replace('\\','/'), of = output_path.replace('\\','/'), 
                                  fps = frame_rate, wd = screen_size[0], he = screen_size[1], zd = ','.join(zorder))
-        print('[replay generator]: Flag --ExportXML detected, running command:\n','[32m'+command+'[0m')
+        print('[replay generator]: Flag --ExportXML detected, running command:\n'+'[32m'+command+'[0m')
         try:
             os.system(command)
         except Exception as E:
             print('[33m[warning]:[0m Failed to export XML, due to:',E)
     if exportVideo == True:
-        command = python3 + ' ./export_video.py --TimeLine {tm} --MediaObjDefine {md} --OutputPath {of} --FramePerSecond {fps} --Width {wd} --Height {he} --Zorder {zd}'
+        command = python3 + ' ./export_video.py --TimeLine {tm} --MediaObjDefine {md} --OutputPath {of} --FramePerSecond {fps} --Width {wd} --Height {he} --Zorder {zd} --Quality {ql}'
         command = command.format(tm = output_path+'/'+timenow+'.timeline',
                                  md = media_obj.replace('\\','/'), of = output_path.replace('\\','/'), 
-                                 fps = frame_rate, wd = screen_size[0], he = screen_size[1], zd = ','.join(zorder))
-        print('[replay generator]: Flag --ExportVideo detected, running command:\n','[32m'+command+'[0m')
+                                 fps = frame_rate, wd = screen_size[0], he = screen_size[1], zd = ','.join(zorder),ql = crf)
+        print('[replay generator]: Flag --ExportVideo detected, running command:\n'+'[32m'+command+'[0m')
         try:
             os.system(command)
         except Exception as E:

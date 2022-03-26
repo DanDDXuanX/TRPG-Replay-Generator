@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.7.8'
+edtion = 'alpha 1.8.0'
 
 # 绝对的全局变量
 # 在开源发布的版本中，隐去了各个key
@@ -99,7 +99,7 @@ class TTS_engine:
             print_text = text[0:5]+'...'
         else:
             print_text = text
-        print("[{0}({1})]:{2} -> '{3}'".format(self.ID,self.voice,print_text,ofile))
+        print("[{0}({1})]: {2} -> '{3}'".format(self.ID,self.voice,print_text,ofile))
     def on_close(self, *args):
         #print("on_close: args=>{}".format(args))
         try:
@@ -132,6 +132,8 @@ RE_characor = re.compile('([\ \w]+)(\(\d*\))?(\.\w+)?')
 RE_asterisk = re.compile('(\{([^\{\}]*?[,;])?\*([\w\.\,，]*)?\})')
 
 media_list=[]
+
+occupied_variable_name = open('./media/occupied_variable_name.list','r',encoding='utf8').read().split('\n')
 
 # 函数定义
 
@@ -328,8 +330,8 @@ def main():
                 elif (len(re.findall('\w+',obj_name))==0)|(obj_name[0].isdigit()):
                     raise SyntaxError('Invalid Obj name')
                 media_list.append(obj_name) #记录新增对象名称
-            except:
-                print('[31m[SyntaxError]:[0m "'+text+'" appeared in media define file line ' + str(i+1)+'.')
+            except Exception as E:
+                print('[31m[SyntaxError]:[0m "'+text+'" appeared in media define file line ' + str(i+1)+':',E)
                 sys.exit()
 
     # 载入log文件

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.7.8'
+edtion = 'alpha 1.8.0'
 
 import tkinter as tk
 from tkinter import ttk
@@ -735,7 +735,7 @@ def open_Main_windows():
         if os.path.isfile(return_from_Edit):
             media_define.set(return_from_Edit)
     def run_command():
-        optional = {1:'--OutputPath {of} ',2:'--ExportXML ',3:'--ExportVideo ',4:'--SynthesisAnyway --AccessKey {AK} --AccessKeySecret {AS} --Appkey {AP} ',5:'--FixScreenZoom '}
+        optional = {1:'--OutputPath {of} ',2:'--ExportXML ',3:'--ExportVideo --Quality {ql} ',4:'--SynthesisAnyway --AccessKey {AK} --AccessKeySecret {AS} --Appkey {AP} ',5:'--FixScreenZoom '}
         command = python3 + ' ./replay_generator.py --LogFile {lg} --MediaObjDefine {md} --CharacterTable {ct} '
         command = command + '--FramePerSecond {fps} --Width {wd} --Height {he} --Zorder {zd} '
         if output_path.get()!='':
@@ -745,7 +745,7 @@ def open_Main_windows():
         if exportprxml.get()==1:
             command = command + optional[2]
         if exportmp4.get()==1:
-            command = command + optional[3]
+            command = command + optional[3].format(ql=project_Q.get())
         if fixscrzoom.get()==1:
             command = command + optional[5]
         if '' in [stdin_logfile.get(),characor_table.get(),media_define.get(),project_W.get(),project_H.get(),project_F.get(),project_Z.get()]:
@@ -805,6 +805,39 @@ def open_Main_windows():
                 messagebox.showinfo(title='完毕',message='导出视频程序执行完毕，检视控制台输出获取详细信息！')
             except:
                 messagebox.showwarning(title='警告',message='似乎有啥不对劲的事情发生了！')
+    def highlight(target):
+        if target == exportmp4:
+            if target.get() == 1:
+                tab4.config(fg='red',text='导出MP4 ⚑')
+                label_ql.config(fg='red')
+            else:
+                tab4.config(fg='black',text='导出MP4')
+                label_ql.config(fg='black')
+        elif target == synthanyway:
+            if target.get() == 1:
+                tab2.config(fg='red',text='语音合成 ⚑')
+                label_AP.config(fg='red')
+                label_AK.config(fg='red')
+                label_AS.config(fg='red')
+            else:
+                tab2.config(fg='black',text='语音合成')
+                label_AP.config(fg='black')
+                label_AK.config(fg='black')
+                label_AS.config(fg='black')
+        elif target == exportprxml:
+            if target.get() == 1:
+                tab3.config(text='导出XML ⚑')
+            else:
+                tab3.config(text='导出XML')
+        else: 
+            if target.get() == 1:
+                try:
+                    import ctypes
+                    ctypes.windll.user32.SetProcessDPIAware() #修复错误的缩放，尤其是在移动设备。
+                    Main_windows.update()
+                except:
+                    messagebox.showwarning(title='警告',message='该选项在当前系统下不可用！')
+                    target.set(0)
 
     # 初始化
     Main_windows = tk.Tk()
@@ -916,10 +949,10 @@ def open_Main_windows():
     flag = tk.LabelFrame(main_frame,text='标志')
     flag.place(x=10,y=320,width=600,height=110)
 
-    tk.Checkbutton(flag,text="先执行语音合成",variable=synthanyway,anchor=tk.W).place(x=10,y=5,width=150,height=30)
-    tk.Checkbutton(flag,text="导出为PR项目",variable=exportprxml,anchor=tk.W).place(x=10,y=50,width=150,height=30)
-    tk.Checkbutton(flag,text="导出为.mp4视频",variable=exportmp4,anchor=tk.W).place(x=200,y=50,width=150,height=30)
-    tk.Checkbutton(flag,text="取消系统缩放",variable=fixscrzoom,anchor=tk.W).place(x=200,y=5,width=150,height=30)
+    tk.Checkbutton(flag,text="先执行语音合成",variable=synthanyway,anchor=tk.W,command=lambda:highlight(synthanyway)).place(x=10,y=5,width=150,height=30)
+    tk.Checkbutton(flag,text="导出为PR项目",variable=exportprxml,anchor=tk.W,command=lambda:highlight(exportprxml)).place(x=10,y=50,width=150,height=30)
+    tk.Checkbutton(flag,text="导出为.mp4视频",variable=exportmp4,anchor=tk.W,command=lambda:highlight(exportmp4)).place(x=200,y=50,width=150,height=30)
+    tk.Checkbutton(flag,text="取消系统缩放",variable=fixscrzoom,anchor=tk.W,command=lambda:highlight(fixscrzoom)).place(x=200,y=5,width=150,height=30)
 
     my_logo = ImageTk.PhotoImage(Image.open('./media/icon.png').resize((75,75)))
     tk.Button(flag,image = my_logo,command=lambda: webbrowser.open('https://github.com/DanDDXuanX/TRPG-Replay-Generator'),relief='flat').place(x=500,y=0)
@@ -947,9 +980,12 @@ def open_Main_windows():
     optional_s = tk.LabelFrame(synth_frame,text='选项')
     optional_s.place(x=10,y=210,width=600,height=110)
 
-    tk.Label(optional_s, text="Appkey：",anchor=tk.W).place(x=10,y=0,width=110,height=25)
-    tk.Label(optional_s, text="AccessKey：",anchor=tk.W).place(x=10,y=30,width=110,height=25)
-    tk.Label(optional_s, text="AccessKeySecret：",anchor=tk.W).place(x=10,y=60,width=110,height=25)
+    label_AP = tk.Label(optional_s, text="Appkey：",anchor=tk.W)
+    label_AP.place(x=10,y=0,width=110,height=25)
+    label_AK = tk.Label(optional_s, text="AccessKey：",anchor=tk.W)
+    label_AK.place(x=10,y=30,width=110,height=25)
+    label_AS = tk.Label(optional_s, text="AccessKeySecret：",anchor=tk.W)
+    label_AS.place(x=10,y=60,width=110,height=25)
 
     tk.Entry(optional_s, textvariable=Appkey).place(x=120,y=0,width=390,height=25)
     tk.Entry(optional_s, textvariable=AccessKey).place(x=120,y=30,width=390,height=25)
@@ -1031,7 +1067,8 @@ def open_Main_windows():
     tk.Label(optional_v,text="分辨率-高:",anchor=tk.W).place(x=160,y=5,width=70,height=30)
     tk.Label(optional_v,text="帧率:",anchor=tk.W).place(x=310,y=5,width=70,height=30)
     tk.Label(optional_v,text="图层顺序:",anchor=tk.W).place(x=10,y=50,width=70,height=30)
-    tk.Label(optional_v,text="质量:",anchor=tk.W).place(x=310,y=50,width=70,height=30)
+    label_ql = tk.Label(optional_v,text="质量:",anchor=tk.W)
+    label_ql.place(x=310,y=50,width=70,height=30)
 
     tk.Entry(optional_v,textvariable=project_W).place(x=80,y=5,width=70,height=25)
     tk.Entry(optional_v,textvariable=project_H).place(x=230,y=5,width=70,height=25)
