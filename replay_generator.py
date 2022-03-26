@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.7.7'
+edtion = 'alpha 1.7.8'
 
 # 外部参数输入
 
@@ -509,10 +509,10 @@ class ParserError(Exception):
 
 # 正则表达式定义
 
-RE_dialogue = re.compile('^\[([\w\.\;\(\)\,]+)\](<[\w\=\d]+>)?:(.+?)(<[\w\=\d]+>)?({.+})?$')
+RE_dialogue = re.compile('^\[([\ \w\.\;\(\)\,]+)\](<[\w\=\d]+>)?:(.+?)(<[\w\=\d]+>)?({.+})?$')
 RE_background = re.compile('^<background>(<[\w\=]+>)?:(.+)$')
 RE_setting = re.compile('^<set:([\w\_]+)>:(.+)$')
-RE_characor = re.compile('(\w+)(\(\d*\))?(\.\w+)?')
+RE_characor = re.compile('([\w\ ]+)(\(\d*\))?(\.\w+)?')
 RE_modify = re.compile('<(\w+)(=\d+)?>')
 RE_sound = re.compile('({.+?})')
 RE_asterisk = re.compile('(\{([^\{\}]*?[,;])?\*([\w\.\,，]*)?\})') # v 1.7.3 修改匹配模式以匹配任何可能的字符（除了花括号）
@@ -660,12 +660,20 @@ def split_xy(concated):
     return int(x),int(y)
 
 def am_methods(method_name,method_dur,this_duration,i):
+    def dynamic(scale,duration,balance,cut,enable): # 动态(尺度,持续,平衡,进出,启用)
+        if enable == True: # cutin=1,cutout=0
+            if cut == balance:
+                return formula(0,scale,duration)
+            else:
+                return formula(scale,0,duration)
+        else: # enable == False:
+            return np.ones(duration)*scale*balance
     if method_dur == 0:
         return np.ones(this_duration),'NA'
     Height = screen_size[1]
     Width = screen_size[0]
     method_keys = method_name.split('_')
-    method_args = {'alpha':'replace','motion':'static','direction':'up','scale':'major'} #default
+    method_args = {'alpha':'replace','motion':'static','direction':'up','scale':'major','cut':'both'} #default
     scale_dic = {'major':0.3,'minor':0.12,'entire':1.0}
     direction_dic = {'up':0,'down':180,'left':90,'right':270} # up = 0 剩下的逆时针
     # parse method name
@@ -678,6 +686,8 @@ def am_methods(method_name,method_dur,this_duration,i):
             method_args['direction'] = key
         elif key in ['major','minor','entire']:
             method_args['scale'] = key
+        elif key in ['in','out','both']:
+            method_args['cut'] = key
         elif 'DG' == key[0:2]:
             try:
                 method_args['direction'] = float(key[2:])
@@ -688,14 +698,15 @@ def am_methods(method_name,method_dur,this_duration,i):
                 method_args['scale'] = int(key)
             except:
                 raise ParserError('[31m[ParserError]:[0m Unrecognized switch method: ['+method_name+'] appeared in dialogue line ' + str(i+1)+'.')
+    # 切入，切出，或者双端
+    cutin,cutout ={'in':(1,0),'out':(0,1),'both':(1,1)}[method_args['cut']]
     # alpha
-    if method_args['alpha'] == 'replace':
+    if method_args['alpha'] == 'replace': #--
         alpha_timeline = np.hstack(np.ones(this_duration)) # replace的延后功能撤销！
-    elif method_args['alpha'] == 'delay':
+    elif method_args['alpha'] == 'delay': #_-
         alpha_timeline = np.hstack([np.zeros(method_dur),np.ones(this_duration-method_dur)]) # 延后功能
-    else:
-        alpha_timeline = np.hstack([formula(0,1,method_dur),np.ones(this_duration-2*method_dur),formula(1,0,method_dur)])
-
+    else: # method_args['alpha'] == 'black':#>1<
+        alpha_timeline = np.hstack([dynamic(1,method_dur,1,1,cutin),np.ones(this_duration-2*method_dur),dynamic(1,method_dur,1,0,cutout)])
     # static 的提前终止
     if method_args['motion'] == 'static':
         pos_timeline = 'NA'
@@ -712,20 +723,20 @@ def am_methods(method_name,method_dur,this_duration,i):
     else: # 指定了scale
         pass
     # motion
-    if method_args['motion'] == 'pass':
-        D1 = np.hstack([formula(method_args['scale']*np.sin(theta),0,method_dur),
+    if method_args['motion'] == 'pass': # >0>
+        D1 = np.hstack([dynamic(method_args['scale']*np.sin(theta),method_dur,0,1,cutin),
                         np.zeros(this_duration-2*method_dur),
-                        formula(0,-method_args['scale']*np.sin(theta),method_dur)])
-        D2 = np.hstack([formula(method_args['scale']*np.cos(theta),0,method_dur),
+                        dynamic(-method_args['scale']*np.sin(theta),method_dur,0,0,cutout)])
+        D2 = np.hstack([dynamic(method_args['scale']*np.cos(theta),method_dur,0,1,cutin),
                         np.zeros(this_duration-2*method_dur),
-                        formula(0,-method_args['scale']*np.cos(theta),method_dur)])
-    elif method_args['motion'] == 'leap':
-        D1 = np.hstack([formula(method_args['scale']*np.sin(theta),0,method_dur),
+                        dynamic(-method_args['scale']*np.cos(theta),method_dur,0,0,cutout)])
+    elif method_args['motion'] == 'leap': # >0<
+        D1 = np.hstack([dynamic(method_args['scale']*np.sin(theta),method_dur,0,1,cutin),
                         np.zeros(this_duration-2*method_dur),
-                        formula(0,method_args['scale']*np.sin(theta),method_dur)])
-        D2 = np.hstack([formula(method_args['scale']*np.cos(theta),0,method_dur),
+                        dynamic(method_args['scale']*np.sin(theta),method_dur,0,0,cutout)])
+        D2 = np.hstack([dynamic(method_args['scale']*np.cos(theta),method_dur,0,1,cutin),
                         np.zeros(this_duration-2*method_dur),
-                        formula(0,method_args['scale']*np.cos(theta),method_dur)])
+                        dynamic(method_args['scale']*np.cos(theta),method_dur,0,0,cutout)])
     # 实验性质的功能，想必不可能真的有人用这么鬼畜的效果吧
     elif method_args['motion'] == 'circular': 
         theta_timeline = (
@@ -828,6 +839,9 @@ def parser(stdin_text):
                         this_timeline['Am'+str(k+1)+'_t'] = 0
                 # 气泡的参数
                 if k == 0:
+                    this_bb = charactor_table.loc[name+subtype]['Bubble']
+                    if (this_bb!=this_bb) | (this_bb=='NA'): # 主要角色一定要有bubble！，次要的可用没有
+                        raise ParserError('[31m[ParserError]:[0m','No bubble is specified to major charactor',name+subtype,'of dialogue line '+str(i+1)+'.')
                     this_timeline['Bb'] = charactor_table.loc[name+subtype]['Bubble'] # 异常处理，未定义的名字
                     this_timeline['Bb_main'] = ts
                     this_timeline['Bb_header'] = name
@@ -1245,6 +1259,8 @@ for i,text in enumerate(object_define_text):
             obj_name = obj_name.replace(' ','')
             if obj_name in occupied_variable_name:
                 raise SyntaxError('Obj name occupied')
+            elif (len(re.findall('\w+',obj_name))==0)|(obj_name[0].isdigit()):
+                raise SyntaxError('Invalid Obj name')
             media_list.append(obj_name) #记录新增对象名称
         except Exception as E:
             print('[31m[SyntaxError]:[0m "'+text+'" appeared in media define file line ' + str(i+1)+' is invalid syntax:',E)

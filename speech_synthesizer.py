@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.7.5'
+edtion = 'alpha 1.7.8'
 
 # 绝对的全局变量
 # 在开源发布的版本中，隐去了各个key
@@ -127,8 +127,8 @@ aliyun_voice_lib = [
 
 # 正则表达式定义
 
-RE_dialogue = re.compile('^\[([\w\.\;\(\)\,]+)\](<[\w\=\d]+>)?:(.+?)(<[\w\=\d]+>)?({.+})?$')
-RE_characor = re.compile('(\w+)(\(\d*\))?(\.\w+)?')
+RE_dialogue = re.compile('^\[([\ \w\.\;\(\)\,]+)\](<[\w\=\d]+>)?:(.+?)(<[\w\=\d]+>)?({.+})?$')
+RE_characor = re.compile('([\ \w]+)(\(\d*\))?(\.\w+)?')
 RE_asterisk = re.compile('(\{([^\{\}]*?[,;])?\*([\w\.\,，]*)?\})')
 
 media_list=[]
@@ -323,6 +323,10 @@ def main():
             try:
                 obj_name = text.split('=')[0]
                 obj_name = obj_name.replace(' ','')
+                if obj_name in occupied_variable_name:
+                    raise SyntaxError('Obj name occupied')
+                elif (len(re.findall('\w+',obj_name))==0)|(obj_name[0].isdigit()):
+                    raise SyntaxError('Invalid Obj name')
                 media_list.append(obj_name) #记录新增对象名称
             except:
                 print('[31m[SyntaxError]:[0m "'+text+'" appeared in media define file line ' + str(i+1)+'.')

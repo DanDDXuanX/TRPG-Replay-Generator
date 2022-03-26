@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.7.7'
+edtion = 'alpha 1.7.8'
 
 import tkinter as tk
 from tkinter import ttk
@@ -16,7 +16,7 @@ import re
 
 # preview 的类 定义
 label_pos_show_text = ImageFont.truetype('./media/fzxbsjt.TTF', 30)
-RE_mediadef_args = re.compile('(fontfile|fontsize|color|line_limit|filepath|Main_Text|Header_Text|pos|mt_pos|ht_pos|align|line_distance|tick|loop|volume|edge_color)?=?([^,()]+|\([\d,\ ]+\))')
+RE_mediadef_args = re.compile('(fontfile|fontsize|color|line_limit|filepath|Main_Text|Header_Text|pos|mt_pos|ht_pos|align|line_distance|tick|loop|volume|edge_color)?\ {0,4}=?\ {0,4}([^,()]+|\([\d,\ ]+\))')
 RE_parse_mediadef = re.compile('(\w+)[=\ ]+(Text|StrokeText|Bubble|Animation|Background|BGM|Audio)(\(.+\))')
 RE_vaildname = re.compile('^\w+$')
 occupied_variable_name = open('./media/occupied_variable_name.list','r',encoding='utf8').read().split('\n')
@@ -235,7 +235,7 @@ def open_PosSelect(father,bgfigure='',postype='green',current_pos=''):
     ttk.Button(PosSelect_window,text='确定',command=comfirm_pos).place(x=can_W//2-20,y=can_H+40,width=80,height=40)
     # 初始位置
     try:
-        p_x,p_y = re.findall('\((\d+),(\d+)\)',current_pos)[0]
+        p_x,p_y = re.findall('\(([\ \d]+),([\ \d]+)\)',current_pos)[0]
         p_x,p_y= int(p_x),int(p_y)
     except:
         p_x,p_y= 0,0

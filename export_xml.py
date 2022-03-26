@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.7.7'
+edtion = 'alpha 1.7.8'
 
 # 外部参数输入
 
@@ -658,9 +658,11 @@ def main():
                 obj_name = obj_name.replace(' ','')
                 if obj_name in occupied_variable_name:
                     raise SyntaxError('Obj name occupied')
+                elif (len(re.findall('\w+',obj_name))==0)|(obj_name[0].isdigit()):
+                    raise SyntaxError('Invalid Obj name')
                 media_list.append(obj_name) #记录新增对象名称
             except Exception as E:
-                print('[31m[SyntaxError]:[0m "'+text+'" appeared in media define file line ' + str(i+1)+' is invalid syntax.')
+                print('[31m[SyntaxError]:[0m "'+text+'" appeared in media define file line ' + str(i+1)+' is invalid syntax:',E)
                 sys.exit()
     black = Background('black')
     white = Background('white')
