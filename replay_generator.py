@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.8.0'
+edtion = 'alpha 1.8.1'
 
 # 外部参数输入
 
@@ -312,7 +312,7 @@ class BuiltInAnimation(Animation):
                         pass
                 if heart_max%2 == 1: # max是奇数
                     left_heart_shape = heart_shape.subsurface((0,0,int(hx/2),hy))
-                    canvas.blit(left_heart_shape,(total_heart-int(hx/2),0))
+                    canvas.blit(left_heart_shape,(total_heart-int(hx/2),posy))
             elif layer==1: # 剩余的血量
                 self.pos = ((screensize[0]-total_heart)/2,3/5*screensize[1]+ny/2-hy/2)
                 canvas = pygame.Surface((left_heart,hy),pygame.SRCALPHA)

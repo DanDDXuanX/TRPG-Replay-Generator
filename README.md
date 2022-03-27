@@ -271,33 +271,39 @@ log文件有4类有效行，对话行，背景行，设置行和内建动画行�
 通过设置行，动态地改变全局变量；
 set:后跟需要设置的全局变量名；
 可以通过set动态修改的全局变量有：
-1.	**am_method_default**：立绘和气泡的默认展示方法，初始值是：&lt;replace=0&gt;。
+1.	**am_method_default**：立绘的默认切换方法，初始值是：&lt;replace=0&gt;。
 	- 当对话行中缺省 *切换效果修饰符* 时，则使用该默认值；
 	- 可用的选项参考 ***动态切换效果***。
-2.	**am_dur_default**：默认展示时间，初始值是：10，单位是帧。
+2.	**am_dur_default**：默认切换时间，初始值是：10，单位是帧。
 	- 当对话行的 *切换效果修饰符* 中未指定时间，则使用该默认值；
 	- 例如 &lt;replace&gt;，等价于&lt;replace=10&gt;
-3.	**bg_method_default**：默认展示方法，初始值是：&lt;replace=0&gt;。
+3.	**bb_method_default**：气泡的默认切换方法，初始值是：&lt;replace=0&gt;。
+	- 当对话行中缺省 *切换效果修饰符* 时，则使用该默认值；
+	- 可用的选项参考 ***动态切换效果***。
+4.	**bb_dur_default**：默认切换时间，初始值是：10，单位是帧。
+	- 当对话行的 *切换效果修饰符* 中未指定时间，则使用该默认值；
+	- 例如 &lt;replace&gt;，等价于&lt;replace=10&gt;
+5.	**bg_method_default**：默认展示方法，初始值是：&lt;replace=0&gt;。
 	- 当背景行中缺省 *切换效果修饰符* 时，则使用该默认值；
 	- 可用的选项有cross、black、white、replace、delay、push、cover。
-4.	**bg_dur_default**：默认展示时间，初始值是：10，单位是帧。
+6.	**bg_dur_default**：默认展示时间，初始值是：10，单位是帧。
 	- 当背景行的 *切换效果修饰符* 中未指定时间，则使用该默认值
 	- 例如 &lt;replace&gt;，等价于&lt;replace=10&gt;
-5.	**tx_method_default**：默认文本展示方法，初始值是：&lt;all=1&gt;。
+7.	**tx_method_default**：默认文本展示方法，初始值是：&lt;all=1&gt;。
 	- 当对话行中缺省 *文本效果修饰符* 时，使用该默认值
 	- 可选的选项有 all、w2w、l2l；
 	- 例如[name]:talk，等价于[name]&lt;replace=0&gt;:talk&lt;all=1&gt;
-6.	**tx_dur_default**：默认文本展示时间，初始值是：8，单位是帧。
+8.	**tx_dur_default**：默认文本展示时间，初始值是：8，单位是帧。
 	- 当对话行的&lt;文本效果修饰符&gt;中未指定时间，则使用该默认值；
 	- 例如 talk&lt;l2l&gt;，等价于talk&lt;l2l=8&gt;。
-7.	**speech_speed**：语速，初始值是：220，单位是words/min。
+9.	**speech_speed**：语速，初始值是：220，单位是words/min。
 	- 语速将影响每个小节的持续时间，当小节没有指定星标音频的时候。
-8.	**asterisk_pause**：星标音频的间隔时间，初始值是：20，单位是帧。
+10.	**asterisk_pause**：星标音频的间隔时间，初始值是：20，单位是帧。
 	- asterisk_pause仅能通过*设置行*进行设置，会应用于之后所有的星标音频。
-9.	**BGM**：背景音乐
+11.	**BGM**：背景音乐
 	- 使用&lt;set:BGM&gt;: 设置背景音乐时，需要指定一个BGM对象，或一个.ogg音频文件的路径；
 	- "&lt;set:BGM&gt;:stop"可以手动终止背景音乐的播放。
-10.	**formula**：切换效果的曲线函数，初始值是：linear，即线性。
+12.	**formula**：切换效果的曲线函数，初始值是：linear，即线性。
 	- 目前可用的formula包括linear（线性）、quadratic（二次）、quadraticR（二次反向）、sigmoid（S型）、left(左锋)和right(右峰)；
 	- formula可以接受lambda函数形式定义的自定义函数，自定义函数需要以 (begin,end,duration) 为参数；
 	- formula仅能通过*设置行*进行设置，会应用于之后所有的切换效果。

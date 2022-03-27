@@ -22,7 +22,7 @@ ofile = '.'.join(ofile)
 # 输出文件对象
 out_file = open(ofile,'w',encoding='utf-8')
 # 载入excel表
-MainDF = pd.read_excel(ifile,sheets='极简模式',dtype=str)
+MainDF = pd.read_excel(ifile,sheet_name='极简模式',dtype=str)
 MainDF = MainDF.set_index('序号')
 # 开始处理
 for key,values in MainDF.iterrows():
