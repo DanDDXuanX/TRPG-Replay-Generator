@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.8.1'
+edtion = 'alpha 1.8.2'
 
 # 外部参数输入
 
@@ -497,7 +497,7 @@ class BGM:
         else:
             self.loop = 0
         if filepath.split('.')[-1] not in ['ogg']: #建议的格式
-            print("[33m[warning]:[0m",'A not recommend music format ['+filepath.split('.')[-1]+'] is specified, which may cause unstableness during displaying!')
+            print("[33m[warning]:[0m",'A not recommend music format "'+filepath.split('.')[-1]+'" is specified, which may cause unstableness during displaying!')
     def display(self):
         if pygame.mixer.music.get_busy() == True: #如果已经在播了
             pygame.mixer.music.stop() #停止
@@ -703,12 +703,12 @@ def am_methods(method_name,method_dur,this_duration,i):
             try:
                 method_args['direction'] = float(key[2:])
             except:
-                raise ParserError('[31m[ParserError]:[0m Unrecognized switch method: ['+method_name+'] appeared in dialogue line ' + str(i+1)+'.')
+                raise ParserError('[31m[ParserError]:[0m Unrecognized switch method: "'+method_name+'" appeared in dialogue line ' + str(i+1)+'.')
         else:
             try:
                 method_args['scale'] = int(key)
             except:
-                raise ParserError('[31m[ParserError]:[0m Unrecognized switch method: ['+method_name+'] appeared in dialogue line ' + str(i+1)+'.')
+                raise ParserError('[31m[ParserError]:[0m Unrecognized switch method: "'+method_name+'" appeared in dialogue line ' + str(i+1)+'.')
     # 切入，切出，或者双端
     cutin,cutout ={'in':(1,0),'out':(0,1),'both':(1,1)}[method_args['cut']]
     # alpha
@@ -806,320 +806,338 @@ def parser(stdin_text):
                 # 确保时长不短于切换特效时长
                 if this_duration<(2*max(am_dur,bb_dur)+1):
                     this_duration = 2*max(am_dur,bb_dur)+1
+
+                # 建立本小节的timeline文件
+                this_timeline=pd.DataFrame(index=range(0,this_duration),dtype=str,columns=render_arg)
+                this_timeline['BG1'] = this_background
+                this_timeline['BG1_a'] = 100
+                # 载入切换效果
+                alpha_timeline_A,pos_timeline_A = am_methods(am_method,am_dur,this_duration,i)
+                alpha_timeline_B,pos_timeline_B = am_methods(bb_method,bb_dur,this_duration,i)
+                #各个角色：
+                if len(this_charactor) > 3:
+                    raise ParserError('[31m[ParserError]:[0m Too much charactor is specified in dialogue line ' + str(i+1)+'.')
+                for k,charactor in enumerate(this_charactor[0:3]):
+                    name,alpha,subtype= charactor
+                    # 处理空缺参数
+                    if subtype == '':
+                        subtype = '.default'
+                    if alpha == '':
+                        alpha = 100
+                    else:
+                        alpha = int(alpha[1:-1])
+                    # 立绘的参数
+                    try:
+                        this_am = charactor_table.loc[name+subtype]['Animation']
+                        this_timeline['Am'+str(k+1)] = this_am
+                    except Exception as E: # 在角色表里面找不到name，raise在这里！
+                        raise ParserError('[31m[ParserError]:[0m Undefined Name '+ name+subtype +' in dialogue line ' + str(i+1)+'. due to:',E)
+                    # 动画的参数
+                    if (this_am!=this_am) | (this_am=='NA'):# this_am 可能为空的，需要先处理这种情况！
+                        this_timeline['Am'+str(k+1)+'_t'] = 0
+                    else:
+                        try:
+                            this_timeline['Am'+str(k+1)+'_t'] = eval('{am}.get_tick({dur})'.format(am=this_am,dur=this_duration))
+                        except NameError as E: # 指定的am没有定义！
+                            raise ParserError('[31m[ParserError]:[0m',E,', which is specified to',name+subtype,'as Animation!')
+                    # 气泡的参数
+                    if k == 0:
+                        this_bb = charactor_table.loc[name+subtype]['Bubble']
+                        if (this_bb!=this_bb) | (this_bb=='NA'): # 主要角色一定要有bubble！，次要的可用没有
+                            raise ParserError('[31m[ParserError]:[0m','No bubble is specified to major charactor',name+subtype,'of dialogue line '+str(i+1)+'.')
+                        this_timeline['Bb'] = charactor_table.loc[name+subtype]['Bubble'] # 异常处理，未定义的名字
+                        this_timeline['Bb_main'] = ts
+                        this_timeline['Bb_header'] = name
+                        this_timeline['Bb_a'] = alpha_timeline_B*100
+                        this_timeline['Bb_p'] = pos_timeline_B
+                    #透明度参数
+                    if (k!=0)&(alpha==100):#如果非第一角色，且没有指定透明度，则使用正常透明度60%
+                        this_timeline['Am'+str(k+1)+'_a']=alpha_timeline_A*60
+                    else:#否则，使用正常透明度
+                        this_timeline['Am'+str(k+1)+'_a']=alpha_timeline_A*alpha
+                    # 位置时间轴信息
+                    this_timeline['Am'+str(k+1)+'_p'] = pos_timeline_A
+    
+                # 针对文本内容的警告
+                try:
+                    this_line_limit = eval(this_timeline['Bb'][0]+'.MainText.line_limit') #获取行长，用来展示各类警告信息
+                except NameError as E: # 指定的bb没有定义！
+                    raise ParserError('[31m[ParserError]:[0m',E,', which is specified to',name+subtype,'as Bubble!')
+                if (len(ts)>this_line_limit*4) | (len(ts.split('#'))>4): #行数过多的警告
+                    print('[33m[warning]:[0m','More than 4 lines will be displayed in dialogue line ' + str(i+1)+'.')
+                if ((ts[0]=='^')|('#' in ts))&(np.frompyfunc(len,1,1)(ts.replace('^','').split('#')).max()>this_line_limit): # 手动换行的字数超限的警告
+                    print('[33m[warning]:[0m','Manual break line length exceed the Bubble line_limit in dialogue line ' + str(i+1)+'.') #alpha1.6.3
+                # 文字显示的参数
+                if text_method == 'all':
+                    if text_dur == 0:
+                        pass
+                    else:
+                        this_timeline.loc[0:text_dur,'Bb_main'] = '' #将前n帧的文本设置为空白
+                elif text_method == 'w2w':
+                    word_count_timeline = np.arange(0,this_duration,1)//text_dur+1
+                    this_timeline['Bb_main'] = UF_cut_str(this_timeline['Bb_main'],word_count_timeline)
+                elif text_method == 'l2l': 
+                    if ((ts[0]=='^')|('#' in ts)): #如果是手动换行的列
+                        word_count_timeline = get_l2l(ts,text_dur,this_duration) # 不保证稳定呢！
+                    else:
+                        line_limit = eval(this_timeline['Bb'][1]+'.MainText.line_limit') #获取主文本对象的line_limit参数
+                        word_count_timeline = (np.arange(0,this_duration,1)//(text_dur*line_limit)+1)*line_limit
+                    this_timeline['Bb_main'] = UF_cut_str(this_timeline['Bb_main'],word_count_timeline)
+                else:
+                    raise ParserError('[31m[ParserError]:[0m Unrecognized text display method: "'+text_method+'" appeared in dialogue line ' + str(i+1)+'.')
+                #音频信息
+                if BGM_queue != []:
+                    this_timeline.loc[0,'BGM'] = BGM_queue.pop() #从BGM_queue里取出来一个
+                for sound in this_sound: #this_sound = ['{SE_obj;30}','{SE_obj;30}']
+                    try:
+                        se_obj,delay = sound[1:-1].split(';')#sound = '{SE_obj;30}'
+                    except: # #sound = '{SE_obj}'
+                        delay = '0'
+                        se_obj = sound[1:-1] # 去掉花括号
+                    if delay == '':
+                        delay = 0
+                    elif '*' in delay: # 如果是星标时间 delay 是asterisk_pause的一半
+                        delay = int(asterisk_pause/2)
+                    elif int(delay) >= this_duration: # delay 不能比一个单元还长
+                        delay = this_duration-1
+                    else:
+                        delay = int(delay)
+                    if '*' in se_obj:
+                        raise ParserError('[31m[ParserError]:[0m Unprocessed asterisk time label appeared in dialogue line ' + str(i+1) + '. Add --SynthesisAnyway may help.')
+                    if se_obj in media_list: # 如果delay在媒体里已经定义，则视为SE
+                        this_timeline.loc[delay,'SE'] = se_obj
+                    elif os.path.isfile(se_obj[1:-1]) == True: #或者指向一个确定的文件，则视为语音
+                        this_timeline.loc[delay,'Voice'] = se_obj
+                    else:
+                        raise ParserError('[31m[ParserError]:[0m The sound effect "'+se_obj+'" specified in dialogue line ' + str(i+1)+' is not exist!')
+                    
+                render_timeline.append(this_timeline)
+                break_point[i+1]=break_point[i]+this_duration
+                continue
             except Exception as E:
                 print(E)
                 raise ParserError('[31m[ParserError]:[0m Parse exception occurred in dialogue line ' + str(i+1)+'.')
-
-            this_timeline=pd.DataFrame(index=range(0,this_duration),dtype=str,columns=render_arg)
-            this_timeline['BG1'] = this_background
-            this_timeline['BG1_a'] = 100
-
-            alpha_timeline_A,pos_timeline_A = am_methods(am_method,am_dur,this_duration,i) # 未来的版本中可能会被对象的binding_method 替代掉！
-            alpha_timeline_B,pos_timeline_B = am_methods(bb_method,bb_dur,this_duration,i)
-
-            #各个角色：
-            if len(this_charactor) > 3:
-                raise ParserError('[31m[ParserError]:[0m Too much charactor is specified in dialogue line ' + str(i+1)+'.')
-            for k,charactor in enumerate(this_charactor[0:3]):
-                name,alpha,subtype= charactor
-                # 处理空缺参数
-                if subtype == '':
-                    subtype = '.default'
-                if alpha == '':
-                    alpha = 100
-                else:
-                    alpha = int(alpha[1:-1])
-                # 立绘的参数
-                try:
-                    this_am = charactor_table.loc[name+subtype]['Animation']
-                    this_timeline['Am'+str(k+1)] = this_am
-                except Exception as E: #这是第一次查找名字，所有的查找名字异常都raise在这里！
-                    raise ParserError('[31m[ParserError]:[0m Undefined Name '+ name+subtype +' in dialogue line ' + str(i+1)+'. due to:',E)
-                # 动画的参数
-                if (this_am!=this_am) | (this_am=='NA'):# this_am 可能为空的，需要先处理这种情况！
-                    this_timeline['Am'+str(k+1)+'_t'] = 0
-                else:
-                    this_timeline['Am'+str(k+1)+'_t'] = eval('{am}.get_tick({dur})'.format(am=this_am,dur=this_duration))
-                # 气泡的参数
-                if k == 0:
-                    this_bb = charactor_table.loc[name+subtype]['Bubble']
-                    if (this_bb!=this_bb) | (this_bb=='NA'): # 主要角色一定要有bubble！，次要的可用没有
-                        raise ParserError('[31m[ParserError]:[0m','No bubble is specified to major charactor',name+subtype,'of dialogue line '+str(i+1)+'.')
-                    this_timeline['Bb'] = charactor_table.loc[name+subtype]['Bubble'] # 异常处理，未定义的名字
-                    this_timeline['Bb_main'] = ts
-                    this_timeline['Bb_header'] = name
-                    this_timeline['Bb_a'] = alpha_timeline_B*100
-                    this_timeline['Bb_p'] = pos_timeline_B
-                #透明度参数
-                if (k!=0)&(alpha==100):#如果非第一角色，且没有指定透明度，则使用正常透明度60%
-                    this_timeline['Am'+str(k+1)+'_a']=alpha_timeline_A*60
-                else:#否则，使用正常透明度
-                    this_timeline['Am'+str(k+1)+'_a']=alpha_timeline_A*alpha
-                # 位置时间轴信息
-                this_timeline['Am'+str(k+1)+'_p'] = pos_timeline_A
-
-            # 针对文本内容的警告
-            this_line_limit = eval(this_timeline['Bb'][0]+'.MainText.line_limit') #获取行长，用来展示各类警告信息
-            if (len(ts)>this_line_limit*4) | (len(ts.split('#'))>4): #行数过多的警告
-                print('[33m[warning]:[0m','More than 4 lines will be displayed in dialogue line ' + str(i+1)+'.')
-            if ((ts[0]=='^')|('#' in ts))&(np.frompyfunc(len,1,1)(ts.replace('^','').split('#')).max()>this_line_limit): # 手动换行的字数超限的警告
-                print('[33m[warning]:[0m','Manual break line length exceed the Bubble line_limit in dialogue line ' + str(i+1)+'.') #alpha1.6.3
-            # 文字显示的参数
-            if text_method == 'all':
-                if text_dur == 0:
-                    pass
-                else:
-                    this_timeline.loc[0:text_dur,'Bb_main'] = '' #将前n帧的文本设置为空白
-            elif text_method == 'w2w':
-                word_count_timeline = np.arange(0,this_duration,1)//text_dur+1
-                this_timeline['Bb_main'] = UF_cut_str(this_timeline['Bb_main'],word_count_timeline)
-            elif text_method == 'l2l': 
-                if ((ts[0]=='^')|('#' in ts)): #如果是手动换行的列
-                    word_count_timeline = get_l2l(ts,text_dur,this_duration) # 不保证稳定呢！
-                else:
-                    line_limit = eval(this_timeline['Bb'][1]+'.MainText.line_limit') #获取主文本对象的line_limit参数
-                    word_count_timeline = (np.arange(0,this_duration,1)//(text_dur*line_limit)+1)*line_limit
-                this_timeline['Bb_main'] = UF_cut_str(this_timeline['Bb_main'],word_count_timeline)
-            else:
-                raise ParserError('[31m[ParserError]:[0m Unrecognized text display method: ['+text_method+'] appeared in dialogue line ' + str(i+1)+'.')
-            #音频信息
-            if BGM_queue != []:
-                this_timeline.loc[0,'BGM'] = BGM_queue.pop() #从BGM_queue里取出来一个
-            for sound in this_sound: #this_sound = ['{SE_obj;30}','{SE_obj;30}']
-                try:
-                    se_obj,delay = sound[1:-1].split(';')#sound = '{SE_obj;30}'
-                except: # #sound = '{SE_obj}'
-                    delay = '0'
-                    se_obj = sound[1:-1] # 去掉花括号
-                if delay == '':
-                    delay = 0
-                elif '*' in delay: # 如果是星标时间 delay 是asterisk_pause的一半
-                    delay = int(asterisk_pause/2)
-                elif int(delay) >= this_duration: # delay 不能比一个单元还长
-                    delay = this_duration-1
-                else:
-                    delay = int(delay)
-                if '*' in se_obj:
-                    raise ParserError('[31m[ParserError]:[0m Unprocessed asterisk time label appeared in dialogue line ' + str(i+1) + '. Add --SynthesisAnyway may help.')
-                if se_obj in media_list: # 如果delay在媒体里已经定义，则视为SE
-                    this_timeline.loc[delay,'SE'] = se_obj
-                elif os.path.isfile(se_obj[1:-1]) == True: #或者指向一个确定的文件，则视为语音
-                    this_timeline.loc[delay,'Voice'] = se_obj
-                else:
-                    raise ParserError('[31m[ParserError]:[0m The sound effect ['+se_obj+'] specified in dialogue line ' + str(i+1)+' is not exist!')
-                
-            render_timeline.append(this_timeline)
-            break_point[i+1]=break_point[i]+this_duration
-            continue
+                continue
         # 背景设置行，格式： <background><black=30>:BG_obj
         elif '<background>' in text:
             try:
                 bgc,method,method_dur = get_background_arg(text)
-                next_background=bgc
-            except:
+                if bgc in media_list: # 检查是否是已定义的对象
+                    next_background=bgc
+                else:
+                    raise ParserError('[31m[ParserError]:[0m The background "'+bgc+'" specified in background line ' + str(i+1)+' is not defined!')
+                if method=='replace': #replace 改为立刻替换 并持续n秒
+                    this_timeline=pd.DataFrame(index=range(0,method_dur),dtype=str,columns=render_arg)
+                    this_timeline['BG1']=next_background
+                    this_timeline['BG1_a']=100
+                elif method=='delay': # delay 等价于原来的replace，延后n秒，然后替换
+                    this_timeline=pd.DataFrame(index=range(0,method_dur),dtype=str,columns=render_arg)
+                    this_timeline['BG1']=this_background
+                    this_timeline['BG1_a']=100
+                elif method in ['cross','black','white','push','cover']: # 交叉溶解，黑场，白场，推，覆盖
+                    this_timeline=pd.DataFrame(index=range(0,method_dur),dtype=str,columns=render_arg)
+                    this_timeline['BG1']=next_background
+                    this_timeline['BG2']=this_background
+                    if method in ['black','white']:
+                        this_timeline['BG3']=method
+                        this_timeline['BG1_a']=formula(-100,100,method_dur)
+                        this_timeline['BG1_a']=this_timeline['BG1_a'].map(alpha_range)
+                        this_timeline['BG2_a']=formula(100,-100,method_dur)
+                        this_timeline['BG2_a']=this_timeline['BG2_a'].map(alpha_range)
+                        this_timeline['BG3_a']=100
+                    elif method == 'cross':
+                        this_timeline['BG1_a']=formula(0,100,method_dur)
+                        this_timeline['BG2_a']=100
+                    elif method in ['push','cover']:
+                        this_timeline['BG1_a']=100
+                        this_timeline['BG2_a']=100
+                        if method == 'push': # 新背景从右侧把旧背景推出去
+                            this_timeline['BG1_p'] = concat_xy(formula(screen_size[0],0,method_dur),np.zeros(method_dur))
+                            this_timeline['BG2_p'] = concat_xy(formula(0,-screen_size[0],method_dur),np.zeros(method_dur))
+                        else: #cover 新背景从右侧进来叠在原图上面
+                            this_timeline['BG1_p'] = concat_xy(formula(screen_size[0],0,method_dur),np.zeros(method_dur))
+                            this_timeline['BG2_p'] = 'NA'
+                else:
+                    raise ParserError('[31m[ParserError]:[0m Unrecognized switch method: "'+method+'" appeared in background line ' + str(i+1)+'.')
+                this_background = next_background #正式切换背景
+                render_timeline.append(this_timeline)
+                break_point[i+1]=break_point[i]+len(this_timeline.index)
+                continue
+            except Exception as E:
+                print(E)
                 raise ParserError('[31m[ParserError]:[0m Parse exception occurred in background line ' + str(i+1)+'.')
                 continue
-            if method=='replace': #replace 改为立刻替换 并持续n秒
-                this_timeline=pd.DataFrame(index=range(0,method_dur),dtype=str,columns=render_arg)
-                this_timeline['BG1']=next_background
-                this_timeline['BG1_a']=100
-            elif method=='delay': # delay 等价于原来的replace，延后n秒，然后替换
-                this_timeline=pd.DataFrame(index=range(0,method_dur),dtype=str,columns=render_arg)
-                this_timeline['BG1']=this_background
-                this_timeline['BG1_a']=100
-            elif method in ['cross','black','white','push','cover']: # 交叉溶解，黑场，白场，推，覆盖
-                this_timeline=pd.DataFrame(index=range(0,method_dur),dtype=str,columns=render_arg)
-                this_timeline['BG1']=next_background
-                this_timeline['BG2']=this_background
-                if method in ['black','white']:
-                    this_timeline['BG3']=method
-                    this_timeline['BG1_a']=formula(-100,100,method_dur)
-                    this_timeline['BG1_a']=this_timeline['BG1_a'].map(alpha_range)
-                    this_timeline['BG2_a']=formula(100,-100,method_dur)
-                    this_timeline['BG2_a']=this_timeline['BG2_a'].map(alpha_range)
-                    this_timeline['BG3_a']=100
-                elif method == 'cross':
-                    this_timeline['BG1_a']=formula(0,100,method_dur)
-                    this_timeline['BG2_a']=100
-                elif method in ['push','cover']:
-                    this_timeline['BG1_a']=100
-                    this_timeline['BG2_a']=100
-                    if method == 'push': # 新背景从右侧把旧背景推出去
-                        this_timeline['BG1_p'] = concat_xy(formula(screen_size[0],0,method_dur),np.zeros(method_dur))
-                        this_timeline['BG2_p'] = concat_xy(formula(0,-screen_size[0],method_dur),np.zeros(method_dur))
-                    else: #cover 新背景从右侧进来叠在原图上面
-                        this_timeline['BG1_p'] = concat_xy(formula(screen_size[0],0,method_dur),np.zeros(method_dur))
-                        this_timeline['BG2_p'] = 'NA'
-            else:
-                raise ParserError('[31m[ParserError]:[0m Unrecognized switch method: ['+method+'] appeared in background line ' + str(i+1)+'.')
-            this_background = next_background #正式切换背景
-            render_timeline.append(this_timeline)
-            break_point[i+1]=break_point[i]+len(this_timeline.index)
-            continue
         # 参数设置行，格式：<set:speech_speed>:220
         elif ('<set:' in text) & ('>:' in text):
             try:
                 target,args = get_seting_arg(text)
-            except:
+                if target in ['speech_speed','am_method_default','am_dur_default','bb_method_default','bb_dur_default','bg_method_default','bg_dur_default','tx_method_default','tx_dur_default','asterisk_pause']:
+                    try: #如果args是整数值型
+                        test = int(args)
+                        if test < 0:
+                            print('[33m[warning]:[0m','Setting',target,'to invalid value',test,',the argument will not changed.')
+                            test = eval(target) # 保持原数值不变
+                        #print("global {0} ; {0} = {1}".format(target,str(test)))
+                        exec("global {0} ; {0} = {1}".format(target,str(test)))
+                    except: #否则当作文本型
+                        #print("global {0} ; {0} = {1}".format(target,'\"'+args+'\"'))
+                        exec("global {0} ; {0} = {1}".format(target,'\"'+args+'\"'))
+                elif target == 'BGM':
+                    if args in media_list:
+                        BGM_queue.append(args)
+                    elif os.path.isfile(args[1:-1]):
+                        BGM_queue.append(args)
+                    elif args == 'stop':
+                        BGM_queue.append(args)
+                    else:
+                        raise ParserError('[31m[ParserError]:[0m The BGM "'+args+'" specified in setting line ' + str(i+1)+' is not exist!')
+                elif target == 'formula':
+                    if args in formula_available.keys():
+                        formula = formula_available[args]
+                    elif args[0:6] == 'lambda':
+                        try:
+                            formula = eval(args)
+                            print('[33m[warning]:[0m','Using lambda formula range ',formula(0,1,2),
+                                  ' in line',str(i+1),', which may cause unstableness during displaying!')                            
+                        except:
+                            raise ParserError('[31m[ParserError]:[0m Unsupported formula "'+args+'" is specified in setting line ' + str(i+1)+'.')
+                    else:
+                        raise ParserError('[31m[ParserError]:[0m Unsupported formula "'+args+'" is specified in setting line ' + str(i+1)+'.')
+                else:
+                    raise ParserError('[31m[ParserError]:[0m Unsupported setting "'+target+'" is specified in setting line ' + str(i+1)+'.')
+                    continue
+            except Exception as E:
+                print(E)
                 raise ParserError('[31m[ParserError]:[0m Parse exception occurred in setting line ' + str(i+1)+'.')
-                continue
-            if target in ['speech_speed','am_method_default','am_dur_default','bb_method_default','bb_dur_default','bg_method_default','bg_dur_default','tx_method_default','tx_dur_default','asterisk_pause']:
-                try: #如果args是整数值型
-                    test = int(args)
-                    if test < 0:
-                        print('[33m[warning]:[0m','Setting',target,'to invalid value',test,',the argument will not changed.')
-                        test = eval(target) # 保持原数值不变
-                    #print("global {0} ; {0} = {1}".format(target,str(test)))
-                    exec("global {0} ; {0} = {1}".format(target,str(test)))
-                except: #否则当作文本型
-                    #print("global {0} ; {0} = {1}".format(target,'\"'+args+'\"'))
-                    exec("global {0} ; {0} = {1}".format(target,'\"'+args+'\"'))
-            elif target == 'BGM':
-                if args in media_list:
-                    BGM_queue.append(args)
-                elif os.path.isfile(args[1:-1]):
-                    BGM_queue.append(args)
-                elif args == 'stop':
-                    BGM_queue.append(args)
-                else:
-                    raise ParserError('[31m[ParserError]:[0m The BGM ['+args+'] specified in setting line ' + str(i+1)+' is not exist!')
-            elif target == 'formula':
-                if args in formula_available.keys():
-                    formula = formula_available[args]
-                elif args[0:6] == 'lambda':
-                    try:
-                        formula = eval(args)
-                        print('[33m[warning]:[0m','Using lambda formula range ',formula(0,1,2),
-                              ' in line',str(i+1),', which may cause unstableness during displaying!')                            
-                    except:
-                        raise ParserError('[31m[ParserError]:[0m Unsupported formula ['+args+'] is specified in setting line ' + str(i+1)+'.')
-                else:
-                    raise ParserError('[31m[ParserError]:[0m Unsupported formula ['+args+'] is specified in setting line ' + str(i+1)+'.')
-            else:
-                raise ParserError('[31m[ParserError]:[0m Unsupported setting ['+target+'] is specified in setting line ' + str(i+1)+'.')
                 continue
         # 预设动画，损失生命
         elif '<hitpoint>' in text:
             try:
+                # 载入参数
                 name_tx,heart_max,heart_begin,heart_end = RE_hitpoint.findall(text)[0]
                 heart_max = int(heart_max)
                 heart_begin = int(heart_begin)
                 heart_end = int(heart_end)
-            except:
+                # 建立小节
+                this_timeline=pd.DataFrame(index=range(0,frame_rate*4),dtype=str,columns=render_arg)
+                # 背景
+                #alpha_timeline,pos_timeline = am_methods('black',method_dur=frame_rate//2,this_duration=frame_rate*4,i=i)
+                alpha_timeline = np.hstack([formula(0,1,frame_rate//2),np.ones(frame_rate*3-frame_rate//2),formula(1,0,frame_rate)])
+                this_timeline['BG1'] = 'black' # 黑色背景
+                this_timeline['BG1_a'] = alpha_timeline * 80
+                this_timeline['BG2'] = this_background
+                this_timeline['BG2_a'] = 100
+                # 新建内建动画
+                Auto_media_name = 'BIA_'+str(i+1)
+                code_to_run = 'global {media_name}_{layer} ;{media_name}_{layer} = BuiltInAnimation(anime_type="hitpoint",anime_args=("{name}",{hmax},{hbegin},{hend}),screensize = {screensize},layer={layer})'
+                code_to_run_0 = code_to_run.format(media_name=Auto_media_name,name=name_tx,hmax='%d'%heart_max,hbegin='%d'%heart_begin,hend='%d'%heart_end,screensize=str(screen_size),layer='0')
+                code_to_run_1 = code_to_run.format(media_name=Auto_media_name,name=name_tx,hmax='%d'%heart_max,hbegin='%d'%heart_begin,hend='%d'%heart_end,screensize=str(screen_size),layer='1')
+                code_to_run_2 = code_to_run.format(media_name=Auto_media_name,name=name_tx,hmax='%d'%heart_max,hbegin='%d'%heart_begin,hend='%d'%heart_end,screensize=str(screen_size),layer='2')
+                exec(code_to_run_0) # 灰色框
+                exec(code_to_run_1) # 留下的血
+                exec(code_to_run_2) # 丢掉的血
+                media_list.append(Auto_media_name+'_0')
+                media_list.append(Auto_media_name+'_1')
+                media_list.append(Auto_media_name+'_2')
+                bulitin_media[Auto_media_name+'_0'] = code_to_run_0
+                bulitin_media[Auto_media_name+'_1'] = code_to_run_1
+                bulitin_media[Auto_media_name+'_2'] = code_to_run_2
+                # 动画参数
+                this_timeline['Am3'] = Auto_media_name+'_0'
+                this_timeline['Am3_a'] = alpha_timeline * 100
+                this_timeline['Am3_t'] = 0
+                this_timeline['Am3_p'] = 'NA'
+                this_timeline['Am2'] = Auto_media_name+'_1'
+                this_timeline['Am2_a'] = alpha_timeline * 100
+                this_timeline['Am2_t'] = 0
+                this_timeline['Am2_p'] = 'NA'
+                this_timeline['Am1'] = Auto_media_name+'_2'
+    
+                if heart_begin > heart_end: # 掉血模式
+                    this_timeline['Am1_a'] = np.hstack([formula(0,100,frame_rate//2),
+                                                        np.ones(frame_rate*2-frame_rate//2)*100,
+                                                        left(100,0,frame_rate//2),
+                                                        np.zeros(frame_rate*2-frame_rate//2)]) #0-0.5出现，2-2.5消失
+                    this_timeline['Am1_p'] = concat_xy(np.zeros(frame_rate*4),
+                                                       np.hstack([np.zeros(frame_rate*2), # 静止2秒
+                                                                  left(0,-int(screen_size[1]*0.3),frame_rate//2), # 半秒切走
+                                                                  int(screen_size[1]*0.3)*np.ones(frame_rate*2-frame_rate//2)])) #1.5秒停止
+                    this_timeline['Am1_t'] = 0
+                else: # 回血模式
+                    this_timeline['Am1_a'] = alpha_timeline * 100 # 跟随全局血量
+                    this_timeline['Am1_p'] = 'NA' # 不移动
+                    this_timeline['Am1_t'] = np.hstack([np.zeros(frame_rate*1), # 第一秒静止
+                                                        np.arange(0,frame_rate,1), # 第二秒播放
+                                                        np.ones(frame_rate*2)*(frame_rate-1)]) # 后两秒静止
+                # 收尾
+                render_timeline.append(this_timeline)
+                break_point[i+1]=break_point[i]+len(this_timeline.index)
+                continue
+            except Exception as E:
+                print(E)
                 raise ParserError('[31m[ParserError]:[0m Parse exception occurred in hitpoint line ' + str(i+1)+'.')
                 continue
-            this_timeline=pd.DataFrame(index=range(0,frame_rate*4),dtype=str,columns=render_arg)
-            # 背景
-            #alpha_timeline,pos_timeline = am_methods('black',method_dur=frame_rate//2,this_duration=frame_rate*4,i=i)
-            alpha_timeline = np.hstack([formula(0,1,frame_rate//2),np.ones(frame_rate*3-frame_rate//2),formula(1,0,frame_rate)])
-            this_timeline['BG1'] = 'black' # 黑色背景
-            this_timeline['BG1_a'] = alpha_timeline * 80
-            this_timeline['BG2'] = this_background
-            this_timeline['BG2_a'] = 100
-            # 新建内建动画
-            Auto_media_name = 'BIA_'+str(i+1)
-            code_to_run = 'global {media_name}_{layer} ;{media_name}_{layer} = BuiltInAnimation(anime_type="hitpoint",anime_args=("{name}",{hmax},{hbegin},{hend}),screensize = {screensize},layer={layer})'
-            code_to_run_0 = code_to_run.format(media_name=Auto_media_name,name=name_tx,hmax='%d'%heart_max,hbegin='%d'%heart_begin,hend='%d'%heart_end,screensize=str(screen_size),layer='0')
-            code_to_run_1 = code_to_run.format(media_name=Auto_media_name,name=name_tx,hmax='%d'%heart_max,hbegin='%d'%heart_begin,hend='%d'%heart_end,screensize=str(screen_size),layer='1')
-            code_to_run_2 = code_to_run.format(media_name=Auto_media_name,name=name_tx,hmax='%d'%heart_max,hbegin='%d'%heart_begin,hend='%d'%heart_end,screensize=str(screen_size),layer='2')
-            exec(code_to_run_0) # 灰色框
-            exec(code_to_run_1) # 留下的血
-            exec(code_to_run_2) # 丢掉的血
-            media_list.append(Auto_media_name+'_0')
-            media_list.append(Auto_media_name+'_1')
-            media_list.append(Auto_media_name+'_2')
-            bulitin_media[Auto_media_name+'_0'] = code_to_run_0
-            bulitin_media[Auto_media_name+'_1'] = code_to_run_1
-            bulitin_media[Auto_media_name+'_2'] = code_to_run_2
-            # 动画参数
-            this_timeline['Am3'] = Auto_media_name+'_0'
-            this_timeline['Am3_a'] = alpha_timeline * 100
-            this_timeline['Am3_t'] = 0
-            this_timeline['Am3_p'] = 'NA'
-            this_timeline['Am2'] = Auto_media_name+'_1'
-            this_timeline['Am2_a'] = alpha_timeline * 100
-            this_timeline['Am2_t'] = 0
-            this_timeline['Am2_p'] = 'NA'
-            this_timeline['Am1'] = Auto_media_name+'_2'
-
-            if heart_begin > heart_end: # 掉血模式
-                this_timeline['Am1_a'] = np.hstack([formula(0,100,frame_rate//2),
-                                                    np.ones(frame_rate*2-frame_rate//2)*100,
-                                                    left(100,0,frame_rate//2),
-                                                    np.zeros(frame_rate*2-frame_rate//2)]) #0-0.5出现，2-2.5消失
-                this_timeline['Am1_p'] = concat_xy(np.zeros(frame_rate*4),
-                                                   np.hstack([np.zeros(frame_rate*2), # 静止2秒
-                                                              left(0,-int(screen_size[1]*0.3),frame_rate//2), # 半秒切走
-                                                              int(screen_size[1]*0.3)*np.ones(frame_rate*2-frame_rate//2)])) #1.5秒停止
-                this_timeline['Am1_t'] = 0
-            else: # 回血模式
-                this_timeline['Am1_a'] = alpha_timeline * 100 # 跟随全局血量
-                this_timeline['Am1_p'] = 'NA' # 不移动
-                this_timeline['Am1_t'] = np.hstack([np.zeros(frame_rate*1), # 第一秒静止
-                                                    np.arange(0,frame_rate,1), # 第二秒播放
-                                                    np.ones(frame_rate*2)*(frame_rate-1)]) # 后两秒静止
-            # 收尾
-            render_timeline.append(this_timeline)
-            break_point[i+1]=break_point[i]+len(this_timeline.index)
-            continue
         # 预设动画，骰子
         elif text[0:7]=='<dice>:':
             try:
+                # 获取参数
                 dice_args = RE_dice.findall(text[7:])
                 if len(dice_args) == 0:
                     raise SyntaxError('Invalid syntax, no dice args is specified!')
-            except:
+                # 建立小节
+                this_timeline=pd.DataFrame(index=range(0,frame_rate*5),dtype=str,columns=render_arg) # 5s
+                # 背景
+                alpha_timeline = np.hstack([formula(0,1,frame_rate//2),np.ones(frame_rate*4-frame_rate//2),formula(1,0,frame_rate)])
+                this_timeline['BG1'] = 'black' # 黑色背景
+                this_timeline['BG1_a'] = alpha_timeline * 80
+                this_timeline['BG2'] = this_background
+                this_timeline['BG2_a'] = 100
+                # 新建内建动画
+                Auto_media_name = 'BIA_'+str(i+1)
+                code_to_run = 'global {media_name}_{layer} ;{media_name}_{layer} = BuiltInAnimation(anime_type="dice",anime_args={dice_args},screensize = {screensize},layer={layer})'
+                code_to_run_0 = code_to_run.format(media_name=Auto_media_name,dice_args=str(dice_args),screensize=str(screen_size),layer='0')
+                code_to_run_1 = code_to_run.format(media_name=Auto_media_name,dice_args=str(dice_args),screensize=str(screen_size),layer='1')
+                code_to_run_2 = code_to_run.format(media_name=Auto_media_name,dice_args=str(dice_args),screensize=str(screen_size),layer='2')
+                exec(code_to_run_0) # 描述和检定值
+                exec(code_to_run_1) # 老虎机
+                exec(code_to_run_2) # 输出结果
+                media_list.append(Auto_media_name+'_0')
+                media_list.append(Auto_media_name+'_1')
+                media_list.append(Auto_media_name+'_2')
+                bulitin_media[Auto_media_name+'_0'] = code_to_run_0
+                bulitin_media[Auto_media_name+'_1'] = code_to_run_1
+                bulitin_media[Auto_media_name+'_2'] = code_to_run_2
+                # 动画参数0
+                this_timeline['Am3'] = Auto_media_name+'_0'
+                this_timeline['Am3_a'] = alpha_timeline * 100
+                this_timeline['Am3_t'] = 0
+                this_timeline['Am3_p'] = 'NA'
+                # 1
+                this_timeline['Am2'] = np.hstack([np.repeat(Auto_media_name+'_1',int(frame_rate*2.5)),np.repeat('NA',frame_rate*5-int(frame_rate*2.5))]) # 2.5s
+                this_timeline['Am2_a'] = np.hstack([formula(0,100,frame_rate//2),
+                                                    np.ones(int(frame_rate*2.5)-2*frame_rate//2)*100,
+                                                    formula(100,0,frame_rate//2),
+                                                    np.zeros(frame_rate*5-int(frame_rate*2.5))])
+                this_timeline['Am2_t'] = np.hstack([np.arange(0,int(frame_rate*2.5)),np.zeros(frame_rate*5-int(frame_rate*2.5))])
+                this_timeline['Am2_p'] = 'NA'
+                # 2
+                this_timeline['Am1'] = np.hstack([np.repeat('NA',frame_rate*5-int(frame_rate*2.5)),np.repeat(Auto_media_name+'_2',int(frame_rate*2.5))])
+                this_timeline['Am1_a'] = np.hstack([np.zeros(frame_rate*5-int(frame_rate*2.5)),
+                                                    formula(0,100,frame_rate//2),
+                                                    np.ones(int(frame_rate*2.5)-frame_rate//2-frame_rate)*100,
+                                                    formula(100,0,frame_rate)])
+                this_timeline['Am1_t'] = 0
+                this_timeline['Am1_p'] = 'NA'
+                # SE
+                this_timeline.loc[frame_rate//3,'SE'] = "'./media/SE_dice.wav'"
+                # 收尾
+                render_timeline.append(this_timeline)
+                break_point[i+1]=break_point[i]+len(this_timeline.index)
+                continue
+            except Exception as E:
+                print(E)
                 raise ParserError('[31m[ParserError]:[0m Parse exception occurred in dice line ' + str(i+1)+'.')
                 continue
-            this_timeline=pd.DataFrame(index=range(0,frame_rate*5),dtype=str,columns=render_arg) # 5s
-            # 背景
-            alpha_timeline = np.hstack([formula(0,1,frame_rate//2),np.ones(frame_rate*4-frame_rate//2),formula(1,0,frame_rate)])
-            this_timeline['BG1'] = 'black' # 黑色背景
-            this_timeline['BG1_a'] = alpha_timeline * 80
-            this_timeline['BG2'] = this_background
-            this_timeline['BG2_a'] = 100
-            # 新建内建动画
-            Auto_media_name = 'BIA_'+str(i+1)
-            code_to_run = 'global {media_name}_{layer} ;{media_name}_{layer} = BuiltInAnimation(anime_type="dice",anime_args={dice_args},screensize = {screensize},layer={layer})'
-            code_to_run_0 = code_to_run.format(media_name=Auto_media_name,dice_args=str(dice_args),screensize=str(screen_size),layer='0')
-            code_to_run_1 = code_to_run.format(media_name=Auto_media_name,dice_args=str(dice_args),screensize=str(screen_size),layer='1')
-            code_to_run_2 = code_to_run.format(media_name=Auto_media_name,dice_args=str(dice_args),screensize=str(screen_size),layer='2')
-            exec(code_to_run_0) # 描述和检定值
-            exec(code_to_run_1) # 老虎机
-            exec(code_to_run_2) # 输出结果
-            media_list.append(Auto_media_name+'_0')
-            media_list.append(Auto_media_name+'_1')
-            media_list.append(Auto_media_name+'_2')
-            bulitin_media[Auto_media_name+'_0'] = code_to_run_0
-            bulitin_media[Auto_media_name+'_1'] = code_to_run_1
-            bulitin_media[Auto_media_name+'_2'] = code_to_run_2
-            # 动画参数0
-            this_timeline['Am3'] = Auto_media_name+'_0'
-            this_timeline['Am3_a'] = alpha_timeline * 100
-            this_timeline['Am3_t'] = 0
-            this_timeline['Am3_p'] = 'NA'
-            # 1
-            this_timeline['Am2'] = np.hstack([np.repeat(Auto_media_name+'_1',int(frame_rate*2.5)),np.repeat('NA',frame_rate*5-int(frame_rate*2.5))]) # 2.5s
-            this_timeline['Am2_a'] = np.hstack([formula(0,100,frame_rate//2),
-                                                np.ones(int(frame_rate*2.5)-2*frame_rate//2)*100,
-                                                formula(100,0,frame_rate//2),
-                                                np.zeros(frame_rate*5-int(frame_rate*2.5))])
-            this_timeline['Am2_t'] = np.hstack([np.arange(0,int(frame_rate*2.5)),np.zeros(frame_rate*5-int(frame_rate*2.5))])
-            this_timeline['Am2_p'] = 'NA'
-            # 2
-            this_timeline['Am1'] = np.hstack([np.repeat('NA',frame_rate*5-int(frame_rate*2.5)),np.repeat(Auto_media_name+'_2',int(frame_rate*2.5))])
-            this_timeline['Am1_a'] = np.hstack([np.zeros(frame_rate*5-int(frame_rate*2.5)),
-                                                formula(0,100,frame_rate//2),
-                                                np.ones(int(frame_rate*2.5)-frame_rate//2-frame_rate)*100,
-                                                formula(100,0,frame_rate)])
-            this_timeline['Am1_t'] = 0
-            this_timeline['Am1_p'] = 'NA'
-            # SE
-            this_timeline.loc[frame_rate//3,'SE'] = "'./media/SE_dice.wav'"
-            # 收尾
-            render_timeline.append(this_timeline)
-            break_point[i+1]=break_point[i]+len(this_timeline.index)
-            continue
         # 异常行，报出异常
         else:
             raise ParserError('[31m[ParserError]:[0m Unrecognized line: '+ str(i+1)+'.')
@@ -1146,22 +1164,31 @@ def render(this_frame):
         elif this_frame[layer+'_a']<=0: #或者图层的透明度小于等于0(由于fillna("NA"),出现的异常)
             continue
         elif this_frame[layer] not in media_list:
-            raise RuntimeError('[31m[RenderError]:[0m Undefined media object : ['+this_frame[layer]+'].')
+            raise RuntimeError('[31m[RenderError]:[0m Undefined media object : "'+this_frame[layer]+'".')
             continue
         elif layer[0:2] == 'BG':
-            exec('{0}.display(surface=screen,alpha={1},adjust={2})'.format(this_frame[layer],this_frame[layer+'_a'],'\"'+this_frame[layer+'_p']+'\"'))
+            try:
+                exec('{0}.display(surface=screen,alpha={1},adjust={2})'.format(this_frame[layer],this_frame[layer+'_a'],'\"'+this_frame[layer+'_p']+'\"'))
+            except Exception:
+                raise RuntimeError('[31m[RenderError]:[0m Failed to render "'+this_frame[layer]+'" as Background.')
         elif layer[0:2] == 'Am': # 兼容H_LG1(1)这种动画形式 alpha1.6.3
-            exec('{0}.display(surface=screen,alpha={1},adjust={2},frame={3})'.format(
-                                                                                     this_frame[layer],
-                                                                                     this_frame[layer+'_a'],
-                                                                                     '\"'+this_frame[layer+'_p']+'\"',
-                                                                                     this_frame[layer+'_t']))
+            try:
+                exec('{0}.display(surface=screen,alpha={1},adjust={2},frame={3})'.format(
+                                                                                         this_frame[layer],
+                                                                                         this_frame[layer+'_a'],
+                                                                                         '\"'+this_frame[layer+'_p']+'\"',
+                                                                                         this_frame[layer+'_t']))
+            except Exception:
+                raise RuntimeError('[31m[RenderError]:[0m Failed to render "'+this_frame[layer]+'" as Animation.')
         elif layer == 'Bb':
-            exec('{0}.display(surface=screen,text={2},header={3},alpha={1},adjust={4})'.format(this_frame[layer],
-                                                                                               this_frame[layer+'_a'],
-                                                                                               '\"'+this_frame[layer+'_main']+'\"',
-                                                                                               '\"'+this_frame[layer+'_header']+'\"',
-                                                                                               '\"'+this_frame[layer+'_p']+'\"'))
+            try:
+                exec('{0}.display(surface=screen,text={2},header={3},alpha={1},adjust={4})'.format(this_frame[layer],
+                                                                                                   this_frame[layer+'_a'],
+                                                                                                   '\"'+this_frame[layer+'_main']+'\"',
+                                                                                                   '\"'+this_frame[layer+'_header']+'\"',
+                                                                                                   '\"'+this_frame[layer+'_p']+'\"'))
+            except Exception:
+                raise RuntimeError('[31m[RenderError]:[0m Failed to render "'+this_frame[layer]+'" as Bubble.')
     for key in ['BGM','Voice','SE']:
         if (this_frame[key]=='NA')|(this_frame[key]!=this_frame[key]): #如果是空的
             continue
@@ -1175,12 +1202,14 @@ def render(this_frame):
             else:
                 temp_Audio = Audio(filepath=this_frame[key][1:-1])
                 temp_Audio.display(channel=eval(channel_list[key]))#这里的参数需要是对象
-        else:
-            #print('{0}.display(channel={1})'.format(this_frame[key],channel_list[key]))
-            if key == 'BGM':
-                exec('{0}.display()'.format(this_frame[key])) #否则就直接播放对象
-            else:
-                exec('{0}.display(channel={1})'.format(this_frame[key],channel_list[key])) #否则就直接播放对象
+        else: # 预先定义的媒体
+            try:
+                if key == 'BGM':
+                    exec('{0}.display()'.format(this_frame[key])) #否则就直接播放对象
+                else:
+                    exec('{0}.display(channel={1})'.format(this_frame[key],channel_list[key])) #否则就直接播放对象
+            except Exception:
+                raise RuntimeError('[31m[RenderError]:[0m Failed to play audio "'+this_frame[layer]+'"')
     return 1
 # 手动换行的l2l
 def get_l2l(ts,text_dur,this_duration): #如果是手动换行的列
@@ -1424,7 +1453,7 @@ while n < break_point.max():
             this_frame = render_timeline.loc[n]
             render(this_frame)
             if forward == 1:
-                screen.blit(note_text.render('%d'%(1//(time.time()-ct)),fgcolor=(100,255,100,255),size=0.0278*H)[0],(10,10)) ##render rate 
+                screen.blit(note_text.render('%d'%(1//(time.time()-ct+1e-4)),fgcolor=(100,255,100,255),size=0.0278*H)[0],(10,10)) ##render rate +1e-4 to avoid float divmod()
             else:
                 screen.blit(note_text.render('Press space to continue.',fgcolor=(100,255,100,255),size=0.0278*H)[0],(0.410*W,0.926*H)) # pause
         else:
@@ -1432,8 +1461,9 @@ while n < break_point.max():
         pygame.display.update()
         n = n + forward #下一帧
         fps_clock.tick(frame_rate)
-    except Exception as E:
+    except RuntimeError as E:
         print(E)
+        print('[31m[RenderError]:[0m','Render exception at frame:',n)
         pygame.quit()
         system_terminated('Error')
 pygame.quit()

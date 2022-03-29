@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.8.1'
+edtion = 'alpha 1.8.2'
 
 # 外部参数输入
 
@@ -509,22 +509,31 @@ def render(this_frame):
         elif this_frame[layer+'_a']<=0: #或者图层的透明度小于等于0(由于fillna("NA"),出现的异常)
             continue
         elif this_frame[layer] not in media_list:
-            raise RuntimeError('[31m[RenderError]:[0m Undefined media object : ['+this_frame[layer]+'].')
+            raise RuntimeError('[31m[RenderError]:[0m Undefined media object : "'+this_frame[layer]+'".')
             continue
         elif layer[0:2] == 'BG':
-            exec('{0}.display(surface=screen,alpha={1},adjust={2})'.format(this_frame[layer],this_frame[layer+'_a'],'\"'+this_frame[layer+'_p']+'\"'))
+            try:
+                exec('{0}.display(surface=screen,alpha={1},adjust={2})'.format(this_frame[layer],this_frame[layer+'_a'],'\"'+this_frame[layer+'_p']+'\"'))
+            except Exception:
+                raise RuntimeError('[31m[RenderError]:[0m Failed to render "'+this_frame[layer]+'" as Background.')
         elif layer[0:2] == 'Am': # 兼容H_LG1(1)这种动画形式 alpha1.6.3
-            exec('{0}.display(surface=screen,alpha={1},adjust={2},frame={3})'.format(
-                                                                                     this_frame[layer],
-                                                                                     this_frame[layer+'_a'],
-                                                                                     '\"'+this_frame[layer+'_p']+'\"',
-                                                                                     this_frame[layer+'_t']))
+            try:
+                exec('{0}.display(surface=screen,alpha={1},adjust={2},frame={3})'.format(
+                                                                                         this_frame[layer],
+                                                                                         this_frame[layer+'_a'],
+                                                                                         '\"'+this_frame[layer+'_p']+'\"',
+                                                                                         this_frame[layer+'_t']))
+            except Exception:
+                raise RuntimeError('[31m[RenderError]:[0m Failed to render "'+this_frame[layer]+'" as Animation.')
         elif layer == 'Bb':
-            exec('{0}.display(surface=screen,text={2},header={3},alpha={1},adjust={4})'.format(this_frame[layer],
-                                                                                               this_frame[layer+'_a'],
-                                                                                               '\"'+this_frame[layer+'_main']+'\"',
-                                                                                               '\"'+this_frame[layer+'_header']+'\"',
-                                                                                               '\"'+this_frame[layer+'_p']+'\"'))
+            try:
+                exec('{0}.display(surface=screen,text={2},header={3},alpha={1},adjust={4})'.format(this_frame[layer],
+                                                                                                   this_frame[layer+'_a'],
+                                                                                                   '\"'+this_frame[layer+'_main']+'\"',
+                                                                                                   '\"'+this_frame[layer+'_header']+'\"',
+                                                                                                   '\"'+this_frame[layer+'_p']+'\"'))
+            except Exception:
+                raise RuntimeError('[31m[RenderError]:[0m Failed to render "'+this_frame[layer]+'" as Bubble.')
     return 1
 
 # 被占用的变量名 # 1.7.7
@@ -658,6 +667,7 @@ while n < break_point.max():
         n = n + 1 #下一帧
     except Exception as E:
         print(E)
+        print('[31m[RenderError]:[0m','Render exception at frame:',n)
         output_engine.stdin.close()
         pygame.quit()
         sys.exit()
