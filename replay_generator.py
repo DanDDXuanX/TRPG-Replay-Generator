@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.8.2'
+edtion = 'alpha 1.8.3'
 
 # 外部参数输入
 
@@ -168,11 +168,11 @@ class Bubble:
         elif line_distance > 0:
             print("[33m[warning]:[0m",'Line distance is set to less than 1!')
         else:
-            raise ValueError('[31m[ArgumentError]:[0m', 'Invalid line distance:',line_distance)
+            raise MediaError('[31m[BubbleError]:[0m', 'Invalid line distance:',line_distance)
         if align in ('left','center'):
             self.align = align
         else:
-            raise ValueError('[31m[ArgumentError]:[0m', 'Unsupported align:',align)
+            raise MediaError('[31m[BubbleError]:[0m', 'Unsupported align:',align)
     def display(self,surface,text,header='',alpha=100,adjust='NA'):
         if adjust in ['0,0','NA']:
             render_pos = self.pos
@@ -225,7 +225,7 @@ class Animation:
         file_list = np.frompyfunc(lambda x:x.replace('\\','/'),1,1)(glob.glob(filepath))
         self.length = len(file_list)
         if self.length == 0:
-            raise IOError('[31m[IOError]:[0m','Cannot find file match',filepath)
+            raise MediaError('[31m[AnimationError]:[0m','Cannot find file match',filepath)
         self.media = np.frompyfunc(pygame.image.load,1,1)(file_list)
         self.pos = pos
         self.loop = loop
@@ -273,7 +273,7 @@ class BuiltInAnimation(Animation):
             name_tx,heart_max,heart_begin,heart_end = anime_args
 
             if (heart_end==heart_begin)|(heart_max<max(heart_begin,heart_end)):
-                raise ValueError('[BIAnimeError]:','Invalid argument',name_tx,heart_max,heart_begin,heart_end,'for BIAnime hitpoint!')
+                raise MediaError('[31m[BIAnimeError]:[0m','Invalid argument',name_tx,heart_max,heart_begin,heart_end,'for BIAnime hitpoint!')
             elif heart_end > heart_begin: # 如果是生命恢复
                 temp = heart_end
                 heart_end = heart_begin
@@ -386,9 +386,9 @@ class BuiltInAnimation(Animation):
                     name_tx,dice_max,dice_check,dice_face = die
                     dice_max,dice_face,dice_check = map(lambda x:-1 if x=='NA' else int(x),(dice_max,dice_face,dice_check))
                 except ValueError as E: #too many values to unpack,not enough values to unpack
-                    raise ValueError('[BIAnimeError]:','Invalid syntax:',str(die),E)
+                    raise MediaError('[31m[BIAnimeError]:[0m','Invalid syntax:',str(die),E)
                 if (dice_face>dice_max)|(dice_check<-1)|(dice_check>dice_max)|(dice_face<=0)|(dice_max<=0):
-                    raise ValueError('[BIAnimeError]:','Invalid argument',name_tx,dice_max,dice_check,dice_face,'for BIAnime dice!')
+                    raise MediaError('[31m[BIAnimeError]:[0m','Invalid argument',name_tx,dice_max,dice_check,dice_face,'for BIAnime dice!')
             # 最多4个
             N_dice = len(anime_args)
             if N_dice > 4:
@@ -517,6 +517,9 @@ class ParserError(Exception):
         self.description = ' '.join(map(str,description))
     def __str__(self):
         return self.description
+
+class MediaError(ParserError):
+    pass
 
 # 正则表达式定义
 
@@ -1083,7 +1086,7 @@ def parser(stdin_text):
                 # 获取参数
                 dice_args = RE_dice.findall(text[7:])
                 if len(dice_args) == 0:
-                    raise SyntaxError('Invalid syntax, no dice args is specified!')
+                    raise ParserError('[31m[ParserError]:[0m','Invalid syntax, no dice args is specified!')
                 # 建立小节
                 this_timeline=pd.DataFrame(index=range(0,frame_rate*5),dtype=str,columns=render_arg) # 5s
                 # 背景
@@ -1295,7 +1298,8 @@ for i,text in enumerate(object_define_text):
                 raise SyntaxError('Invalid Obj name')
             media_list.append(obj_name) #记录新增对象名称
         except Exception as E:
-            print('[31m[SyntaxError]:[0m "'+text+'" appeared in media define file line ' + str(i+1)+' is invalid syntax:',E)
+            print(E)
+            print('[31m[SyntaxError]:[0m "'+text+'" appeared in media define file line ' + str(i+1)+' is invalid syntax:')
             system_terminated('Error')
 black = Background('black')
 white = Background('white')

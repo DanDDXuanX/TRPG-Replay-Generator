@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.8.2'
+edtion = 'alpha 1.8.3'
 
 # 外部参数输入
 
@@ -138,11 +138,11 @@ class Bubble:
         elif line_distance > 0:
             print("[33m[warning]:[0m",'Line distance is set to less than 1!')
         else:
-            raise ValueError('[31m[ArgumentError]:[0m', 'Invalid line distance:',line_distance)
+            raise MediaError('[31m[ArgumentError]:[0m', 'Invalid line distance:',line_distance)
         if align in ('left','center'):
             self.align = align
         else:
-            raise ValueError('[31m[ArgumentError]:[0m', 'Unsupported align:',align)
+            raise MediaError('[31m[ArgumentError]:[0m', 'Unsupported align:',align)
     def display(self,surface,text,header='',alpha=100,adjust='NA'):
         if adjust in ['0,0','NA']:
             render_pos = self.pos
@@ -195,7 +195,7 @@ class Animation:
         file_list = np.frompyfunc(lambda x:x.replace('\\','/'),1,1)(glob.glob(filepath))
         self.length = len(file_list)
         if self.length == 0:
-            raise IOError('[31m[IOError]:[0m','Cannot find file match',filepath)
+            raise MediaError('[31m[IOError]:[0m','Cannot find file match',filepath)
         self.media = np.frompyfunc(pygame.image.load,1,1)(file_list)
         self.pos = pos
         self.loop = loop
@@ -243,7 +243,7 @@ class BuiltInAnimation(Animation):
             name_tx,heart_max,heart_begin,heart_end = anime_args
 
             if (heart_end==heart_begin)|(heart_max<max(heart_begin,heart_end)):
-                raise ValueError('[BIAnimeError]:','Invalid argument',name_tx,heart_max,heart_begin,heart_end,'for BIAnime hitpoint!')
+                raise MediaError('[31m[BIAnimeError]:[0m','Invalid argument',name_tx,heart_max,heart_begin,heart_end,'for BIAnime hitpoint!')
             elif heart_end > heart_begin: # 如果是生命恢复
                 temp = heart_end
                 heart_end = heart_begin
@@ -356,9 +356,9 @@ class BuiltInAnimation(Animation):
                     name_tx,dice_max,dice_check,dice_face = die
                     dice_max,dice_face,dice_check = map(lambda x:-1 if x=='NA' else int(x),(dice_max,dice_face,dice_check))
                 except ValueError as E: #too many values to unpack,not enough values to unpack
-                    raise ValueError('[BIAnimeError]:','Invalid syntax:',str(die),E)
+                    raise MediaError('[31m[BIAnimeError]:[0m','Invalid syntax:',str(die),E)
                 if (dice_face>dice_max)|(dice_check<-1)|(dice_check>dice_max)|(dice_face<=0)|(dice_max<=0):
-                    raise ValueError('[BIAnimeError]:','Invalid argument',name_tx,dice_max,dice_check,dice_face,'for BIAnime dice!')
+                    raise MediaError('[31m[BIAnimeError]:[0m','Invalid argument',name_tx,dice_max,dice_check,dice_face,'for BIAnime dice!')
             # 最多4个
             N_dice = len(anime_args)
             if N_dice > 4:
@@ -460,6 +460,17 @@ class BGM:
         self.loop = loop
     def convert(self):
         pass
+
+# 异常定义
+
+class ParserError(Exception):
+    def __init__(self,*description):
+        self.description = ' '.join(map(str,description))
+    def __str__(self):
+        return self.description
+
+class MediaError(ParserError):
+    pass
 
 # 处理bg 和 am 的parser
 def parse_timeline(layer):
