@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.8.3'
+edtion = 'alpha 1.8.4'
 
 # 外部参数输入
 
@@ -78,7 +78,7 @@ clip_index = 0
 file_index = 0
 
 class Text:
-    def __init__(self,fontfile='./media/simhei.ttf',fontsize=40,color=(0,0,0,255),line_limit=20):
+    def __init__(self,fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0,0,255),line_limit=20):
         self.color=color
         self.size=fontsize
         self.line_limit = line_limit
@@ -107,7 +107,7 @@ class Text:
         pass
 
 class StrokeText(Text):
-    def __init__(self,fontfile='./media/simhei.ttf',fontsize=40,color=(0,0,0,255),line_limit=20,edge_color=(255,255,255,255)):
+    def __init__(self,fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0,0,255),line_limit=20,edge_color=(255,255,255,255)):
         super().__init__(fontfile=fontfile,fontsize=fontsize,color=color,line_limit=line_limit) # 继承
         self.edge_color=edge_color
     def render(self,tx):
@@ -312,7 +312,7 @@ class BuiltInAnimation(Animation):
             left_heart = int(heart_end/2 * hx + max(0,np.ceil(heart_end/2-1)) * distance) #画布总长
             lost_heart = int((heart_begin-heart_end)/2 * hx + np.floor((heart_begin-heart_end)/2) * distance)
             # 姓名文本
-            BIA_text = ImageFont.truetype('./media/fzxbsjt.TTF', int(0.0521*screensize[0])) # 1080p:size=100
+            BIA_text = ImageFont.truetype('./media/SourceHanSerifSC-Heavy.otf', int(0.0521*screensize[0])) # 1080p:size=100
             test_canvas = Image.new(mode='RGBA',size=screensize,color=(0,0,0,0))
             test_draw = ImageDraw.Draw(test_canvas)
             test_draw.text((0,0), name_tx, font = BIA_text, align ="left",fill = (255,255,255,255))
@@ -406,7 +406,7 @@ class BuiltInAnimation(Animation):
                 anime_args = anime_args[0:4]# 最多4个
             y_anchor = {4:int(0.1667*screensize[1]),3:int(0.25*screensize[1]),2:int(0.3333*screensize[1]),1:int(0.4167*screensize[1])}[N_dice]
             y_unit = int(0.1667*screensize[1])
-            BIA_text = ImageFont.truetype('./media/fzxbsjt.TTF', int(0.0521*screensize[0]))
+            BIA_text = ImageFont.truetype('./media/SourceHanSerifSC-Heavy.otf', int(0.0521*screensize[0]))
             if layer==0: # 底层 名字 /检定
                 canvas = Image.new(mode='RGBA',size=screensize,color=(0,0,0,0))
                 for i,die in enumerate(anime_args): 
@@ -455,7 +455,7 @@ class BuiltInAnimation(Animation):
                         color_flag = -1
                     else:
                         color_flag = ((dice_face/dice_max<=significant)|(dice_face/dice_max>(1-significant)))*2 + (dice_face<=dice_check)
-                    BIA_color_Text = ImageFont.truetype('./media/fzxbsjt.TTF', int(0.0651*screensize[0]))
+                    BIA_color_Text = ImageFont.truetype('./media/SourceHanSerifSC-Heavy.otf', int(0.0651*screensize[0]))
                     test_canvas = Image.new(mode='RGBA',size=(int(0.1458*screensize[0]),y_unit),color=(0,0,0,0))
                     test_draw = ImageDraw.Draw(test_canvas)
                     test_draw.text((0,0),str(dice_face),font=BIA_color_Text,align="left",fill=dice_cmap[color_flag])
@@ -466,7 +466,7 @@ class BuiltInAnimation(Animation):
                     fx = p3 - p1
                     fy = p4 - p2
                     face_surf = test_canvas.crop((p1,p2,p3,p4))
-                    canvas.paste(face_surf,(int(0.1458*screensize[0]-fx-0.0278*screensize[1]),(i+1)*y_unit-fy-int(0.0278*screensize[1])))
+                    canvas.paste(face_surf,(int(0.1458*screensize[0]-fx-0.0278*screensize[1]),i*y_unit+(y_unit-fy)//2))
             else:
                 pass
             ofile = output_path+'/auto_BIA_%d'%outanime_index+'.png'

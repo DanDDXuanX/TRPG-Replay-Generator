@@ -1,5 +1,5 @@
 # 综合演示
-<set:formula>:sigmoid
+<set:formula>:sincurve
 <set:am_method_default>:<pass_up_black=20>
 <set:tx_method_default>:<w2w=1>
 <set:bb_method_default>:<replace=0>

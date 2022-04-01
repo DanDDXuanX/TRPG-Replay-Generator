@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.8.3'
+edtion = 'alpha 1.8.4'
 
 # 外部参数输入
 
@@ -73,12 +73,12 @@ import time
 import glob # 匹配路径
 import re
 
-# 类定义 alpha 1.7.0
+# 类定义 alpha 1.8.4
 
 # 文字对象
 class Text:
     pygame.font.init()
-    def __init__(self,fontfile='./media/simhei.ttf',fontsize=40,color=(0,0,0,255),line_limit=20):
+    def __init__(self,fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0,0,255),line_limit=20):
         self.text_render = pygame.font.Font(fontfile,fontsize)
         self.color=color
         self.size=fontsize
@@ -108,7 +108,7 @@ class Text:
 # 描边文本，是Text的子类。注意，使用这个媒体类可能会影响帧率！
 class StrokeText(Text):
     pygame.font.init()
-    def __init__(self,fontfile='./media/simhei.ttf',fontsize=40,color=(0,0,0,255),line_limit=20,edge_color=(255,255,255,255)):
+    def __init__(self,fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0,0,255),line_limit=20,edge_color=(255,255,255,255)):
         super().__init__(fontfile=fontfile,fontsize=fontsize,color=color,line_limit=line_limit) # 继承
         self.edge_color=edge_color
     def render(self,tx):
@@ -138,11 +138,11 @@ class Bubble:
         elif line_distance > 0:
             print("[33m[warning]:[0m",'Line distance is set to less than 1!')
         else:
-            raise MediaError('[31m[ArgumentError]:[0m', 'Invalid line distance:',line_distance)
+            raise MediaError('[31m[BubbleError]:[0m', 'Invalid line distance:',line_distance)
         if align in ('left','center'):
             self.align = align
         else:
-            raise MediaError('[31m[ArgumentError]:[0m', 'Unsupported align:',align)
+            raise MediaError('[31m[BubbleError]:[0m', 'Unsupported align:',align)
     def display(self,surface,text,header='',alpha=100,adjust='NA'):
         if adjust in ['0,0','NA']:
             render_pos = self.pos
@@ -195,7 +195,7 @@ class Animation:
         file_list = np.frompyfunc(lambda x:x.replace('\\','/'),1,1)(glob.glob(filepath))
         self.length = len(file_list)
         if self.length == 0:
-            raise MediaError('[31m[IOError]:[0m','Cannot find file match',filepath)
+            raise MediaError('[31m[AnimationError]:[0m','Cannot find file match',filepath)
         self.media = np.frompyfunc(pygame.image.load,1,1)(file_list)
         self.pos = pos
         self.loop = loop
@@ -227,7 +227,7 @@ class Animation:
 # a1.7.5 内建动画，Animation类的子类
 class BuiltInAnimation(Animation):
     def __init__(self,anime_type='hitpoint',anime_args=('0',0,0,0),screensize = (1920,1080),layer=0):
-        BIA_text = Text('./media/fzxbsjt.TTF',fontsize=int(0.0521*screensize[0]),color=(255,255,255,255),line_limit=10)
+        BIA_text = Text('./media/SourceHanSerifSC-Heavy.otf',fontsize=int(0.0521*screensize[0]),color=(255,255,255,255),line_limit=10)
         if anime_type == 'hitpoint': # anime_args=('0',0,0,0)
             # 载入图片
             heart = pygame.image.load('./media/heart.png')
@@ -395,12 +395,13 @@ class BuiltInAnimation(Animation):
                     name_tx,dice_max,dice_check,dice_face = die
                     dice_max,dice_face,dice_check = map(lambda x:-1 if x=='NA' else int(x),(dice_max,dice_face,dice_check))
                     cols,possible_digit = get_possible_digit(dice_max)
-                    dx,dy = BIA_text.render(possible_digit[0]).get_size()
+                    dx,dy = BIA_text.render('0'*cols).get_size()
                     # running cols
                     run_surf = pygame.Surface((dx,dy*len(possible_digit)),pygame.SRCALPHA)
                     for i,digit in enumerate(possible_digit):
-                        digit_this = BIA_text.render(digit)
-                        run_surf.blit(digit_this,(dx-digit_this.get_size()[0],dy*i))
+                        for j,char in enumerate(digit): # alpha 1.8.4 兼容非等宽数字，比如思源宋体
+                            char_this = BIA_text.render(char)
+                            run_surf.blit(char_this,(j*(dx//cols),dy*i))
                     run_cols = np.frompyfunc(lambda x:run_surf.subsurface(x*(dx//cols),0,dx//cols,dy*10),1,1)(np.arange(0,cols))
                     # range
                     slot_surf = []
@@ -416,7 +417,8 @@ class BuiltInAnimation(Animation):
                         for t in range(0,int(2.5*frame_rate/speed_multiplier)):
                             slot_surf[t].blit(run_cols[i],(i*dx//cols,int(dy-t*speed)))
                     for t in range(0,int(2.5*frame_rate/speed_multiplier)):
-                        canvas[t].blit(slot_surf[t],(int(0.1458*screensize[0]-dx-0.0278*screensize[1]),(l+1)*y_unit-dy-int(0.0278*screensize[1]))) #0.0278*screensize[1] = 30
+                        #canvas[t].blit(slot_surf[t],(int(0.1458*screensize[0]-dx-0.0278*screensize[1]),(l+1)*y_unit-dy-int(0.0278*screensize[1]))) #0.0278*screensize[1] = 30
+                        canvas[t].blit(slot_surf[t],(int(0.1458*screensize[0]-dx-0.0278*screensize[1]),l*y_unit+(y_unit-dy)//2))
                 self.media = np.array(canvas)
                 self.pos = (int(0.5833*screensize[0]),y_anchor)
                 self.tick = 1
@@ -433,10 +435,11 @@ class BuiltInAnimation(Animation):
                         color_flag = -1
                     else:
                         color_flag = ((dice_face/dice_max<=significant)|(dice_face/dice_max>(1-significant)))*2 + (dice_face<=dice_check)
-                    BIA_color_Text = Text('./media/fzxbsjt.TTF',fontsize=int(0.0651*screensize[0]),color=dice_cmap[color_flag],line_limit=10) # 1.25
+                    BIA_color_Text = Text('./media/SourceHanSerifSC-Heavy.otf',fontsize=int(0.0651*screensize[0]),color=dice_cmap[color_flag],line_limit=10) # 1.25
                     face_surf = BIA_color_Text.render(str(dice_face))
                     fx,fy = face_surf.get_size()
-                    canvas.blit(face_surf,(int(0.1458*screensize[0]-fx-0.0278*screensize[1]),(i+1)*y_unit-fy-int(0.0278*screensize[1])))
+                    #canvas.blit(face_surf,(int(0.1458*screensize[0]-fx-0.0278*screensize[1]),(i+1)*y_unit-fy-int(0.0278*screensize[1])))
+                    canvas.blit(face_surf,(int(0.1458*screensize[0]-fx-0.0278*screensize[1]),i*y_unit+(y_unit-fy)//2))
                 self.media = np.array([canvas])
                 self.pos = (int(0.5833*screensize[0]),y_anchor) # 0.5833*screensize[0] = 1120
                 self.tick = 1

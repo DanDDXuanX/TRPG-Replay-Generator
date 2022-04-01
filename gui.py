@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.8.0'
+edtion = 'alpha 1.8.4'
 
 import tkinter as tk
 from tkinter import ttk
@@ -15,7 +15,7 @@ import sys
 import re
 
 # preview 的类 定义
-label_pos_show_text = ImageFont.truetype('./media/fzxbsjt.TTF', 30)
+label_pos_show_text = ImageFont.truetype('./media/SourceHanSerifSC-Heavy.otf', 30)
 RE_mediadef_args = re.compile('(fontfile|fontsize|color|line_limit|filepath|Main_Text|Header_Text|pos|mt_pos|ht_pos|align|line_distance|tick|loop|volume|edge_color)?\ {0,4}=?\ {0,4}([^,()]+|\([\d,\ ]+\))')
 RE_parse_mediadef = re.compile('(\w+)[=\ ]+(Text|StrokeText|Bubble|Animation|Background|BGM|Audio)(\(.+\))')
 RE_vaildname = re.compile('^\w+$')
@@ -23,7 +23,7 @@ occupied_variable_name = open('./media/occupied_variable_name.list','r',encoding
 
 # global image_canvas
 class Text:
-    def __init__(self,fontfile='./media/simhei.ttf',fontsize=40,color=(0,0,0,255),line_limit=20):
+    def __init__(self,fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0,0,255),line_limit=20):
         self.text_render = ImageFont.truetype(fontfile, fontsize)
         self.color=color
         self.size=fontsize
@@ -45,7 +45,7 @@ class Text:
         else:
             image_canvas.paste(draw_text,prevpos,mask=draw_text.split()[-1])
 class StrokeText(Text):
-    def __init__(self,fontfile='./media/simhei.ttf',fontsize=40,color=(0,0,0,255),line_limit=20,edge_color=(255,255,255,255)):
+    def __init__(self,fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0,0,255),line_limit=20,edge_color=(255,255,255,255)):
         super().__init__(fontfile=fontfile,fontsize=fontsize,color=color,line_limit=line_limit)
         self.edge_color=edge_color
     def draw(self,lenth=-1):
@@ -361,7 +361,7 @@ def open_Media_def_window(father,i_name='None',i_type='None',i_args='None'):
     volume = tk.IntVar()
     edge_color = tk.StringVar(Objdef_windows)
     # 默认参数
-    fontfile.set('./media/simhei.ttf')
+    fontfile.set('./media/SourceHanSansCN-Regular.otf')
     fontsize.set(40)
     color.set('(0,0,0,255)')
     line_limit.set(20)
