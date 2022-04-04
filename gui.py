@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.8.4'
+edtion = 'alpha 1.8.5'
 
 import tkinter as tk
 from tkinter import ttk
@@ -293,7 +293,7 @@ def open_Media_def_window(father,i_name='None',i_type='None',i_args='None'):
     Objdef_windows.iconbitmap('./media/icon.ico')
     Objdef_windows.config(background ='#e0e0e0')
     #Objdef_windows.attributes('-topmost', True)
-    Objdef_windows.title('Media Define.')
+    Objdef_windows.title('媒体参数')
     Objdef_windows.protocol('WM_DELETE_WINDOW',close_window)
     Objdef_windows.transient(father)
 
@@ -593,7 +593,7 @@ def open_Edit_windows(father,Edit_filepath='',fig_W=960,fig_H=540):
     def close_window():
         nonlocal edit_return_value
         if messagebox.askyesno(title='确认退出？',message='未保存的改动将会丢失！') == True:
-            edit_return_value = False
+            edit_return_value = Edit_filepath
             Edit_windows.destroy()
             Edit_windows.quit()
         else:
@@ -614,7 +614,7 @@ def open_Edit_windows(father,Edit_filepath='',fig_W=960,fig_H=540):
     Edit_windows.geometry("{W}x{H}".format(W=window_W,H=window_H))
     Edit_windows.iconbitmap('./media/icon.ico')
     Edit_windows.config(background ='#e0e0e0')
-    Edit_windows.title('TRPG Replay Generator MediaDef Editer.')
+    Edit_windows.title('回声工坊 媒体定义文件编辑器')
     Edit_windows.protocol('WM_DELETE_WINDOW',close_window)
     Edit_windows.transient(father)
 
@@ -691,7 +691,7 @@ def open_Edit_windows(father,Edit_filepath='',fig_W=960,fig_H=540):
     return edit_return_value
 
 # 通用函数
-def browse_file(text_obj,method='file',changebotton=False):
+def browse_file(text_obj,method='file'):
     if method == 'file':
         getname = filedialog.askopenfilename()
     else:
@@ -701,11 +701,8 @@ def browse_file(text_obj,method='file',changebotton=False):
         text_obj.set('')
         return None
     text_obj.set(getname)
-    if changebotton != False:
-        if os.path.isfile(getname):
-            changebotton.config(text='编辑')
-        else:
-            changebotton.config(text='新建')
+    return getname
+
 def choose_color(text_obj):
     get_color = colorchooser.askcolor()
     try:
@@ -728,12 +725,27 @@ def open_Main_windows():
         fig_W = project_W.get()
         fig_H = project_H.get()
         Main_windows.attributes('-disabled',True)
-        return_from_Edit = open_Edit_windows(Main_windows,Edit_filepath,fig_W,fig_H)
+        if os.path.isfile(Edit_filepath): # alpha 1.8.5 非法路径
+            return_from_Edit = open_Edit_windows(Main_windows,Edit_filepath,fig_W,fig_H)
+        else:
+            new_or_edit.config(text='新建')
+            media_define.set('')
+            return_from_Edit = open_Edit_windows(Main_windows,'',fig_W,fig_H)
         Main_windows.attributes('-disabled',False)
         Main_windows.lift()
         Main_windows.focus_force()
         if os.path.isfile(return_from_Edit):
             media_define.set(return_from_Edit)
+            new_or_edit.config(text='编辑')
+        else:
+            new_or_edit.config(text='新建')
+    def call_browse_file(text_obj,method='file'):
+        getname = browse_file(text_obj,method)
+        if text_obj == media_define:
+            if os.path.isfile(getname):
+                new_or_edit.config(text='编辑')
+            else:
+                new_or_edit.config(text='新建')
     def run_command():
         optional = {1:'--OutputPath {of} ',2:'--ExportXML ',3:'--ExportVideo --Quality {ql} ',4:'--SynthesisAnyway --AccessKey {AK} --AccessKeySecret {AS} --Appkey {AP} ',5:'--FixScreenZoom '}
         command = python3 + ' ./replay_generator.py --LogFile {lg} --MediaObjDefine {md} --CharacterTable {ct} '
@@ -845,7 +857,7 @@ def open_Main_windows():
     Main_windows.geometry("640x550")
     Main_windows.iconbitmap('./media/icon.ico')
     Main_windows.config(background ='#e0e0e0')
-    Main_windows.title('TRPG Replay Generator ' + edtion)
+    Main_windows.title('回声工坊 ' + edtion)
 
     # 大号字体
     try:
@@ -926,10 +938,10 @@ def open_Main_windows():
     tk.Entry(filepath, textvariable=output_path).place(x=80,y=140+3,width=430,height=25)
     new_or_edit = tk.Button(filepath, command=call_Edit_windows,text="新建")
     new_or_edit.place(x=555,y=5,width=35,height=30)
-    tk.Button(filepath, command=lambda:browse_file(media_define,changebotton=new_or_edit),text="浏览").place(x=520,y=5,width=35,height=30)
-    tk.Button(filepath, command=lambda:browse_file(characor_table),text="浏览").place(x=520,y=50,width=70,height=30)
-    tk.Button(filepath, command=lambda:browse_file(stdin_logfile),text="浏览").place(x=520,y=95,width=70,height=30)
-    tk.Button(filepath, command=lambda:browse_file(output_path,'path'),text="浏览").place(x=520,y=140,width=70,height=30)
+    tk.Button(filepath, command=lambda:call_browse_file(media_define),text="浏览").place(x=520,y=5,width=35,height=30)
+    tk.Button(filepath, command=lambda:call_browse_file(characor_table),text="浏览").place(x=520,y=50,width=70,height=30)
+    tk.Button(filepath, command=lambda:call_browse_file(stdin_logfile),text="浏览").place(x=520,y=95,width=70,height=30)
+    tk.Button(filepath, command=lambda:call_browse_file(output_path,'path'),text="浏览").place(x=520,y=140,width=70,height=30)
 
 
     # 选项
@@ -951,11 +963,11 @@ def open_Main_windows():
 
     tk.Checkbutton(flag,text="先执行语音合成",variable=synthanyway,anchor=tk.W,command=lambda:highlight(synthanyway)).place(x=10,y=5,width=150,height=30)
     tk.Checkbutton(flag,text="导出为PR项目",variable=exportprxml,anchor=tk.W,command=lambda:highlight(exportprxml)).place(x=10,y=50,width=150,height=30)
-    tk.Checkbutton(flag,text="导出为.mp4视频",variable=exportmp4,anchor=tk.W,command=lambda:highlight(exportmp4)).place(x=200,y=50,width=150,height=30)
-    tk.Checkbutton(flag,text="取消系统缩放",variable=fixscrzoom,anchor=tk.W,command=lambda:highlight(fixscrzoom)).place(x=200,y=5,width=150,height=30)
+    tk.Checkbutton(flag,text="导出为.mp4视频",variable=exportmp4,anchor=tk.W,command=lambda:highlight(exportmp4)).place(x=170,y=50,width=150,height=30)
+    tk.Checkbutton(flag,text="取消系统缩放",variable=fixscrzoom,anchor=tk.W,command=lambda:highlight(fixscrzoom)).place(x=170,y=5,width=150,height=30)
 
-    my_logo = ImageTk.PhotoImage(Image.open('./media/icon.png').resize((75,75)))
-    tk.Button(flag,image = my_logo,command=lambda: webbrowser.open('https://github.com/DanDDXuanX/TRPG-Replay-Generator'),relief='flat').place(x=500,y=0)
+    my_logo = ImageTk.PhotoImage(Image.open('./media/logo.png').resize((236,75)))
+    tk.Button(flag,image = my_logo,command=lambda: webbrowser.open('https://github.com/DanDDXuanX/TRPG-Replay-Generator'),relief='flat').place(x=339,y=0)
 
     # 开始
     tk.Button(main_frame, command=run_command,text="开始",font=big_text).place(x=260,y=435,width=100,height=50)
@@ -972,10 +984,10 @@ def open_Main_windows():
     tk.Entry(filepath_s, textvariable=characor_table).place(x=80,y=50+3,width=430,height=25)
     tk.Entry(filepath_s, textvariable=stdin_logfile).place(x=80,y=95+3,width=430,height=25)
     tk.Entry(filepath_s, textvariable=output_path).place(x=80,y=140+3,width=430,height=25)
-    tk.Button(filepath_s, command=lambda:browse_file(media_define),text="浏览").place(x=520,y=5,width=70,height=30)
-    tk.Button(filepath_s, command=lambda:browse_file(characor_table),text="浏览").place(x=520,y=50,width=70,height=30)
-    tk.Button(filepath_s, command=lambda:browse_file(stdin_logfile),text="浏览").place(x=520,y=95,width=70,height=30)
-    tk.Button(filepath_s, command=lambda:browse_file(output_path,'path'),text="浏览").place(x=520,y=140,width=70,height=30)
+    tk.Button(filepath_s, command=lambda:call_browse_file(media_define),text="浏览").place(x=520,y=5,width=70,height=30)
+    tk.Button(filepath_s, command=lambda:call_browse_file(characor_table),text="浏览").place(x=520,y=50,width=70,height=30)
+    tk.Button(filepath_s, command=lambda:call_browse_file(stdin_logfile),text="浏览").place(x=520,y=95,width=70,height=30)
+    tk.Button(filepath_s, command=lambda:call_browse_file(output_path,'path'),text="浏览").place(x=520,y=140,width=70,height=30)
 
     optional_s = tk.LabelFrame(synth_frame,text='选项')
     optional_s.place(x=10,y=210,width=600,height=110)
@@ -1013,10 +1025,10 @@ def open_Main_windows():
     tk.Entry(filepath_x, textvariable=characor_table,state=tk.DISABLED).place(x=80,y=50+3,width=430,height=25)
     tk.Entry(filepath_x, textvariable=timeline_file).place(x=80,y=95+3,width=430,height=25)
     tk.Entry(filepath_x, textvariable=output_path).place(x=80,y=140+3,width=430,height=25)
-    tk.Button(filepath_x, command=lambda:browse_file(media_define),text="浏览").place(x=520,y=5,width=70,height=30)
-    tk.Button(filepath_x, command=lambda:browse_file(characor_table),text="浏览",state=tk.DISABLED).place(x=520,y=50,width=70,height=30)
-    tk.Button(filepath_x, command=lambda:browse_file(timeline_file),text="浏览").place(x=520,y=95,width=70,height=30)
-    tk.Button(filepath_x, command=lambda:browse_file(output_path,'path'),text="浏览").place(x=520,y=140,width=70,height=30)
+    tk.Button(filepath_x, command=lambda:call_browse_file(media_define),text="浏览").place(x=520,y=5,width=70,height=30)
+    tk.Button(filepath_x, command=lambda:call_browse_file(characor_table),text="浏览",state=tk.DISABLED).place(x=520,y=50,width=70,height=30)
+    tk.Button(filepath_x, command=lambda:call_browse_file(timeline_file),text="浏览").place(x=520,y=95,width=70,height=30)
+    tk.Button(filepath_x, command=lambda:call_browse_file(output_path,'path'),text="浏览").place(x=520,y=140,width=70,height=30)
 
     optional_x = tk.LabelFrame(xml_frame,text='选项')
     optional_x.place(x=10,y=210,width=600,height=110)
@@ -1035,11 +1047,11 @@ def open_Main_windows():
     flag_x.place(x=10,y=320,width=600,height=110)
 
     PR_logo = ImageTk.PhotoImage(Image.open('./media/PR.png'))
-    #Eta_logo = ImageTk.PhotoImage(Image.open('./media/eta.png'))
+    Eta_logo = ImageTk.PhotoImage(Image.open('./media/eta.png'))
     tk.Label(flag_x,image = PR_logo).place(x=20,y=10)
-    #tk.Label(flag_x,text='通向Premiere Pro世界的通道，感谢伊塔的Idea，了解更多：').place(x=110,y=30)
-    tk.Label(flag_x,text='通向Premiere Pro世界的通道').place(x=110,y=30)
-    #tk.Button(flag_x,image = Eta_logo,command=lambda: webbrowser.open('https://space.bilibili.com/10414609'),relief='flat').place(x=500,y=7)
+    tk.Label(flag_x,text='通向Premiere Pro世界的通道。').place(x=110,y=30)
+    tk.Label(flag_x,text='感谢up主伊塔的Idea，了解更多：').place(x=300,y=30)
+    tk.Button(flag_x,image = Eta_logo,command=lambda: webbrowser.open('https://space.bilibili.com/10414609'),relief='flat').place(x=500,y=7)
 
     tk.Button(xml_frame, command=run_command_xml,text="开始",font=big_text).place(x=260,y=435,width=100,height=50)
 
@@ -1055,10 +1067,10 @@ def open_Main_windows():
     tk.Entry(filepath_v, textvariable=characor_table,state=tk.DISABLED).place(x=80,y=50+3,width=430,height=25)
     tk.Entry(filepath_v, textvariable=timeline_file).place(x=80,y=95+3,width=430,height=25)
     tk.Entry(filepath_v, textvariable=output_path).place(x=80,y=140+3,width=430,height=25)
-    tk.Button(filepath_v, command=lambda:browse_file(media_define),text="浏览").place(x=520,y=5,width=70,height=30)
-    tk.Button(filepath_v, command=lambda:browse_file(characor_table),text="浏览",state=tk.DISABLED).place(x=520,y=50,width=70,height=30)
-    tk.Button(filepath_v, command=lambda:browse_file(timeline_file),text="浏览").place(x=520,y=95,width=70,height=30)
-    tk.Button(filepath_v, command=lambda:browse_file(output_path,'path'),text="浏览").place(x=520,y=140,width=70,height=30)
+    tk.Button(filepath_v, command=lambda:call_browse_file(media_define),text="浏览").place(x=520,y=5,width=70,height=30)
+    tk.Button(filepath_v, command=lambda:call_browse_file(characor_table),text="浏览",state=tk.DISABLED).place(x=520,y=50,width=70,height=30)
+    tk.Button(filepath_v, command=lambda:call_browse_file(timeline_file),text="浏览").place(x=520,y=95,width=70,height=30)
+    tk.Button(filepath_v, command=lambda:call_browse_file(output_path,'path'),text="浏览").place(x=520,y=140,width=70,height=30)
 
     optional_v = tk.LabelFrame(mp4_frame,text='选项')
     optional_v.place(x=10,y=210,width=600,height=110)

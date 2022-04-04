@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.8.4'
+edtion = 'alpha 1.8.5'
 
 # 外部参数输入
 
@@ -71,7 +71,7 @@ try:
             raise OSError("[31m[ArgumentError]:[0m Cannot find file "+path)
 
     if output_path == None:
-        if (synthfirst == True) | (exportXML == True):
+        if (synthfirst == True) | (exportXML == True) | (exportVideo == True):
             raise OSError("[31m[ArgumentError]:[0m Some flags requires output path, but no output path is specified!")
     elif os.path.isdir(output_path) == False:
         raise OSError("[31m[ArgumentError]:[0m Cannot find directory "+output_path)
@@ -920,6 +920,8 @@ def parser(stdin_text):
                         this_timeline.loc[delay,'SE'] = se_obj
                     elif os.path.isfile(se_obj[1:-1]) == True: #或者指向一个确定的文件，则视为语音
                         this_timeline.loc[delay,'Voice'] = se_obj
+                    elif se_obj in ['NA','']: # 如果se_obj是空值或NA，则什么都不做 alpha1.8.5
+                        pass
                     else:
                         raise ParserError('[31m[ParserError]:[0m The sound effect "'+se_obj+'" specified in dialogue line ' + str(i+1)+' is not exist!')
                     
@@ -1023,7 +1025,7 @@ def parser(stdin_text):
                 raise ParserError('[31m[ParserError]:[0m Parse exception occurred in setting line ' + str(i+1)+'.')
                 continue
         # 预设动画，损失生命
-        elif '<hitpoint>' in text:
+        elif text[0:11]=='<hitpoint>:':
             try:
                 # 载入参数
                 name_tx,heart_max,heart_begin,heart_end = RE_hitpoint.findall(text)[0]
@@ -1082,6 +1084,8 @@ def parser(stdin_text):
                                                         np.arange(0,frame_rate,1), # 第二秒播放
                                                         np.ones(frame_rate*2)*(frame_rate-1)]) # 后两秒静止
                 # 收尾
+                if BGM_queue != []:
+                    this_timeline.loc[0,'BGM'] = BGM_queue.pop() #从BGM_queue里取出来一个 alpha 1.8.5
                 render_timeline.append(this_timeline)
                 break_point[i+1]=break_point[i]+len(this_timeline.index)
                 continue
@@ -1143,6 +1147,8 @@ def parser(stdin_text):
                 # SE
                 this_timeline.loc[frame_rate//3,'SE'] = "'./media/SE_dice.wav'"
                 # 收尾
+                if BGM_queue != []:
+                    this_timeline.loc[0,'BGM'] = BGM_queue.pop() #从BGM_queue里取出来一个 alpha 1.8.5
                 render_timeline.append(this_timeline)
                 break_point[i+1]=break_point[i]+len(this_timeline.index)
                 continue
