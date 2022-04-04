@@ -1349,8 +1349,6 @@ if stdin_text[0][0] == '\ufeff': # 139 debug
 try:
     render_timeline,break_point,bulitin_media = parser(stdin_text)
 except ParserError as E:
-    import traceback
-    traceback.print_exc()
     print(E)
     system_terminated('Error')
 

@@ -2,3 +2,7 @@ test_output/*
 *.timeline
 *.breakpoint
 *.exe
+__pycache__/*
+build/*
+*.spec
+dist/*
