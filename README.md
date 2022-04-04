@@ -51,7 +51,7 @@ python ./replay_generator.py -l ./toy/LogFile.txt -d ./toy/MediaObject.txt -t ./
 
 > 注意：可执行文件release无需安装python环境即可运行，但是在效能和稳定性上比运行源码略差。
 
-# 参考文档（文档版本 v 1.8.5）
+# 参考文档（文档版本 version 1.0.0）
 
 ## 主程序replay_generator.py
 
