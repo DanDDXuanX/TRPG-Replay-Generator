@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.8.5'
+edtion = 'alpha 1.8.6'
 
 # 外部参数输入
 
@@ -1131,7 +1131,7 @@ def parser(stdin_text):
                 # 1
                 this_timeline['Am2'] = np.hstack([np.repeat(Auto_media_name+'_1',int(frame_rate*2.5)),np.repeat('NA',frame_rate*5-int(frame_rate*2.5))]) # 2.5s
                 this_timeline['Am2_a'] = np.hstack([formula(0,100,frame_rate//2),
-                                                    np.ones(int(frame_rate*2.5)-2*frame_rate//2)*100,
+                                                    np.ones(int(frame_rate*2.5)-2*(frame_rate//2))*100,
                                                     formula(100,0,frame_rate//2),
                                                     np.zeros(frame_rate*5-int(frame_rate*2.5))])
                 this_timeline['Am2_t'] = np.hstack([np.arange(0,int(frame_rate*2.5)),np.zeros(frame_rate*5-int(frame_rate*2.5))])
