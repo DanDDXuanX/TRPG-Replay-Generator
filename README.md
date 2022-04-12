@@ -112,7 +112,7 @@ Bubble(filepath,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),ht_pos=
 
 - 气泡是一个文本框，在角色发言时显示，包含了主文本、头文本、底图三个组成部分。
 - `filepath`	必要参数，指定一个图片文件的路径；即使不需要底图，也需要指定一个空白底图的路径；
-- `Main_Text`	可选参数，为主文本指定一个Text或者StrokeText类的变量；主文本对应中的 *发言文本*；默认值是默认参数的Text对象，也可以设置为None；
+- `Main_Text`	可选参数，为主文本指定一个Text或者StrokeText类的变量；主文本对应 *log文件* 中的 *发言文本*；默认值是默认参数的Text对象，不可以设置为None；
 - `Header_Text`	可选参数，为头文本指定一个Text或者StrokeText类的变量；头文本对应发言者的角色名；默认为None，既无头文本；
 - `pos`	可选参数，设置气泡在屏幕上的位置，是一个2元素的tuple，对应(X,Y)；默认为(0,0)，即左上角；
 - `mt_pos`	可选参数，设置主文本相对于气泡底图的位置，是一个2元素的tuple，对应(X,Y)；默认为(0,0)，即左上角；
@@ -125,7 +125,7 @@ Bubble(filepath,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),ht_pos=
 Background(filepath,pos=(0,0))
 ```
 
-- 背景指整个屏幕的背景，通常位于最下的图层，可以在log文件中的 *背景行* 中设置背景及其切换效果
+- 背景指整个屏幕的背景，通常位于最下的图层，可以在 *log文件* 中的 *背景行* 中设置背景及其切换效果
 - `filepath`	必要参数，指定一个图片文件的路径，或者指定`{'black','white','greenscreen'}`中的一个。
 - `pos`	可选参数，指定了背景在屏幕上的位置，是一个2元素的tuple，对应(X,Y)，默认为(0,0)，即左上角。
 
@@ -151,7 +151,7 @@ Animation(filepath,pos=(0,0),tick=1,loop=True)
 BGM(filepath,volume=100,loop=True)
 ```
 
-- BGM指长的，一直位于后台循环播放的音频；支持的格式是 .ogg ，如果是 .mp3 格式的背景音乐，建议先进行格式转换。
+- BGM指长的，一直位于后台循环播放的音频；支持的格式是 `.ogg` ，如果是 `.mp3` 格式的背景音乐，建议先进行格式转换。
 - `filepath`	必要参数，指定一个音频文件的路径。
 - `volume`	可选参数，设置背景音乐的音量，合理的参数是0-100的整数；默认为100；
 - `loop`	可选参数，设置背景音乐是否会循环播放；默认为循环播放；如果需要不循环，设置为`False`；

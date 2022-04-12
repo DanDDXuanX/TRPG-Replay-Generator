@@ -16,6 +16,7 @@ ImageDraw
 ImageFont
 ImageTk
 Is_NTSC
+MediaError
 NA
 Na
 Nan
@@ -171,6 +172,7 @@ split_xy
 stdin_log
 stdin_name
 stdin_text
+stop
 stop_SE
 synthfirst
 sys
