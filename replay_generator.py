@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.8.6'
+edtion = 'alpha 1.8.7'
 
 # 外部参数输入
 
@@ -532,9 +532,10 @@ RE_setting = re.compile('^<set:([\w\_]+)>:(.+)$')
 RE_characor = re.compile('([\w\ ]+)(\(\d*\))?(\.\w+)?')
 RE_modify = re.compile('<(\w+)(=\d+)?>')
 RE_sound = re.compile('({.+?})')
-RE_asterisk = re.compile('(\{([^\{\}]*?[,;])?\*([\w\.\,，]*)?\})') # v 1.7.3 修改匹配模式以匹配任何可能的字符（除了花括号）
+RE_asterisk = re.compile('(\{([^\{\}]*?[,;])?\*([\w\.\,，。：？！“”]*)?\})') # v 1.8.7 给星标后文本额外增加几个可用的中文符号
 RE_hitpoint = re.compile('<hitpoint>:\((.+?),(\d+),(\d+),(\d+)\)') # a 1.6.5 血条预设动画
 RE_dice = re.compile('\((.+?),(\d+),([\d]+|NA),(\d+)\)') # a 1.7.5 骰子预设动画，老虎机
+#RE_asterisk = re.compile('(\{([^\{\}]*?[,;])?\*([\w\.\,，]*)?\})') # v 1.7.3 修改匹配模式以匹配任何可能的字符（除了花括号）
 #RE_asterisk = re.compile('\{\w+[;,]\*(\d+\.?\d*)\}') # 这种格式对于{path;*time的}的格式无效！
 #RE_asterisk = re.compile('(\{([\w\.\\\/\'\":]*?[,;])?\*([\w\.\,，]*)?\})') # a 1.4.3 修改了星标的正则（和ss一致）,这种对于有复杂字符的路径无效！
 
@@ -1291,10 +1292,16 @@ if synthfirst == True:
 
 # 载入od文件
 print('[replay generator]: Loading media definition file.')
-object_define_text = open(media_obj,'r',encoding='utf-8').read().split('\n')
-if object_define_text[0][0] == '\ufeff': # 139 debug
+
+try:
+    object_define_text = open(media_obj,'r',encoding='utf-8').read()#.split('\n') # 修改后的逻辑
+except UnicodeDecodeError as E:
+    print('[31m[DecodeError]:[0m',E)
+    system_terminated('Error')
+if object_define_text[0] == '\ufeff': # UTF-8 BOM
     print('[33m[warning]:[0m','UTF8 BOM recognized in MediaDef, it will be drop from the begin of file!')
-    object_define_text[0] = object_define_text[0][1:]
+    object_define_text = object_define_text[1:] # 去掉首位
+object_define_text = object_define_text.split('\n')
 
 media_list=[]
 for i,text in enumerate(object_define_text):
@@ -1320,10 +1327,10 @@ black = Background('black')
 white = Background('white')
 media_list.append('black')
 media_list.append('white')
-#print(media_list)
 
 # 载入ct文件
 print('[replay generator]: Loading charactor table.')
+
 try:
     if char_tab.split('.')[-1] in ['xlsx','xls']:
         charactor_table = pd.read_excel(char_tab,dtype = str) # 支持excel格式的角色配置表
@@ -1338,14 +1345,16 @@ except Exception as E:
 
 # 载入log文件 parser()
 print('[replay generator]: Parsing Log file.')
+
 try:
-    stdin_text = open(stdin_log,'r',encoding='utf8').read().split('\n')
+    stdin_text = open(stdin_log,'r',encoding='utf8').read()#.split('\n')
 except UnicodeDecodeError as E:
     print('[31m[DecodeError]:[0m',E)
     system_terminated('Error')
-if stdin_text[0][0] == '\ufeff': # 139 debug
+if stdin_text[0] == '\ufeff': # 139 debug # 除非是完全空白的文件
     print('[33m[warning]:[0m','UTF8 BOM recognized in Logfile, it will be drop from the begin of file!')
-    stdin_text[0] = stdin_text[0][1:]
+    stdin_text = stdin_text[1:]
+stdin_text = stdin_text.split('\n')
 try:
     render_timeline,break_point,bulitin_media = parser(stdin_text)
 except ParserError as E:

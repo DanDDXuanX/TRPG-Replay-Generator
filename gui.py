@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.8.5'
+edtion = 'alpha 1.8.7'
 
 import tkinter as tk
 from tkinter import ttk
@@ -31,7 +31,7 @@ class Text:
     def draw(self,lenth=-1):
         if lenth ==-1:
             lenth = self.line_limit
-        test_canvas = Image.new(mode='RGBA',size=(self.size*self.line_limit,self.size*2),color=(0,0,0,0))
+        test_canvas = Image.new(mode='RGBA',size=(self.size*int(self.line_limit*1.5),self.size*2),color=(0,0,0,0))#高度贪婪2x,宽度贪婪1.5x
         test_draw = ImageDraw.Draw(test_canvas)
         test_draw.text((0,0), ('测试文本'*50)[0:lenth], font = self.text_render,fill = self.color)
         p1,p2,p3,p4 = test_canvas.getbbox()
@@ -51,7 +51,7 @@ class StrokeText(Text):
     def draw(self,lenth=-1):
         if lenth ==-1:
             lenth = self.line_limit
-        test_canvas = Image.new(mode='RGBA',size=(self.size*self.line_limit+2,self.size*2),color=(0,0,0,0))
+        test_canvas = Image.new(mode='RGBA',size=(self.size*int(self.line_limit*1.5),self.size*2),color=(0,0,0,0))#高度贪婪2x,宽度贪婪1.5x
         test_draw = ImageDraw.Draw(test_canvas)
         for pos in [(0,0),(0,1),(0,2),(1,0),(1,2),(2,0),(2,1),(2,2)]:
             test_draw.text(pos, ('测试文本'*50)[0:lenth], font = self.text_render,fill = self.edge_color)
@@ -515,9 +515,15 @@ def open_Edit_windows(father,Edit_filepath='',fig_W=960,fig_H=540):
     available_Text = ['None']
 
     def new_obj(): # 新建
-        Edit_windows.attributes('-disabled',True)
+        try:# 非win系统，可能没有disable
+            Edit_windows.attributes('-disabled',True)
+        except:
+            pass
         new_obj = open_Media_def_window(father=Edit_windows)
-        Edit_windows.attributes('-disabled',False)
+        try:
+            Edit_windows.attributes('-disabled',False)
+        except:
+            pass
         Edit_windows.lift()
         Edit_windows.focus_force()
         if new_obj:
@@ -551,9 +557,15 @@ def open_Edit_windows(father,Edit_filepath='',fig_W=960,fig_H=540):
         if selected == 0:
             pass
         else:
-            Edit_windows.attributes('-disabled',True)
+            try:
+                Edit_windows.attributes('-disabled',True)
+            except:
+                pass
             new_obj = open_Media_def_window(Edit_windows,selected_name,selected_type,selected_args)
-            Edit_windows.attributes('-disabled',False)
+            try:
+                Edit_windows.attributes('-disabled',False)
+            except:
+                pass
             Edit_windows.lift()
             Edit_windows.focus_force()
             if new_obj:
@@ -724,14 +736,20 @@ def open_Main_windows():
         Edit_filepath=media_define.get()
         fig_W = project_W.get()
         fig_H = project_H.get()
-        Main_windows.attributes('-disabled',True)
+        try:
+            Main_windows.attributes('-disabled',True)
+        except:
+            pass
         if os.path.isfile(Edit_filepath): # alpha 1.8.5 非法路径
             return_from_Edit = open_Edit_windows(Main_windows,Edit_filepath,fig_W,fig_H)
         else:
             new_or_edit.config(text='新建')
             media_define.set('')
             return_from_Edit = open_Edit_windows(Main_windows,'',fig_W,fig_H)
-        Main_windows.attributes('-disabled',False)
+        try:
+            Main_windows.attributes('-disabled',False)
+        except:
+            pass
         Main_windows.lift()
         Main_windows.focus_force()
         if os.path.isfile(return_from_Edit):

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.8.4'
+edtion = 'alpha 1.8.7'
 
 # 外部参数输入
 
@@ -85,7 +85,7 @@ class Text:
         self.fontpath = fontfile
     def render(self,tx):
         font_this = ImageFont.truetype(self.fontpath, self.size)
-        text_this = Image.new(mode='RGBA',size=(self.size*(len(tx)+1),self.size*2),color=(0,0,0,0)) # 画布贪婪为2x高度，+1宽度
+        text_this = Image.new(mode='RGBA',size=(self.size*int(len(tx)*1.5),self.size*2),color=(0,0,0,0)) # 画布贪婪为2x高度，1.5*宽度
         draw_this = ImageDraw.Draw(text_this)
         draw_this.text((0,0),tx,font = font_this,align ="left",fill = self.color)
         return text_this
@@ -112,7 +112,7 @@ class StrokeText(Text):
         self.edge_color=edge_color
     def render(self,tx):
         font_this = ImageFont.truetype(self.fontpath, self.size)
-        text_this = Image.new(mode='RGBA',size=(self.size*(len(tx)+1),self.size*2),color=(0,0,0,0)) # 画布贪婪为2x高度，+1宽度
+        text_this = Image.new(mode='RGBA',size=(self.size*int(len(tx)*1.5),self.size*2),color=(0,0,0,0)) # 画布贪婪为2x高度，1.5*宽度
         draw_this = ImageDraw.Draw(text_this)
         for pos in [(0,0),(0,1),(0,2),(1,0),(1,2),(2,0),(2,1),(2,2)]:
             draw_this.text(pos,tx,font = font_this,align ="left",fill = self.edge_color)
@@ -646,15 +646,20 @@ break_point = pd.read_pickle(stdin_log.replace('timeline','breakpoint'))
 bulitin_media = pd.read_pickle(stdin_log.replace('timeline','bulitinmedia'))
 
 def main():
-    # 载入od文件
     global media_list
     print('[export XML]: Welcome to use exportXML for TRPG-replay-generator '+edtion)
     print('[export XML]: The output xml file and refered png files will be saved at "'+output_path+'"')
 
-    object_define_text = open(media_obj,'r',encoding='utf-8').read().split('\n')
-    if object_define_text[0][0] == '\ufeff': # 139 debug
+    # 载入od文件
+    try:
+        object_define_text = open(media_obj,'r',encoding='utf-8').read()#.split('\n')
+    except UnicodeDecodeError as E:
+        print('[31m[DecodeError]:[0m',E)
+        sys.exit()
+    if object_define_text[0] == '\ufeff': # 139 debug
         print('[33m[warning]:[0m','UTF8 BOM recognized in MediaDef, it will be drop from the begin of file!')
-        object_define_text[0] = object_define_text[0][1:]
+        object_define_text = object_define_text[1:]
+    object_define_text = object_define_text.split('\n')
 
     media_list=[]
     for i,text in enumerate(object_define_text):

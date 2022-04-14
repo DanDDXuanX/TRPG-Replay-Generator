@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.8.4'
+edtion = 'alpha 1.8.7'
 
 # 外部参数输入
 
@@ -553,23 +553,29 @@ def render(this_frame):
 # 被占用的变量名 # 1.7.7
 occupied_variable_name = open('./media/occupied_variable_name.list','r',encoding='utf8').read().split('\n')
 
+# Main():
+
+print('[export Video]: Welcome to use exportVideo for TRPG-replay-generator '+edtion)
+print('[export Video]: The output mp4 file will be saved at "'+output_path+'"')
+
 # 载入timeline 和 breakpoint
 render_timeline = pd.read_pickle(stdin_log)
 break_point = pd.read_pickle(stdin_log.replace('timeline','breakpoint'))
-stdin_name = stdin_log.replace('\\','/').split('/')[-1]
 bulitin_media = pd.read_pickle(stdin_log.replace('timeline','bulitinmedia'))
+stdin_name = stdin_log.replace('\\','/').split('/')[-1]
 
 cmap = {'black':(0,0,0,255),'white':(255,255,255,255),'greenscreen':(0,177,64,255)}
 
 # 载入od文件
-print('[export Video]: Welcome to use exportVideo for TRPG-replay-generator '+edtion)
-print('[export Video]: The output mp4 file will be saved at "'+output_path+'"')
-
-# 载入od文件
-object_define_text = open(media_obj,'r',encoding='utf-8').read().split('\n')
-if object_define_text[0][0] == '\ufeff': # 139 debug
+try:
+    object_define_text = open(media_obj,'r',encoding='utf-8').read()#.split('\n')
+except UnicodeDecodeError as E:
+    print('[31m[DecodeError]:[0m',E)
+    sys.exit()
+if object_define_text[0] == '\ufeff': # 139 debug
     print('[33m[warning]:[0m','UTF8 BOM recognized in MediaDef, it will be drop from the begin of file!')
-    object_define_text[0] = object_define_text[0][1:]
+    object_define_text = object_define_text[1:]
+object_define_text = object_define_text.split('\n')
 
 media_list=[]
 for i,text in enumerate(object_define_text):

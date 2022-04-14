@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.8.0'
+edtion = 'alpha 1.8.7'
 
 # 绝对的全局变量
 # 在开源发布的版本中，隐去了各个key
@@ -129,7 +129,7 @@ aliyun_voice_lib = [
 
 RE_dialogue = re.compile('^\[([\ \w\.\;\(\)\,]+)\](<[\w\=\d]+>)?:(.+?)(<[\w\=\d]+>)?({.+})?$')
 RE_characor = re.compile('([\ \w]+)(\(\d*\))?(\.\w+)?')
-RE_asterisk = re.compile('(\{([^\{\}]*?[,;])?\*([\w\.\,，]*)?\})')
+RE_asterisk = re.compile('(\{([^\{\}]*?[,;])?\*([\w\.\,，。：？！“”]*)?\})') # v 1.8.7 给星标后文本额外增加几个可用的中文符号
 
 media_list=[]
 
@@ -308,13 +308,18 @@ def main():
         charactor_table['TTS'] = TTS.map(lambda x:eval(x))
     except ModuleNotFoundError as E:
         print('[31m[ImportError]:[0m ',E,'check https://help.aliyun.com/document_detail/374323.html. Execution terminated!')
-        sys.exit()
+        sys.exit() # 似乎直接return 0也不失为一种选择
 
     # 载入od文件
-    object_define_text = open(media_obj,'r',encoding='utf-8').read().split('\n')
-    if object_define_text[0][0] == '\ufeff': # 139 debug
+    try:
+        object_define_text = open(media_obj,'r',encoding='utf-8').read()#.split('\n')
+    except UnicodeDecodeError as E:
+        print('[31m[DecodeError]:[0m',E)
+        sys.exit()
+    if object_define_text[0] == '\ufeff': # UTF-8 BOM
         print('[33m[warning]:[0m','UTF8 BOM recognized in MediaDef, it will be drop from the begin of file!')
-        object_define_text[0] = object_define_text[0][1:]
+        object_define_text = object_define_text[1:]
+    object_define_text = object_define_text.split('\n')
     
     for i,text in enumerate(object_define_text):
         if text == '':
@@ -335,10 +340,15 @@ def main():
                 sys.exit()
 
     # 载入log文件
-    stdin_text = open(stdin_log,'r',encoding='utf8').read().split('\n')
-    if stdin_text[0][0] == '\ufeff': # 139 debug
+    try:
+        stdin_text = open(stdin_log,'r',encoding='utf8').read()#.split('\n')
+    except UnicodeDecodeError as E:
+        print('[31m[DecodeError]:[0m',E)
+        sys.exit()
+    if stdin_text[0] == '\ufeff': # 139 debug
         print('[33m[warning]:[0m','UTF8 BOM recognized in Logfile, it will be drop from the begin of file!')
-        stdin_text[0] = stdin_text[0][1:]
+        stdin_text = stdin_text[1:]
+    stdin_text = stdin_text.split('\n')
     try:
         asterisk_line = parser(stdin_text)
     except Exception as E:
