@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.8.7'
+edtion = 'alpha 1.8.8'
 
 import tkinter as tk
 from tkinter import ttk
@@ -19,7 +19,7 @@ label_pos_show_text = ImageFont.truetype('./media/SourceHanSerifSC-Heavy.otf', 3
 RE_mediadef_args = re.compile('(fontfile|fontsize|color|line_limit|filepath|Main_Text|Header_Text|pos|mt_pos|ht_pos|align|line_distance|tick|loop|volume|edge_color)?\ {0,4}=?\ {0,4}([^,()]+|\([\d,\ ]+\))')
 RE_parse_mediadef = re.compile('(\w+)[=\ ]+(Text|StrokeText|Bubble|Animation|Background|BGM|Audio)(\(.+\))')
 RE_vaildname = re.compile('^\w+$')
-occupied_variable_name = open('./media/occupied_variable_name.list','r',encoding='utf8').read().split('\n')
+occupied_variable_name = open('./media/occupied_variable_name.list','r',encoding='utf8').read().split('\n') # 已经被系统占用的变量名
 
 # global image_canvas
 class Text:
@@ -243,7 +243,7 @@ def open_PosSelect(father,bgfigure='',postype='green',current_pos=''):
     sele_preview.mainloop()
     return posselect_return
 # 媒体定义窗
-def open_Media_def_window(father,i_name='None',i_type='None',i_args='None'):
+def open_Media_def_window(father,i_name='',i_type='',i_args=''):
     obj_return_value = False
     def show_selected_options(event):
         nonlocal type_display
@@ -257,10 +257,13 @@ def open_Media_def_window(father,i_name='None',i_type='None',i_args='None'):
     def comfirm_obj():
         nonlocal obj_return_value
         if '' in [o_name.get(),o_type.get()]:
+            # 如果名字和类型有缺省
             messagebox.showerror(title='错误',message='缺少必要的参数！')
-        elif o_name.get() in occupied_variable_name:
+        elif (o_name.get()!=i_name)&((o_name.get() in occupied_variable_name)|(o_name.get() in used_variable_name)):
+            # 如果名字发生了改变，且新名字在已经占用（用户或系统）的名字里面
             messagebox.showerror(title='错误',message='已被占用的变量名！') #############改这里！
         elif (len(re.findall('^\w+$',o_name.get()))==0) | (o_name.get()[0].isdigit()): # 全字符是\w，且首字符不是数字
+            # 如果新名字是非法的变量名
             messagebox.showerror(title='错误',message='非法的变量名！') 
         else:
             get_args = {
@@ -304,14 +307,8 @@ def open_Media_def_window(father,i_name='None',i_type='None',i_args='None'):
     o_name = tk.StringVar(Objdef_windows)
     o_type = tk.StringVar(Objdef_windows)
 
-    if i_name == 'None':
-        o_name.set('')
-    else:
-        o_name.set(i_name)
-    if i_type == 'None':
-        o_type.set('')
-    else:
-        o_type.set(i_type)
+    o_name.set(i_name) # 默认是''
+    o_type.set(i_type) # 默认是''
 
     arg_tplt = {
         'Text':"(fontfile='{fontfile}',fontsize={fontsize},color={color},line_limit={line_limit})",
@@ -387,7 +384,7 @@ def open_Media_def_window(father,i_name='None',i_type='None',i_args='None'):
                              'BGM':['filepath','volume','loop']}
 
     #初始状态 空白或者选中
-    if i_type == 'None':
+    if i_type == '':
         Empty_frame.place(x=10,y=40,width=300,height=270)
         type_display = Empty_frame
     else:
@@ -509,10 +506,12 @@ def open_Media_def_window(father,i_name='None',i_type='None',i_args='None'):
 def open_Edit_windows(father,Edit_filepath='',fig_W=960,fig_H=540):
     global image_canvas # 预览的画布
     global available_Text # 所有的可用文本名
+    global used_variable_name # 已经被用户占用的命名
     selected_name,selected_type,selected_args = 'None','None','None'
     selected = 0
     edit_return_value = False
-    available_Text = ['None']
+    available_Text = ['None','Text()']
+    used_variable_name = []
 
     def new_obj(): # 新建
         try:# 非win系统，可能没有disable
@@ -528,8 +527,24 @@ def open_Edit_windows(father,Edit_filepath='',fig_W=960,fig_H=540):
         Edit_windows.focus_force()
         if new_obj:
             mediainfo.insert('','end',values =new_obj)
+            used_variable_name.append(new_obj[0]) # 新建的媒体名
             if new_obj[1] in ['Text','StrokeText']: # 如果新建了文本
                 available_Text.append(new_obj[0])
+    def copy_obj(): # 复制
+        if selected == 0:
+            pass
+        else:
+            i = 1
+            while True:
+                new_name = selected_name+'_cp'+str(i)
+                if (new_name in used_variable_name)|(new_name in occupied_variable_name):
+                    i = i + 1
+                else:
+                    break
+            mediainfo.insert('','end',values =(new_name,selected_type,selected_args))
+            used_variable_name.append(new_name) # 新建的媒体名
+            if selected_type in ['Text','StrokeText']: # 如果新建了文本
+                available_Text.append(new_name)
     def preview_obj(): # 预览
         global image_canvas
         nonlocal show_canvas # 必须是全局变量，否则在函数后就被回收了，不再显示
@@ -569,6 +584,8 @@ def open_Edit_windows(father,Edit_filepath='',fig_W=960,fig_H=540):
             Edit_windows.lift()
             Edit_windows.focus_force()
             if new_obj:
+                used_variable_name.remove(selected_name) # 原来的媒体名
+                used_variable_name.append(new_obj[0]) # 新建的媒体名
                 if selected_type in ['Text','StrokeText']: # 如果编辑的对象是文本
                     available_Text.remove(selected_name)
                     available_Text.append(new_obj[0])
@@ -580,6 +597,7 @@ def open_Edit_windows(father,Edit_filepath='',fig_W=960,fig_H=540):
             pass
         else:
             mediainfo.delete(selected)
+            used_variable_name.remove(selected_name)
             if selected_type in ['Text','StrokeText']: # 如果删除了文本
                 available_Text.remove(selected_name)
             selected = 0
@@ -658,15 +676,16 @@ def open_Edit_windows(father,Edit_filepath='',fig_W=960,fig_H=540):
 
     # 按键
 
-    button_w = (fig_W//2-20)//8
-    button_x = lambda x:10+(fig_W//2-20-button_w)//5*x
+    button_w = (fig_W//2-20)//8 # 这数字8 应该等于按键的 数量+1
+    button_x = lambda x:10+(fig_W//2-20-button_w)//6*x # 这个数字6 应该等于按键的 数量-1
 
     ttk.Button(mediainfo_frame,text='预览',command=preview_obj).place(x=button_x(0),y=320,width=button_w,height=40)
     ttk.Button(mediainfo_frame,text='新建',command=new_obj).place(x=button_x(1),y=320,width=button_w,height=40)
-    ttk.Button(mediainfo_frame,text='编辑',command=edit_obj).place(x=button_x(2),y=320,width=button_w,height=40)
-    ttk.Button(mediainfo_frame,text='删除',command=del_obj).place(x=button_x(3),y=320,width=button_w,height=40)
-    ttk.Button(mediainfo_frame,text='保存',command=lambda:finish(False)).place(x=button_x(4),y=320,width=button_w,height=40)
-    ttk.Button(mediainfo_frame,text='另存',command=lambda:finish(True)).place(x=button_x(5),y=320,width=button_w,height=40)
+    ttk.Button(mediainfo_frame,text='复制',command=copy_obj).place(x=button_x(2),y=320,width=button_w,height=40)    
+    ttk.Button(mediainfo_frame,text='编辑',command=edit_obj).place(x=button_x(3),y=320,width=button_w,height=40)
+    ttk.Button(mediainfo_frame,text='删除',command=del_obj).place(x=button_x(4),y=320,width=button_w,height=40)
+    ttk.Button(mediainfo_frame,text='保存',command=lambda:finish(False)).place(x=button_x(5),y=320,width=button_w,height=40)
+    ttk.Button(mediainfo_frame,text='另存',command=lambda:finish(True)).place(x=button_x(6),y=320,width=button_w,height=40)
 
     # 预览图
     image_canvas = Image.open('./media/canvas.png').crop((0,0,fig_W,fig_H))
@@ -686,6 +705,7 @@ def open_Edit_windows(father,Edit_filepath='',fig_W=960,fig_H=540):
                 parseline = RE_parse_mediadef.findall(line)
                 if len(parseline) == 1:
                     mediainfo.insert('','end',values = parseline[0])
+                    used_variable_name.append(parseline[0][0])
                     if parseline[0][1] in ['Text','StrokeText']:
                         available_Text.append(parseline[0][0])
                 else:

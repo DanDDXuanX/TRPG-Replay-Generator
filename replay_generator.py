@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.8.7'
+edtion = 'alpha 1.8.8'
 
 # 外部参数输入
 
@@ -603,6 +603,8 @@ speech_speed = 220 #语速，单位word per minute
 formula = linear #默认的曲线函数
 asterisk_pause = 20 # 星标音频的句间间隔 a1.4.3，单位是帧，通过处理delay
 
+secondary_alpha = 60 # a 1.8.8 次要立绘的默认透明度
+
 # 其他函数定义
 
 # 解析对话行 []
@@ -833,7 +835,7 @@ def parser(stdin_text):
                     if subtype == '':
                         subtype = '.default'
                     if alpha == '':
-                        alpha = 100
+                        alpha = -1
                     else:
                         alpha = int(alpha[1:-1])
                     # 立绘的参数
@@ -864,22 +866,27 @@ def parser(stdin_text):
                         this_timeline['Bb_a'] = alpha_timeline_B*100
                         this_timeline['Bb_p'] = pos_timeline_B
                     #透明度参数
-                    if (k!=0)&(alpha==100):#如果非第一角色，且没有指定透明度，则使用正常透明度60%
-                        this_timeline['Am'+str(k+1)+'_a']=alpha_timeline_A*60
-                    else:#否则，使用正常透明度
+                    if (alpha >= 0)&(alpha <= 100): # alpha 1.8.8 如果有指定合法的透明度，则使用指定透明度
                         this_timeline['Am'+str(k+1)+'_a']=alpha_timeline_A*alpha
+                    else: # 如果没有指定透明度
+                        if k == 0: # 如果是首要角色，透明度为100
+                            this_timeline['Am'+str(k+1)+'_a']=alpha_timeline_A*100
+                        else: # 如果是次要角色，透明度为secondary_alpha，默认值60
+                            this_timeline['Am'+str(k+1)+'_a']=alpha_timeline_A*secondary_alpha 
                     # 位置时间轴信息
                     this_timeline['Am'+str(k+1)+'_p'] = pos_timeline_A
     
                 # 针对文本内容的警告
                 try:
                     this_line_limit = eval(this_timeline['Bb'][0]+'.MainText.line_limit') #获取行长，用来展示各类警告信息
+                    if (len(ts)>this_line_limit*4) | (len(ts.split('#'))>4): #行数过多的警告
+                        print('[33m[warning]:[0m','More than 4 lines will be displayed in dialogue line ' + str(i+1)+'.')
+                    if ((ts[0]=='^')|('#' in ts))&(np.frompyfunc(len,1,1)(ts.replace('^','').split('#')).max()>this_line_limit): # 手动换行的字数超限的警告
+                        print('[33m[warning]:[0m','Manual break line length exceed the Bubble line_limit in dialogue line ' + str(i+1)+'.') #alpha1.6.3
+                except AttributeError: # 'NoneType' object has no attribute 'line_limit'
+                    raise ParserError('[31m[ParserError]:[0m','Main_Text of "{0}" is None!'.format(this_timeline['Bb'][0]))
                 except NameError as E: # 指定的bb没有定义！
                     raise ParserError('[31m[ParserError]:[0m',E,', which is specified to',name+subtype,'as Bubble!')
-                if (len(ts)>this_line_limit*4) | (len(ts.split('#'))>4): #行数过多的警告
-                    print('[33m[warning]:[0m','More than 4 lines will be displayed in dialogue line ' + str(i+1)+'.')
-                if ((ts[0]=='^')|('#' in ts))&(np.frompyfunc(len,1,1)(ts.replace('^','').split('#')).max()>this_line_limit): # 手动换行的字数超限的警告
-                    print('[33m[warning]:[0m','Manual break line length exceed the Bubble line_limit in dialogue line ' + str(i+1)+'.') #alpha1.6.3
                 # 文字显示的参数
                 if text_method == 'all':
                     if text_dur == 0:
@@ -983,10 +990,10 @@ def parser(stdin_text):
                 raise ParserError('[31m[ParserError]:[0m Parse exception occurred in background line ' + str(i+1)+'.')
                 continue
         # 参数设置行，格式：<set:speech_speed>:220
-        elif ('<set:' in text) & ('>:' in text):
+        elif ('<set:' in text) & ('>:' in text): # 感觉这里的逻辑需要重构一下！
             try:
                 target,args = get_seting_arg(text)
-                if target in ['speech_speed','am_method_default','am_dur_default','bb_method_default','bb_dur_default','bg_method_default','bg_dur_default','tx_method_default','tx_dur_default','asterisk_pause']:
+                if target in ['speech_speed','am_method_default','am_dur_default','bb_method_default','bb_dur_default','bg_method_default','bg_dur_default','tx_method_default','tx_dur_default','asterisk_pause','secondary_alpha']:
                     try: #如果args是整数值型
                         test = int(args)
                         if test < 0:
