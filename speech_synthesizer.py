@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.8.7'
+edtion = 'alpha 1.8.9'
 
 # 绝对的全局变量
 # 在开源发布的版本中，隐去了各个key
@@ -50,7 +50,7 @@ try:
     elif os.path.isdir(output_path) == False:
         try:
             os.makedirs(output_path)
-        except:
+        except Exception:
             raise OSError("[31m[SystemError]:[0m Cannot make directory "+output_path)
     else:
         pass
@@ -58,7 +58,7 @@ try:
     
 except Exception as E:
     print(E)
-    sys.exit()
+    sys.exit(1)
 
 # 包导入
 
@@ -153,7 +153,7 @@ def isnumber(str):
     try:
         float(str)
         return True
-    except:
+    except Exception:
         return False
     
 # 清理ts文本中的标记符号
@@ -308,14 +308,14 @@ def main():
         charactor_table['TTS'] = TTS.map(lambda x:eval(x))
     except ModuleNotFoundError as E:
         print('[31m[ImportError]:[0m ',E,'check https://help.aliyun.com/document_detail/374323.html. Execution terminated!')
-        sys.exit() # 似乎直接return 0也不失为一种选择
+        sys.exit(1) # 似乎直接return 0也不失为一种选择
 
     # 载入od文件
     try:
         object_define_text = open(media_obj,'r',encoding='utf-8').read()#.split('\n')
     except UnicodeDecodeError as E:
         print('[31m[DecodeError]:[0m',E)
-        sys.exit()
+        sys.exit(1)
     if object_define_text[0] == '\ufeff': # UTF-8 BOM
         print('[33m[warning]:[0m','UTF8 BOM recognized in MediaDef, it will be drop from the begin of file!')
         object_define_text = object_define_text[1:]
@@ -337,14 +337,14 @@ def main():
                 media_list.append(obj_name) #记录新增对象名称
             except Exception as E:
                 print('[31m[SyntaxError]:[0m "'+text+'" appeared in media define file line ' + str(i+1)+':',E)
-                sys.exit()
+                sys.exit(1)
 
     # 载入log文件
     try:
         stdin_text = open(stdin_log,'r',encoding='utf8').read()#.split('\n')
     except UnicodeDecodeError as E:
         print('[31m[DecodeError]:[0m',E)
-        sys.exit()
+        sys.exit(1)
     if stdin_text[0] == '\ufeff': # 139 debug
         print('[33m[warning]:[0m','UTF8 BOM recognized in Logfile, it will be drop from the begin of file!')
         stdin_text = stdin_text[1:]
@@ -353,7 +353,7 @@ def main():
         asterisk_line = parser(stdin_text)
     except Exception as E:
         print(E)
-        sys.exit()
+        sys.exit(1)
 
     asterisk_line['synth_status'] = False #v1.6.1 初始值，以免生成refresh的时候报错！
 
@@ -377,7 +377,7 @@ def main():
 
     if len(refresh.index) == 0: #如果未合成任何语音
         print('[33m[warning]:[0m','No vaild asterisk label synthesised, execution terminated!')
-        sys.exit()
+        sys.exit(0)
 
     # 读取音频时长
     for key,value in refresh.iterrows():

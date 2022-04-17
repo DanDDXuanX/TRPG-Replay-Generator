@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.8.7'
+edtion = 'alpha 1.8.9'
 
 # 外部参数输入
 
@@ -46,7 +46,7 @@ try:
     elif os.path.isdir(output_path) == False:
         try:
             os.makedirs(output_path)
-        except:
+        except Exception:
             raise OSError("[31m[SystemError]:[0m Cannot make directory "+output_path)
     output_path = output_path.replace('\\','/')
 
@@ -62,7 +62,7 @@ try:
         print("[33m[warning]:[0m",'Resolution is set to more than 3M, which may cause lag in the display!')
 except Exception as E:
     print(E)
-    sys.exit()
+    sys.exit(1)
 
 import pandas as pd
 import numpy as np
@@ -571,7 +571,7 @@ try:
     object_define_text = open(media_obj,'r',encoding='utf-8').read()#.split('\n')
 except UnicodeDecodeError as E:
     print('[31m[DecodeError]:[0m',E)
-    sys.exit()
+    sys.exit(1)
 if object_define_text[0] == '\ufeff': # 139 debug
     print('[33m[warning]:[0m','UTF8 BOM recognized in MediaDef, it will be drop from the begin of file!')
     object_define_text = object_define_text[1:]
@@ -595,7 +595,7 @@ for i,text in enumerate(object_define_text):
             media_list.append(obj_name) #记录新增对象名称
         except Exception as E:
             print('[31m[SyntaxError]:[0m "'+text+'" appeared in media define file line ' + str(i+1)+' is invalid syntax:',E)
-            sys.exit()
+            sys.exit(1)
 black = Background('black')
 white = Background('white')
 media_list.append('black')
@@ -658,7 +658,7 @@ for media in media_list:
         exec(media+'.convert()')
     except Exception as E:
         print('[31m[MediaError]:[0m Exception during converting',media,':',E)
-        sys.exit()
+        sys.exit(1)
 
 # ffmpeg输出
 output_engine = (
@@ -690,7 +690,7 @@ while n < break_point.max():
         print('[31m[RenderError]:[0m','Render exception at frame:',n)
         output_engine.stdin.close()
         pygame.quit()
-        sys.exit()
+        sys.exit(1)
     if n%frame_rate == 1:
         finish_rate = n/break_point.values.max()
         print('[export Video]:','[{0}] {1},\t{2}'.format(int(finish_rate*50)*'#'+(50-int(50*finish_rate))*' ',
@@ -709,4 +709,4 @@ print('[export Video]: Export time elapsed : '+time.strftime("%H:%M:%S", time.gm
 print('[export Video]: Mean frames rendered per second : '+'%.2f'%(break_point.max()/used_time)+' FPS')
 print('[export Video]: Encoding finished! Video path :',output_path+'/'+stdin_name+'.mp4')
 
-sys.exit()
+sys.exit(0)

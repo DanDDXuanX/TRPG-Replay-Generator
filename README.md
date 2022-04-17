@@ -51,41 +51,15 @@ python ./replay_generator.py -l ./toy/LogFile.txt -d ./toy/MediaObject.txt -t ./
 
 > 注意：可执行文件release无需安装python环境即可运行，但是在效能和稳定性上比运行源码略差。
 
-# 参考文档（文档版本 v 1.8.8）
+# 参考文档（文档版本 alpha 1.8.9）
 
-## 主程序replay_generator.py
+## 输入文件格式
 
-**主程序的参数：**
-
-1. **--LogFile, -l** ：必要参数，log文件的路径，文件格式要求详见 [文件格式.log文件](./README.md#3-log文件)；
-2. **--MediaObjDefine, -d** ：必要参数，媒体定义文件的路径，文件格式要求参考 [文件格式.媒体定义文件](./README.md#1-媒体定义文件)；
-3. **--CharacterTable, -t** ：必要参数，角色表文件的路径，格式为制表符分隔的数据表，或者Excel电子表格，包含至少Name、Subtype、Animation、Bubble4列；
-4. ***--OutputPath, -o*** ：可选参数，输出文件的目录；如果输入了该标志，则项目的时间轴、断点文件、内建对象文件将输出到指定的目录，格式分别为timeline、breakpoint、bulitinmedia。如果指定了其他输出标志，相应的文件也将输出到指定的目录。
-
-5. ***--FramePerSecond, -F*** ：可选参数，播放的帧率，单位是fps；默认值是30fps；
-6. ***--Width, -W*** ：可选参数，窗体的宽；默认值是1920；
-7. ***--Height, -H*** ：可选参数，窗体的高；默认值是1080；
-8. ***--Zorder, -Z*** ：可选参数，渲染的图层顺序；通常不建议修改这个参数，除非必要。格式要求详见 [进阶使用.图层顺序](./README.md#--zorder-图层顺序)。
-
-9. ***--AccessKey, -K*** ：可选参数，阿里云账号的AccessKey，执行语音合成时所必须的；
-10. ***--AccessKeySecret, -S*** ：可选参数，阿里云账号的AccessKeySecret，执行语音合成时所必须的；
-11. ***--Appkey, -A*** ：可选参数，阿里云语音合成应用的Appkey，执行语音合成时所必须的。
-12. ***--Quality, -Q*** :可选参数，导出为mp4视频时的质量，即ffmpeg程序的crf值；取值范围为0-51，越小对应越高的视频质量，通常合理范围为18-28；默认值是24
-
-13. ***--ExportXML*** ：可选标志，如果使用该标志，会输出一个能导入到PR的XML文件，以及其引用的一系列PNG图片到输出目录。
-14. ***--ExportVideo*** ：可选标志，如果使用该标志，会导出一个和窗口中播放的内容完全一致的MP4视频。使用该标志则会跳过窗口播放。
-15. ***--SynthesisAnyway*** ：可选标志，如果使用该标志，会对log文件中尚未处理的星标行进行语音合成；一系列WAV音频到会输出到输出目录。
-16. ***--FixScreenZoom*** ：可选参数，仅在windows系统上生效。使用该标志以消除由于windows系统缩放倍率，而导致的窗体尺寸异常。
-
-**主程序命令例子：**
-
-```bash
-python replay_generator.py -l LogFile.txt -d MediaDefine.txt -t CharactorTable.csv -F 30 --ExportVideo
-```
+本程序的工程由三个文本文件构成：媒体定义文件、角色配置文件、log文件。作为输入文件的所有文本文件，均需要使用 `uft-8` 编码。
 
 ### 1. 媒体定义文件
 
-媒体定义文件用于定义项目中使用的媒体对象，及其引用的文件；媒体定义文件使用类似python类实例化的语法。<p>
+媒体定义文件定义了工程中所需要使用的媒体对象，作为整个工程调用的资源；媒体定义文件使用类似python类实例化的语法。<p>
 目前版本中，可用的对象包括下列：
 
 ![媒体定义的示意图](./doc/media_def.png)
@@ -174,9 +148,10 @@ Audio(filepath)
 **媒体定义文件例子：**<p>
 参考[示例媒体定义文件](./toy/MediaObject.txt)
 
-### 2. 角色设置文件
+### 2. 角色配置文件
 
-角色设置文件是一个制表符`'\t'`分隔的数据表文件，或者Excel电子表格，用于配置角色和 *立绘、气泡、声音* 等媒体对象的对应关系；用于replay_generator主程序的角色设置文件需要至少包括 `Name、Subtype、Animation、Bubble` 四列；用于speech_synthesizer程序的角色设置文件需要至少包括 `Name、Subtype、Voice` 三列，`SpeechRate、PitchRate` 两列是可选的。
+角色配置文件指明了各个角色和各项媒体资源之间的对应关系。<p>
+角色配置文件是一个制表符`'\t'`分隔的数据表文件，或者Excel电子表格，用于配置角色和 *立绘、气泡、声音* 等媒体对象的对应关系；用于replay_generator主程序的角色配置文件需要至少包括 `Name、Subtype、Animation、Bubble` 四列；用于speech_synthesizer程序的角色配置文件需要至少包括 `Name、Subtype、Voice` 三列，`SpeechRate、PitchRate` 两列是可选的。
 
 - Name列，角色的名称，和 *Log文件-对话行-角色框* 内的名称相互对应；名称可以包含英文字符，空格，数字，下划线，中文，不可以包含任何其他字符。
 - Subtype列，角色的差分名称；差分名称可以包含英文字符，数字，下划线，中文，不可以包含空格；每个Name必须要有一个Subtype是default，且不可以有重复的Subtype。
@@ -186,7 +161,7 @@ Audio(filepath)
 - SpeechRate列，角色配音的语速；取值范围是(-500,500)，对应0.5倍速至2倍速。
 - PitchRate列，角色配音的语调；取值范围是(-500,500)，对应低八度至高八度。详见[接口说明](https://help.aliyun.com/document_detail/84435.html)
 
-角色设置文件例子：
+角色配置文件例子：
 
 |Name|Subtype|Animation|Bubble|Voice|SpeechRate|PitchRate|
 |:---|:---:|:---:|:---:|:---:|:---:|:---:|
@@ -200,14 +175,15 @@ Audio(filepath)
 
 ### 3. Log文件
 log文件是整个演示的剧本文件，决定了演示的内容和效果；<p>
-log文件有4类有效行，对话行，背景行，设置行和内建动画行，分别有其对应的格式。
+log文件有4类有效行，对话行，背景行，设置行和内建动画行，分别有其对应的格式。<p>
+log文件中每个行是均是一个独立的单元，文本内容不能跨行。
 
 #### A. 对话行
 ```
 [name1(100).default,name2(60).default,name3(60).default]<replace=0>:Talk#Text.<all=0>{"./audio/1.ogg";30}{Audio;*30}
 ```
 
-通过对话行，在演示中展示角色的 *立绘* ，并用相应的 *气泡* 显示 *发言文本* 中的文字。对应关系在 *角色设置文件* 中定义。
+通过对话行，在演示中展示角色的 *立绘* ，并用相应的 *气泡* 显示 *发言文本* 中的文字。对应关系在 *角色配置文件* 中定义。
 
 1.	**角色框：**`[name(alpha).subtype;...]`
 	- 角色框内最多指定 3 个角色，同框角色的立绘都将展示出来；
@@ -308,7 +284,7 @@ set:后跟需要设置的全局变量名；
 	- 当对话行中缺省 *文本效果修饰符* 时，使用该默认值
 	- 可选的选项有 `all、w2w、l2l`；
 	- 例如 `[name]:talk` ，等价于 `[name]<replace=0>:talk<all=1>`
-8.	`tx_dur_default`：默认文本展示时间，初始值是：8，单位是帧。
+8.	`tx_dur_default`：默认文本展示时间，初始值是：5，单位是帧。
 	- 当对话行的`<文本效果修饰符>`中未指定时间，则使用该默认值；
 	- 例如 `<l2l>`，等价于 `<l2l=8>`。
 9.	`speech_speed`：语速，初始值是：220，单位是 words/min。
@@ -393,6 +369,36 @@ set:后跟需要设置的全局变量名；
 ```
 
 > 注意：当同一类关键字出现了多次时，将以最后一次为准；未出现的关键字类型则采用默认值。
+
+## 主程序replay_generator.py
+
+**主程序的参数：**
+
+1. **--LogFile, -l** ：必要参数，log文件的路径，文件格式要求详见 [输入文件格式.log文件](./README.md#3-log文件)；
+2. **--MediaObjDefine, -d** ：必要参数，媒体定义文件的路径，文件格式要求参考 [输入文件格式.媒体定义文件](./README.md#1-媒体定义文件)；
+3. **--CharacterTable, -t** ：必要参数，角色表文件的路径，格式为制表符分隔的数据表，或者Excel电子表格，包含至少Name、Subtype、Animation、Bubble4列；
+4. ***--OutputPath, -o*** ：可选参数，输出文件的目录；如果输入了该标志，则项目的时间轴、断点文件、内建对象文件将输出到指定的目录，格式分别为timeline、breakpoint、bulitinmedia。如果指定了其他输出标志，相应的文件也将输出到指定的目录。
+
+5. ***--FramePerSecond, -F*** ：可选参数，播放的帧率，单位是fps；默认值是30fps；
+6. ***--Width, -W*** ：可选参数，窗体的宽；默认值是1920；
+7. ***--Height, -H*** ：可选参数，窗体的高；默认值是1080；
+8. ***--Zorder, -Z*** ：可选参数，渲染的图层顺序；通常不建议修改这个参数，除非必要。格式要求详见 [进阶使用.图层顺序](./README.md#--zorder-图层顺序)。
+
+9. ***--AccessKey, -K*** ：可选参数，阿里云账号的AccessKey，执行语音合成时所必须的；
+10. ***--AccessKeySecret, -S*** ：可选参数，阿里云账号的AccessKeySecret，执行语音合成时所必须的；
+11. ***--Appkey, -A*** ：可选参数，阿里云语音合成应用的Appkey，执行语音合成时所必须的。
+12. ***--Quality, -Q*** :可选参数，导出为mp4视频时的质量，即ffmpeg程序的crf值；取值范围为0-51，越小对应越高的视频质量，通常合理范围为18-28；默认值是24
+
+13. ***--ExportXML*** ：可选标志，如果使用该标志，会输出一个能导入到PR的XML文件，以及其引用的一系列PNG图片到输出目录。
+14. ***--ExportVideo*** ：可选标志，如果使用该标志，会导出一个和窗口中播放的内容完全一致的MP4视频。使用该标志则会跳过窗口播放。
+15. ***--SynthesisAnyway*** ：可选标志，如果使用该标志，会对log文件中尚未处理的星标行进行语音合成；一系列WAV音频到会输出到输出目录。
+16. ***--FixScreenZoom*** ：可选参数，仅在windows系统上生效。使用该标志以消除由于windows系统缩放倍率，而导致的窗体尺寸异常。
+
+**主程序命令例子：**
+
+```bash
+python replay_generator.py -l LogFile.txt -d MediaDefine.txt -t CharactorTable.csv -F 30 --ExportVideo
+```
 
 ## 语音合成模块speech_synthesizer.py
 

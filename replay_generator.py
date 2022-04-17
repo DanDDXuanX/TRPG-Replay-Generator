@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.8.8'
+edtion = 'alpha 1.8.9'
 
 # 外部参数输入
 
@@ -41,7 +41,10 @@ def system_terminated(exit_type='Error'):
                   'Video':'Video exported. Execution terminated!',
                   'End':'Display finished!'}
     print('[replay generator]: '+exit_print[exit_type])
-    sys.exit()
+    if exit_type == 'Error':
+        sys.exit(1) # 错误退出的代码
+    else:
+        sys.exit(0) # 正常退出的代码
 
 media_obj = args.MediaObjDefine #媒体对象定义文件的路径
 char_tab = args.CharacterTable #角色和媒体对象的对应关系文件的路径
@@ -714,12 +717,12 @@ def am_methods(method_name,method_dur,this_duration,i):
         elif 'DG' == key[0:2]:
             try:
                 method_args['direction'] = float(key[2:])
-            except:
+            except Exception:
                 raise ParserError('[31m[ParserError]:[0m Unrecognized switch method: "'+method_name+'" appeared in dialogue line ' + str(i+1)+'.')
         else:
             try:
                 method_args['scale'] = int(key)
-            except:
+            except Exception:
                 raise ParserError('[31m[ParserError]:[0m Unrecognized switch method: "'+method_name+'" appeared in dialogue line ' + str(i+1)+'.')
     # 切入，切出，或者双端
     cutin,cutout ={'in':(1,0),'out':(0,1),'both':(1,1)}[method_args['cut']]
@@ -738,7 +741,7 @@ def am_methods(method_name,method_dur,this_duration,i):
     # direction
     try:
         theta = np.deg2rad(direction_dic[method_args['direction']])
-    except: # 设定为角度
+    except Exception: # 设定为角度
         theta = np.deg2rad(method_args['direction'])
     # scale
     if method_args['scale'] in ['major','minor','entire']: #上下绑定屏幕高度，左右绑定屏幕宽度*scale_dic[method_args['scale']]
@@ -810,7 +813,7 @@ def parser(stdin_text):
                     try:
                         asterisk_time = float(asterisk_timeset[0][-1]) #取第二个，转化为浮点数
                         this_duration = asterisk_pause + np.ceil((asterisk_time)*frame_rate).astype(int) # a1.4.3 添加了句间停顿
-                    except:
+                    except Exception:
                         print('[33m[warning]:[0m','Failed to load asterisk time in dialogue line ' + str(i+1)+'.')
                 else: #检测到复数个星标
                     raise ParserError('[31m[ParserError]:[0m Too much asterisk time labels are set in dialogue line ' + str(i+1)+'.')
@@ -911,7 +914,7 @@ def parser(stdin_text):
                 for sound in this_sound: #this_sound = ['{SE_obj;30}','{SE_obj;30}']
                     try:
                         se_obj,delay = sound[1:-1].split(';')#sound = '{SE_obj;30}'
-                    except: # #sound = '{SE_obj}'
+                    except Exception: # #sound = '{SE_obj}'
                         delay = '0'
                         se_obj = sound[1:-1] # 去掉花括号
                     if delay == '':
@@ -990,20 +993,20 @@ def parser(stdin_text):
                 raise ParserError('[31m[ParserError]:[0m Parse exception occurred in background line ' + str(i+1)+'.')
                 continue
         # 参数设置行，格式：<set:speech_speed>:220
-        elif ('<set:' in text) & ('>:' in text): # 感觉这里的逻辑需要重构一下！
+        elif ('<set:' in text) & ('>:' in text):
             try:
                 target,args = get_seting_arg(text)
-                if target in ['speech_speed','am_method_default','am_dur_default','bb_method_default','bb_dur_default','bg_method_default','bg_dur_default','tx_method_default','tx_dur_default','asterisk_pause','secondary_alpha']:
-                    try: #如果args是整数值型
-                        test = int(args)
-                        if test < 0:
-                            print('[33m[warning]:[0m','Setting',target,'to invalid value',test,',the argument will not changed.')
-                            test = eval(target) # 保持原数值不变
-                        #print("global {0} ; {0} = {1}".format(target,str(test)))
-                        exec("global {0} ; {0} = {1}".format(target,str(test)))
-                    except: #否则当作文本型
-                        #print("global {0} ; {0} = {1}".format(target,'\"'+args+'\"'))
-                        exec("global {0} ; {0} = {1}".format(target,'\"'+args+'\"'))
+                if target in ['am_dur_default','bb_dur_default','bg_dur_default','tx_dur_default','speech_speed','asterisk_pause','secondary_alpha']:
+                    try: 
+                        args = int(args) #如果args是整数值型
+                        if args < 0:
+                            raise ParserError('invalid args')
+                    except Exception:
+                        print('[33m[warning]:[0m','Setting',target,'to invalid value',args,',the argument will not changed.')
+                        args = eval(target) # 保持原数值不变
+                    exec("global {0} ; {0} = {1}".format(target,str(args)))
+                elif target in ['am_method_default','bb_method_default','bg_method_default','tx_method_default']:
+                    exec("global {0} ; {0} = {1}".format(target,'\"'+args+'\"')) # 当作文本型，无论是啥都接受
                 elif target == 'BGM':
                     if args in media_list:
                         BGM_queue.append(args)
@@ -1021,7 +1024,7 @@ def parser(stdin_text):
                             formula = eval(args)
                             print('[33m[warning]:[0m','Using lambda formula range ',formula(0,1,2),
                                   ' in line',str(i+1),', which may cause unstableness during displaying!')                            
-                        except:
+                        except Exception:
                             raise ParserError('[31m[ParserError]:[0m Unsupported formula "'+args+'" is specified in setting line ' + str(i+1)+'.')
                     else:
                         raise ParserError('[31m[ParserError]:[0m Unsupported formula "'+args+'" is specified in setting line ' + str(i+1)+'.')
@@ -1249,7 +1252,7 @@ def get_l2l(ts,text_dur,this_duration): #如果是手动换行的列
     try:
         wc_list.append(np.ones(this_duration - (len(ts)-x)*text_dur)*len(ts)) #this_duration > est # 1.6.1 update
         word_count_timeline = np.hstack(wc_list)
-    except: 
+    except Exception: 
         word_count_timeline = np.hstack(wc_list) # this_duration < est
         word_count_timeline = word_count_timeline[0:this_duration]
     return word_count_timeline.astype(int)
@@ -1287,13 +1290,12 @@ if synthfirst == True:
     command = command.format(lg = stdin_log.replace('\\','/'),md = media_obj.replace('\\','/'), of = output_path, ct = char_tab.replace('\\','/'), AK = AKID,AS = AKKEY,AP = APPKEY)
     print('[replay generator]: Flag --SynthesisAnyway detected, running command:\n'+'[32m'+command+'[0m')
     try:
-        os.system(command)
-        # 将当前的标准输入调整为处理后的log文件
-        if os.path.isfile(output_path+'/AsteriskMarkedLogFile.txt') == True:
+        exit_status = os.system(command)
+        # 如果是正常退出，将当前的标准输入调整为处理后的log文件
+        if (exit_status == 0)&(os.path.isfile(output_path+'/AsteriskMarkedLogFile.txt') == True):
             stdin_log = output_path+'/AsteriskMarkedLogFile.txt'
         else:
             raise OSError('Exception above')
-        # 
     except Exception as E:
         print('[33m[warning]:[0m Failed to synthesis speech, due to:',E)
 
@@ -1382,7 +1384,9 @@ if output_path != None:
                                  fps = frame_rate, wd = screen_size[0], he = screen_size[1], zd = ','.join(zorder))
         print('[replay generator]: Flag --ExportXML detected, running command:\n'+'[32m'+command+'[0m')
         try:
-            os.system(command)
+            exit_status = os.system(command)
+            if exit_status != 0:
+                raise OSError('Major error occurred in export_xml!')
         except Exception as E:
             print('[33m[warning]:[0m Failed to export XML, due to:',E)
     if exportVideo == True:
@@ -1392,7 +1396,9 @@ if output_path != None:
                                  fps = frame_rate, wd = screen_size[0], he = screen_size[1], zd = ','.join(zorder),ql = crf)
         print('[replay generator]: Flag --ExportVideo detected, running command:\n'+'[32m'+command+'[0m')
         try:
-            os.system(command)
+            exit_status = os.system(command)
+            if exit_status != 0:
+                raise OSError('Major error occurred in export_video!')
         except Exception as E:
             print('[33m[warning]:[0m Failed to export Video, due to:',E)
         system_terminated('Video') # 如果导出为视频，则提前终止程序
@@ -1403,7 +1409,7 @@ if fixscreen == True:
     try:
         import ctypes
         ctypes.windll.user32.SetProcessDPIAware() #修复错误的缩放，尤其是在移动设备。
-    except:
+    except Exception:
         print('[33m[warning]:[0m OS exception, --FixScreenZoom is only avaliable on windows system!')
 
 pygame.init()

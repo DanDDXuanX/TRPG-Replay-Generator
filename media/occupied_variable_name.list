@@ -92,6 +92,7 @@ drop
 edtion
 end
 event
+exit_status
 exportVideo
 exportXML
 ffmpeg

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.8.7'
+edtion = 'alpha 1.8.9'
 
 # 外部参数输入
 
@@ -42,7 +42,7 @@ try:
     elif os.path.isdir(output_path) == False:
         try:
             os.makedirs(output_path)
-        except:
+        except Exception:
             raise OSError("[31m[SystemError]:[0m Cannot make directory "+output_path)
     output_path = output_path.replace('\\','/')
 
@@ -58,7 +58,7 @@ try:
         print("[33m[warning]:[0m",'Resolution is set to more than 3M, which may cause lag in the display!')
 except Exception as E:
     print(E)
-    sys.exit()
+    sys.exit(1)
 
 # 包导入
 
@@ -655,7 +655,7 @@ def main():
         object_define_text = open(media_obj,'r',encoding='utf-8').read()#.split('\n')
     except UnicodeDecodeError as E:
         print('[31m[DecodeError]:[0m',E)
-        sys.exit()
+        sys.exit(1)
     if object_define_text[0] == '\ufeff': # 139 debug
         print('[33m[warning]:[0m','UTF8 BOM recognized in MediaDef, it will be drop from the begin of file!')
         object_define_text = object_define_text[1:]
@@ -679,7 +679,7 @@ def main():
                 media_list.append(obj_name) #记录新增对象名称
             except Exception as E:
                 print('[31m[SyntaxError]:[0m "'+text+'" appeared in media define file line ' + str(i+1)+' is invalid syntax:',E)
-                sys.exit()
+                sys.exit(1)
     black = Background('black')
     white = Background('white')
     media_list.append('black')

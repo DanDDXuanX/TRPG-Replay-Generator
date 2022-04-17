@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.8.8'
+edtion = 'alpha 1.8.9'
 
 import tkinter as tk
 from tkinter import ttk
@@ -168,7 +168,7 @@ def open_PosSelect(father,bgfigure='',postype='green',current_pos=''):
         elif event.type=='4': # tk.EventType.ButtonPress
             try: # 获取鼠标点击位置
                 p_x,p_y = 2*event.x,2*event.y
-            except:
+            except Exception:
                 pass # 则不变
         else:
             pass
@@ -196,7 +196,7 @@ def open_PosSelect(father,bgfigure='',postype='green',current_pos=''):
             cursor_figure = Image.open(bgfigure)
             if cursor_figure.mode != 'RGBA': # 如果没有alpha通道
                 cursor_figure.putalpha(255)
-        except:
+        except Exception:
             cursor_figure = Image.new(mode='RGBA',size=(1,1),color=(0,0,0,0))
     elif postype=='blue': # mtpos htpos
         try:
@@ -237,7 +237,7 @@ def open_PosSelect(father,bgfigure='',postype='green',current_pos=''):
     try:
         p_x,p_y = re.findall('\(([\ \d]+),([\ \d]+)\)',current_pos)[0]
         p_x,p_y= int(p_x),int(p_y)
-    except:
+    except Exception:
         p_x,p_y= 0,0
     get_click()
     sele_preview.mainloop()
@@ -516,20 +516,22 @@ def open_Edit_windows(father,Edit_filepath='',fig_W=960,fig_H=540):
     def new_obj(): # 新建
         try:# 非win系统，可能没有disable
             Edit_windows.attributes('-disabled',True)
-        except:
+        except Exception:
             pass
         new_obj = open_Media_def_window(father=Edit_windows)
         try:
             Edit_windows.attributes('-disabled',False)
-        except:
+        except Exception:
             pass
         Edit_windows.lift()
         Edit_windows.focus_force()
         if new_obj:
-            mediainfo.insert('','end',values =new_obj)
             used_variable_name.append(new_obj[0]) # 新建的媒体名
             if new_obj[1] in ['Text','StrokeText']: # 如果新建了文本
+                mediainfo.insert('',0,values =new_obj) # 则插入在最上层
                 available_Text.append(new_obj[0])
+            else:
+                mediainfo.insert('','end',values =new_obj) # 否则插入在最后
     def copy_obj(): # 复制
         if selected == 0:
             pass
@@ -541,10 +543,12 @@ def open_Edit_windows(father,Edit_filepath='',fig_W=960,fig_H=540):
                     i = i + 1
                 else:
                     break
-            mediainfo.insert('','end',values =(new_name,selected_type,selected_args))
             used_variable_name.append(new_name) # 新建的媒体名
             if selected_type in ['Text','StrokeText']: # 如果新建了文本
                 available_Text.append(new_name)
+                mediainfo.insert('',0,values =(new_name,selected_type,selected_args)) # 插入到最前面
+            else:
+                mediainfo.insert('','end',values =(new_name,selected_type,selected_args)) # 否则插入到最后面
     def preview_obj(): # 预览
         global image_canvas
         nonlocal show_canvas # 必须是全局变量，否则在函数后就被回收了，不再显示
@@ -574,12 +578,12 @@ def open_Edit_windows(father,Edit_filepath='',fig_W=960,fig_H=540):
         else:
             try:
                 Edit_windows.attributes('-disabled',True)
-            except:
+            except Exception:
                 pass
             new_obj = open_Media_def_window(Edit_windows,selected_name,selected_type,selected_args)
             try:
                 Edit_windows.attributes('-disabled',False)
-            except:
+            except Exception:
                 pass
             Edit_windows.lift()
             Edit_windows.focus_force()
@@ -634,7 +638,7 @@ def open_Edit_windows(father,Edit_filepath='',fig_W=960,fig_H=540):
             selected = mediainfo.selection()
             selected_name,selected_type,selected_args = mediainfo.item(selected, "values")
             #print(selected_name,selected_type,selected_args)
-        except:
+        except Exception:
             pass
 
     window_W , window_H = fig_W//2+40,fig_H//2+440
@@ -741,7 +745,7 @@ def choose_color(text_obj):
         R,G,B = get_color[0]
         A = 255
         text_obj.set('({0},{1},{2},{3})'.format(int(R),int(G),int(B),int(A)))
-    except:
+    except Exception:
         text_obj.set('')
     
 # 主界面的函数
@@ -758,7 +762,7 @@ def open_Main_windows():
         fig_H = project_H.get()
         try:
             Main_windows.attributes('-disabled',True)
-        except:
+        except Exception:
             pass
         if os.path.isfile(Edit_filepath): # alpha 1.8.5 非法路径
             return_from_Edit = open_Edit_windows(Main_windows,Edit_filepath,fig_W,fig_H)
@@ -768,7 +772,7 @@ def open_Main_windows():
             return_from_Edit = open_Edit_windows(Main_windows,'',fig_W,fig_H)
         try:
             Main_windows.attributes('-disabled',False)
-        except:
+        except Exception:
             pass
         Main_windows.lift()
         Main_windows.focus_force()
@@ -806,9 +810,11 @@ def open_Main_windows():
                                      wd=project_W.get(),he=project_H.get(),zd=project_Z.get())
             try:
                 print('[32m'+command+'[0m')
-                os.system(command)
-            except:
-                messagebox.showwarning(title='警告',message='似乎有啥不对劲的事情发生了！')
+                exit_status = os.system(command)
+                if exit_status != 0:
+                    raise OSError('Major error occurred in replay_generator!')
+            except Exception:
+                messagebox.showwarning(title='警告',message='似乎有啥不对劲的事情发生了，检视控制台输出获取详细信息！')
     def run_command_synth():
         command = python3 +' ./speech_synthesizer.py --LogFile {lg} --MediaObjDefine {md} --CharacterTable {ct} --OutputPath {of} --AccessKey {AK} --AccessKeySecret {AS} --Appkey {AP}'
         if '' in [stdin_logfile.get(),characor_table.get(),media_define.get(),output_path.get(),AccessKey.get(),AccessKeySecret.get(),Appkey.get()]:
@@ -819,10 +825,12 @@ def open_Main_windows():
                                      AK = AccessKey.get(), AS= AccessKeySecret.get(),AP=Appkey.get())
             try:
                 print('[32m'+command+'[0m')
-                os.system(command)
-                messagebox.showinfo(title='完毕',message='语音合成程序执行完毕，检视控制台输出获取详细信息！')
-            except:
-                messagebox.showwarning(title='警告',message='似乎有啥不对劲的事情发生了！')
+                exit_status = os.system(command)
+                if exit_status != 0:
+                    raise OSError('Major error occurred in speech_synthesizer!')
+                messagebox.showinfo(title='完毕',message='语音合成程序执行完毕！')
+            except Exception:
+                messagebox.showwarning(title='警告',message='似乎有啥不对劲的事情发生了，检视控制台输出获取详细信息！')
     def run_command_xml():
         command = python3 + ' ./export_xml.py --TimeLine {tm} --MediaObjDefine {md} --OutputPath {of} --FramePerSecond {fps} --Width {wd} --Height {he} --Zorder {zd}'
         if '' in [timeline_file.get(),media_define.get(),output_path.get(),
@@ -835,10 +843,12 @@ def open_Main_windows():
                                      he = project_H.get(), zd = project_Z.get())
             try:
                 print('[32m'+command+'[0m')
-                os.system(command)
-                messagebox.showinfo(title='完毕',message='导出XML程序执行完毕，检视控制台输出获取详细信息！')
-            except:
-                messagebox.showwarning(title='警告',message='似乎有啥不对劲的事情发生了！')
+                exit_status = os.system(command)
+                if exit_status != 0:
+                    raise OSError('Major error occurred in export_xml!')
+                messagebox.showinfo(title='完毕',message='导出XML程序执行完毕！')
+            except Exception:
+                messagebox.showwarning(title='警告',message='似乎有啥不对劲的事情发生了，检视控制台输出获取详细信息！')
     def run_command_mp4():
         command = python3 + ' ./export_video.py --TimeLine {tm} --MediaObjDefine {md} --OutputPath {of} --FramePerSecond {fps} --Width {wd} --Height {he} --Zorder {zd} --Quality {ql}'
         if '' in [timeline_file.get(),media_define.get(),output_path.get(),
@@ -851,10 +861,12 @@ def open_Main_windows():
                                      he = project_H.get(), zd = project_Z.get(), ql = project_Q.get())
             try:
                 print('[32m'+command+'[0m')
-                os.system(command)
-                messagebox.showinfo(title='完毕',message='导出视频程序执行完毕，检视控制台输出获取详细信息！')
-            except:
-                messagebox.showwarning(title='警告',message='似乎有啥不对劲的事情发生了！')
+                exit_status = os.system(command)
+                if exit_status != 0:
+                    raise OSError('Major error occurred in export_video!')
+                messagebox.showinfo(title='完毕',message='导出视频程序执行完毕！')
+            except Exception:
+                messagebox.showwarning(title='警告',message='似乎有啥不对劲的事情发生了，检视控制台输出获取详细信息！')
     def highlight(target):
         if target == exportmp4:
             if target.get() == 1:
@@ -885,7 +897,7 @@ def open_Main_windows():
                     import ctypes
                     ctypes.windll.user32.SetProcessDPIAware() #修复错误的缩放，尤其是在移动设备。
                     Main_windows.update()
-                except:
+                except Exception:
                     messagebox.showwarning(title='警告',message='该选项在当前系统下不可用！')
                     target.set(0)
 
@@ -900,7 +912,7 @@ def open_Main_windows():
     # 大号字体
     try:
         big_text = font.Font(font="微软雅黑",size=25)
-    except:
+    except Exception:
         big_text = font.Font(size=25)
 
     # 选中的sheet
