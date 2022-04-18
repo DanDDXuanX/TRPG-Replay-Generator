@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.8.9'
+edtion = 'alpha 1.9.0'
 
 import tkinter as tk
 from tkinter import ttk
@@ -13,10 +13,11 @@ import webbrowser
 import os
 import sys
 import re
+import pickle
 
 # preview 的类 定义
 label_pos_show_text = ImageFont.truetype('./media/SourceHanSerifSC-Heavy.otf', 30)
-RE_mediadef_args = re.compile('(fontfile|fontsize|color|line_limit|filepath|Main_Text|Header_Text|pos|mt_pos|ht_pos|align|line_distance|tick|loop|volume|edge_color)?\ {0,4}=?\ {0,4}([^,()]+|\([\d,\ ]+\))')
+RE_mediadef_args = re.compile('(fontfile|fontsize|color|line_limit|filepath|Main_Text|Header_Text|pos|mt_pos|ht_pos|align|line_distance|tick|loop|volume|edge_color)?\ {0,4}=?\ {0,4}(Text\(\)|[^,()]+|\([\d,\ ]+\))')
 RE_parse_mediadef = re.compile('(\w+)[=\ ]+(Text|StrokeText|Bubble|Animation|Background|BGM|Audio)(\(.+\))')
 RE_vaildname = re.compile('^\w+$')
 occupied_variable_name = open('./media/occupied_variable_name.list','r',encoding='utf8').read().split('\n') # 已经被系统占用的变量名
@@ -900,6 +901,29 @@ def open_Main_windows():
                 except Exception:
                     messagebox.showwarning(title='警告',message='该选项在当前系统下不可用！')
                     target.set(0)
+    def close_window():
+        # 保存当前参数
+        try:
+            o_config = open('./media/save_config','wb')
+            if save_config.get() == 1: # 以一个字典的形式把设置保存下来
+                pickle.dump({
+                    'stdin_logfile':stdin_logfile.get(),'characor_table':characor_table.get(),
+                    'media_define':media_define.get(),'output_path':output_path.get(),
+                    'timeline_file':timeline_file.get(),'project_W':project_W.get(),
+                    'project_H':project_H.get(),'project_F':project_F.get(),
+                    'project_Z':project_Z.get(),'project_Q':project_Q.get(),
+                    'AccessKey':AccessKey.get(),'Appkey':Appkey.get(),'AccessKeySecret':AccessKeySecret.get(),
+                    'synthanyway':synthanyway.get(),'exportprxml':exportprxml.get(),
+                    'exportmp4':exportmp4.get(),'fixscrzoom':fixscrzoom.get(),'save_config':save_config.get()
+                },o_config) 
+            else: # 如果选择不保存，则抹除保存的参数
+                pickle.dump({'save_config':save_config.get()},o_config)
+            o_config.close()
+        except Exception:
+            messagebox.showwarning(title='警告',message='保存设置内容失败!')
+        finally: # 关闭主窗口
+            Main_windows.destroy()
+            Main_windows.quit()
 
     # 初始化
     Main_windows = tk.Tk()
@@ -907,6 +931,7 @@ def open_Main_windows():
     Main_windows.geometry("640x550")
     Main_windows.iconbitmap('./media/icon.ico')
     Main_windows.config(background ='#e0e0e0')
+    Main_windows.protocol('WM_DELETE_WINDOW',close_window)
     Main_windows.title('回声工坊 ' + edtion)
 
     # 大号字体
@@ -930,23 +955,35 @@ def open_Main_windows():
     project_F = tk.IntVar(Main_windows)
     project_Z = tk.StringVar(Main_windows)
     project_Q = tk.IntVar(Main_windows)
-    project_W.set(1920)
-    project_H.set(1080)
-    project_F.set(30)
-    project_Z.set('BG3,BG2,BG1,Am3,Am2,Am1,Bb')
-    project_Q.set(24)
     # 语音合成的key
     AccessKey = tk.StringVar(Main_windows)
     Appkey = tk.StringVar(Main_windows)
     AccessKeySecret = tk.StringVar(Main_windows)
-    AccessKey.set('Your_AccessKey')
-    AccessKeySecret.set('Your_AccessKey_Secret')
-    Appkey.set('Your_Appkey')
     # flag们
     synthanyway = tk.IntVar(Main_windows)
     exportprxml = tk.IntVar(Main_windows)
     exportmp4 = tk.IntVar(Main_windows)
     fixscrzoom = tk.IntVar(Main_windows)
+    save_config = tk.IntVar(Main_windows)
+    # 载入保存的参数
+    try: 
+        i_config = open('./media/save_config','rb')
+        configs = pickle.load(i_config)
+        i_config.close()
+        if configs['save_config'] == 0: # 如果上一次保存时，是否保存是否
+            raise ValueError('No save config!')
+        for key,value in configs.items():
+            eval(key).set(value)
+    except Exception: # 使用原装默认参数
+        project_W.set(1920)
+        project_H.set(1080)
+        project_F.set(30)
+        project_Z.set('BG3,BG2,BG1,Am3,Am2,Am1,Bb')
+        project_Q.set(24)
+        AccessKey.set('Your_AccessKey')
+        AccessKeySecret.set('Your_AccessKey_Secret')
+        Appkey.set('Your_Appkey')
+
     # 获取python解释器的路径
     python3 = sys.executable.replace('\\','/')
     #python3 = 'python' # exe发布版
@@ -1011,10 +1048,11 @@ def open_Main_windows():
     flag = tk.LabelFrame(main_frame,text='标志')
     flag.place(x=10,y=320,width=600,height=110)
 
-    tk.Checkbutton(flag,text="先执行语音合成",variable=synthanyway,anchor=tk.W,command=lambda:highlight(synthanyway)).place(x=10,y=5,width=150,height=30)
-    tk.Checkbutton(flag,text="导出为PR项目",variable=exportprxml,anchor=tk.W,command=lambda:highlight(exportprxml)).place(x=10,y=50,width=150,height=30)
-    tk.Checkbutton(flag,text="导出为.mp4视频",variable=exportmp4,anchor=tk.W,command=lambda:highlight(exportmp4)).place(x=170,y=50,width=150,height=30)
-    tk.Checkbutton(flag,text="取消系统缩放",variable=fixscrzoom,anchor=tk.W,command=lambda:highlight(fixscrzoom)).place(x=170,y=5,width=150,height=30)
+    tk.Checkbutton(flag,text="先执行语音合成",variable=synthanyway,anchor=tk.W,command=lambda:highlight(synthanyway)).place(x=10,y=0,width=150,height=30)
+    tk.Checkbutton(flag,text="导出为PR项目",variable=exportprxml,anchor=tk.W,command=lambda:highlight(exportprxml)).place(x=10,y=27,width=150,height=30)
+    tk.Checkbutton(flag,text="导出为.mp4视频",variable=exportmp4,anchor=tk.W,command=lambda:highlight(exportmp4)).place(x=170,y=27,width=150,height=30)
+    tk.Checkbutton(flag,text="取消系统缩放",variable=fixscrzoom,anchor=tk.W,command=lambda:highlight(fixscrzoom)).place(x=170,y=0,width=150,height=30)
+    tk.Checkbutton(flag,text="保存设置内容",variable=save_config,anchor=tk.W).place(x=10,y=55,width=150,height=30)
 
     my_logo = ImageTk.PhotoImage(Image.open('./media/logo.png').resize((236,75)))
     tk.Button(flag,image = my_logo,command=lambda: webbrowser.open('https://github.com/DanDDXuanX/TRPG-Replay-Generator'),relief='flat').place(x=339,y=0)

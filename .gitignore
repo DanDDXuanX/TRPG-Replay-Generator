@@ -1,4 +1,5 @@
 test_output/*
+media/save_config
 *.timeline
 *.breakpoint
 *.exe
