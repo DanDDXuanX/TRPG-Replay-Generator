@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.8.9'
+edtion = 'alpha 1.9.2'
 
 # 外部参数输入
 
@@ -106,7 +106,7 @@ import time #开发模式，显示渲染帧率
 import glob # 匹配路径
 
 
-# 类定义 alpha 1.8.4
+# 类定义 alpha 1.9.2
 
 # 文字对象
 class Text:
@@ -166,9 +166,10 @@ class Bubble:
         self.mt_pos = mt_pos
         self.Header = Header_Text
         self.ht_pos = ht_pos
-        if line_distance > 1:
+        if line_distance >= 1:
             self.line_distance = line_distance
         elif line_distance > 0:
+            self.line_distance = line_distance # alpha 1.9.2 debug 当linedistance低于1时，忘记初始化line_distance这个参数了
             print("[33m[warning]:[0m",'Line distance is set to less than 1!')
         else:
             raise MediaError('[31m[BubbleError]:[0m', 'Invalid line distance:',line_distance)

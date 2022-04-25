@@ -2,7 +2,7 @@
 ---
 # 这是回声工坊的log文件的syntax的试做版
 # See http://www.sublimetext.com/docs/3/syntax.html
-name: RepGenLog
+name: RplGenLog
 file_extensions: [rgl]
 scope: source.rgl
 

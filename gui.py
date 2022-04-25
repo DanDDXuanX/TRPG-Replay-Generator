@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.9.1'
+edtion = 'alpha 1.9.2'
 
 import tkinter as tk
 from tkinter import ttk
@@ -1257,7 +1257,7 @@ def open_Main_windows():
     ybar_original.place(x=575,y=0,height=180,width=15)
 
     original_info.column("index",anchor = "center",width=40)
-    original_info.column("filepath",anchor = "w",width=530)
+    original_info.column("filepath",anchor = "w",width=520)
 
     original_info.heading("index", text = "序号")
     original_info.heading("filepath", text = "路径")
@@ -1276,7 +1276,7 @@ def open_Main_windows():
     ybar_convert.place(x=575,y=0,height=180,width=15)
 
     convert_info.column("index",anchor = "center",width=40)
-    convert_info.column("filepath",anchor = "w",width=530)
+    convert_info.column("filepath",anchor = "w",width=520)
 
     convert_info.heading("index", text = "序号")
     convert_info.heading("filepath", text = "路径")
