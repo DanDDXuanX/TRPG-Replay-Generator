@@ -6,7 +6,6 @@ name: RplGenLog
 file_extensions: [rgl]
 scope: source.rgl
 
-
 contexts:
   main:
     - include: comments
@@ -17,7 +16,7 @@ contexts:
     - include: content
 
   comments:
-    - match: '^#.+$'
+    - match: '^#.*$'
       scope: comment.line.rgl # grey
   error:
     - match: '^[\t\ ]+$'
