@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.9.0'
+edtion = 'alpha 1.9.1'
 
 import tkinter as tk
 from tkinter import ttk
@@ -789,7 +789,62 @@ def open_Main_windows():
                 new_or_edit.config(text='编辑')
             else:
                 new_or_edit.config(text='新建')
-    def run_command():
+    def load_au_file(): # 载入多个音频文件
+        getnames = filedialog.askopenfilenames(filetypes=[('mp3文件','.mp3')])
+        for index,filepath in enumerate(getnames):
+            original_info.insert('','end',values =(index,filepath))
+    def clear_au_file(): # 清空所有音频文件
+        for item in original_info.get_children():
+            original_info.delete(item)
+        for item in convert_info.get_children():
+            convert_info.delete(item)
+    def run_convert(target):
+        # 检查输出路径
+        if output_path.get() == '':
+            messagebox.showerror(title='错误',message='缺少输出路径，去主程序界面填写！')
+            return -1
+        else:
+            opath = output_path.get()+'/'
+        # 检查ffmpeg
+        if os.path.isfile('./ffmpeg.exe'):
+            ffmpeg_exec = 'ffmpeg.exe'
+        else:
+            ffmpeg_exec = 'ffmpeg'
+        # 确定格式
+        if target == 'wav':
+            command = ffmpeg_exec+" -i {ifile} -f wav {ofile} -loglevel quiet"
+        elif target == 'ogg':
+            command = ffmpeg_exec+" -i {ifile} -acodec libvorbis -ab 128k {ofile} -loglevel quiet"
+        else:
+            return -1
+        # 开始载入文件
+        for item in original_info.get_children():
+            index,filepath = original_info.item(item,"values")
+            # 获取文件名
+            try:
+                filename = filepath.split('/')[-1][0:-3]
+            except IndexError:
+                messagebox.showerror(title='错误',message='出现了文件名称异常！'+filename)
+                return -1
+            # 检查文件路径
+            if ' ' in filepath:
+                filepath = '"'+filepath+'"'
+            # 组装命令
+            command_this = command.format(ifile = filepath, ofile = '"'+opath+filename+target+'"')
+            # 执行命令
+            try:
+                print('[32m'+command_this+'[0m')
+                exit_status = os.system(command_this)
+                if exit_status != 0:
+                    raise OSError('Major error occurred in ffmpeg!')
+                else:
+                    print('[convert_format]: '+opath + filename + target+' :Done!')
+                    convert_info.insert('','end',values =(index,opath+filename+target))
+            except Exception:
+                messagebox.showwarning(title='警告',message='似乎有啥不对劲的事情发生了，检视控制台输出获取详细信息！')
+                return -1
+        messagebox.showinfo(title='完毕',message='格式格式转换完毕，输出文件在:'+opath)
+    def run_command_main():
         optional = {1:'--OutputPath {of} ',2:'--ExportXML ',3:'--ExportVideo --Quality {ql} ',4:'--SynthesisAnyway --AccessKey {AK} --AccessKeySecret {AS} --Appkey {AP} ',5:'--FixScreenZoom '}
         command = python3 + ' ./replay_generator.py --LogFile {lg} --MediaObjDefine {md} --CharacterTable {ct} '
         command = command + '--FramePerSecond {fps} --Width {wd} --Height {he} --Zorder {zd} '
@@ -936,9 +991,9 @@ def open_Main_windows():
 
     # 大号字体
     try:
-        big_text = font.Font(font="微软雅黑",size=25)
+        big_text = font.Font(font=("微软雅黑",12))
     except Exception:
-        big_text = font.Font(size=25)
+        big_text = font.Font(font=("System",12))
 
     # 选中的sheet
     tab = tk.IntVar(Main_windows)
@@ -989,21 +1044,24 @@ def open_Main_windows():
     #python3 = 'python' # exe发布版
 
     # 标签页选项
-    tab1 = tk.Radiobutton(Main_windows,text="主程序", font=big_text,command=printFrame,variable=tab,value=1,indicatoron=False)
+    tab1 = tk.Radiobutton(Main_windows,text="主程序", font= big_text,command=printFrame,variable=tab,value=1,indicatoron=False)
     tab2 = tk.Radiobutton(Main_windows,text="语音合成", font=big_text,command=printFrame,variable=tab,value=2,indicatoron=False)
     tab3 = tk.Radiobutton(Main_windows,text="导出XML", font=big_text,command=printFrame,variable=tab,value=3,indicatoron=False)
     tab4 = tk.Radiobutton(Main_windows,text="导出MP4", font=big_text,command=printFrame,variable=tab,value=4,indicatoron=False)
-    tab1.place(x=10,y=10,width=155,height=40)
-    tab2.place(x=165,y=10,width=155,height=40)
-    tab3.place(x=320,y=10,width=155,height=40)
-    tab4.place(x=475,y=10,width=155,height=40)
+    tab5 = tk.Radiobutton(Main_windows,text="音频\n格式转换",command=printFrame,variable=tab,value=5,indicatoron=False)
+    tab1.place(x=10,y=10,width=138,height=40)
+    tab2.place(x=148,y=10,width=138,height=40)
+    tab3.place(x=286,y=10,width=138,height=40)
+    tab4.place(x=424,y=10,width=138,height=40)
+    tab5.place(x=562,y=10,width=68,height=40)
 
     # 四个界面
     main_frame = tk.Frame(Main_windows,height=490 ,width=620)
     synth_frame = tk.Frame(Main_windows,height=490 ,width=620)
     xml_frame = tk.Frame(Main_windows,height=490 ,width=620)
     mp4_frame = tk.Frame(Main_windows,height=490 ,width=620)
-    tab_frame = {1:main_frame,2:synth_frame,3:xml_frame,4:mp4_frame}
+    format_frame = tk.Frame(Main_windows,height=490 ,width=620)
+    tab_frame = {1:main_frame,2:synth_frame,3:xml_frame,4:mp4_frame,5:format_frame}
 
     # 界面的初始值
     tab.set(1)
@@ -1058,7 +1116,7 @@ def open_Main_windows():
     tk.Button(flag,image = my_logo,command=lambda: webbrowser.open('https://github.com/DanDDXuanX/TRPG-Replay-Generator'),relief='flat').place(x=339,y=0)
 
     # 开始
-    tk.Button(main_frame, command=run_command,text="开始",font=big_text).place(x=260,y=435,width=100,height=50)
+    tk.Button(main_frame, command=run_command_main,text="开始",font=big_text).place(x=260,y=435,width=100,height=50)
 
     # synth_frame
     filepath_s = tk.LabelFrame(synth_frame,text='文件路径')
@@ -1185,6 +1243,52 @@ def open_Main_windows():
     tk.Button(flag_v,text='https://ffmpeg.org/',command=lambda: webbrowser.open('https://ffmpeg.org/'),fg='blue',relief='flat').place(x=300,y=40)
 
     tk.Button(mp4_frame, command=run_command_mp4,text="开始",font=big_text).place(x=260,y=435,width=100,height=50)
+
+    # format_frame
+
+    original_file = tk.LabelFrame(format_frame,text='原始音频文件')
+    convert_file = tk.LabelFrame(format_frame,text='转换后音频文件')
+    original_file.place(x=10,y=10,width=600,height=210)
+    convert_file.place(x=10,y=220,width=600,height=210)
+
+    ybar_original = ttk.Scrollbar(original_file,orient='vertical')
+    original_info = ttk.Treeview(original_file,columns=['index','filepath'],show = "headings",selectmode = tk.BROWSE,yscrollcommand=ybar_original.set)
+    ybar_original.config(command=original_info.yview)
+    ybar_original.place(x=575,y=0,height=180,width=15)
+
+    original_info.column("index",anchor = "center",width=40)
+    original_info.column("filepath",anchor = "w",width=530)
+
+    original_info.heading("index", text = "序号")
+    original_info.heading("filepath", text = "路径")
+
+    original_info.place(x=10,y=0,height=180,width=565)
+    #mediainfo.bind('<ButtonRelease-1>', treeviewClick)
+
+    convert_file = tk.LabelFrame(format_frame,text='原始音频文件')
+    convert_file = tk.LabelFrame(format_frame,text='转换后音频文件')
+    convert_file.place(x=10,y=10,width=600,height=210)
+    convert_file.place(x=10,y=220,width=600,height=210)
+
+    ybar_convert = ttk.Scrollbar(convert_file,orient='vertical')
+    convert_info = ttk.Treeview(convert_file,columns=['index','filepath'],show = "headings",selectmode = tk.BROWSE,yscrollcommand=ybar_convert.set)
+    ybar_convert.config(command=convert_info.yview)
+    ybar_convert.place(x=575,y=0,height=180,width=15)
+
+    convert_info.column("index",anchor = "center",width=40)
+    convert_info.column("filepath",anchor = "w",width=530)
+
+    convert_info.heading("index", text = "序号")
+    convert_info.heading("filepath", text = "路径")
+
+    convert_info.place(x=10,y=0,height=180,width=565)
+
+    tk.Button(format_frame, command=load_au_file,text="载入",font=big_text).place(x=65,y=440,width=100,height=40)
+    tk.Button(format_frame, command=clear_au_file,text="清空",font=big_text).place(x=195,y=440,width=100,height=40)
+    tk.Button(format_frame, command=lambda:run_convert('wav'),text="转wav",font=big_text).place(x=325,y=440,width=100,height=40)
+    tk.Button(format_frame, command=lambda:run_convert('ogg'),text="转ogg",font=big_text).place(x=455,y=440,width=100,height=40)
+
+    # Mainloop
     Main_windows.mainloop()
 
 if __name__=='__main__':
