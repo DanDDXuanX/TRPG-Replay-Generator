@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.9.2'
+edtion = 'alpha 1.9.3'
 
 # 外部参数输入
 
@@ -550,7 +550,7 @@ python3 = sys.executable.replace('\\','/') # 获取python解释器的路径
 cmap = {'black':(0,0,0,255),'white':(255,255,255,255),'greenscreen':(0,177,64,255)}
 #render_arg = ['BG1','BG1_a','BG2','BG2_a','BG3','BG3_a','Am1','Am1_a','Am2','Am2_a','Am3','Am3_a','Bb','Bb_main','Bb_header','Bb_a']
 #render_arg = ['BG1','BG1_a','BG2','BG2_a','BG3','BG3_a','Am1','Am1_a','Am2','Am2_a','Am3','Am3_a','Bb','Bb_main','Bb_header','Bb_a','BGM','Voice','SE']
-render_arg = ['BG1','BG1_a','BG1_p','BG2','BG2_a','BG2_p','BG3','BG3_a','BG3_p',
+render_arg = ['section','BG1','BG1_a','BG1_p','BG2','BG2_a','BG2_p','BG3','BG3_a','BG3_p',
               'Am1','Am1_t','Am1_a','Am1_p','Am2','Am2_t','Am2_a','Am2_p','Am3','Am3_t','Am3_a','Am3_p',
               'Bb','Bb_main','Bb_header','Bb_a','Bb_p','BGM','Voice','SE']
 # 1.6.3 Am的更新，再新增一列，动画的帧！
@@ -936,7 +936,7 @@ def parser(stdin_text):
                         pass
                     else:
                         raise ParserError('[31m[ParserError]:[0m The sound effect "'+se_obj+'" specified in dialogue line ' + str(i+1)+' is not exist!')
-                    
+                this_timeline['section'] = i
                 render_timeline.append(this_timeline)
                 break_point[i+1]=break_point[i]+this_duration
                 continue
@@ -986,6 +986,7 @@ def parser(stdin_text):
                 else:
                     raise ParserError('[31m[ParserError]:[0m Unrecognized switch method: "'+method+'" appeared in background line ' + str(i+1)+'.')
                 this_background = next_background #正式切换背景
+                this_timeline['section'] = i
                 render_timeline.append(this_timeline)
                 break_point[i+1]=break_point[i]+len(this_timeline.index)
                 continue
@@ -1098,6 +1099,7 @@ def parser(stdin_text):
                 # 收尾
                 if BGM_queue != []:
                     this_timeline.loc[0,'BGM'] = BGM_queue.pop() #从BGM_queue里取出来一个 alpha 1.8.5
+                this_timeline['section'] = i
                 render_timeline.append(this_timeline)
                 break_point[i+1]=break_point[i]+len(this_timeline.index)
                 continue
@@ -1161,6 +1163,7 @@ def parser(stdin_text):
                 # 收尾
                 if BGM_queue != []:
                     this_timeline.loc[0,'BGM'] = BGM_queue.pop() #从BGM_queue里取出来一个 alpha 1.8.5
+                this_timeline['section'] = i
                 render_timeline.append(this_timeline)
                 break_point[i+1]=break_point[i]+len(this_timeline.index)
                 continue
@@ -1460,6 +1463,11 @@ for s in np.arange(5,0,-1):
 # 主循环
 n=0
 forward = 1 #forward==0代表暂停
+show_detail_info = 0 # show_detail_info == 1代表显示详细信息
+detail_info = {0:"Project Width: {0} px; Project Width: {1} px; Project FrameRate: {2} fps;".format(W,H,frame_rate),
+               1:"Render Speed: {0} fps",
+               2:"Frame: {0}/"+str(break_point.max())+" ; Section: {1}/"+str(len(break_point)),
+               3:"Command: {0}"}
 while n < break_point.max():
     ct = time.time()
     try:
@@ -1487,12 +1495,21 @@ while n < break_point.max():
                 elif event.key == pygame.K_SPACE: #暂停
                     forward = 1 - forward # 1->0 0->1
                     pause_SE(forward) # 0:pause,1:unpause
-
+                elif event.key == pygame.K_p: # 调整全屏
+                    pass
+                elif event.key == pygame.K_i: # 详细信息
+                    show_detail_info = 1 - show_detail_info # 1->0 0->1
         if n in render_timeline.index:
             this_frame = render_timeline.loc[n]
             render(this_frame)
             if forward == 1:
-                screen.blit(note_text.render('%d'%(1//(time.time()-ct+1e-4)),fgcolor=(100,255,100,255),size=0.0278*H)[0],(10,10)) ##render rate +1e-4 to avoid float divmod()
+                if show_detail_info == 1:
+                    screen.blit(note_text.render(detail_info[0],fgcolor=(100,255,100,255),size=0.0278*H)[0],(10,10))
+                    screen.blit(note_text.render(detail_info[1].format(1//(time.time()-ct+1e-4)),fgcolor=(100,255,100,255),size=0.0278*H)[0],(10,10+0.0333*H))
+                    screen.blit(note_text.render(detail_info[2].format(n,this_frame['section']+1),fgcolor=(100,255,100,255),size=0.0278*H)[0],(10,10+0.0666*H))
+                    screen.blit(note_text.render(detail_info[3].format(stdin_text[this_frame['section']]),fgcolor=(100,255,100,255),size=0.0278*H)[0],(10,10+0.1*H))
+                else:
+                    screen.blit(note_text.render('%d'%(1//(time.time()-ct+1e-4)),fgcolor=(100,255,100,255),size=0.0278*H)[0],(10,10)) ##render rate +1e-4 to avoid float divmod()
             else:
                 screen.blit(note_text.render('Press space to continue.',fgcolor=(100,255,100,255),size=0.0278*H)[0],(0.410*W,0.926*H)) # pause
         else:

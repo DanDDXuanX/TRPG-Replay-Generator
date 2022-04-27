@@ -51,7 +51,7 @@ python ./replay_generator.py -l ./toy/LogFile.txt -d ./toy/MediaObject.txt -t ./
 
 > 注意：可执行文件release无需安装python环境即可运行，但是在效能和稳定性上比运行源码略差。
 
-# 参考文档（文档版本 alpha 1.9.2）
+# 参考文档（文档版本 alpha 1.9.3）
 
 ## 输入文件格式
 
@@ -440,7 +440,7 @@ python speech_synthesizer.py -l LogFile.txt -d MediaDefine.txt -t CharactorTable
 #### 待处理星标的格式
 
 1. `{*}` ：待语音合成的标志，将本对话行的全部发言文本执行语音合成；
-2. `{*speech_text}` ：合成指定文本的语音，而使用对话行的发言文本；
+2. `{*speech_text}` ：合成指定文本的语音的标志；指定文本只能包含`，。：？！“”`等中文符号；
 3. `{"./media/voice.wav",*}` ：当需要使用外部音频，而非语音合成时，可以读取音频文件持续时间，并填补到星标之后；这可以使小节的时长和音频时长同步。
 
 待处理log文件例子:
