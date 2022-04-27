@@ -28,4 +28,7 @@
 										</audio>
 									</media>
 								</file>
+								<labels>
+									<label2>{colorlabel}</label2>
+								</labels>
 							</clipitem>

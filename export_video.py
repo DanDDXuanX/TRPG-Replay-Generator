@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.9.2'
+edtion = 'colab 0.0.1'
 
 # 外部参数输入
 
@@ -73,12 +73,12 @@ import time
 import glob # 匹配路径
 import re
 
-# 类定义 alpha 1.9.2
+# 类定义 colabel 0.0.1
 
 # 文字对象
 class Text:
     pygame.font.init()
-    def __init__(self,fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0,0,255),line_limit=20):
+    def __init__(self,fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0,0,255),line_limit=20,label_color='Lavender'):
         self.text_render = pygame.font.Font(fontfile,fontsize)
         self.color=color
         self.size=fontsize
@@ -108,7 +108,7 @@ class Text:
 # 描边文本，是Text的子类。注意，使用这个媒体类可能会影响帧率！
 class StrokeText(Text):
     pygame.font.init()
-    def __init__(self,fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0,0,255),line_limit=20,edge_color=(255,255,255,255)):
+    def __init__(self,fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0,0,255),line_limit=20,edge_color=(255,255,255,255),label_color='Lavender'):
         super().__init__(fontfile=fontfile,fontsize=fontsize,color=color,line_limit=line_limit) # 继承
         self.edge_color=edge_color
     def render(self,tx):
@@ -126,7 +126,7 @@ class StrokeText(Text):
 
 # 对话框、气泡、文本框
 class Bubble:
-    def __init__(self,filepath,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),ht_pos=(0,0),align='left',line_distance=1.5):
+    def __init__(self,filepath,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),ht_pos=(0,0),align='left',line_distance=1.5,label_color='Lavender'):
         self.media = pygame.image.load(filepath)
         self.pos = pos
         self.MainText = Main_Text
@@ -168,7 +168,7 @@ class Bubble:
 
 # 背景图片
 class Background:
-    def __init__(self,filepath,pos = (0,0)):
+    def __init__(self,filepath,pos = (0,0),label_color='Lavender'):
         if filepath in cmap.keys(): #添加了，对纯色定义的背景的支持
             self.media = pygame.surface.Surface(screen_size)
             self.media.fill(cmap[filepath])
@@ -192,7 +192,7 @@ class Background:
 
 # 这个是真的动画了，用法和旧版的amination是一样的！
 class Animation:
-    def __init__(self,filepath,pos = (0,0),tick=1,loop=True):
+    def __init__(self,filepath,pos = (0,0),tick=1,loop=True,label_color='Lavender'):
         file_list = np.frompyfunc(lambda x:x.replace('\\','/'),1,1)(glob.glob(filepath))
         self.length = len(file_list)
         if self.length == 0:
@@ -227,7 +227,7 @@ class Animation:
 
 # a1.7.5 内建动画，Animation类的子类
 class BuiltInAnimation(Animation):
-    def __init__(self,anime_type='hitpoint',anime_args=('0',0,0,0),screensize = (1920,1080),layer=0):
+    def __init__(self,anime_type='hitpoint',anime_args=('0',0,0,0),screensize = (1920,1080),layer=0,label_color='Mango'):
         BIA_text = Text('./media/SourceHanSerifSC-Heavy.otf',fontsize=int(0.0521*screensize[0]),color=(255,255,255,255),line_limit=10)
         if anime_type == 'hitpoint': # anime_args=('0',0,0,0)
             # 载入图片
@@ -452,14 +452,14 @@ class BuiltInAnimation(Animation):
 
 # 音效
 class Audio:
-    def __init__(self,filepath):
+    def __init__(self,filepath,label_color='Forest'):
         self.media = pydub.AudioSegment.from_file(filepath)
     def convert(self):
         pass
 
 # 背景音乐
 class BGM:
-    def __init__(self,filepath,volume=100,loop=True):
+    def __init__(self,filepath,volume=100,loop=True,label_color='Forest'):
         self.media = pydub.AudioSegment.from_file(filepath) + np.log10(volume/100) * 20 # 调整音量
         self.loop = loop
     def convert(self):

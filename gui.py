@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.9.2'
+edtion = 'colab 0.0.1'
 
 import tkinter as tk
 from tkinter import ttk
