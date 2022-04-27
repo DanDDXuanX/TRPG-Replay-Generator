@@ -39,7 +39,7 @@ pip install -r ./requirements.txt
 ```bash
 python ./replay_generator.py -l ./toy/LogFile.txt -d ./toy/MediaObject.txt -t ./toy/CharactorTable.csv
 ```
-4. 进入程序后，按空格键（SPACE）开始播放，播放的过程中，按A键跳转到前一小节，D键跳转到后一小节，按空格暂停播放，ESC键终止播放并退出。
+4. 进入程序后，按空格键（SPACE）开始播放；播放的过程中，按A键跳转到前一小节，D键跳转到后一小节，按空格暂停播放，按F5键展示详细信息，按F11键将画面缩放至50%，ESC键终止播放并退出。
 
 ### 2. 使用可执行文件release
 
@@ -47,11 +47,11 @@ python ./replay_generator.py -l ./toy/LogFile.txt -d ./toy/MediaObject.txt -t ./
 2. 运行 `TRPG-Replay-Generator-v1.0.0.exe` 打开图形界面；<br>
 3. 在媒体定义栏输入 `./toy/MediaObject.txt` ，角色定义栏输入 `./toy/CharactorTable.csv` ，log文件栏输入 `./toy/LogFile.txt` ；<br>
 4. 点击开始，即可开始放映示例项目；<br>
-5. 进入程序后，按空格键（SPACE）开始播放，播放的过程中，按A键跳转到前一小节，D键跳转到后一小节，按空格暂停播放，ESC键终止播放并退出。
+5. 进入程序后，按空格键（SPACE）开始播放；播放的过程中，按A键跳转到前一小节，D键跳转到后一小节，按空格暂停播放，按F5键展示详细信息，按F11键将画面缩放至50%，ESC键终止播放并退出。
 
 > 注意：可执行文件release无需安装python环境即可运行，但是在效能和稳定性上比运行源码略差。
 
-# 参考文档（文档版本 alpha 1.9.3）
+# 参考文档（文档版本 alpha 1.9.4）
 
 ## 输入文件格式
 

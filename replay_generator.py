@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.9.3'
+edtion = 'alpha 1.9.4'
 
 # 外部参数输入
 
@@ -547,7 +547,7 @@ RE_dice = re.compile('\((.+?),(\d+),([\d]+|NA),(\d+)\)') # a 1.7.5 骰子预设�
 
 python3 = sys.executable.replace('\\','/') # 获取python解释器的路径
 
-cmap = {'black':(0,0,0,255),'white':(255,255,255,255),'greenscreen':(0,177,64,255)}
+cmap = {'black':(0,0,0,255),'white':(255,255,255,255),'greenscreen':(0,177,64,255),'notetext':(118,185,0,255)}
 #render_arg = ['BG1','BG1_a','BG2','BG2_a','BG3','BG3_a','Am1','Am1_a','Am2','Am2_a','Am3','Am3_a','Bb','Bb_main','Bb_header','Bb_a']
 #render_arg = ['BG1','BG1_a','BG2','BG2_a','BG3','BG3_a','Am1','Am1_a','Am2','Am2_a','Am3','Am3_a','Bb','Bb_main','Bb_header','Bb_a','BGM','Voice','SE']
 render_arg = ['section','BG1','BG1_a','BG1_p','BG2','BG2_a','BG2_p','BG3','BG3_a','BG3_p',
@@ -1184,6 +1184,7 @@ def parser(stdin_text):
     timeline_diff.loc[0]='NA' #再把第0帧设置为NA
     dropframe = (render_timeline == timeline_diff.sort_index()).all(axis=1) # 这样，就是原来的第10帧和第9帧在比较了
     bulitin_media = pd.Series(bulitin_media,dtype=str)
+    break_point = break_point.astype(int) # breakpoint 数据类型改为整数
     # 这样就去掉了，和前一帧相同的帧，节约了性能
     return render_timeline[dropframe == False].copy(),break_point,bulitin_media
 
@@ -1420,6 +1421,7 @@ pygame.init()
 pygame.display.set_caption('TRPG Replay Generator '+edtion)
 fps_clock=pygame.time.Clock()
 screen = pygame.display.set_mode(screen_size)
+pygame.display.set_icon(pygame.image.load('./media/icon.ico'))
 note_text = pygame.freetype.Font('./media/SourceHanSansCN-Regular.otf')
 
 # 建立音频轨道
@@ -1464,10 +1466,11 @@ for s in np.arange(5,0,-1):
 n=0
 forward = 1 #forward==0代表暂停
 show_detail_info = 0 # show_detail_info == 1代表显示详细信息
-detail_info = {0:"Project Width: {0} px; Project Width: {1} px; Project FrameRate: {2} fps;".format(W,H,frame_rate),
+detail_info = {0:"Project: Resolution: {0}x{1} ; FrameRate: {2} fps;".format(W,H,frame_rate),
                1:"Render Speed: {0} fps",
                2:"Frame: {0}/"+str(break_point.max())+" ; Section: {1}/"+str(len(break_point)),
                3:"Command: {0}"}
+resize_screen = 0 # 是否要强制缩小整个演示窗体
 while n < break_point.max():
     ct = time.time()
     try:
@@ -1492,26 +1495,42 @@ while n < break_point.max():
                     n=break_point[(break_point-n)>0].min()
                     stop_SE()
                     continue
+                elif event.key == pygame.K_F11: # 调整缩放一半
+                    from pygame._sdl2.video import Window
+                    window = Window.from_display_module()
+                    resize_screen = 1 - resize_screen
+                    if resize_screen == 1:
+                        screen_resized = pygame.display.set_mode((W//2,H//2))
+                        screen = pygame.Surface(screen_size,pygame.SRCALPHA)
+                        window.position = (100,100)
+                    else:
+                        screen = pygame.display.set_mode(screen_size)
+                        window.position = (0,0)
+                    pygame.display.update()
+                elif event.key == pygame.K_F5: # 详细信息
+                    show_detail_info = 1 - show_detail_info # 1->0 0->1
                 elif event.key == pygame.K_SPACE: #暂停
                     forward = 1 - forward # 1->0 0->1
                     pause_SE(forward) # 0:pause,1:unpause
-                elif event.key == pygame.K_p: # 调整全屏
+                else:
                     pass
-                elif event.key == pygame.K_i: # 详细信息
-                    show_detail_info = 1 - show_detail_info # 1->0 0->1
         if n in render_timeline.index:
             this_frame = render_timeline.loc[n]
             render(this_frame)
-            if forward == 1:
+            if forward == 1: # 如果正在播放
+                # 显示详情模式
                 if show_detail_info == 1:
-                    screen.blit(note_text.render(detail_info[0],fgcolor=(100,255,100,255),size=0.0278*H)[0],(10,10))
-                    screen.blit(note_text.render(detail_info[1].format(1//(time.time()-ct+1e-4)),fgcolor=(100,255,100,255),size=0.0278*H)[0],(10,10+0.0333*H))
-                    screen.blit(note_text.render(detail_info[2].format(n,this_frame['section']+1),fgcolor=(100,255,100,255),size=0.0278*H)[0],(10,10+0.0666*H))
-                    screen.blit(note_text.render(detail_info[3].format(stdin_text[this_frame['section']]),fgcolor=(100,255,100,255),size=0.0278*H)[0],(10,10+0.1*H))
+                    screen.blit(note_text.render(detail_info[0],fgcolor=cmap['notetext'],size=0.0185*H)[0],(10,10))
+                    screen.blit(note_text.render(detail_info[1].format(int(1/(time.time()-ct+1e-4))),fgcolor=cmap['notetext'],size=0.0185*H)[0],(10,10+0.0333*H))
+                    screen.blit(note_text.render(detail_info[2].format(n,this_frame['section']+1),fgcolor=cmap['notetext'],size=0.0185*H)[0],(10,10+0.0666*H))
+                    screen.blit(note_text.render(detail_info[3].format(stdin_text[this_frame['section']]),fgcolor=cmap['notetext'],size=0.0185*H)[0],(10,10+0.1*H))
+                # 仅显示帧率
                 else:
-                    screen.blit(note_text.render('%d'%(1//(time.time()-ct+1e-4)),fgcolor=(100,255,100,255),size=0.0278*H)[0],(10,10)) ##render rate +1e-4 to avoid float divmod()
-            else:
-                screen.blit(note_text.render('Press space to continue.',fgcolor=(100,255,100,255),size=0.0278*H)[0],(0.410*W,0.926*H)) # pause
+                    screen.blit(note_text.render('%d'%(1//(time.time()-ct+1e-4)),fgcolor=cmap['notetext'],size=0.0278*H)[0],(10,10)) ##render rate +1e-4 to avoid float divmod()
+            else: # 如果正在暂停
+                screen.blit(note_text.render('Press space to continue.',fgcolor=cmap['notetext'],size=0.0278*H)[0],(0.410*W,0.926*H)) # pause
+            if resize_screen == 1: # 如果缩放到一半大小
+                screen_resized.blit(pygame.transform.scale(screen,(W//2,H//2)),(0,0))
         else:
             pass # 节约算力
         pygame.display.update()

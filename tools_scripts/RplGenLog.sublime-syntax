@@ -35,7 +35,7 @@ contexts:
     - match: '\b(-)?\d+$\b'
       scope: constant.numeric.value.rgl
       pop: true
-    - match: (linear|quadratic|quadraticR|sigmoid|right|left|sincurve)
+    - match: (linear|quadraticR|quadratic|sigmoid|right|left|sincurve)
       scope: keyword.declaration.function.rgl
       pop: true
     - match: '<\w+(\=\d+)?>'

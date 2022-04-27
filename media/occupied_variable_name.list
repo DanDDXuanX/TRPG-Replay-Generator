@@ -41,6 +41,7 @@ Text
 UF_cut_str
 VOICE
 W
+Window
 __annotations__
 __builtins__
 __cached__
@@ -88,6 +89,7 @@ concat_xy
 crf
 ct
 cut_str
+detail_info
 drop
 edtion
 end
@@ -163,10 +165,13 @@ reformat_path
 render
 render_arg
 render_timeline
+resize_screen
 right
 s
 screen
+screen_resized
 screen_size
+show_detail_info
 sigmoid
 speech_speed
 split_xy
@@ -203,4 +208,5 @@ video_tracks
 voice
 webbrowser
 white
+window
 zorder
