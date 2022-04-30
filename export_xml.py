@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.8.9'
+edtion = 'alpha 1.9.5'
 
 # 外部参数输入
 
@@ -540,23 +540,26 @@ def get_audio_length(filepath):
     return this_audio.get_length()
 
 # 重格式化路径
-def reformat_path(path):#only use for windows path format
-    cwd = os.getcwd().replace('\\','/')
-    if path[0] == '/': #unix正斜杠，报错
-        raise ValueError('invalid path type')
+def reformat_path(path): # alpha 1.9.5 支持unix文件系统路径
+    # 获取绝对路径
+    path = os.path.abspath(path)
+    # 检查非法符号
     if '\\' in path: #是不是反斜杠？
         path = path.replace('\\','/') 
     if ('&' in path)|('<' in path)|('>' in path):
         path = path.replace('&','&amp;').replace('<','&lt;').replace('>','&gt;') # aplha1.7.2 xml 转移的bug
     if ('"' in path)|("'" in path):
         path = path.replace('"','&quot;').replace("'",'&apos;')
-    if path[0] == '.':#是不是./123/型
-        path = cwd + path[1:]
-    if path[0:2] not in ['C:','D:','E:','F:','G:','H:']: #是不是123/型
-        path = cwd + '/' + path
-    disk_label = path[0]
-    path = path.replace('//','/')
-    return 'file://localhost/' + disk_label + '%3a' + path[path.find('/'):]
+    if '//' in path:
+        path = path.replace('//','/')
+    # 判断文件系统
+    if path[0] == '/': #unix file system
+        return 'file://localhost' + path
+    elif (path[0].isalpha()) & (path[1]==':'): # windows disklabel
+        path = path.replace(':','%3a') # 替换冒号
+        return 'file://localhost/' + path
+    else:
+        raise ValueError('invalid path type')
 
 # 处理bg 和 am 的parser
 def parse_timeline(layer):
@@ -738,6 +741,6 @@ def main():
     ofile = open(output_path+'/'+stdin_name+'.xml','w',encoding='utf-8')
     ofile.write(main_output)
     ofile.close()
-    print('[export XML]: Done!')
+    print('[export XML]: Done! XML path : '+output_path+'/'+stdin_name+'.xml')
 if __name__ == '__main__':
     main()
