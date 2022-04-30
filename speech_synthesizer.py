@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.8.9'
+edtion = 'alpha 1.9.6'
 
 # 绝对的全局变量
 # 在开源发布的版本中，隐去了各个key
@@ -195,8 +195,8 @@ def parser(stdin_text):
                         asterisk_line.loc[i,'category'] = 3
                         asterisk_line.loc[i,'speech_text'] = 'None'
                         asterisk_line.loc[i,'filepath'] = K1[1:-2]
-                    #4.{"./timeline.mp3",*30}
-                    elif (os.path.isfile(K1[1:-2])==True)&(isnumber(K2)==True):
+                    #4.{"./timeline.mp3",*30}|{NA,*30}
+                    elif ((os.path.isfile(K1[1:-2])==True)|(K1[:-1]=='NA'))&(isnumber(K2)==True): # a 1.9.6
                         asterisk_line.loc[i,'category'] = 4
                         asterisk_line.loc[i,'speech_text'] = 'None'
                         asterisk_line.loc[i,'filepath'] = K1[1:-2]

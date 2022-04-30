@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.9.2'
+edtion = 'alpha 1.9.6'
 
 # 外部参数输入
 
@@ -73,8 +73,6 @@ import time
 import glob # 匹配路径
 import re
 
-# 类定义 alpha 1.9.2
-
 # 文字对象
 class Text:
     pygame.font.init()
@@ -90,6 +88,8 @@ class Text:
         return face
     def draw(self,text):
         out_text = []
+        if text == '':
+            return []
         if ('#' in text) | (text[0]=='^'): #如果有手动指定的换行符 # bug:如果手动换行，但是第一个#在30字以外，异常的显示
             if text[0]=='^': # 如果使用^指定的手动换行，则先去掉这个字符。
                 text = text[1:]
