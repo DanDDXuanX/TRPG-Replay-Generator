@@ -28,9 +28,9 @@
 
 ## 程序下载
 
-[**免安装版** 93.6MB](https://github.com/DanDDXuanX/TRPG-Replay-Generator/releases/download/v1.0.0/TRPG-Replay-Generator-v1.0.0-win64.7z)
+[**免安装版** 93.6MB](https://github.com/DanDDXuanX/TRPG-Replay-Generator/releases/download/v1.0.1/TRPG-Replay-Generator-v1.0.1-win64.7z)
 
-[**源代码** 25MB](https://github.com/DanDDXuanX/TRPG-Replay-Generator/releases/download/v1.0.0/TRPG-Replay-Generator-v1.0.0-SourceCode.7z)
+[**源代码** 25MB](https://github.com/DanDDXuanX/TRPG-Replay-Generator/releases/download/v1.0.1/TRPG-Replay-Generator-v1.0.1-SourceCode.7z)
 
 ## 快速上手
 
