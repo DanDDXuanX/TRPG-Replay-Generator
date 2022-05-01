@@ -26,6 +26,12 @@
 2. 查看[帮助文档](https://help.aliyun.com/document_detail/374323.html)
 3. 获得[阿里云AccessKey、AccessKey_Secret、Appkey](https://ram.console.aliyun.com/manage/ak)
 
+## 程序下载
+
+[**免安装版** 93.6MB](https://github.com/DanDDXuanX/TRPG-Replay-Generator/releases/download/v1.0.0/TRPG-Replay-Generator-v1.0.0-win64.7z)
+
+[**源代码** 25MB](https://github.com/DanDDXuanX/TRPG-Replay-Generator/releases/download/v1.0.0/TRPG-Replay-Generator-v1.0.0-SourceCode.7z)
+
 ## 快速上手
 
 ### 1. 使用源码release
@@ -51,7 +57,7 @@ python ./replay_generator.py -l ./toy/LogFile.txt -d ./toy/MediaObject.txt -t ./
 
 > 注意：可执行文件release无需安装python环境即可运行，但是在效能和稳定性上比运行源码略差。
 
-# 参考文档（文档版本 alpha 1.9.4）
+# 参考文档（文档版本 alpha 1.10.0）
 
 ## 输入文件格式
 
@@ -70,12 +76,12 @@ Text(fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0,0,255
 StrokeText(fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0,0,255),line_limit=20,edge_color=(255,255,255,255))
 ```
 
-- 文本是气泡对象的一部分，无法单独使用；
-- `fontfile`	可选参数，指定一个字体文件的路径；默认参数是 思源黑体-regular；
-- `fontsize`	可选参数，设置字体的字号，合理的参数是大于0的整数；默认为40；
-- `color`	可选参数，设置字体的颜色，是一个4元素的tuple，对应(R,G,B,A)，四个元素应为0-255的整数；默认值是黑色；
-- `line_limit`	可选参数，设置单行显示的字符数量上限，超过上限会触发自动换行；默认为20字；
-- `edge_color`	可选参数，设置字体的描边颜色，仅描边文本可用，是一个4元素的tuple，对应(R,G,B,A)，四个元素应为0-255的整数；默认值是白色。
+	- 文本是气泡对象的一部分，无法单独使用；
+	- `fontfile`	可选参数，指定一个字体文件的路径；默认参数是 思源黑体-regular；
+	- `fontsize`	可选参数，设置字体的字号，合理的参数是大于0的整数；默认为40；
+	- `color`	可选参数，设置字体的颜色，是一个4元素的元组，对应(R,G,B,A)，四个元素应为0-255的整数；默认值是黑色；
+	- `line_limit`	可选参数，设置单行显示的字符数量上限，超过上限会触发自动换行；默认为20字；
+	- `edge_color`	可选参数，设置字体的描边颜色，仅描边文本可用，是一个4元素的元组，对应(R,G,B,A)，四个元素应为0-255的整数；默认值是白色。
 
 > 注意：由于气泡对象需要引用文本对象，因此，文本对象在媒体定义文件中的位置必须在气泡对象的定义之前！。
 
@@ -84,40 +90,40 @@ StrokeText(fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0
 Bubble(filepath,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),ht_pos=(0,0),align='left',line_distance=1.5)
 ```
 
-- 气泡是一个文本框，在角色发言时显示，包含了主文本、头文本、底图三个组成部分。
-- `filepath`	必要参数，指定一个图片文件的路径；即使不需要底图，也需要指定一个空白底图的路径；
-- `Main_Text`	可选参数，为主文本指定一个Text或者StrokeText类的变量；主文本对应 *log文件* 中的 *发言文本*；默认值是默认参数的Text对象，不可以设置为None；
-- `Header_Text`	可选参数，为头文本指定一个Text或者StrokeText类的变量；头文本对应发言者的角色名；默认为None，既无头文本；
-- `pos`	可选参数，设置气泡在屏幕上的位置，是一个2元素的tuple，对应(X,Y)；默认为(0,0)，即左上角；
-- `mt_pos`	可选参数，设置主文本相对于气泡底图的位置，是一个2元素的tuple，对应(X,Y)；默认为(0,0)，即左上角；
-- `ht_pos`	可选参数，设置头文本相对于气泡底图的位置，是一个2元素的tuple，对应(X,Y)；默认为(0,0)，即左上角；
-- `align`	可选参数，设置主文本的对齐模式，可选项有`"left"`、`"center"`，分别对应左侧对齐和居中对齐；默认为左侧对齐；
-- `line_distance`	可选参数，设置了多行显示时的行距，默认值为1.5倍行距。
+	- 气泡是一个文本框，在角色发言时显示，包含了主文本、头文本、底图三个组成部分。
+	- `filepath`	必要参数，指定一个图片文件的路径；即使不需要底图，也需要指定一个空白底图的路径；
+	- `Main_Text`	可选参数，为主文本指定一个 `Text`或者`StrokeText` 类的变量；主文本对应 *log文件* 中的 *发言文本*；默认值是默认参数的Text对象，不可以设置为None；
+	- `Header_Text`	可选参数，为头文本指定一个 `Text`或者`StrokeText` 类的变量；头文本对应发言者的角色名；默认为None，既无头文本；
+	- `pos`	可选参数，设置气泡在屏幕上的位置，是一个2元素的元组，对应 (X,Y)；默认为 (0,0)，即左上角；
+	- `mt_pos`	可选参数，设置主文本相对于气泡底图的位置，是一个2元素的元组，对应 (X,Y)；默认为 (0,0)，即左上角；
+	- `ht_pos`	可选参数，设置头文本相对于气泡底图的位置，是一个2元素的元组，对应 (X,Y)；默认为 (0,0)，即左上角；
+	- `align`	可选参数，设置主文本的对齐模式，可选项有`"left"`、`"center"`，分别对应左侧对齐和居中对齐；默认为左侧对齐；
+	- `line_distance`	可选参数，设置了多行显示时的行距，默认值为1.5倍行距。
 
 3.	**背景 Background**
 ```python
 Background(filepath,pos=(0,0))
 ```
 
-- 背景指整个屏幕的背景，通常位于最下的图层，可以在 *log文件* 中的 *背景行* 中设置背景及其切换效果
-- `filepath`	必要参数，指定一个图片文件的路径，或者指定`{'black','white','greenscreen'}`中的一个。
-- `pos`	可选参数，指定了背景在屏幕上的位置，是一个2元素的tuple，对应(X,Y)，默认为(0,0)，即左上角。
+	- 背景指整个屏幕的背景，通常位于最下的图层，可以在 *log文件* 中的 *背景行* 中设置背景及其切换效果；
+	- `filepath`	必要参数，指定一个图片文件的路径；或者指定为 `{'black','white','greenscreen'}` 中的一个，以建立纯色背景；
+	- `pos`	可选参数，指定了背景在屏幕上的位置，是一个2元素的元组，对应(X,Y)，默认为(0,0)，即左上角。
 
-> 注意：由于背景图通常都是全屏的图片，因此不建议修改Background的pos的默认值。
+> 注意：由于背景图通常都是全屏的图片，因此不建议修改 `Background` 的pos的默认值。
 
 4.	**立绘 Animation**
 ```python
 Animation(filepath,pos=(0,0),tick=1,loop=True)
 ```
 
-- 立绘指和角色绑定的个人形象图片或动画，通常位于背景的上层，气泡的下层。
-- `filepath`	必要参数，指定一个图片文件的路径；或通过通配符指定一系列顺序命名的图片文件的路径，以设置为动态立绘。
-- `pos`	可选参数，指定了立绘在屏幕上的位置，是一个2元素的tuple，对应(X,Y)，默认为(0,0)，即左上角。
-- `tick`	可选参数，仅在动态立绘中生效，设置立绘动画的拍率，单位为 帧/拍；默认为1，即一拍一。
-- `loop`	可选参数，仅在动态立绘中生效，设置立绘动画是否循环播放，可以是`True`或者`False`，设置为否时，当动态立绘的完整播放了一次之后，会停留在最后帧；默认是`True`，即循环播放。
+	- 立绘指和角色绑定的个人形象图片或动画，通常位于背景的上层，气泡的下层。
+	- `filepath`	必要参数，指定一个图片文件的路径；或通过通配符指定一系列顺序命名的图片文件的路径，以设置为动态立绘。
+	- `pos`	可选参数，指定了立绘在屏幕上的位置，是一个2元素的元组，对应(X,Y)，默认为(0,0)，即左上角。
+	- `tick`	可选参数，仅在动态立绘中生效，设置立绘动画的拍率，单位为 帧/拍；默认为1，即一拍一。
+	- `loop`	可选参数，仅在动态立绘中生效，设置立绘动画是否循环播放，可以是`True`或者`False`，设置为否时，当动态立绘的完整播放了一次之后，会停留在最后帧；默认是`True`，即循环播放。
 
 > 注意：一个角色可以在不同的subtype下指定不同的立绘，用于实现差分效果；使用时在log文件的对话行里指定到不同的subtype。<p>
-> 注意：如果希望实现多人同框效果，建议为同框时的立绘另外建立Animation对象，并在定义时指定合适的位置。<p>
+> 注意：如果希望实现多人同框效果，建议为同框时的立绘另外建立 `Animation` 对象，并在定义时指定合适的位置。<p>
 > 注意：在路径中使用符号`*`代表匹配任意字符；建议以位数相同的数字命名动态立绘。例如test_000.png、test_001.png。
 
 5.	**背景音乐 BGM**
@@ -125,10 +131,10 @@ Animation(filepath,pos=(0,0),tick=1,loop=True)
 BGM(filepath,volume=100,loop=True)
 ```
 
-- BGM指长的，一直位于后台循环播放的音频；支持的格式是 `.ogg` ，如果是 `.mp3` 格式的背景音乐，建议先进行格式转换。
-- `filepath`	必要参数，指定一个音频文件的路径。
-- `volume`	可选参数，设置背景音乐的音量，合理的参数是0-100的整数；默认为100；
-- `loop`	可选参数，设置背景音乐是否会循环播放；默认为循环播放；如果需要不循环，设置为`False`；
+	- 背景音乐指长的，一直位于后台循环播放的音频；支持的格式是 `.ogg` ，如果是 `.mp3` 格式的背景音乐，建议先进行格式转换。
+	- `filepath`	必要参数，指定一个音频文件的路径。
+	- `volume`	可选参数，设置背景音乐的音量，合理的参数是0-100的整数；默认为100；
+	- `loop`	可选参数，设置背景音乐是否会循环播放；默认为循环播放；如果需要不循环，设置为`False`；
 
 > 注意：BGM建议使用.ogg格式的音频，否则有可能出现程序的不稳定。另外，建议在后期制作软件中手动加入BGM。<p>
 > 注意：BGM和audio的逻辑不同，不可混用！
@@ -138,10 +144,10 @@ BGM(filepath,volume=100,loop=True)
 Audio(filepath)
 ```
 
-- 音效指短音频，音效通常只会完整地播放一次。
-- `filepath`	必要参数，指定一个音频文件的路径。
+	- 音效指短音频，音效通常只会完整地播放一次。
+	- `filepath`	必要参数，指定一个音频文件的路径。
 
-> 注意：replay视频中通常包含大量的语音文件，不建议全建立Audio对象，会消耗较大的内存，在Log文件的 *对话行* 的 *音效框* 里指定文件路径即可。<p>
+> 注意：replay视频中通常包含大量的语音文件，不建议全建立 `Audio` 对象，会消耗较大的内存，在Log文件的 *对话行* 的 *音效框* 里指定文件路径即可。<p>
 > 注意：本文提及的 *文件路径* 的格式均为字符串，即需要引号引起来。例子：`"./pic/zhang.png"`<p>
 > 注意：定义的媒体的变量名需要符合python变量名标准，且不可以和部分程序代码中已占用的关键字（详见[已占用关键字](./media/occupied_variable_name.list)）相互相互重合。
 
@@ -155,8 +161,8 @@ Audio(filepath)
 
 - Name列，角色的名称，和 *Log文件-对话行-角色框* 内的名称相互对应；名称可以包含英文字符，空格，数字，下划线，中文，不可以包含任何其他字符。
 - Subtype列，角色的差分名称；差分名称可以包含英文字符，数字，下划线，中文，不可以包含空格；每个Name必须要有一个Subtype是default，且不可以有重复的Subtype。
-- Animation列，角色立绘对象；需要是 *媒体定义文件* 中已经定义的Animation类的变量名，或者使用 NA 表示缺省。
-- Bubble列，发言气泡对象；需要是 *媒体定义文件* 中已定义的Bubble类的变量名，或者使用 NA 表示缺省。
+- Animation列，角色立绘对象；需要是 *媒体定义文件* 中已经定义的 `Animation` 类的变量名，或者使用 NA 表示缺省。
+- Bubble列，发言气泡对象；需要是 *媒体定义文件* 中已定义的 `Bubble` 类的变量名，或者使用 NA 表示缺省。
 - Voice列，角色配音的音源名；所有可选的Voice详见[可用的语音](./doc/aliyun_available_voice.md)；不需要语音的角色使用 NA 表示缺省。
 - SpeechRate列，角色配音的语速；取值范围是(-500,500)，对应0.5倍速至2倍速。
 - PitchRate列，角色配音的语调；取值范围是(-500,500)，对应低八度至高八度。详见[接口说明](https://help.aliyun.com/document_detail/84435.html)
@@ -171,7 +177,7 @@ Audio(filepath)
 |旁白|default|NA|bubble2|NA|NA|NA|
 
 > 注意：骰子、旁白等弹窗型气泡，也可以以“角色”的形式定义在本文件中。<p>
-> 注意：缺失Bubble的角色不可以作为发言行的主发言人。
+> 注意：缺失 `Bubble` 的角色不可以作为发言行的主发言人。
 
 ### 3. Log文件
 log文件是整个演示的剧本文件，决定了演示的内容和效果；<p>
@@ -234,7 +240,7 @@ log文件中每个行是均是一个独立的单元，文本内容不能跨行�
 <background><replace=0>:Background
 ```
 
-通过背景行，切换播放的背景图片。
+在背景行中指定一个 `Background` 类的媒体对象，以切换播放的背景图片。
 1.	**背景行的识别标志：**`<background>` 是背景行的必要组成部分。
 2.	**切换效果修饰符：**`<method=time>` 背景切换效果（method）包括：
 	- `cross`：交叉溶解，新的背景会逐渐覆盖原背景，参数是整个渐变的时长
@@ -523,6 +529,19 @@ python gui.py
 出于易用性的考虑，使用图形界面将上述四个模块包装。
 
 ![GUI例图](./doc/gui.png)
+
+## 其他工具
+
+### Sublime Text Syntax Highlight
+
+本程序提供了在 **Sublime Text 3** 中使用的[Log文件高亮规则](./tools_scripts/RplGenLog.sublime-syntax)，以便于Log文件的编辑。<p>
+![Syntax例图](./doc/syntax.png)
+
+**使用方法**：
+1. 将 `RplGenLog.sublime-syntax` 文件复制到 `~\AppData\Roaming\Sublime Text 3\Packages\User`（windows系统）路径下；
+2. 在Sublime Text中，右下角选择语言为 `RplGenLog`；
+
+> 注意：该高亮规则的默认文件格式为 `.rgl`
 
 # 进阶使用
 
