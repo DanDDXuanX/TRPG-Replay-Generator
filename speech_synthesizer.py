@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.10.0'
+edtion = 'alpha 1.10.2'
 
 # 绝对的全局变量
 # 在开源发布的版本中，隐去了各个key
@@ -158,7 +158,7 @@ def isnumber(str):
     
 # 清理ts文本中的标记符号
 def clean_ts(text):
-    return text.replace('^','').replace('#','。')
+    return text.replace('^','').replace('#','')
 
 # 解析函数
 def parser(stdin_text):
