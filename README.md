@@ -28,9 +28,9 @@
 
 ## 程序下载
 
-[**免安装版** 93.6MB](https://github.com/DanDDXuanX/TRPG-Replay-Generator/releases/download/v1.0.1/TRPG-Replay-Generator-v1.0.1-win64.7z)
+[**免安装版** 93.8MB](https://github.com/DanDDXuanX/TRPG-Replay-Generator/releases/download/v1.0.1/TRPG-Replay-Generator-v1.0.1-win64.7z)
 
-[**源代码** 25MB](https://github.com/DanDDXuanX/TRPG-Replay-Generator/releases/download/v1.0.1/TRPG-Replay-Generator-v1.0.1-SourceCode.7z)
+[**源代码** 25.1MB](https://github.com/DanDDXuanX/TRPG-Replay-Generator/releases/download/v1.0.1/TRPG-Replay-Generator-v1.0.1-SourceCode.7z)
 
 ## 快速上手
 
@@ -57,7 +57,7 @@ python ./replay_generator.py -l ./toy/LogFile.txt -d ./toy/MediaObject.txt -t ./
 
 > 注意：可执行文件release无需安装python环境即可运行，但是在效能和稳定性上比运行源码略差。
 
-# 参考文档（文档版本 alpha 1.10.0）
+# 参考文档（文档版本 alpha 1.10.2）
 
 ## 输入文件格式
 
