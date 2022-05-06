@@ -25,6 +25,8 @@
 1. 安装[阿里云智能语音服务Python SDK](https://github.com/aliyun/alibabacloud-nls-python-sdk)
 2. 查看[帮助文档](https://help.aliyun.com/document_detail/374323.html)
 3. 获得[阿里云AccessKey、AccessKey_Secret、Appkey](https://ram.console.aliyun.com/manage/ak)
+4. azure-cognitiveservices-speech &gt;= 1.21.0
+5. 获得[Azure key](https://azure.microsoft.com/zh-cn/services/cognitive-services/text-to-speech/#overview)
 
 ## 程序下载
 
@@ -57,7 +59,7 @@ python ./replay_generator.py -l ./toy/LogFile.txt -d ./toy/MediaObject.txt -t ./
 
 > 注意：可执行文件release无需安装python环境即可运行，但是在效能和稳定性上比运行源码略差。
 
-# 参考文档（文档版本 alpha 1.10.2）
+# 参考文档（文档版本 alpha 1.10.3）
 
 ## 输入文件格式
 
@@ -390,15 +392,18 @@ set:后跟需要设置的全局变量名；
 7. ***--Height, -H*** ：可选参数，窗体的高；默认值是1080；
 8. ***--Zorder, -Z*** ：可选参数，渲染的图层顺序；通常不建议修改这个参数，除非必要。格式要求详见 [进阶使用.图层顺序](./README.md#--zorder-图层顺序)。
 
-9. ***--AccessKey, -K*** ：可选参数，阿里云账号的AccessKey，执行语音合成时所必须的；
-10. ***--AccessKeySecret, -S*** ：可选参数，阿里云账号的AccessKeySecret，执行语音合成时所必须的；
-11. ***--Appkey, -A*** ：可选参数，阿里云语音合成应用的Appkey，执行语音合成时所必须的。
-12. ***--Quality, -Q*** :可选参数，导出为mp4视频时的质量，即ffmpeg程序的crf值；取值范围为0-51，越小对应越高的视频质量，通常合理范围为18-28；默认值是24
+9. ***--AccessKey, -K*** ：可选参数，阿里云账号的AccessKey，使用阿里云音源执行语音合成时所必须的；
+10. ***--AccessKeySecret, -S*** ：可选参数，阿里云账号的AccessKeySecret，使用阿里云音源执行语音合成时所必须的；
+11. ***--Appkey, -A*** ：可选参数，阿里云语音合成应用的Appkey，使用阿里云音源执行语音合成时所必须的；
+12. ***--Azurekey, -U***：可选参数，微软Azure认知语音服务的Key，使用Azure音源执行语音合成时所需要的；
+13. ***--ServRegion, -R***：可选参数，微软Azure认知语音服务的服务地区，使用Azure音源执行语音合成时所需要的；默认是东亚地区；
 
-13. ***--ExportXML*** ：可选标志，如果使用该标志，会输出一个能导入到PR的XML文件，以及其引用的一系列PNG图片到输出目录。
-14. ***--ExportVideo*** ：可选标志，如果使用该标志，会导出一个和窗口中播放的内容完全一致的MP4视频。使用该标志则会跳过窗口播放。
-15. ***--SynthesisAnyway*** ：可选标志，如果使用该标志，会对log文件中尚未处理的星标行进行语音合成；一系列WAV音频到会输出到输出目录。
-16. ***--FixScreenZoom*** ：可选参数，仅在windows系统上生效。使用该标志以消除由于windows系统缩放倍率，而导致的窗体尺寸异常。
+14. ***--Quality, -Q*** :可选参数，导出为mp4视频时的质量，即ffmpeg程序的crf值；取值范围为0-51，越小对应越高的视频质量，通常合理范围为18-28；默认值是24
+
+15. ***--ExportXML*** ：可选标志，如果使用该标志，会输出一个能导入到PR的XML文件，以及其引用的一系列PNG图片到输出目录。
+16. ***--ExportVideo*** ：可选标志，如果使用该标志，会导出一个和窗口中播放的内容完全一致的MP4视频。使用该标志则会跳过窗口播放。
+17. ***--SynthesisAnyway*** ：可选标志，如果使用该标志，会对log文件中尚未处理的星标行进行语音合成；一系列WAV音频到会输出到输出目录。
+18. ***--FixScreenZoom*** ：可选参数，仅在windows系统上生效。使用该标志以消除由于windows系统缩放倍率，而导致的窗体尺寸异常。
 
 **主程序命令例子：**
 
@@ -417,6 +422,8 @@ python replay_generator.py -l LogFile.txt -d MediaDefine.txt -t CharactorTable.c
 5. ***--AccessKey, -K***
 6. ***--AccessKeySecret, -S***
 7. ***--Appkey, -A***
+8. ***--Azurekey, -U***
+9. ***--ServRegion, -R***
 
 其余参数描述均和主程序一致，不再赘述。
 

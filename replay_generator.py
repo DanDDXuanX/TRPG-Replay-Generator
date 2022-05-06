@@ -24,6 +24,9 @@ ap.add_argument("-Z", "--Zorder", help='Set the display order of layers, not rec
 ap.add_argument("-K", "--AccessKey", help='Your AccessKey, to use with --SynthsisAnyway',type=str,default="Your_AccessKey")
 ap.add_argument("-S", "--AccessKeySecret", help='Your AccessKeySecret, to use with --SynthsisAnyway',type=str,default="Your_AccessKey_Secret")
 ap.add_argument("-A", "--Appkey", help='Your Appkey, to use with --SynthsisAnyway',type=str,default="Your_Appkey")
+ap.add_argument("-U", "--Azurekey", help='Your Azure TTS key.',type=str,default="Your_Azurekey")
+ap.add_argument("-R", "--ServRegion", help='Service region of Azure.', type=str, default="eastasia")
+
 # 用于导出视频的质量值
 ap.add_argument("-Q", "--Quality", help='Choose the quality (ffmpeg crf) of output video, to use with --ExportVideo.',type=int,default=24)
 # Flags
@@ -55,9 +58,13 @@ screen_size = (args.Width,args.Height) #显示的分辨率
 frame_rate = args.FramePerSecond #帧率 单位fps
 zorder = args.Zorder.split(',') #渲染图层顺序
 
+# 阿里云合成的key
 AKID = args.AccessKey
 AKKEY = args.AccessKeySecret
 APPKEY = args.Appkey
+# Azure合成的key
+AZUKEY = args.Azurekey
+service_region = args.ServRegion
 
 crf = args.Quality # 导出视频的质量值
 
@@ -1293,8 +1300,10 @@ print('[replay generator]: Welcome to use TRPG-replay-generator '+edtion)
 # 检查是否需要先做语音合成
 
 if synthfirst == True:
-    command = python3 +' ./speech_synthesizer.py --LogFile {lg} --MediaObjDefine {md} --CharacterTable {ct} --OutputPath {of} --AccessKey {AK} --AccessKeySecret {AS} --Appkey {AP}'
-    command = command.format(lg = stdin_log.replace('\\','/'),md = media_obj.replace('\\','/'), of = output_path, ct = char_tab.replace('\\','/'), AK = AKID,AS = AKKEY,AP = APPKEY)
+    command = python3 +' ./speech_synthesizer.py --LogFile {lg} --MediaObjDefine {md} --CharacterTable {ct} --OutputPath {of} --AccessKey {AK} --AccessKeySecret {AS} --Appkey {AP} '
+    command = command + '--Azurekey {AZ} --ServRegion {SR}'
+    command = command.format(lg = stdin_log.replace('\\','/'),md = media_obj.replace('\\','/'), of = output_path, ct = char_tab.replace('\\','/'),
+                             AK = AKID,AS = AKKEY,AP = APPKEY,AZ = AZUKEY, SR =service_region)
     print('[replay generator]: Flag --SynthesisAnyway detected, running command:\n'+'[32m'+command+'[0m')
     try:
         exit_status = os.system(command)
