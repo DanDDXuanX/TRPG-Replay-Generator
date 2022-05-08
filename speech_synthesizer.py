@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.10.3'
+edtion = 'alpha 1.10.5'
 
 # 绝对的全局变量
 # 在开源发布的版本中，隐去了各个key
@@ -371,7 +371,7 @@ def main():
     try:
         charactor_table['TTS'] = TTS.map(lambda x:eval(x))
     except ModuleNotFoundError as E:
-        print('[31m[ImportError]:[0m ',E,'check https://help.aliyun.com/document_detail/374323.html. Execution terminated!')
+        print('[31m[ImportError]:[0m ',E,' .Execution terminated!')
         sys.exit(1)
     except ValueError as E: # 非法音源名
         print(E)
@@ -460,10 +460,11 @@ def main():
         stdin_text[key] = stdin_text[key].replace(value.asterisk_label,value.new_asterisk_label)
 
     # 输出新的目录
-    out_Logfile = open(output_path+'/AsteriskMarkedLogFile.txt','w',encoding='utf-8')
+    out_Logfile = open(output_path+'/AsteriskMarkedLogFile.rgl','w',encoding='utf-8')
     out_Logfile.write('\n'.join(stdin_text))
     out_Logfile.close()
 
+    print('[speech synthesizer]: Asterisk Marked Logfile path: '+output_path+'/AsteriskMarkedLogFile.rgl')
     print('[speech synthesizer]: Done!')
 
 if __name__ == '__main__':

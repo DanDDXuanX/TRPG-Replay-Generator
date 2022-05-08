@@ -1,0 +1,6 @@
+Name	Subtype	Animation	Bubble	Voice
+张安翔	default	zhang	bubble1	sicheng
+张安翔	scared	zhang_scared	bubble1	sicheng
+KP	default	drink	bubble1_right	Azure::zh-CN-XiaomoNeural
+KP	double	drink_left	bubble1	Azure::zh-CN-XiaomoNeural
+旁白	default	NA	bubble2	NA

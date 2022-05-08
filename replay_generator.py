@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.10.0'
+edtion = 'alpha 1.10.5'
 
 # 外部参数输入
 
@@ -1308,8 +1308,8 @@ if synthfirst == True:
     try:
         exit_status = os.system(command)
         # 如果是正常退出，将当前的标准输入调整为处理后的log文件
-        if (exit_status == 0)&(os.path.isfile(output_path+'/AsteriskMarkedLogFile.txt') == True):
-            stdin_log = output_path+'/AsteriskMarkedLogFile.txt'
+        if (exit_status == 0)&(os.path.isfile(output_path+'/AsteriskMarkedLogFile.rgl') == True):
+            stdin_log = output_path+'/AsteriskMarkedLogFile.rgl'
         else:
             raise OSError('Exception above')
     except Exception as E:

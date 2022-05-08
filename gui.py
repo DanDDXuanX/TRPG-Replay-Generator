@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.9.2'
+edtion = 'alpha 1.10.5'
 
 import tkinter as tk
 from tkinter import ttk
@@ -974,8 +974,9 @@ def open_Main_windows():
                     'AccessKey':AccessKey.get(),'Appkey':Appkey.get(),'AccessKeySecret':AccessKeySecret.get(),
                     'AzureKey':AzureKey.get(),'ServiceRegion':ServiceRegion.get(),
                     'synthanyway':synthanyway.get(),'exportprxml':exportprxml.get(),
-                    'exportmp4':exportmp4.get(),'fixscrzoom':fixscrzoom.get(),'save_config':save_config.get()
-                },o_config) 
+                    'exportmp4':exportmp4.get(),'fixscrzoom':fixscrzoom.get(),'save_config':save_config.get(),
+                    'version':edtion
+                },o_config) # 把版本信息保存下来
             else: # 如果选择不保存，则抹除保存的参数
                 pickle.dump({'save_config':save_config.get()},o_config)
             o_config.close()
@@ -1034,6 +1035,9 @@ def open_Main_windows():
         i_config.close()
         if configs['save_config'] == 0: # 如果上一次保存时，是否保存是否
             raise ValueError('No save config!')
+        if configs['version'] != edtion: # 如果版本不一致
+            if messagebox.askyesno(title='版本变动',message='发现版本变动！\n是否仍然载入上一次的配置？') == False:
+                raise ValueError('Edition change!')
         for key,value in configs.items():
             eval(key).set(value)
     except Exception: # 使用原装默认参数
@@ -1144,6 +1148,20 @@ def open_Main_windows():
     tk.Button(filepath_s, command=lambda:call_browse_file(stdin_logfile),text="浏览").place(x=520,y=95,width=70,height=30)
     tk.Button(filepath_s, command=lambda:call_browse_file(output_path,'path'),text="浏览").place(x=520,y=140,width=70,height=30)
 
+    def change_service(now):
+        if now == optional_s:
+            optional_s.place_forget()
+            flag_s.place_forget()
+            optional_azs.place(x=10,y=210,width=600,height=110)
+            flag_azs.place(x=10,y=320,width=600,height=110)
+        elif now == optional_azs:
+            optional_azs.place_forget()
+            flag_azs.place_forget()
+            optional_s.place(x=10,y=210,width=600,height=110)
+            flag_s.place(x=10,y=320,width=600,height=110)
+        else:
+            pass
+
     optional_s = tk.LabelFrame(synth_frame,text='选项')
     optional_s.place(x=10,y=210,width=600,height=110)
 
@@ -1157,6 +1175,7 @@ def open_Main_windows():
     tk.Entry(optional_s, textvariable=Appkey).place(x=120,y=0,width=390,height=25)
     tk.Entry(optional_s, textvariable=AccessKey).place(x=120,y=30,width=390,height=25)
     tk.Entry(optional_s, textvariable=AccessKeySecret).place(x=120,y=60,width=390,height=25)
+    tk.Button(optional_s,text="⇵",command=lambda: change_service(optional_s)).place(x=565,y=0,width=25,height=25)
 
     optional_azs = tk.LabelFrame(synth_frame,text='选项')
     #optional_azs.place(x=10,y=210,width=600,height=110)
@@ -1168,21 +1187,21 @@ def open_Main_windows():
 
     tk.Entry(optional_azs, textvariable=AzureKey).place(x=120,y=10,width=390,height=25)
     tk.Entry(optional_azs, textvariable=ServiceRegion).place(x=120,y=50,width=390,height=25)
+    tk.Button(optional_azs,text="⇵",command=lambda: change_service(optional_azs)).place(x=565,y=0,width=25,height=25)
 
     flag_s = tk.LabelFrame(synth_frame,text='标志')
     flag_s.place(x=10,y=320,width=600,height=110)
-
-    #tk.Label(flag_s, text='支持的语音合成服务：',anchor=tk.W).place(x=10,y=0,width=150,height=25)
     aliyun_logo = ImageTk.PhotoImage(Image.open('./media/aliyun.png'))
-    tk.Label(flag_s,text='本项功能由阿里云语音合成支持，了解更多：').place(x=300,y=20)
+    tk.Label(flag_s,image = aliyun_logo).place(x=20,y=13)
+    tk.Label(flag_s,text='本项功能由阿里云语音合成支持，了解更多：').place(x=300,y=15)
+    tk.Button(flag_s,text='https://ai.aliyun.com/nls/',command=lambda: webbrowser.open('https://ai.aliyun.com/nls/'),fg='blue',relief='flat').place(x=300,y=40)
+
+    flag_azs = tk.LabelFrame(synth_frame,text='标志')
+    #flag_azs.place(x=10,y=320,width=600,height=110)
     azure_logo = ImageTk.PhotoImage(Image.open('./media/azure.png'))
-    tk.Button(flag_s,image = aliyun_logo,command=lambda:(optional_azs.place_forget(),optional_s.place(x=10,y=210,width=600,height=110)),relief='flat').place(x=10,y=10)
-    tk.Button(flag_s,image = azure_logo,command=lambda:(optional_s.place_forget(),optional_azs.place(x=10,y=210,width=600,height=110)),relief='flat').place(x=240,y=0)
-    #tk.Label(flag_s,image = aliyun_logo).place(x=20,y=13)
-    tk.Label(flag_s,text='本项功能由阿里云智能语音交互支持，了解更多：').place(x=325,y=0)
-    tk.Button(flag_s,text='https://ai.aliyun.com/nls/',command=lambda: webbrowser.open('https://nls-portal.console.aliyun.com/applist'),fg='blue',relief='flat').place(x=325,y=20)
-    tk.Label(flag_s,text='本项功能由Azure认知服务支持，了解更多：').place(x=325,y=40)
-    tk.Button(flag_s,text='https://azure.microsoft.com/',command=lambda: webbrowser.open('https://azure.microsoft.com/zh-cn/services/cognitive-services/text-to-speech/#features'),fg='blue',relief='flat').place(x=325,y=60)
+    tk.Label(flag_azs,image = azure_logo).place(x=20,y=8)
+    tk.Label(flag_azs,text='本项功能由Azure认知语音服务支持，了解更多：').place(x=300,y=15)
+    tk.Button(flag_azs,text='https://docs.microsoft.com/azure/',command=lambda: webbrowser.open('https://docs.microsoft.com/zh-cn/azure/cognitive-services'),fg='blue',relief='flat').place(x=300,y=40)
 
     tk.Button(synth_frame, command=run_command_synth,text="开始",font=big_text).place(x=260,y=435,width=100,height=50)
 
@@ -1266,7 +1285,7 @@ def open_Main_windows():
 
     ffmpeg_logo = ImageTk.PhotoImage(Image.open('./media/ffmpeg.png'))
     tk.Label(flag_v,image = ffmpeg_logo).place(x=20,y=10)
-    tk.Label(flag_v,text='本项功能调用ffmpeg实现，了解更多：').place(x=300,y=20)
+    tk.Label(flag_v,text='本项功能调用ffmpeg实现，了解更多：').place(x=300,y=15)
     tk.Button(flag_v,text='https://ffmpeg.org/',command=lambda: webbrowser.open('https://ffmpeg.org/'),fg='blue',relief='flat').place(x=300,y=40)
 
     tk.Button(mp4_frame, command=run_command_mp4,text="开始",font=big_text).place(x=260,y=435,width=100,height=50)
