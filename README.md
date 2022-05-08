@@ -59,7 +59,7 @@ python ./replay_generator.py -l ./toy/LogFile.txt -d ./toy/MediaObject.txt -t ./
 
 > 注意：可执行文件release无需安装python环境即可运行，但是在效能和稳定性上比运行源码略差。
 
-# 参考文档（文档版本 alpha 1.10.3）
+# 参考文档（文档版本 alpha 1.10.5）
 
 ## 输入文件格式
 
@@ -165,7 +165,7 @@ Audio(filepath)
 - Subtype列，角色的差分名称；差分名称可以包含英文字符，数字，下划线，中文，不可以包含空格；每个Name必须要有一个Subtype是default，且不可以有重复的Subtype。
 - Animation列，角色立绘对象；需要是 *媒体定义文件* 中已经定义的 `Animation` 类的变量名，或者使用 NA 表示缺省。
 - Bubble列，发言气泡对象；需要是 *媒体定义文件* 中已定义的 `Bubble` 类的变量名，或者使用 NA 表示缺省。
-- Voice列，角色配音的音源名；所有可选的Voice详见[可用的语音](./doc/aliyun_available_voice.md)；不需要语音的角色使用 NA 表示缺省。
+- Voice列，角色配音的音源名；所有可选的Voice详见[阿里云可用语音](./doc/aliyun_available_voice.md)和[Azure可用语音](./doc/azure_available_voice.md)；不需要语音的角色使用 NA 表示缺省。
 - SpeechRate列，角色配音的语速；取值范围是(-500,500)，对应0.5倍速至2倍速。
 - PitchRate列，角色配音的语调；取值范围是(-500,500)，对应低八度至高八度。详见[接口说明](https://help.aliyun.com/document_detail/84435.html)
 
@@ -175,11 +175,12 @@ Audio(filepath)
 |:---|:---:|:---:|:---:|:---:|:---:|:---:|
 |张安翔|default|zhang|bubble1|sicheng|50|0|
 |张安翔|scared|zhang_scared|bubble1|sicheng|30|0|
-|KP|default|drink|bubble2|sijia|50|0|
+|KP|default|drink|bubble2|Azure::zh-CN-XiaomoNeural|50|0|
 |旁白|default|NA|bubble2|NA|NA|NA|
 
 > 注意：骰子、旁白等弹窗型气泡，也可以以“角色”的形式定义在本文件中。<p>
-> 注意：缺失 `Bubble` 的角色不可以作为发言行的主发言人。
+> 注意：缺失 `Bubble` 的角色不可以作为发言行的主发言人。<p>
+> 注意：指定Azure音源给角色时，需要在音源名前添加`Azure::`标注。
 
 ### 3. Log文件
 log文件是整个演示的剧本文件，决定了演示的内容和效果；<p>
@@ -382,9 +383,9 @@ set:后跟需要设置的全局变量名；
 
 **主程序的参数：**
 
-1. **--LogFile, -l** ：必要参数，log文件的路径，文件格式要求详见 [输入文件格式.log文件](./README.md#3-log文件)；
-2. **--MediaObjDefine, -d** ：必要参数，媒体定义文件的路径，文件格式要求参考 [输入文件格式.媒体定义文件](./README.md#1-媒体定义文件)；
-3. **--CharacterTable, -t** ：必要参数，角色表文件的路径，格式为制表符分隔的数据表，或者Excel电子表格，包含至少Name、Subtype、Animation、Bubble4列；
+1. ***--LogFile, -l*** ：必要参数，log文件的路径，文件格式要求详见 [输入文件格式.log文件](./README.md#3-log文件)；
+2. ***--MediaObjDefine, -d*** ：必要参数，媒体定义文件的路径，文件格式要求参考 [输入文件格式.媒体定义文件](./README.md#1-媒体定义文件)；
+3. ***--CharacterTable, -t*** ：必要参数，角色表文件的路径，格式为制表符分隔的数据表，或者Excel电子表格，包含至少 `Name、Subtype、Animation、Bubble` 4列；
 4. ***--OutputPath, -o*** ：可选参数，输出文件的目录；如果输入了该标志，则项目的时间轴、断点文件、内建对象文件将输出到指定的目录，格式分别为timeline、breakpoint、bulitinmedia。如果指定了其他输出标志，相应的文件也将输出到指定的目录。
 
 5. ***--FramePerSecond, -F*** ：可选参数，播放的帧率，单位是fps；默认值是30fps；
@@ -392,9 +393,9 @@ set:后跟需要设置的全局变量名；
 7. ***--Height, -H*** ：可选参数，窗体的高；默认值是1080；
 8. ***--Zorder, -Z*** ：可选参数，渲染的图层顺序；通常不建议修改这个参数，除非必要。格式要求详见 [进阶使用.图层顺序](./README.md#--zorder-图层顺序)。
 
-9. ***--AccessKey, -K*** ：可选参数，阿里云账号的AccessKey，使用阿里云音源执行语音合成时所必须的；
-10. ***--AccessKeySecret, -S*** ：可选参数，阿里云账号的AccessKeySecret，使用阿里云音源执行语音合成时所必须的；
-11. ***--Appkey, -A*** ：可选参数，阿里云语音合成应用的Appkey，使用阿里云音源执行语音合成时所必须的；
+9. ***--AccessKey, -K*** ：可选参数，阿里云账号的AccessKey ID，使用阿里云音源执行语音合成时所需要的；
+10. ***--AccessKeySecret, -S*** ：可选参数，阿里云账号的AccessKeySecret 密钥，使用阿里云音源执行语音合成时所需要的；
+11. ***--Appkey, -A*** ：可选参数，阿里云语音合成应用的Appkey，使用阿里云音源执行语音合成时所需要的；
 12. ***--Azurekey, -U***：可选参数，微软Azure认知语音服务的Key，使用Azure音源执行语音合成时所需要的；
 13. ***--ServRegion, -R***：可选参数，微软Azure认知语音服务的服务地区，使用Azure音源执行语音合成时所需要的；默认是东亚地区；
 
@@ -408,40 +409,57 @@ set:后跟需要设置的全局变量名；
 **主程序命令例子：**
 
 ```bash
-python replay_generator.py -l LogFile.txt -d MediaDefine.txt -t CharactorTable.csv -F 30 --ExportVideo
+python replay_generator.py \
+-l LogFile.txt \
+-d MediaDefine.txt \
+-t CharactorTable.csv \
+-F 30 -W 1920 -H 1080 \
+--ExportVideo --FixScreenZoom
 ```
 
 ## 语音合成模块speech_synthesizer.py
 
 **语音合成模块的参数**
 
-1. ***--Logfile, -l***
-2. ***--MediaObjDefine, -d***
-3. ***--CharacterTable, -t***
+1. ***--LogFile, -l*** ：必要参数，log文件的路径，文件格式要求详见 [输入文件格式.log文件](./README.md#3-log文件)；
+2. ***--MediaObjDefine, -d*** ：必要参数，媒体定义文件的路径，文件格式要求参考 [输入文件格式.媒体定义文件](./README.md#1-媒体定义文件)；
+3. ***--CharacterTable, -t*** ：必要参数，角色表文件的路径，格式为制表符分隔的数据表，或者Excel电子表格，包含至少 `Name、Subtype、Voice` 3列；
 4. ***--OutputPath, -o*** ：必要参数，输出目录，合成的音频和处理后的log文件将会输出到这个路径。
-5. ***--AccessKey, -K***
-6. ***--AccessKeySecret, -S***
-7. ***--Appkey, -A***
-8. ***--Azurekey, -U***
-9. ***--ServRegion, -R***
-
-其余参数描述均和主程序一致，不再赘述。
+5. ***--AccessKey, -K*** ：可选参数，阿里云账号的AccessKey ID，使用阿里云音源执行语音合成时所需要的；
+6. ***--AccessKeySecret, -S*** ：可选参数，阿里云账号的AccessKeySecret 密钥，使用阿里云音源执行语音合成时所需要的；
+7. ***--Appkey, -A*** ：可选参数，阿里云语音合成应用的Appkey，使用阿里云音源执行语音合成时所需要的；
+8. ***--Azurekey, -U***：可选参数，微软Azure认知语音服务的Key，使用Azure音源执行语音合成时所需要的；
+9. ***--ServRegion, -R***：可选参数，微软Azure认知语音服务的服务地区，使用Azure音源执行语音合成时所需要的；默认是东亚地区；
 
 **语音合成模块命令例子：**
 
 ```bash
-python speech_synthesizer.py -l LogFile.txt -d MediaDefine.txt -t CharactorTable.csv -K *** -S *** -A *** -o ./test_output
+python speech_synthesizer.py \
+-l LogFile.txt \
+-d MediaDefine.txt \
+-t CharactorTable.csv \
+-K *** -S *** -A *** -U *** -R eastasia \
+-o ./test_output
 ```
 
 ### 1. 获取阿里云智能语音交互key
 
-1. 注册并登录[阿里云智能语音服务控制台](https://nls-portal.console.aliyun.com/applist)
-2. 创建项目，即可获取项目Appkey
-3. 鼠标移动至右上角头像，进入下拉菜单，[AccessKey管理](https://ram.console.aliyun.com/manage/ak)
-4. 点击创建AccessKey，即可获取AccessKey和AccessKeySecret
-5. AccessKeySecret仅在创建时可见，务必记录；AccessKey和AccessKeySecret拥有账户的所有权限，请务必妥善保管，以免遭受意外损失！
+1. 注册并登录[阿里云智能语音服务控制台](https://nls-portal.console.aliyun.com/overview)
+2. 进入`服务开通及购买`，按照自己的需要配置服务。
+3. 进入[项目管理页面](https://nls-portal.console.aliyun.com/applist)，创建项目，选择`仅语音合成`，设置项目名称，即可获取项目Appkey
+4. 鼠标移动至右上角头像，进入下拉菜单，进入[AccessKey管理](https://ram.console.aliyun.com/manage/ak)
+5. 点击创建AccessKey，即可获取AccessKey和AccessKeySecret
+6. AccessKeySecret仅在创建时可见，务必记录；AccessKey和AccessKeySecret拥有账户的所有权限，请务必妥善保管，以免遭受意外损失！
 
-### 2. 用于语音合成的Log文件
+### 2. 获取Azure认知语音服务key
+
+1. 进入[认知语音服务](https://azure.microsoft.com/zh-cn/free/cognitive-services/)，免费开始并注册登录。
+2. 注册登录完毕后，进入[Azure控制台门户](https://portal.azure.com/)，并创建一项语音服务。
+3. 选择订阅 `免费试用`，并新建一个自定名称的资源组。
+4. 选择就近的服务区域，并取一个自定的名称，定价层选择`Free F0`，剩余项目可用默认，创建服务。
+5. 进入所新建的服务，点击管理密钥，即可获取并复制服务密钥，以及服务区域。请务必妥善保管，以免遭受意外损失！
+
+### 3. 用于语音合成的Log文件
 
 用于语音合成的log文件中，在 *对话行的音效框* 使用 *待处理星标* 表明需要执行语音合成；当主程序遭遇 *待处理星标* 时，会报出下列报错，并终止程序。
 
@@ -471,21 +489,21 @@ python speech_synthesizer.py -l LogFile.txt -d MediaDefine.txt -t CharactorTable
 
 **导出PRXML模块的参数:**
 
-1. ***--TimeLine, -l*** ：必要参数，timeline文件的路径，timeline文件主程序生成在输出路径的工程文件；
-2. ***--MediaObjDefine, -d***
+1. ***--TimeLine, -l*** ：必要参数，timeline文件的路径，timeline文件是由主程序生成在输出路径的工程文件；
+2. ***--MediaObjDefine, -d*** ：必要参数，媒体定义文件的路径，文件格式要求参考 [输入文件格式.媒体定义文件](./README.md#1-媒体定义文件)；
 3. ***--CharacterTable, -t*** : 无效参数，导出PRXML模块，导出视频模块不需要角色配置表；
 4. ***--OutputPath, -o*** ：必要参数，输出文件的目录，媒体的图片和XML项目将输出到这个路径。
-5. ***--FramePerSecond, -F***
-6. ***--Width, -W***
-7. ***--Height, -H***
-8. ***--Zorder, -Z***
+5. ***--FramePerSecond, -F*** ：可选参数，播放的帧率，单位是fps；默认值是30fps；
+6. ***--Width, -W*** ：可选参数，窗体的宽；默认值是1920；
+7. ***--Height, -H*** ：可选参数，窗体的高；默认值是1080；
+8. ***--Zorder, -Z*** ：可选参数，渲染的图层顺序；通常不建议修改这个参数，除非必要。格式要求详见 [进阶使用.图层顺序](./README.md#--zorder-图层顺序)。
 
 其余参数的描述和主程序一致，不再赘述。
 
 **导出PRXML模块命令例子：**
 
 ```bash
-python export_xml.py -l 12345.timeline -d MediaDefine.txt -o ./test_output -F 60
+python export_xml.py -l 12345.timeline -d MediaDefine.txt -o ./test_output
 ```
 
 ### 导出PRXML模块的注意事项
@@ -500,17 +518,15 @@ python export_xml.py -l 12345.timeline -d MediaDefine.txt -o ./test_output -F 60
 
 **导出视频模块参数**
 
-1. ***--TimeLine, -l***
-2. ***--MediaObjDefine, -d***
-3. ***--CharacterTable, -t***
-4. ***--OutputPath, -o*** ：必要参数，输出文件的目录，导出的视频和混音音轨将输出到这个路径。
-5. ***--FramePerSecond, -F***
-6. ***--Width, -W***
-7. ***--Height, -H***
-8. ***--Zorder, -Z***
-9. ***--Quality, -Q***
-
---Timeline、--CharacterTable和导出PRXML模块一致，其余参数的描述和主程序一致，不再赘述。
+1. ***--TimeLine, -l*** ：必要参数，timeline文件的路径，timeline文件是由主程序生成在输出路径的工程文件；
+2. ***--MediaObjDefine, -d*** ：必要参数，媒体定义文件的路径，文件格式要求参考 [输入文件格式.媒体定义文件](./README.md#1-媒体定义文件)；
+3. ***--CharacterTable, -t*** : 无效参数，导出PRXML模块，导出视频模块不需要角色配置表；
+4. ***--OutputPath, -o*** ：必要参数，输出文件的目录，媒体的图片和XML项目将输出到这个路径。
+5. ***--FramePerSecond, -F*** ：可选参数，播放的帧率，单位是fps；默认值是30fps；
+6. ***--Width, -W*** ：可选参数，窗体的宽；默认值是1920；
+7. ***--Height, -H*** ：可选参数，窗体的高；默认值是1080；
+8. ***--Zorder, -Z*** ：可选参数，渲染的图层顺序；通常不建议修改这个参数，除非必要。格式要求详见 [进阶使用.图层顺序](./README.md#--zorder-图层顺序)。
+9. ***--Quality, -Q*** :可选参数，导出为mp4视频时的质量，即ffmpeg程序的crf值；取值范围为0-51，越小对应越高的视频质量，通常合理范围为18-28；默认值是24
 
 **导出视频模块命令例子：**
 
@@ -524,7 +540,7 @@ python export_video.py -l 12345.timeline -d MediaDefine.txt -Q 21
 2. 项目导出为视频时，如果包含较多的动态帧，例如动态切换效果，动画立绘，内建动画效果等，可能会减慢导出速度。通常而言，平均导出速度不低于30fps。
 3. 使用 `--Quality` 指定导出视频质量时，通常18即代表极好的视频质量；Quality指定过小的值会导致输出文件巨大！
 4. 导出的mp4视频和mp3音频和输入的timeline文件同名。
-5. 需要将ffmpeg的两个可执行文件 ffmepg.exe、ffprob.exe 和 export_video.py 置于同一个路径下。
+5. 需要将ffmpeg的两个可执行文件 ffmepg.exe、ffprob.exe 和 export_video.py 置于同一个路径下，或者放置在环境变量的路径下。
 
 ## 图形界面gui.py
 
@@ -533,9 +549,11 @@ python export_video.py -l 12345.timeline -d MediaDefine.txt -Q 21
 python gui.py
 ```
 
-出于易用性的考虑，使用图形界面将上述四个模块包装。
+出于易用性的考虑，使用图形界面将上述四个功能模块包装。
 
 ![GUI例图](./doc/gui.png)
+
+（待补充：GUI使用指引）
 
 ## 其他工具
 
