@@ -15,7 +15,7 @@ import sys
 import re
 import pickle
 
-# preview 的类 定义
+# preview 的类定义
 label_pos_show_text = ImageFont.truetype('./media/SourceHanSerifSC-Heavy.otf', 30)
 RE_mediadef_args = re.compile('(fontfile|fontsize|color|line_limit|filepath|Main_Text|Header_Text|pos|mt_pos|ht_pos|align|line_distance|tick|loop|volume|edge_color)?\ {0,4}=?\ {0,4}(Text\(\)|[^,()]+|\([\d,\ ]+\))')
 RE_parse_mediadef = re.compile('(\w+)[=\ ]+(Text|StrokeText|Bubble|Animation|Background|BGM|Audio)(\(.+\))')
@@ -845,13 +845,13 @@ def open_Main_windows():
                 return -1
         messagebox.showinfo(title='完毕',message='格式格式转换完毕，输出文件在:'+opath)
     def run_command_main():
-        optional = {1:'--OutputPath {of} ',2:'--ExportXML ',3:'--ExportVideo --Quality {ql} ',4:'--SynthesisAnyway --AccessKey {AK} --AccessKeySecret {AS} --Appkey {AP} ',5:'--FixScreenZoom '}
+        optional = {1:'--OutputPath {of} ',2:'--ExportXML ',3:'--ExportVideo --Quality {ql} ',4:'--SynthesisAnyway --AccessKey {AK} --AccessKeySecret {AS} --Appkey {AP} --Azurekey {AZ} --ServRegion {SR} ',5:'--FixScreenZoom '}
         command = python3 + ' ./replay_generator.py --LogFile {lg} --MediaObjDefine {md} --CharacterTable {ct} '
         command = command + '--FramePerSecond {fps} --Width {wd} --Height {he} --Zorder {zd} '
         if output_path.get()!='':
             command = command + optional[1].format(of=output_path.get().replace('\\','/'))
         if synthanyway.get()==1:
-            command = command + optional[4].format(AK=AccessKey.get(),AS=AccessKeySecret.get(),AP=Appkey.get())
+            command = command + optional[4].format(AK=AccessKey.get(),AS=AccessKeySecret.get(),AP=Appkey.get(),AZ=AzureKey.get(),SR=ServiceRegion.get())
         if exportprxml.get()==1:
             command = command + optional[2]
         if exportmp4.get()==1:
@@ -872,13 +872,13 @@ def open_Main_windows():
             except Exception:
                 messagebox.showwarning(title='警告',message='似乎有啥不对劲的事情发生了，检视控制台输出获取详细信息！')
     def run_command_synth():
-        command = python3 +' ./speech_synthesizer.py --LogFile {lg} --MediaObjDefine {md} --CharacterTable {ct} --OutputPath {of} --AccessKey {AK} --AccessKeySecret {AS} --Appkey {AP}'
-        if '' in [stdin_logfile.get(),characor_table.get(),media_define.get(),output_path.get(),AccessKey.get(),AccessKeySecret.get(),Appkey.get()]:
+        command = python3 +' ./speech_synthesizer.py --LogFile {lg} --MediaObjDefine {md} --CharacterTable {ct} --OutputPath {of} --AccessKey {AK} --AccessKeySecret {AS} --Appkey {AP} --Azurekey {AZ} --ServRegion {SR}'
+        if '' in [stdin_logfile.get(),characor_table.get(),media_define.get(),output_path.get(),AccessKey.get(),AccessKeySecret.get(),Appkey.get(),AzureKey.get(),ServiceRegion.get()]:
             messagebox.showerror(title='错误',message='缺少必要的参数！')
         else:
             command = command.format(lg = stdin_logfile.get().replace('\\','/'),md = media_define.get().replace('\\','/'),
                                      of = output_path.get().replace('\\','/'), ct = characor_table.get().replace('\\','/'),
-                                     AK = AccessKey.get(), AS= AccessKeySecret.get(),AP=Appkey.get())
+                                     AK = AccessKey.get(), AS= AccessKeySecret.get(),AP=Appkey.get(),AZ=AzureKey.get(),SR=ServiceRegion.get())
             try:
                 print('[32m'+command+'[0m')
                 exit_status = os.system(command)
@@ -937,11 +937,15 @@ def open_Main_windows():
                 label_AP.config(fg='red')
                 label_AK.config(fg='red')
                 label_AS.config(fg='red')
+                label_AZ.config(fg='red')
+                label_SR.config(fg='red')
             else:
                 tab2.config(fg='black',text='语音合成')
                 label_AP.config(fg='black')
                 label_AK.config(fg='black')
                 label_AS.config(fg='black')
+                label_AZ.config(fg='black')
+                label_SR.config(fg='black')
         elif target == exportprxml:
             if target.get() == 1:
                 tab3.config(text='导出XML ⚑')
@@ -968,6 +972,7 @@ def open_Main_windows():
                     'project_H':project_H.get(),'project_F':project_F.get(),
                     'project_Z':project_Z.get(),'project_Q':project_Q.get(),
                     'AccessKey':AccessKey.get(),'Appkey':Appkey.get(),'AccessKeySecret':AccessKeySecret.get(),
+                    'AzureKey':AzureKey.get(),'ServiceRegion':ServiceRegion.get(),
                     'synthanyway':synthanyway.get(),'exportprxml':exportprxml.get(),
                     'exportmp4':exportmp4.get(),'fixscrzoom':fixscrzoom.get(),'save_config':save_config.get()
                 },o_config) 
@@ -1014,6 +1019,8 @@ def open_Main_windows():
     AccessKey = tk.StringVar(Main_windows)
     Appkey = tk.StringVar(Main_windows)
     AccessKeySecret = tk.StringVar(Main_windows)
+    AzureKey = tk.StringVar(Main_windows)
+    ServiceRegion = tk.StringVar(Main_windows)
     # flag们
     synthanyway = tk.IntVar(Main_windows)
     exportprxml = tk.IntVar(Main_windows)
@@ -1038,6 +1045,8 @@ def open_Main_windows():
         AccessKey.set('Your_AccessKey')
         AccessKeySecret.set('Your_AccessKey_Secret')
         Appkey.set('Your_Appkey')
+        AzureKey.set('Your_Azurekey')
+        ServiceRegion.set('eastasia')
 
     # 获取python解释器的路径
     python3 = sys.executable.replace('\\','/')
@@ -1149,13 +1158,31 @@ def open_Main_windows():
     tk.Entry(optional_s, textvariable=AccessKey).place(x=120,y=30,width=390,height=25)
     tk.Entry(optional_s, textvariable=AccessKeySecret).place(x=120,y=60,width=390,height=25)
 
+    optional_azs = tk.LabelFrame(synth_frame,text='选项')
+    #optional_azs.place(x=10,y=210,width=600,height=110)
+
+    label_AZ = tk.Label(optional_azs, text="AzureKey：",anchor=tk.W)
+    label_AZ.place(x=10,y=10,width=110,height=25)
+    label_SR = tk.Label(optional_azs, text="服务区域：",anchor=tk.W)
+    label_SR.place(x=10,y=50,width=110,height=25)
+
+    tk.Entry(optional_azs, textvariable=AzureKey).place(x=120,y=10,width=390,height=25)
+    tk.Entry(optional_azs, textvariable=ServiceRegion).place(x=120,y=50,width=390,height=25)
+
     flag_s = tk.LabelFrame(synth_frame,text='标志')
     flag_s.place(x=10,y=320,width=600,height=110)
 
+    #tk.Label(flag_s, text='支持的语音合成服务：',anchor=tk.W).place(x=10,y=0,width=150,height=25)
     aliyun_logo = ImageTk.PhotoImage(Image.open('./media/aliyun.png'))
-    tk.Label(flag_s,image = aliyun_logo).place(x=20,y=13)
     tk.Label(flag_s,text='本项功能由阿里云语音合成支持，了解更多：').place(x=300,y=20)
-    tk.Button(flag_s,text='https://ai.aliyun.com/nls/',command=lambda: webbrowser.open('https://ai.aliyun.com/nls/'),fg='blue',relief='flat').place(x=300,y=40)
+    azure_logo = ImageTk.PhotoImage(Image.open('./media/azure.png'))
+    tk.Button(flag_s,image = aliyun_logo,command=lambda:(optional_azs.place_forget(),optional_s.place(x=10,y=210,width=600,height=110)),relief='flat').place(x=10,y=10)
+    tk.Button(flag_s,image = azure_logo,command=lambda:(optional_s.place_forget(),optional_azs.place(x=10,y=210,width=600,height=110)),relief='flat').place(x=240,y=0)
+    #tk.Label(flag_s,image = aliyun_logo).place(x=20,y=13)
+    tk.Label(flag_s,text='本项功能由阿里云智能语音交互支持，了解更多：').place(x=325,y=0)
+    tk.Button(flag_s,text='https://ai.aliyun.com/nls/',command=lambda: webbrowser.open('https://nls-portal.console.aliyun.com/applist'),fg='blue',relief='flat').place(x=325,y=20)
+    tk.Label(flag_s,text='本项功能由Azure认知服务支持，了解更多：').place(x=325,y=40)
+    tk.Button(flag_s,text='https://azure.microsoft.com/',command=lambda: webbrowser.open('https://azure.microsoft.com/zh-cn/services/cognitive-services/text-to-speech/#features'),fg='blue',relief='flat').place(x=325,y=60)
 
     tk.Button(synth_frame, command=run_command_synth,text="开始",font=big_text).place(x=260,y=435,width=100,height=50)
 
