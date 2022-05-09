@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'colab 0.0.1'
+edtion = 'colab 0.0.2'
 
 # 外部参数输入
 
@@ -109,7 +109,7 @@ class Text:
 class StrokeText(Text):
     pygame.font.init()
     def __init__(self,fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0,0,255),line_limit=20,edge_color=(255,255,255,255),label_color='Lavender'):
-        super().__init__(fontfile=fontfile,fontsize=fontsize,color=color,line_limit=line_limit) # 继承
+        super().__init__(fontfile=fontfile,fontsize=fontsize,color=color,line_limit=line_limit,label_color=label_color) # 继承
         self.edge_color=edge_color
     def render(self,tx):
         edge = self.text_render.render(tx,True,self.edge_color[0:3])

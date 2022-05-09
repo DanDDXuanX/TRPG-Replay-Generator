@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'colab 0.0.1'
+edtion = 'colab 0.0.2'
 
 # 外部参数输入
 
