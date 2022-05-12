@@ -4,6 +4,18 @@
 
 回声工坊（TRPG-Replay-Generator）是一基于python3 和pygame 的自动replay视频制作工具，旨在替代replay视频和类视觉小说视频制作中的重复工作，显著提升效率。本工具包括主程序、语音合成、导出为PR项目、导出为视频等四个模块；本程序通过文本化编辑完成视频制作，在最大化效率的同时提供了较大的自定义空间，同时也提供了易用的图形化界面。无论是编程和文本处理的熟手，还是视频制作的新手，都可以轻松上手本程序。<br>
 
+## 程序下载
+
+### 免安装版
+- 免安装版是程序的二进制可执行文件（.exe），仅适用于windows 64位系统。<p>
+- **解压即可使用**，无需安装python环境及其依赖项目。<p>
+- [**下载链接 93.8MB**](https://github.com/DanDDXuanX/TRPG-Replay-Generator/releases/download/v1.0.1/TRPG-Replay-Generator-v1.0.1-win64.7z)
+
+### 源代码
+- 源代码是程序的源文件（.py），适用于 windows，linux和 macOS系统。<p>
+- **需要安装**[**环境要求**](./README.md#环境要求：)中指定的项目后才能运行。<p>
+- [**下载链接 25.1MB**](https://github.com/DanDDXuanX/TRPG-Replay-Generator/releases/download/v1.0.1/TRPG-Replay-Generator-v1.0.1-SourceCode.7z)
+
 ## 环境要求：
 
 **运行主程序replay_generator所必要的：**
@@ -23,20 +35,23 @@
 
 **若使用语音合成模块，额外要求：**
 1. 安装[阿里云智能语音服务Python SDK](https://github.com/aliyun/alibabacloud-nls-python-sdk)
-2. 查看[帮助文档](https://help.aliyun.com/document_detail/374323.html)
-3. 获得[阿里云AccessKey、AccessKey_Secret、Appkey](https://ram.console.aliyun.com/manage/ak)
-4. azure-cognitiveservices-speech &gt;= 1.21.0
-5. 获得[Azure key](https://azure.microsoft.com/zh-cn/services/cognitive-services/text-to-speech/#overview)
-
-## 程序下载
-
-[**免安装版** 93.8MB](https://github.com/DanDDXuanX/TRPG-Replay-Generator/releases/download/v1.0.1/TRPG-Replay-Generator-v1.0.1-win64.7z)
-
-[**源代码** 25.1MB](https://github.com/DanDDXuanX/TRPG-Replay-Generator/releases/download/v1.0.1/TRPG-Replay-Generator-v1.0.1-SourceCode.7z)
+2. 获得[阿里云AccessKey、AccessKey_Secret、Appkey](https://ram.console.aliyun.com/manage/ak)
+3. azure-cognitiveservices-speech &gt;= 1.21.0
+4. 获得[Azure key](https://azure.microsoft.com/zh-cn/services/cognitive-services/text-to-speech/#overview)
 
 ## 快速上手
 
-### 1. 使用源码release
+### 1. 使用免安装版
+
+1. 下载可执行文件的release的压缩包，并解压；<br>
+2. 运行 `TRPG-Replay-Generator-v1.0.0.exe` 打开图形界面；<br>
+3. 在媒体定义栏输入 `./toy/MediaObject.txt` ，角色定义栏输入 `./toy/CharactorTable.csv` ，log文件栏输入 `./toy/LogFile.txt` ；<br>
+4. 点击开始，即可开始放映示例项目；<br>
+5. 进入程序后，按空格键（SPACE）开始播放；播放的过程中，按A键跳转到前一小节，D键跳转到后一小节，按空格暂停播放，按F5键展示详细信息，按F11键将画面缩放至50%，ESC键终止播放并退出。
+
+> 注意：可执行文件release无需安装python环境即可运行，但是在效能和稳定性上比运行源码略差。
+
+### 2. 使用源代码
 
 1. 下载源代码的release压缩包，并解压；<br>
 2. 确保python已经准确安装，然后在解压路径，使用终端运行下列命令，安装环境要求；<br>
@@ -49,17 +64,7 @@ python ./replay_generator.py -l ./toy/LogFile.txt -d ./toy/MediaObject.txt -t ./
 ```
 4. 进入程序后，按空格键（SPACE）开始播放；播放的过程中，按A键跳转到前一小节，D键跳转到后一小节，按空格暂停播放，按F5键展示详细信息，按F11键将画面缩放至50%，ESC键终止播放并退出。
 
-### 2. 使用可执行文件release
-
-1. 下载可执行文件的release的压缩包，并解压；<br>
-2. 运行 `TRPG-Replay-Generator-v1.0.0.exe` 打开图形界面；<br>
-3. 在媒体定义栏输入 `./toy/MediaObject.txt` ，角色定义栏输入 `./toy/CharactorTable.csv` ，log文件栏输入 `./toy/LogFile.txt` ；<br>
-4. 点击开始，即可开始放映示例项目；<br>
-5. 进入程序后，按空格键（SPACE）开始播放；播放的过程中，按A键跳转到前一小节，D键跳转到后一小节，按空格暂停播放，按F5键展示详细信息，按F11键将画面缩放至50%，ESC键终止播放并退出。
-
-> 注意：可执行文件release无需安装python环境即可运行，但是在效能和稳定性上比运行源码略差。
-
-# 参考文档（文档版本 alpha 1.10.5）
+# 参考文档（文档版本 alpha 1.10.6）
 
 ## 输入文件格式
 

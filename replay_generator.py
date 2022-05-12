@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.10.5'
+edtion = 'alpha 1.10.6'
 
 # 外部参数输入
 
@@ -920,7 +920,7 @@ def parser(stdin_text):
                     raise ParserError('[31m[ParserError]:[0m Unrecognized text display method: "'+text_method+'" appeared in dialogue line ' + str(i+1)+'.')
                 #音频信息
                 if BGM_queue != []:
-                    this_timeline.loc[0,'BGM'] = BGM_queue.pop() #从BGM_queue里取出来一个
+                    this_timeline.loc[0,'BGM'] = BGM_queue.pop(0) #从BGM_queue里取出来一个
                 for sound in this_sound: #this_sound = ['{SE_obj;30}','{SE_obj;30}']
                     try:
                         se_obj,delay = sound[1:-1].split(';')#sound = '{SE_obj;30}'
@@ -1107,7 +1107,7 @@ def parser(stdin_text):
                                                         np.ones(frame_rate*2)*(frame_rate-1)]) # 后两秒静止
                 # 收尾
                 if BGM_queue != []:
-                    this_timeline.loc[0,'BGM'] = BGM_queue.pop() #从BGM_queue里取出来一个 alpha 1.8.5
+                    this_timeline.loc[0,'BGM'] = BGM_queue.pop(0) #从BGM_queue里取出来一个 alpha 1.8.5 # 1.10.
                 this_timeline['section'] = i
                 render_timeline.append(this_timeline)
                 break_point[i+1]=break_point[i]+len(this_timeline.index)
@@ -1171,7 +1171,7 @@ def parser(stdin_text):
                 this_timeline.loc[frame_rate//3,'SE'] = "'./media/SE_dice.wav'"
                 # 收尾
                 if BGM_queue != []:
-                    this_timeline.loc[0,'BGM'] = BGM_queue.pop() #从BGM_queue里取出来一个 alpha 1.8.5
+                    this_timeline.loc[0,'BGM'] = BGM_queue.pop(0) #从BGM_queue里取第一个出来 alpha 1.10.6
                 this_timeline['section'] = i
                 render_timeline.append(this_timeline)
                 break_point[i+1]=break_point[i]+len(this_timeline.index)
