@@ -45,7 +45,7 @@
 
 1. 下载可执行文件的release的压缩包，并解压；<br>
 2. 运行 `TRPG-Replay-Generator-v1.0.0.exe` 打开图形界面；<br>
-3. 在媒体定义栏输入 `./toy/MediaObject.txt` ，角色定义栏输入 `./toy/CharactorTable.csv` ，log文件栏输入 `./toy/LogFile.txt` ；<br>
+3. 在媒体定义栏输入 `./toy/MediaObject.txt` ，角色定义栏输入 `./toy/CharactorTable.tsv` ，log文件栏输入 `./toy/LogFile.rgl` ；<br>
 4. 点击开始，即可开始放映示例项目；<br>
 5. 进入程序后，按空格键（SPACE）开始播放；播放的过程中，按A键跳转到前一小节，D键跳转到后一小节，按空格暂停播放，按F5键展示详细信息，按F11键将画面缩放至50%，ESC键终止播放并退出。
 
@@ -60,7 +60,7 @@ pip install -r ./requirements.txt
 ```
 3. 使用终端运行下列命令，即可开始放映示例项目；<br>
 ```bash
-python ./replay_generator.py -l ./toy/LogFile.txt -d ./toy/MediaObject.txt -t ./toy/CharactorTable.csv
+python ./replay_generator.py -l ./toy/LogFile.rgl -d ./toy/MediaObject.txt -t ./toy/CharactorTable.tsv
 ```
 4. 进入程序后，按空格键（SPACE）开始播放；播放的过程中，按A键跳转到前一小节，D键跳转到后一小节，按空格暂停播放，按F5键展示详细信息，按F11键将画面缩放至50%，ESC键终止播放并退出。
 
@@ -138,7 +138,7 @@ Animation(filepath,pos=(0,0),tick=1,loop=True)
 BGM(filepath,volume=100,loop=True)
 ```
 
-- 背景音乐指长的，一直位于后台循环播放的音频；支持的格式是 `.ogg` ，如果是 `.mp3` 格式的背景音乐，建议先进行格式转换。
+- 背景音乐指长的，一直位于后台循环播放的音频；支持的格式是 `.ogg` ，如果是其他格式的背景音乐，建议先进行格式转换。
 - `filepath`	必要参数，指定一个音频文件的路径。
 - `volume`	可选参数，设置背景音乐的音量，合理的参数是0-100的整数；默认为100；
 - `loop`	可选参数，设置背景音乐是否会循环播放；默认为循环播放；如果需要不循环，设置为`False`；
@@ -151,7 +151,7 @@ BGM(filepath,volume=100,loop=True)
 Audio(filepath)
 ```
 
-- 音效指短音频，音效通常只会完整地播放一次。
+- 音效指短音频，音效通常只会完整地播放一次；支持的格式是 `.wav` ，如果是其他格式的音效，建议先进行格式转换。
 - `filepath`	必要参数，指定一个音频文件的路径。
 
 > 注意：replay视频中通常包含大量的语音文件，不建议全建立 `Audio` 对象，会消耗较大的内存，在Log文件的 *对话行* 的 *音效框* 里指定文件路径即可。<p>

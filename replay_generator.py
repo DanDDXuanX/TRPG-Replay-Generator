@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.10.6'
+edtion = 'alpha 1.10.7'
 
 # 外部参数输入
 
@@ -923,7 +923,7 @@ def parser(stdin_text):
                     this_timeline.loc[0,'BGM'] = BGM_queue.pop(0) #从BGM_queue里取出来一个
                 for sound in this_sound: #this_sound = ['{SE_obj;30}','{SE_obj;30}']
                     try:
-                        se_obj,delay = sound[1:-1].split(';')#sound = '{SE_obj;30}'
+                        se_obj,delay = sound[1:-1].split(';')#sound = '{SE_obj;30}'# 由于这个地方，音频框的分隔符号只能用分号
                     except Exception: # #sound = '{SE_obj}'
                         delay = '0'
                         se_obj = sound[1:-1] # 去掉花括号
@@ -1252,7 +1252,7 @@ def render(this_frame):
                 else:
                     exec('{0}.display(channel={1})'.format(this_frame[key],channel_list[key])) #否则就直接播放对象
             except Exception:
-                raise RuntimeError('[31m[RenderError]:[0m Failed to play audio "'+this_frame[layer]+'"')
+                raise RuntimeError('[31m[RenderError]:[0m Failed to play audio "'+this_frame[key]+'"') # v 1.10.7 debug
     return 1
 # 手动换行的l2l
 def get_l2l(ts,text_dur,this_duration): #如果是手动换行的列
