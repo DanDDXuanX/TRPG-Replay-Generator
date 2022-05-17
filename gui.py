@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.10.5'
+edtion = 'alpha 1.10.7'
 
 import tkinter as tk
 from tkinter import ttk
@@ -851,7 +851,7 @@ def open_Main_windows():
         if output_path.get()!='':
             command = command + optional[1].format(of=output_path.get().replace('\\','/'))
         if synthanyway.get()==1:
-            command = command + optional[4].format(AK=AccessKey.get(),AS=AccessKeySecret.get(),AP=Appkey.get(),AZ=AzureKey.get(),SR=ServiceRegion.get())
+            command = command + optional[4].format(AK=AccessKey.get(),AS=AccessKeySecret.get(),AP=Appkey.get(),AZ=AzureKey.get(),SR=ServiceRegion.get()).replace('\n','').replace('\r','') # a 1.10.7 处理由于key复制导致的异常换行
         if exportprxml.get()==1:
             command = command + optional[2]
         if exportmp4.get()==1:
@@ -878,7 +878,7 @@ def open_Main_windows():
         else:
             command = command.format(lg = stdin_logfile.get().replace('\\','/'),md = media_define.get().replace('\\','/'),
                                      of = output_path.get().replace('\\','/'), ct = characor_table.get().replace('\\','/'),
-                                     AK = AccessKey.get(), AS= AccessKeySecret.get(),AP=Appkey.get(),AZ=AzureKey.get(),SR=ServiceRegion.get())
+                                     AK=AccessKey.get(), AS=AccessKeySecret.get(),AP=Appkey.get(),AZ=AzureKey.get(),SR=ServiceRegion.get()).replace('\n','').replace('\r','') # a 1.10.7 处理由于key复制导致的异常换行
             try:
                 print('[32m'+command+'[0m')
                 exit_status = os.system(command)
