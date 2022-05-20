@@ -54,4 +54,7 @@
 										</parameter>
 									</effect>
 								</filter>
+								<labels>
+									<label2>{colorlabel}</label2>
+								</labels>
 							</clipitem>

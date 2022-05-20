@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.10.5'
+edtion = 'alpha 1.11.0'
 
 # 绝对的全局变量
 # 在开源发布的版本中，隐去了各个key

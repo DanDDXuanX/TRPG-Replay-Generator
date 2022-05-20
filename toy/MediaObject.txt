@@ -1,19 +1,19 @@
 # 文本
-text1 = Text('./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(100,100,100,255),line_limit=30)
+text1 = Text('./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(100,100,100,255),line_limit=30,label_color='Caribbean')
 text2 = Text('./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(100,100,100,255),line_limit=10)
-text3 = StrokeText('./media/SourceHanSerifSC-Heavy.otf',fontsize=60,color=(32,160,205,220),line_limit=17,edge_color=(0,0,0,255))
+text3 = StrokeText('./media/SourceHanSerifSC-Heavy.otf',fontsize=60,color=(32,160,205,220),line_limit=17,edge_color=(0,0,0,255),label_color='Rose')
 # 气泡
-bubble1 = Bubble('./toy/media/bubble1.png',Main_Text=text1,Header_Text=text2,pos=(68,672),mt_pos=(57,115),ht_pos=(652,10),line_distance=1.2)
-bubble1_right = Bubble('./toy/media/bubble1.png',Main_Text=text1,Header_Text=text2,pos=(536,672),mt_pos=(57,115),ht_pos=(652,10),line_distance=1.2,align='center')
-bubble2 = Bubble('./toy/media/bubble2.png',Main_Text=text3,Header_Text=None,pos=(0,0),mt_pos=(436,458),line_distance=1.6,align='center')
+bubble1 = Bubble('./toy/media/bubble1.png',Main_Text=text1,Header_Text=text2,pos=(68,672),mt_pos=(57,115),ht_pos=(652,10),line_distance=1.2,label_color='Lavender')
+bubble1_right = Bubble('./toy/media/bubble1.png',Main_Text=text1,Header_Text=text2,pos=(536,672),mt_pos=(57,115),ht_pos=(652,10),line_distance=1.2,align='center',label_color='Cerulean')
+bubble2 = Bubble('./toy/media/bubble2.png',Main_Text=text3,Header_Text=None,pos=(0,0),mt_pos=(436,458),line_distance=1.6,align='center',label_color='Blue')
 # 背景
 bg1 = Background('./toy/media/bg1.jpg')
 bg2 = Background('./toy/media/bg2.jpg')
 # 立绘
-zhang = Animation('./toy/media/am1.png',pos=(1350,480))
-zhang_scared = Animation('./toy/media/am2.png',pos=(1350,480))
-drink = Animation('./toy/media/am3.png',pos=(0,521))
-drink_left = Animation('./toy/media/am3.png',pos=(0,200))
+zhang = Animation('./toy/media/am1.png',pos=(1350,480),label_color='Iris')
+zhang_scared = Animation('./toy/media/am2.png',pos=(1350,480),label_color='Iris')
+drink = Animation('./toy/media/am3.png',pos=(0,521),label_color='Violet')
+drink_left = Animation('./toy/media/am3.png',pos=(0,200),label_color='Violet')
 # 音频
 BGM1 = BGM(filepath='./toy/media/BGM.ogg',volume=10,loop=False)
 SE1 = Audio(filepath='./toy/media/SE1.wav')

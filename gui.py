@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.10.7'
+edtion = 'alpha 1.11.0'
 
 import tkinter as tk
 from tkinter import ttk
@@ -17,14 +17,14 @@ import pickle
 
 # preview 的类定义
 label_pos_show_text = ImageFont.truetype('./media/SourceHanSerifSC-Heavy.otf', 30)
-RE_mediadef_args = re.compile('(fontfile|fontsize|color|line_limit|filepath|Main_Text|Header_Text|pos|mt_pos|ht_pos|align|line_distance|tick|loop|volume|edge_color)?\ {0,4}=?\ {0,4}(Text\(\)|[^,()]+|\([\d,\ ]+\))')
+RE_mediadef_args = re.compile('(fontfile|fontsize|color|line_limit|filepath|Main_Text|Header_Text|pos|mt_pos|ht_pos|align|line_distance|tick|loop|volume|edge_color|label_color)?\ {0,4}=?\ {0,4}(Text\(\)|[^,()]+|\([\d,\ ]+\))')
 RE_parse_mediadef = re.compile('(\w+)[=\ ]+(Text|StrokeText|Bubble|Animation|Background|BGM|Audio)(\(.+\))')
 RE_vaildname = re.compile('^\w+$')
 occupied_variable_name = open('./media/occupied_variable_name.list','r',encoding='utf8').read().split('\n') # 已经被系统占用的变量名
 
 # global image_canvas
 class Text:
-    def __init__(self,fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0,0,255),line_limit=20):
+    def __init__(self,fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0,0,255),line_limit=20,label_color='Lavender'):
         self.text_render = ImageFont.truetype(fontfile, fontsize)
         self.color=color
         self.size=fontsize
@@ -46,8 +46,8 @@ class Text:
         else:
             image_canvas.paste(draw_text,prevpos,mask=draw_text.split()[-1])
 class StrokeText(Text):
-    def __init__(self,fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0,0,255),line_limit=20,edge_color=(255,255,255,255)):
-        super().__init__(fontfile=fontfile,fontsize=fontsize,color=color,line_limit=line_limit)
+    def __init__(self,fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0,0,255),line_limit=20,edge_color=(255,255,255,255),label_color='Lavender'):
+        super().__init__(fontfile=fontfile,fontsize=fontsize,color=color,line_limit=line_limit,label_color=label_color)
         self.edge_color=edge_color
     def draw(self,lenth=-1):
         if lenth ==-1:
@@ -60,7 +60,7 @@ class StrokeText(Text):
         p1,p2,p3,p4 = test_canvas.getbbox()
         return test_canvas.crop((0,0,p3,p4))
 class Bubble:
-    def __init__(self,filepath,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),ht_pos=(0,0),align='left',line_distance=1.5):
+    def __init__(self,filepath,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),ht_pos=(0,0),align='left',line_distance=1.5,label_color='Lavender'):
         self.media = Image.open(filepath)
         self.pos = pos
         self.MainText = Main_Text
@@ -104,7 +104,7 @@ class Bubble:
             draw.text((m_x,m_y-35),'({0},{1})'.format(m_x-p_x,m_y-p_y),font=label_pos_show_text,fill='blue')
 class Background:
     cmap = {'black':(0,0,0,255),'white':(255,255,255,255),'greenscreen':(0,177,64,255)}
-    def __init__(self,filepath,pos = (0,0)):
+    def __init__(self,filepath,pos = (0,0),label_color='Lavender'):
         if filepath in Background.cmap.keys(): #添加了，对纯色定义的背景的支持
             self.media = Image.new(screen_size,mode='RGBA')
             self.media.fill(Background.cmap[filepath])
@@ -122,7 +122,7 @@ class Background:
         draw.line([p_x,p_y-100,p_x,p_y+100],fill='green',width=2)
         draw.text((p_x,p_y),'({0},{1})'.format(p_x,p_y),font=label_pos_show_text,fill='green')
 class Animation:
-    def __init__(self,filepath,pos = (0,0),tick=1,loop=True):
+    def __init__(self,filepath,pos = (0,0),tick=1,loop=True,label_color='Lavender'):
         if '*' in filepath:
             raise ValueError('动画对象不支持预览！')
         else:
@@ -253,7 +253,7 @@ def open_Media_def_window(father,i_name='',i_type='',i_args=''):
             select = Mediatype[o_type.get()]
         except KeyError:
             select = Empty_frame
-        select.place(x=10,y=40,width=300,height=270)
+        select.place(x=10,y=40,width=300,height=275)
         type_display = select
     def comfirm_obj():
         nonlocal obj_return_value
@@ -272,7 +272,7 @@ def open_Media_def_window(father,i_name='',i_type='',i_args=''):
                 'filepath':filepath.get(),'Main_Text':Main_Text.get(),'Header_Text':Header_Text.get(),
                 'pos':pos.get(),'mt_pos':mt_pos.get(),'ht_pos':ht_pos.get(),'align':align.get(),
                 'line_distance':line_distance.get(),'tick':tick.get(),'loop':loop.get(),
-                'volume':volume.get(),'edge_color':edge_color.get()
+                'volume':volume.get(),'edge_color':edge_color.get(),'label_color':label_color.get()
             }
             this_tplt = arg_tplt[o_type.get()]
             
@@ -293,7 +293,7 @@ def open_Media_def_window(father,i_name='',i_type='',i_args=''):
 
     Objdef_windows = tk.Toplevel(father)
     Objdef_windows.resizable(0,0)
-    Objdef_windows.geometry("340x380")
+    Objdef_windows.geometry("340x415")
     Objdef_windows.iconbitmap('./media/icon.ico')
     Objdef_windows.config(background ='#e0e0e0')
     #Objdef_windows.attributes('-topmost', True)
@@ -303,7 +303,7 @@ def open_Media_def_window(father,i_name='',i_type='',i_args=''):
 
     # 主框
     objdef = tk.Frame(Objdef_windows)
-    objdef.place(x=10,y=10,height=360,width=320)
+    objdef.place(x=10,y=10,height=395,width=320)
 
     o_name = tk.StringVar(Objdef_windows)
     o_type = tk.StringVar(Objdef_windows)
@@ -312,13 +312,13 @@ def open_Media_def_window(father,i_name='',i_type='',i_args=''):
     o_type.set(i_type) # 默认是''
 
     arg_tplt = {
-        'Text':"(fontfile='{fontfile}',fontsize={fontsize},color={color},line_limit={line_limit})",
-        'StrokeText':"(fontfile='{fontfile}',fontsize={fontsize},color={color},line_limit={line_limit},edge_color={edge_color})",
-        'Bubble':"(filepath='{filepath}',Main_Text={Main_Text},Header_Text={Header_Text},pos={pos},mt_pos={mt_pos},ht_pos={ht_pos},align='{align}',line_distance={line_distance})",
-        'Background':"(filepath='{filepath}',pos={pos})",
-        'Animation':"(filepath='{filepath}',pos={pos},tick={tick},loop={loop})",
-        'Audio':"(filepath='{filepath}')",
-        'BGM':"(filepath='{filepath}',volume={volume},loop={loop})"
+        'Text':"(fontfile='{fontfile}',fontsize={fontsize},color={color},line_limit={line_limit},label_color='{label_color}')",
+        'StrokeText':"(fontfile='{fontfile}',fontsize={fontsize},color={color},line_limit={line_limit},edge_color={edge_color},label_color='{label_color}')",
+        'Bubble':"(filepath='{filepath}',Main_Text={Main_Text},Header_Text={Header_Text},pos={pos},mt_pos={mt_pos},ht_pos={ht_pos},align='{align}',line_distance={line_distance},label_color='{label_color}')",
+        'Background':"(filepath='{filepath}',pos={pos},label_color='{label_color}')",
+        'Animation':"(filepath='{filepath}',pos={pos},tick={tick},loop={loop},label_color='{label_color}')",
+        'Audio':"(filepath='{filepath}',label_color='{label_color}')",
+        'BGM':"(filepath='{filepath}',volume={volume},loop={loop},label_color='{label_color}')"
     }
 
     # 名称
@@ -358,6 +358,7 @@ def open_Media_def_window(father,i_name='',i_type='',i_args=''):
     loop = tk.BooleanVar(Objdef_windows)
     volume = tk.IntVar()
     edge_color = tk.StringVar(Objdef_windows)
+    label_color = tk.StringVar(Objdef_windows)
     # 默认参数
     fontfile.set('./media/SourceHanSansCN-Regular.otf')
     fontsize.set(40)
@@ -375,21 +376,27 @@ def open_Media_def_window(father,i_name='',i_type='',i_args=''):
     loop.set(True)
     volume.set(100)
     edge_color.set('(255,255,255,255)')
+    label_color.set('Lavender')
+    # 可用标签颜色
+    available_label_color = {'Violet':'#a690e0','Iris':'#729acc','Caribbean':'#29d698','Lavender':'#e384e3',
+                             'Cerulean':'#2fbfde','Forest':'#51b858','Rose':'#f76fa4','Mango':'#eda63b',
+                             'Purple':'#970097','Blue':'#3c3cff','Teal':'#008080','Magenta':'#e732e7',
+                             'Tan':'#cec195','Green':'#1d7021','Brown':'#8b4513','Yellow':'#e2e264'}
     # 外部输入参数
-    type_keyword_position = {'Text':['fontfile','fontsize','color','line_limit'],
-                             'StrokeText':['fontfile','fontsize','color','line_limit','edge_color'],
-                             'Bubble':['filepath','Main_Text','Header_Text','pos','mt_pos','ht_pos','align','line_distance'],
-                             'Background':['filepath','pos'],
-                             'Animation':['filepath','pos','tick','loop'],
-                             'Audio':['filepath'],
-                             'BGM':['filepath','volume','loop']}
+    type_keyword_position = {'Text':['fontfile','fontsize','color','line_limit','label_color'],
+                             'StrokeText':['fontfile','fontsize','color','line_limit','edge_color','label_color'],
+                             'Bubble':['filepath','Main_Text','Header_Text','pos','mt_pos','ht_pos','align','line_distance','label_color'],
+                             'Background':['filepath','pos','label_color'],
+                             'Animation':['filepath','pos','tick','loop','label_color'],
+                             'Audio':['filepath','label_color'],
+                             'BGM':['filepath','volume','loop','label_color']}
 
     #初始状态 空白或者选中
     if i_type == '':
-        Empty_frame.place(x=10,y=40,width=300,height=270)
+        Empty_frame.place(x=10,y=40,width=300,height=275)
         type_display = Empty_frame
     else:
-        Mediatype[i_type].place(x=10,y=40,width=300,height=270)
+        Mediatype[i_type].place(x=10,y=40,width=300,height=275)
         type_display = Mediatype[i_type]
         for i,arg in enumerate(RE_mediadef_args.findall(i_args)):
             keyword,value = arg
@@ -405,14 +412,14 @@ def open_Media_def_window(father,i_name='',i_type='',i_args=''):
     ttk.Label(Text_frame,text='字体大小').place(x=10,y=40,width=65,height=25)
     ttk.Label(Text_frame,text='字体颜色').place(x=10,y=70,width=65,height=25)
     ttk.Label(Text_frame,text='单行字数').place(x=10,y=100,width=65,height=25)
-    ttk.Entry(Text_frame,textvariable=fontfile).place(x=75,y=10,width=150,height=25)
-    ttk.Entry(Text_frame,textvariable=fontsize).place(x=75,y=40,width=150,height=25)
-    ttk.Entry(Text_frame,textvariable=color).place(x=75,y=70,width=150,height=25)
-    ttk.Entry(Text_frame,textvariable=line_limit).place(x=75,y=100,width=150,height=25)
-    ttk.Button(Text_frame,text='浏览',command=lambda:browse_file(fontfile)).place(x=230,y=10,width=60,height=25)
-    ttk.Label(Text_frame,text='(整数)').place(x=230,y=40,width=60,height=25)
-    ttk.Button(Text_frame,text='选择',command=lambda:choose_color(color)).place(x=230,y=70,width=60,height=25)
-    ttk.Label(Text_frame,text='(整数)').place(x=230,y=100,width=60,height=25)
+    ttk.Entry(Text_frame,textvariable=fontfile).place(x=75,y=10,width=160,height=25)
+    ttk.Entry(Text_frame,textvariable=fontsize).place(x=75,y=40,width=160,height=25)
+    ttk.Entry(Text_frame,textvariable=color).place(x=75,y=70,width=160,height=25)
+    ttk.Entry(Text_frame,textvariable=line_limit).place(x=75,y=100,width=160,height=25)
+    ttk.Button(Text_frame,text='浏览',command=lambda:browse_file(fontfile)).place(x=240,y=10,width=50,height=25)
+    ttk.Label(Text_frame,text='(整数)',anchor='center').place(x=240,y=40,width=50,height=25)
+    ttk.Button(Text_frame,text='选择',command=lambda:choose_color(color)).place(x=240,y=70,width=50,height=25)
+    ttk.Label(Text_frame,text='(整数)',anchor='center').place(x=240,y=100,width=50,height=25)
 
     # StrokeText_frame
     ttk.Label(StrokeText_frame,text='字体文件').place(x=10,y=10,width=65,height=25)
@@ -420,16 +427,16 @@ def open_Media_def_window(father,i_name='',i_type='',i_args=''):
     ttk.Label(StrokeText_frame,text='字体颜色').place(x=10,y=70,width=65,height=25)
     ttk.Label(StrokeText_frame,text='单行字数').place(x=10,y=100,width=65,height=25)
     ttk.Label(StrokeText_frame,text='描边颜色').place(x=10,y=130,width=65,height=25)
-    ttk.Entry(StrokeText_frame,textvariable=fontfile).place(x=75,y=10,width=150,height=25)
-    ttk.Entry(StrokeText_frame,textvariable=fontsize).place(x=75,y=40,width=150,height=25)
-    ttk.Entry(StrokeText_frame,textvariable=color).place(x=75,y=70,width=150,height=25)
-    ttk.Entry(StrokeText_frame,textvariable=line_limit).place(x=75,y=100,width=150,height=25)
-    ttk.Entry(StrokeText_frame,textvariable=edge_color).place(x=75,y=130,width=150,height=25)
-    ttk.Button(StrokeText_frame,text='浏览',command=lambda:browse_file(fontfile)).place(x=230,y=10,width=60,height=25)
-    ttk.Label(StrokeText_frame,text='(整数)').place(x=230,y=40,width=60,height=25)
-    ttk.Button(StrokeText_frame,text='选择',command=lambda:choose_color(color)).place(x=230,y=70,width=60,height=25)
-    ttk.Label(StrokeText_frame,text='(整数)').place(x=230,y=100,width=60,height=25)
-    ttk.Button(StrokeText_frame,text='选择',command=lambda:choose_color(edge_color)).place(x=230,y=130,width=60,height=25)
+    ttk.Entry(StrokeText_frame,textvariable=fontfile).place(x=75,y=10,width=160,height=25)
+    ttk.Entry(StrokeText_frame,textvariable=fontsize).place(x=75,y=40,width=160,height=25)
+    ttk.Entry(StrokeText_frame,textvariable=color).place(x=75,y=70,width=160,height=25)
+    ttk.Entry(StrokeText_frame,textvariable=line_limit).place(x=75,y=100,width=160,height=25)
+    ttk.Entry(StrokeText_frame,textvariable=edge_color).place(x=75,y=130,width=160,height=25)
+    ttk.Button(StrokeText_frame,text='浏览',command=lambda:browse_file(fontfile)).place(x=240,y=10,width=50,height=25)
+    ttk.Label(StrokeText_frame,text='(整数)',anchor='center').place(x=240,y=40,width=50,height=25)
+    ttk.Button(StrokeText_frame,text='选择',command=lambda:choose_color(color)).place(x=240,y=70,width=50,height=25)
+    ttk.Label(StrokeText_frame,text='(整数)',anchor='center').place(x=240,y=100,width=50,height=25)
+    ttk.Button(StrokeText_frame,text='选择',command=lambda:choose_color(edge_color)).place(x=240,y=130,width=50,height=25)
 
     # Bubble_frame
     ttk.Label(Bubble_frame,text='底图文件').place(x=10,y=10,width=65,height=25)
@@ -440,66 +447,72 @@ def open_Media_def_window(father,i_name='',i_type='',i_args=''):
     ttk.Label(Bubble_frame,text='头文本位置').place(x=10,y=160,width=65,height=25)
     ttk.Label(Bubble_frame,text='对齐模式').place(x=10,y=190,width=65,height=25)
     ttk.Label(Bubble_frame,text='主文本行距').place(x=10,y=220,width=65,height=25)
-    ttk.Entry(Bubble_frame,textvariable=filepath).place(x=75,y=10,width=150,height=25)
-    #tk.Entry(Bubble_frame,textvariable=Main_Text).place(x=75,y=40,width=150,height=25)
-    #tk.Entry(Bubble_frame,textvariable=Header_Text).place(x=75,y=70,width=150,height=25)
-    ttk.Combobox(Bubble_frame,textvariable=Main_Text,value=available_Text).place(x=75,y=40,width=150,height=25)
-    ttk.Combobox(Bubble_frame,textvariable=Header_Text,value=available_Text).place(x=75,y=70,width=150,height=25)
-    ttk.Entry(Bubble_frame,textvariable=pos).place(x=75,y=100,width=150,height=25)
-    ttk.Entry(Bubble_frame,textvariable=mt_pos).place(x=75,y=130,width=150,height=25)
-    ttk.Entry(Bubble_frame,textvariable=ht_pos).place(x=75,y=160,width=150,height=25)
-    #tk.Entry(Bubble_frame,textvariable=align).place(x=75,y=190,width=150,height=25)
-    ttk.Combobox(Bubble_frame,textvariable=align,value=['left','center']).place(x=75,y=190,width=150,height=25)
-    ttk.Entry(Bubble_frame,textvariable=line_distance).place(x=75,y=220,width=150,height=25)
-    ttk.Button(Bubble_frame,text='浏览',command=lambda:browse_file(filepath)).place(x=230,y=10,width=60,height=25)
-    ttk.Label(Bubble_frame,text='(选择)').place(x=230,y=40,width=60,height=25)
-    ttk.Label(Bubble_frame,text='(选择)').place(x=230,y=70,width=60,height=25)
-    ttk.Button(Bubble_frame,text='选择',command=lambda:call_possele(pos)).place(x=230,y=100,width=60,height=25)
-    ttk.Button(Bubble_frame,text='选择',command=lambda:call_possele(mt_pos)).place(x=230,y=130,width=60,height=25)
-    ttk.Button(Bubble_frame,text='选择',command=lambda:call_possele(ht_pos)).place(x=230,y=160,width=60,height=25)
-    ttk.Label(Bubble_frame,text='(选择)').place(x=230,y=190,width=60,height=25)
-    ttk.Label(Bubble_frame,text='(小数)').place(x=230,y=220,width=60,height=25)
+    ttk.Entry(Bubble_frame,textvariable=filepath).place(x=75,y=10,width=160,height=25)
+    ttk.Combobox(Bubble_frame,textvariable=Main_Text,value=available_Text).place(x=75,y=40,width=160,height=25)
+    ttk.Combobox(Bubble_frame,textvariable=Header_Text,value=available_Text).place(x=75,y=70,width=160,height=25)
+    ttk.Entry(Bubble_frame,textvariable=pos).place(x=75,y=100,width=160,height=25)
+    ttk.Entry(Bubble_frame,textvariable=mt_pos).place(x=75,y=130,width=160,height=25)
+    ttk.Entry(Bubble_frame,textvariable=ht_pos).place(x=75,y=160,width=160,height=25)
+    ttk.Combobox(Bubble_frame,textvariable=align,value=['left','center']).place(x=75,y=190,width=160,height=25)
+    ttk.Entry(Bubble_frame,textvariable=line_distance).place(x=75,y=220,width=160,height=25)
+    ttk.Button(Bubble_frame,text='浏览',command=lambda:browse_file(filepath)).place(x=240,y=10,width=50,height=25)
+    ttk.Label(Bubble_frame,text='(选择)',anchor='center').place(x=240,y=40,width=50,height=25)
+    ttk.Label(Bubble_frame,text='(选择)',anchor='center').place(x=240,y=70,width=50,height=25)
+    ttk.Button(Bubble_frame,text='选择',command=lambda:call_possele(pos)).place(x=240,y=100,width=50,height=25)
+    ttk.Button(Bubble_frame,text='选择',command=lambda:call_possele(mt_pos)).place(x=240,y=130,width=50,height=25)
+    ttk.Button(Bubble_frame,text='选择',command=lambda:call_possele(ht_pos)).place(x=240,y=160,width=50,height=25)
+    ttk.Label(Bubble_frame,text='(选择)',anchor='center').place(x=240,y=190,width=50,height=25)
+    ttk.Label(Bubble_frame,text='(小数)',anchor='center').place(x=240,y=220,width=50,height=25)
 
     # Background
     ttk.Label(Background_frame,text='背景文件').place(x=10,y=10,width=65,height=25)
     ttk.Label(Background_frame,text='背景位置').place(x=10,y=40,width=65,height=25)
-    ttk.Entry(Background_frame,textvariable=filepath).place(x=75,y=10,width=150,height=25)
-    ttk.Entry(Background_frame,textvariable=pos).place(x=75,y=40,width=150,height=25)
-    ttk.Button(Background_frame,text='浏览',command=lambda:browse_file(filepath)).place(x=230,y=10,width=60,height=25)
-    ttk.Button(Background_frame,text='选择',command=lambda:call_possele(pos)).place(x=230,y=40,width=60,height=25)
+    ttk.Entry(Background_frame,textvariable=filepath).place(x=75,y=10,width=160,height=25)
+    ttk.Entry(Background_frame,textvariable=pos).place(x=75,y=40,width=160,height=25)
+    ttk.Button(Background_frame,text='浏览',command=lambda:browse_file(filepath)).place(x=240,y=10,width=50,height=25)
+    ttk.Button(Background_frame,text='选择',command=lambda:call_possele(pos)).place(x=240,y=40,width=50,height=25)
 
     # Animation
     ttk.Label(Animation_frame,text='立绘文件').place(x=10,y=10,width=65,height=25)
     ttk.Label(Animation_frame,text='立绘位置').place(x=10,y=40,width=65,height=25)
     ttk.Label(Animation_frame,text='动画时刻').place(x=10,y=70,width=65,height=25)
     ttk.Label(Animation_frame,text='动画循环').place(x=10,y=100,width=65,height=25)
-    ttk.Entry(Animation_frame,textvariable=filepath).place(x=75,y=10,width=150,height=25)
-    ttk.Entry(Animation_frame,textvariable=pos).place(x=75,y=40,width=150,height=25)
-    ttk.Entry(Animation_frame,textvariable=tick).place(x=75,y=70,width=150,height=25)
-    ttk.Entry(Animation_frame,textvariable=loop).place(x=75,y=100,width=150,height=25)
-    ttk.Button(Animation_frame,text='浏览',command=lambda:browse_file(filepath)).place(x=230,y=10,width=60,height=25)
-    ttk.Button(Animation_frame,text='选择',command=lambda:call_possele(pos)).place(x=230,y=40,width=60,height=25)
-    ttk.Label(Animation_frame,text='(整数)').place(x=230,y=70,width=60,height=25)
-    ttk.Label(Animation_frame,text='(0/1)').place(x=230,y=100,width=60,height=25)
+    ttk.Entry(Animation_frame,textvariable=filepath).place(x=75,y=10,width=160,height=25)
+    ttk.Entry(Animation_frame,textvariable=pos).place(x=75,y=40,width=160,height=25)
+    ttk.Entry(Animation_frame,textvariable=tick).place(x=75,y=70,width=160,height=25)
+    ttk.Entry(Animation_frame,textvariable=loop).place(x=75,y=100,width=160,height=25)
+    ttk.Button(Animation_frame,text='浏览',command=lambda:browse_file(filepath)).place(x=240,y=10,width=50,height=25)
+    ttk.Button(Animation_frame,text='选择',command=lambda:call_possele(pos)).place(x=240,y=40,width=50,height=25)
+    ttk.Label(Animation_frame,text='(整数)',anchor='center').place(x=240,y=70,width=50,height=25)
+    ttk.Label(Animation_frame,text='(0/1)',anchor='center').place(x=240,y=100,width=50,height=25)
 
     # BGM
     ttk.Label(BGM_frame,text='音乐文件').place(x=10,y=10,width=65,height=25)
     ttk.Label(BGM_frame,text='音乐音量').place(x=10,y=40,width=65,height=25)
     ttk.Label(BGM_frame,text='音乐循环').place(x=10,y=70,width=65,height=25)
-    ttk.Entry(BGM_frame,textvariable=filepath).place(x=75,y=10,width=150,height=25)
-    ttk.Entry(BGM_frame,textvariable=volume).place(x=75,y=40,width=150,height=25)
-    ttk.Entry(BGM_frame,textvariable=loop).place(x=75,y=70,width=150,height=25)
-    ttk.Button(BGM_frame,text='浏览',command=lambda:browse_file(filepath)).place(x=230,y=10,width=60,height=25)
-    ttk.Label(BGM_frame,text='(0-100)').place(x=230,y=40,width=60,height=25)
-    ttk.Label(BGM_frame,text='(0/1)').place(x=230,y=70,width=60,height=25)
+    ttk.Entry(BGM_frame,textvariable=filepath).place(x=75,y=10,width=160,height=25)
+    ttk.Entry(BGM_frame,textvariable=volume).place(x=75,y=40,width=160,height=25)
+    ttk.Entry(BGM_frame,textvariable=loop).place(x=75,y=70,width=160,height=25)
+    ttk.Button(BGM_frame,text='浏览',command=lambda:browse_file(filepath)).place(x=240,y=10,width=50,height=25)
+    ttk.Label(BGM_frame,text='(0-100)',anchor='center').place(x=240,y=40,width=50,height=25)
+    ttk.Label(BGM_frame,text='(0/1)',anchor='center').place(x=240,y=70,width=50,height=25)
 
     # Audio_frame
     ttk.Label(Audio_frame,text='音效文件').place(x=10,y=10,width=65,height=25)
-    ttk.Entry(Audio_frame,textvariable=filepath).place(x=75,y=10,width=150,height=25)
-    ttk.Button(Audio_frame,text='浏览',command=lambda:browse_file(filepath)).place(x=230,y=10,width=60,height=25)
+    ttk.Entry(Audio_frame,textvariable=filepath).place(x=75,y=10,width=160,height=25)
+    ttk.Button(Audio_frame,text='浏览',command=lambda:browse_file(filepath)).place(x=240,y=10,width=50,height=25)
+
+    # 标签颜色 colabel
+    label_label_color = tk.Label(objdef,text='▉标签颜色',fg=available_label_color[label_color.get()],bg='#262626')
+    label_label_color.place(x=22,y=320,width=62,height=25)
+    choose_labelcolor = ttk.Combobox(objdef,textvariable=label_color,value=list(available_label_color.keys()))
+    choose_labelcolor.place(x=87,y=320,width=160,height=25)
+    choose_labelcolor.bind("<<ComboboxSelected>>",lambda event: label_label_color.config(fg=available_label_color[label_color.get()]))
+    ttk.Label(objdef,text='(选择)',anchor='center').place(x=252,y=320,width=50,height=25)
+    
 
     # 完成
-    ttk.Button(objdef,text='确认',command=comfirm_obj).place(x=130,y=320,height=30,width=60)
+    ttk.Button(objdef,text='确认',command=comfirm_obj).place(x=130,y=355,height=30,width=50)
 
     Objdef_windows.mainloop()
     return obj_return_value
