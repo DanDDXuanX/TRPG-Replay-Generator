@@ -22,7 +22,7 @@
 								<height>{screen_height}</height>
 								<anamorphic>FALSE</anamorphic>
 								<pixelaspectratio>square</pixelaspectratio>
-								<fielddominance>upper</fielddominance>
+								<fielddominance>none</fielddominance>
 								<colordepth>24</colordepth>
 							</samplecharacteristics>
 						</format>

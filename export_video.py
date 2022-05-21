@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.11.0'
+edtion = 'alpha 1.11.1'
 
 # 外部参数输入
 
@@ -452,14 +452,14 @@ class BuiltInAnimation(Animation):
 
 # 音效
 class Audio:
-    def __init__(self,filepath,label_color='Forest'):
+    def __init__(self,filepath,label_color='Caribbean'):
         self.media = pydub.AudioSegment.from_file(filepath)
     def convert(self):
         pass
 
 # 背景音乐
 class BGM:
-    def __init__(self,filepath,volume=100,loop=True,label_color='Forest'):
+    def __init__(self,filepath,volume=100,loop=True,label_color='Caribbean'):
         self.media = pydub.AudioSegment.from_file(filepath) + np.log10(volume/100) * 20 # 调整音量
         self.loop = loop
     def convert(self):

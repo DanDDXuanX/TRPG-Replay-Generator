@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.11.0'
+edtion = 'alpha 1.11.1'
 
 # 外部参数输入
 
@@ -171,7 +171,7 @@ class Bubble:
         width,height = self.size
         pr_horiz,pr_vert = self.PRpos
         clip_bubble = clip_tplt.format(**{'clipid':'BB_clip_%d'%clip_index,
-                              'clipname':'BB_clip_%d'%clip_index,
+                              'clipname':self.filename,
                               'timebase':'%d'%frame_rate,
                               'ntsc':Is_NTSC,
                               'start':'%d'%begin,
@@ -187,7 +187,7 @@ class Bubble:
                               'vert':'%.5f'%pr_vert,
                               'colorlabel':self.label_color})
         clip_text = clip_tplt.format(**{'clipid':'TX_clip_%d'%clip_index,
-                              'clipname':'TX_clip_%d'%clip_index,
+                              'clipname':'auto_TX_%d.png'%outtext_index,
                               'timebase':'%d'%frame_rate,
                               'ntsc':Is_NTSC,
                               'start':'%d'%begin,
@@ -233,7 +233,7 @@ class Background:
         width,height = self.size
         pr_horiz,pr_vert = self.PRpos
         clip_this = clip_tplt.format(**{'clipid':'BG_clip_%d'%clip_index,
-                              'clipname':'BG_clip_%d'%clip_index,
+                              'clipname':self.filename,
                               'timebase':'%d'%frame_rate,
                               'ntsc':Is_NTSC,
                               'start':'%d'%begin,
@@ -270,7 +270,7 @@ class Animation:
         width,height = self.size
         pr_horiz,pr_vert = self.PRpos
         clip_this = clip_tplt.format(**{'clipid':'AM_clip_%d'%clip_index,
-                              'clipname':'AM_clip_%d'%clip_index,
+                              'clipname':self.filename,
                               'timebase':'%d'%frame_rate,
                               'ntsc':Is_NTSC,
                               'start':'%d'%begin,
@@ -489,7 +489,7 @@ class BuiltInAnimation(Animation):
             
 # 音效
 class Audio:
-    def __init__(self,filepath,label_color='Forest'):
+    def __init__(self,filepath,label_color='Caribbean'):
         global file_index 
         self.path = reformat_path(filepath)
         self.length = get_audio_length(filepath)*frame_rate
@@ -502,7 +502,7 @@ class Audio:
         global audio_clip_tplt,clip_index
         clip_this = audio_clip_tplt.format(**{'clipid':'AU_clip_%d'%clip_index,
                                               'type':Audio_type,
-                                              'clipname':'AU_clip_%d'%clip_index,
+                                              'clipname':self.filename,
                                               'audiolen':'%d'%self.length,
                                               'timebase':'%d'%frame_rate,
                                               'ntsc':Is_NTSC,
