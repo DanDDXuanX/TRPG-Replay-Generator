@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.11.0'
+edtion = 'alpha 1.11.2'
 
 # 绝对的全局变量
 # 在开源发布的版本中，隐去了各个key
@@ -76,9 +76,13 @@ import re
 
 # 类定义
 
+#阿里云和Azure支持的所有voice名
+voice_lib = pd.read_csv('./media/voice_volume.tsv',sep='\t').set_index('Voice')
+
 # 阿里云的TTS引擎
 class Aliyun_TTS_engine:
-    def __init__(self,name='unnamed',voice = 'ailun',speech_rate=0,pitch_rate=0,volume=50,aformat='wav'):
+    voice_list = voice_lib[voice_lib['service'] == 'Aliyun'].index
+    def __init__(self,name='unnamed',voice = 'ailun',speech_rate=0,pitch_rate=0,aformat='wav'):
         if 'nls' not in sys.modules: # 兼容没有安装nls的使用 
             global nls
             import nls
@@ -87,6 +91,8 @@ class Aliyun_TTS_engine:
         self.aformat = aformat
         self.speech_rate = speech_rate
         self.pitch_rate = pitch_rate
+        # 音量值如果是np.int64的话，无法导入json
+        self.volume = int(voice_lib.loc[self.voice,'avaliable_volume'])
         self.synthesizer = nls.NlsSpeechSynthesizer(
                     url=URL,
                     akid=AKID,
@@ -101,12 +107,14 @@ class Aliyun_TTS_engine:
         self.synthesizer.start(text = text,
                                voice=self.voice,aformat=self.aformat,
                                speech_rate=self.speech_rate,
-                               pitch_rate=self.pitch_rate)
+                               pitch_rate=self.pitch_rate,
+                               volume=self.volume)
         if len(text) >= 5:
             print_text = text[0:5]+'...'
         else:
             print_text = text
         print("[{0}({1})]: {2} -> '{3}'".format(self.ID,self.voice,print_text,ofile))
+        print(self.volume)
     def on_close(self, *args):
         #print("on_close: args=>{}".format(args))
         try:
@@ -119,28 +127,15 @@ class Aliyun_TTS_engine:
         except Exception as E:
             print("[31m[TTSError]:[0m Write data failed:", E)
 
-#阿里云支持的所有voice名
-
-aliyun_voice_lib = [
-    'xiaoyun','xiaogang','ruoxi','siqi','sijia','sicheng','aiqi','aijia','aicheng',
-    'aida','ninger','ruilin','siyue','aiya','aixia','aimei','aiyu','aiyue','aijing',
-    'xiaomei','aina','yina','sijing','sitong','xiaobei','aitong','aiwei','aibao',
-    'harry','abby','andy','eric','emily','luna','luca','wendy','william','olivia',
-    'shanshan','chuangirl','lydia','aishuo','qingqing','cuijie','xiaoze','tomoka',
-    'tomoya','annie','jiajia','indah','taozi','guijie','stella','stanley','kenny',
-    'rosa','farah','mashu','xiaoxian','yuer','maoxiaomei','aifei','yaqun','qiaowei',
-    'dahu','ava','ailun','jielidou','laotie','laomei','aikan','tala','annie_saodubi',
-    'zhitian','zhiqing']
-
 # Azure 语音合成 alpha 1.10.3
 class Azure_TTS_engine:
+    voice_list = voice_lib[voice_lib['service'] == 'Azure'].index
     SSML_tplt = open('./xml_templates/tplt_ssml.xml','r').read()
-    def __init__(self,name='unnamed',voice = 'zh-CN-XiaomoNeural:general:1:Default',speech_rate=0,pitch_rate=0,volume=100,aformat='wav'):
+    def __init__(self,name='unnamed',voice = 'zh-CN-XiaomoNeural:general:1:Default',speech_rate=0,pitch_rate=0,aformat='wav'):
         if 'azure.cognitiveservices.speech' not in sys.modules:
             global speechsdk
             import azure.cognitiveservices.speech as speechsdk
         self.ID = name
-        self.volume = volume
         self.aformat = aformat
         # 500 - 2; -500 - 0.5
         self.speech_rate = str(speech_rate//5)+'%'
@@ -157,6 +152,10 @@ class Azure_TTS_engine:
             self.style = 'general'
             self.degree = '1'
             self.role = 'Default'
+        if self.voice in Azure_TTS_engine.voice_list: # 如果是表内提供的音源名
+            self.volume = voice_lib.loc[self.voice,'avaliable_volume']
+        else:
+            self.volume = 100 # 音量的默认值
         self.ssml = Azure_TTS_engine.SSML_tplt.format(lang='zh-CN',voice_name=self.voice,
                                      style=self.style,degree=self.degree,role=self.role,
                                      pitch=self.pitch_rate,rate=self.speech_rate,volume=self.volume,
@@ -175,6 +174,7 @@ class Azure_TTS_engine:
             else:
                 print_text = text
             print("[{0}({1})]: {2} -> '{3}'".format(self.ID,self.voice,print_text,ofile))
+            print(self.volume)
         elif speech_synthesis_result.reason == speechsdk.ResultReason.Canceled:
             cancellation_details = speech_synthesis_result.cancellation_details
             if cancellation_details.reason == speechsdk.CancellationReason.Error:
@@ -355,12 +355,12 @@ def main():
 
     # 建立TTS_engine的代码
     TTS = pd.Series(index=charactor_table.index,dtype='str')
-    TTS_define_tplt = "Aliyun_TTS_engine(name='{0}',voice='{1}',speech_rate={2},pitch_rate={3},volume=50)"
-    AZU_define_tplt = "Azure_TTS_engine(name='{0}',voice='{1}',speech_rate={2},pitch_rate={3},volume=100)"
+    TTS_define_tplt = "Aliyun_TTS_engine(name='{0}',voice='{1}',speech_rate={2},pitch_rate={3})"
+    AZU_define_tplt = "Azure_TTS_engine(name='{0}',voice='{1}',speech_rate={2},pitch_rate={3})"
     for key,value in charactor_table.iterrows():
         if (value.Voice != value.Voice)|(value.Voice=="NA"): # 如果音源是NA,就pass alpha1.6.3
             TTS[key] = '"None"'
-        elif value.Voice in aliyun_voice_lib: # 阿里云模式
+        elif value.Voice in Aliyun_TTS_engine.voice_list: # 阿里云模式
             TTS[key] = TTS_define_tplt.format(key,value.Voice,value.SpeechRate,value.PitchRate)
         elif value.Voice[0:7] == 'Azure::': # Azure 模式 alpha 1.10.3
             TTS[key] = AZU_define_tplt.format(key,value.Voice[7:],value.SpeechRate,value.PitchRate)
