@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.11.0'
+edtion = 'alpha 1.11.3'
 
 import tkinter as tk
 from tkinter import ttk
@@ -1048,7 +1048,7 @@ def open_Main_windows():
         i_config.close()
         if configs['save_config'] == 0: # 如果上一次保存时，是否保存是否
             raise ValueError('No save config!')
-        if configs['version'] != edtion: # 如果版本不一致
+        if configs.pop('version') != edtion: # 如果版本不一致 # 在这里直接把version pop 出来！免得在应用时导致NameError！
             if messagebox.askyesno(title='版本变动',message='发现版本变动！\n是否仍然载入上一次的配置？') == False:
                 raise ValueError('Edition change!')
         for key,value in configs.items():

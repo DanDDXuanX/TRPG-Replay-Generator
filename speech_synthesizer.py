@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.11.2'
+edtion = 'alpha 1.11.3'
 
 # 绝对的全局变量
 # 在开源发布的版本中，隐去了各个key
-URL="wss://nls-gateway.cn-shanghai.aliyuncs.com/ws/v1"
 
 asterisk_line_columns=['asterisk_label','character','speech_text','category','filepath']
 
@@ -33,17 +32,6 @@ char_tab = args.CharacterTable #角色和媒体对象的对应关系文件的路
 stdin_log = args.LogFile #log路径
 output_path = args.OutputPath #保存的时间轴，断点文件的目录
 media_obj = args.MediaObjDefine #媒体对象定义文件的路径
-
-# 阿里云合成的key
-
-AKID = args.AccessKey
-AKKEY = args.AccessKeySecret
-APPKEY = args.Appkey
-
-# Azure合成的key
-
-AZUKEY = args.Azurekey
-service_region = args.ServRegion
 
 try:
     for path in [stdin_log,char_tab,media_obj]:
@@ -81,6 +69,13 @@ voice_lib = pd.read_csv('./media/voice_volume.tsv',sep='\t').set_index('Voice')
 
 # 阿里云的TTS引擎
 class Aliyun_TTS_engine:
+    # Keys
+    AKID = args.AccessKey
+    AKKEY = args.AccessKeySecret
+    APPKEY = args.Appkey
+    # 服务的URL
+    URL="wss://nls-gateway.cn-shanghai.aliyuncs.com/ws/v1"
+    # 音源表
     voice_list = voice_lib[voice_lib['service'] == 'Aliyun'].index
     def __init__(self,name='unnamed',voice = 'ailun',speech_rate=0,pitch_rate=0,aformat='wav'):
         if 'nls' not in sys.modules: # 兼容没有安装nls的使用 
@@ -94,27 +89,30 @@ class Aliyun_TTS_engine:
         # 音量值如果是np.int64的话，无法导入json
         self.volume = int(voice_lib.loc[self.voice,'avaliable_volume'])
         self.synthesizer = nls.NlsSpeechSynthesizer(
-                    url=URL,
-                    akid=AKID,
-                    aksecret=AKKEY,
-                    appkey=APPKEY,
+                    url=Aliyun_TTS_engine.URL,
+                    akid=Aliyun_TTS_engine.AKID,
+                    aksecret=Aliyun_TTS_engine.AKKEY,
+                    appkey=Aliyun_TTS_engine.APPKEY,
                     on_data=self.on_data,
                     on_close=self.on_close,
                     callback_args=[self.ID,self.voice]
                 )
     def start(self,text,ofile):
         self.ofile = open(ofile,'wb')
-        self.synthesizer.start(text = text,
-                               voice=self.voice,aformat=self.aformat,
-                               speech_rate=self.speech_rate,
-                               pitch_rate=self.pitch_rate,
-                               volume=self.volume)
-        if len(text) >= 5:
-            print_text = text[0:5]+'...'
+        success = self.synthesizer.start(text = text,
+                                         voice=self.voice,aformat=self.aformat,
+                                         speech_rate=self.speech_rate,
+                                         pitch_rate=self.pitch_rate,
+                                         volume=self.volume)
+        if success == True:
+            if len(text) >= 5:
+                print_text = text[0:5]+'...'
+            else:
+                print_text = text
+            print("[{0}({1})]: {2} -> '{3}'".format(self.ID,self.voice,print_text,ofile))
         else:
-            print_text = text
-        print("[{0}({1})]: {2} -> '{3}'".format(self.ID,self.voice,print_text,ofile))
-        print(self.volume)
+            # os.remove(ofile) # 算了算了 0kb 也留着吧
+            raise Exception('[AliyunError]: Other exception occurred!')
     def on_close(self, *args):
         #print("on_close: args=>{}".format(args))
         try:
@@ -129,7 +127,12 @@ class Aliyun_TTS_engine:
 
 # Azure 语音合成 alpha 1.10.3
 class Azure_TTS_engine:
+    # Key
+    AZUKEY = args.Azurekey
+    service_region = args.ServRegion
+    # 音源表
     voice_list = voice_lib[voice_lib['service'] == 'Azure'].index
+    # SSML模板
     SSML_tplt = open('./xml_templates/tplt_ssml.xml','r').read()
     def __init__(self,name='unnamed',voice = 'zh-CN-XiaomoNeural:general:1:Default',speech_rate=0,pitch_rate=0,aformat='wav'):
         if 'azure.cognitiveservices.speech' not in sys.modules:
@@ -162,7 +165,7 @@ class Azure_TTS_engine:
                                      speech_text="{text}")
     def start(self,text,ofile):
         # 准备配置
-        speech_config = speechsdk.SpeechConfig(subscription=AZUKEY, region=service_region)
+        speech_config = speechsdk.SpeechConfig(subscription=Azure_TTS_engine.AZUKEY, region=Azure_TTS_engine.service_region)
         audio_config = speechsdk.audio.AudioOutputConfig(filename=ofile)
         synthesizer = speechsdk.SpeechSynthesizer(speech_config=speech_config, audio_config=audio_config)
         # 开始合成
@@ -174,12 +177,12 @@ class Azure_TTS_engine:
             else:
                 print_text = text
             print("[{0}({1})]: {2} -> '{3}'".format(self.ID,self.voice,print_text,ofile))
-            print(self.volume)
         elif speech_synthesis_result.reason == speechsdk.ResultReason.Canceled:
             cancellation_details = speech_synthesis_result.cancellation_details
             if cancellation_details.reason == speechsdk.CancellationReason.Error:
                 if cancellation_details.error_details:
                     print("[AzureError]: {}".format(cancellation_details.error_details))
+            # os.remove(ofile) # 算了算了 0kb 也留着吧
             raise Exception("[AzureError]: {}".format(cancellation_details.reason))
 
 
@@ -218,7 +221,7 @@ def isnumber(str):
 def clean_ts(text):
     return text.replace('^','').replace('#','')
 
-def clean_ts_azure(text):
+def clean_ts_azure(text): # SSML的转义字符
     return text.replace('&','&amp;').replace('<','&lt;').replace('>','&gt;').replace("'",'&apos;')
 
 # 解析函数
