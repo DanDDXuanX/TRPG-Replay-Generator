@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.11.3'
+edtion = 'alpha 1.11.4'
 
 # 绝对的全局变量
 # 在开源发布的版本中，隐去了各个key
@@ -190,7 +190,7 @@ class Azure_TTS_engine:
 
 RE_dialogue = re.compile('^\[([\ \w\.\;\(\)\,]+)\](<[\w\=\d]+>)?:(.+?)(<[\w\=\d]+>)?({.+})?$')
 RE_characor = re.compile('([\ \w]+)(\(\d*\))?(\.\w+)?')
-RE_asterisk = re.compile('(\{([^\{\}]*?[,;])?\*([\w\.\,，。：？！“”]*)?\})') # v 1.8.7 给星标后文本额外增加几个可用的中文符号
+RE_asterisk = re.compile('(\{([^\{\}]*?[;])?\*([\w\ \.\,，。：？！“”]*)?\})') # v 1.11.4 音频框分隔符只能用; *后指定可以有空格
 
 media_list=[]
 
@@ -341,6 +341,7 @@ def main():
             print('[33m[warning]:[0m','Missing \'Voice\' columns.')
     except Exception as E:
         print('[31m[SyntaxError]:[0m Unable to load charactor table:',E)
+        sys.exit(1)
 
     # 填补缺省值
     if 'Voice' not in charactor_table.columns:
