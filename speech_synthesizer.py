@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.11.4'
+edtion = 'alpha 1.11.5'
 
 # 绝对的全局变量
 # 在开源发布的版本中，隐去了各个key
@@ -12,7 +12,6 @@ asterisk_line_columns=['asterisk_label','character','speech_text','category','fi
 import argparse
 import sys
 import os
-import warnings
 
 ap = argparse.ArgumentParser(description="Speech synthesis and preprocessing from you logfile.")
 ap.add_argument("-l", "--LogFile", help='The standerd input of this programme, which is mainly composed of TRPG log.',type=str)

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.11.1'
+edtion = 'alpha 1.11.5'
 
 # 外部参数输入
 
@@ -66,7 +66,6 @@ import pandas as pd
 import numpy as np
 from PIL import Image,ImageFont,ImageDraw
 import re
-import time #开发模式，显示渲染帧率
 from pygame import mixer
 import glob # 匹配路径
 

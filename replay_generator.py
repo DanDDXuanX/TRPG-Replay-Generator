@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.11.4'
+edtion = 'alpha 1.11.5'
 
 # 外部参数输入
 
@@ -622,7 +622,10 @@ secondary_alpha = 60 # a 1.8.8 次要立绘的默认透明度
 
 # 解析对话行 []
 def get_dialogue_arg(text):
-    cr,cre,ts,tse,se = RE_dialogue.findall(text)[0]
+    try:
+        cr,cre,ts,tse,se = RE_dialogue.findall(text)[0]
+    except IndexError:
+        raise ParserError("[31m[ParserError]:[0m","Unable to parse as dialogue line, due to invalid syntax!")
     this_duration = int(len(ts)/(speech_speed/60/frame_rate))
     this_charactor = RE_characor.findall(cr)
     # 切换参数
@@ -658,7 +661,10 @@ def get_dialogue_arg(text):
 
 # 解析背景行 <background>
 def get_background_arg(text):
-    bge,bgc = RE_background.findall(text)[0]
+    try:
+        bge,bgc = RE_background.findall(text)[0]
+    except IndexError:
+        raise ParserError("[31m[ParserError]:[0m","Unable to parse as background line, due to invalid syntax!")
     if bge=='':
         bge = bg_method_default
     method,method_dur = RE_modify.findall(bge)[0]
@@ -670,7 +676,10 @@ def get_background_arg(text):
 
 # 解释设置行 <set:>
 def get_seting_arg(text):
-    target,args = RE_setting.findall(text)[0]
+    try:
+        target,args = RE_setting.findall(text)[0]
+    except IndexError:
+        raise ParserError("[31m[ParserError]:[0m","Unable to parse as setting line, due to invalid syntax!")
     return (target,args)
 
 # 截断字符串
@@ -1480,7 +1489,12 @@ show_detail_info = 0 # show_detail_info == 1代表显示详细信息
 detail_info = {0:"Project: Resolution: {0}x{1} ; FrameRate: {2} fps;".format(W,H,frame_rate),
                1:"Render Speed: {0} fps",
                2:"Frame: {0}/"+str(break_point.max())+" ; Section: {1}/"+str(len(break_point)),
-               3:"Command: {0}"}
+               3:"Command: {0}",
+               4:"Zorder: {0}".format('>>>'+'>'.join(zorder)+'>>>'),
+               5:"Layer: BG1:{0}; BG2:{1}; BG3:{2}",
+               6:"Layer: Am1:{0}; Am2:{1}; Am3:{2}",
+               7:"Layer: Bb:{0}; HD:{1}; TX:{2}",
+               }
 resize_screen = 0 # 是否要强制缩小整个演示窗体
 while n < break_point.max():
     ct = time.time()
@@ -1506,7 +1520,7 @@ while n < break_point.max():
                     n=break_point[(break_point-n)>0].min()
                     stop_SE()
                     continue
-                elif event.key == pygame.K_F11: # 调整缩放一半
+                elif event.key in [pygame.K_F11, pygame.K_p]: # 调整缩放一半
                     from pygame._sdl2.video import Window
                     window = Window.from_display_module()
                     resize_screen = 1 - resize_screen
@@ -1518,7 +1532,7 @@ while n < break_point.max():
                         screen = pygame.display.set_mode(screen_size)
                         window.position = (0,0)
                     pygame.display.update()
-                elif event.key == pygame.K_F5: # 详细信息
+                elif event.key in [pygame.K_F5, pygame.K_i]: # 详细信息
                     show_detail_info = 1 - show_detail_info # 1->0 0->1
                 elif event.key == pygame.K_SPACE: #暂停
                     forward = 1 - forward # 1->0 0->1
@@ -1528,19 +1542,24 @@ while n < break_point.max():
         if n in render_timeline.index:
             this_frame = render_timeline.loc[n]
             render(this_frame)
-            if forward == 1: # 如果正在播放
-                # 显示详情模式
-                if show_detail_info == 1:
-                    screen.blit(note_text.render(detail_info[0],fgcolor=cmap['notetext'],size=0.0185*H)[0],(10,10))
-                    screen.blit(note_text.render(detail_info[1].format(int(1/(time.time()-ct+1e-4))),fgcolor=cmap['notetext'],size=0.0185*H)[0],(10,10+0.0333*H))
-                    screen.blit(note_text.render(detail_info[2].format(n,this_frame['section']+1),fgcolor=cmap['notetext'],size=0.0185*H)[0],(10,10+0.0666*H))
-                    screen.blit(note_text.render(detail_info[3].format(stdin_text[this_frame['section']]),fgcolor=cmap['notetext'],size=0.0185*H)[0],(10,10+0.1*H))
-                # 仅显示帧率
-                else:
-                    screen.blit(note_text.render('%d'%(1//(time.time()-ct+1e-4)),fgcolor=cmap['notetext'],size=0.0278*H)[0],(10,10)) ##render rate +1e-4 to avoid float divmod()
-            else: # 如果正在暂停
+            # 如果正在暂停
+            if forward == 0:
                 screen.blit(note_text.render('Press space to continue.',fgcolor=cmap['notetext'],size=0.0278*H)[0],(0.410*W,0.926*H)) # pause
-            if resize_screen == 1: # 如果缩放到一半大小
+            # 显示详情模式
+            if show_detail_info == 1:
+                screen.blit(note_text.render(detail_info[0],fgcolor=cmap['notetext'],size=0.0185*H)[0],(10,10))
+                screen.blit(note_text.render(detail_info[2].format(n,this_frame['section']+1),fgcolor=cmap['notetext'],size=0.0185*H)[0],(10,10+0.0666*H))
+                screen.blit(note_text.render(detail_info[3].format(stdin_text[this_frame['section']]),fgcolor=cmap['notetext'],size=0.0185*H)[0],(10,10+0.1*H))
+                screen.blit(note_text.render(detail_info[4],fgcolor=cmap['notetext'],size=0.0185*H)[0],(10,10+0.1333*H))
+                screen.blit(note_text.render(detail_info[5].format(this_frame['BG1'],this_frame['BG2'],this_frame['BG3']),fgcolor=cmap['notetext'],size=0.0185*H)[0],(10,10+0.1666*H))
+                screen.blit(note_text.render(detail_info[6].format(this_frame['Am1'],this_frame['Am2'],this_frame['Am3']),fgcolor=cmap['notetext'],size=0.0185*H)[0],(10,10+0.2*H))
+                screen.blit(note_text.render(detail_info[7].format(this_frame['Bb'],this_frame['Bb_header'],this_frame['Bb_main']),fgcolor=cmap['notetext'],size=0.0185*H)[0],(10,10+0.2333*H))
+                screen.blit(note_text.render(detail_info[1].format(int(1/(time.time()-ct+1e-4))),fgcolor=cmap['notetext'],size=0.0185*H)[0],(10,10+0.0333*H))
+            # 仅显示帧率
+            else:
+                screen.blit(note_text.render('%d'%(1//(time.time()-ct+1e-4)),fgcolor=cmap['notetext'],size=0.0278*H)[0],(10,10)) ##render rate +1e-4 to avoid float divmod()
+            # 如果缩放到一半大小
+            if resize_screen == 1:
                 screen_resized.blit(pygame.transform.scale(screen,(W//2,H//2)),(0,0))
         else:
             pass # 节约算力

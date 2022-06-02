@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.11.3'
+edtion = 'alpha 1.11.5'
 
 import tkinter as tk
 from tkinter import ttk
@@ -106,7 +106,7 @@ class Background:
     cmap = {'black':(0,0,0,255),'white':(255,255,255,255),'greenscreen':(0,177,64,255)}
     def __init__(self,filepath,pos = (0,0),label_color='Lavender'):
         if filepath in Background.cmap.keys(): #添加了，对纯色定义的背景的支持
-            self.media = Image.new(screen_size,mode='RGBA')
+            self.media = Image.new((1920,1080),mode='RGBA') # GUI里面没有全局的screen_size，用1080p的参数替代
             self.media.fill(Background.cmap[filepath])
         else:
             self.media = Image.open(filepath)
@@ -718,7 +718,10 @@ def open_Edit_windows(father,Edit_filepath='',fig_W=960,fig_H=540):
     if Edit_filepath!='': # 如果有指定输入文件
         try:
             mediadef_text = open(Edit_filepath,'r',encoding='utf8').read().split('\n')
+            if mediadef_text[-1] == '':
+                mediadef_text.pop() # 如果最后一行是空行，则无视掉最后一行
             warning_line = []
+            i = -1 # 即使是输入空文件，也能正确弹出提示框
             for i,line in enumerate(mediadef_text):
                 parseline = RE_parse_mediadef.findall(line)
                 if len(parseline) == 1:
@@ -778,6 +781,7 @@ def open_Main_windows():
             Main_windows.attributes('-disabled',True)
         except Exception:
             pass
+        # 如果Edit_filepath是合法路径
         if os.path.isfile(Edit_filepath): # alpha 1.8.5 非法路径
             return_from_Edit = open_Edit_windows(Main_windows,Edit_filepath,fig_W,fig_H)
         else:
@@ -790,6 +794,7 @@ def open_Main_windows():
             pass
         Main_windows.lift()
         Main_windows.focus_force()
+        # 如果编辑窗的返回值是合法路径
         if os.path.isfile(return_from_Edit):
             media_define.set(return_from_Edit)
             new_or_edit.config(text='编辑')
@@ -964,7 +969,7 @@ def open_Main_windows():
                 tab3.config(text='导出XML ⚑')
             else:
                 tab3.config(text='导出XML')
-        else: 
+        elif target == fixscrzoom: 
             if target.get() == 1:
                 try:
                     import ctypes
@@ -973,6 +978,8 @@ def open_Main_windows():
                 except Exception:
                     messagebox.showwarning(title='警告',message='该选项在当前系统下不可用！')
                     target.set(0)
+        else:
+            pass
     def close_window():
         # 保存当前参数
         try:
@@ -1022,7 +1029,6 @@ def open_Main_windows():
     media_define = tk.StringVar(Main_windows)
     output_path = tk.StringVar(Main_windows)
     timeline_file = tk.StringVar(Main_windows)
-    #text_obj = {1:media_define,2:characor_table,3:stdin_logfile,4:output_path,5:timeline_file}
     # 可选参数们
     project_W = tk.IntVar(Main_windows)
     project_H = tk.IntVar(Main_windows)
@@ -1042,15 +1048,18 @@ def open_Main_windows():
     fixscrzoom = tk.IntVar(Main_windows)
     save_config = tk.IntVar(Main_windows)
     # 载入保存的参数
-    try: 
+    try:
+        # 读取保存参数的文件
         i_config = open('./media/save_config','rb')
         configs = pickle.load(i_config)
         i_config.close()
+        # 检查是否有保存参数
         if configs['save_config'] == 0: # 如果上一次保存时，是否保存是否
             raise ValueError('No save config!')
         if configs.pop('version') != edtion: # 如果版本不一致 # 在这里直接把version pop 出来！免得在应用时导致NameError！
             if messagebox.askyesno(title='版本变动',message='发现版本变动！\n是否仍然载入上一次的配置？') == False:
                 raise ValueError('Edition change!')
+        # 应用变更
         for key,value in configs.items():
             eval(key).set(value)
     except Exception: # 使用原装默认参数
@@ -1347,6 +1356,18 @@ def open_Main_windows():
     tk.Button(format_frame, command=lambda:run_convert('wav'),text="转wav",font=big_text).place(x=325,y=440,width=100,height=40)
     tk.Button(format_frame, command=lambda:run_convert('ogg'),text="转ogg",font=big_text).place(x=455,y=440,width=100,height=40)
 
+    # 初始化highlight和编辑/新建按钮的显示
+    try:
+        for flag in [synthanyway,exportmp4,exportprxml,fixscrzoom]:
+            if flag.get() == 1:
+                highlight(flag)
+        if os.path.isfile(media_define.get()):
+            new_or_edit.config(text='编辑')
+        else:
+            new_or_edit.config(text='新建')
+    except Exception:
+        pass
+        
     # Mainloop
     Main_windows.mainloop()
 
