@@ -106,8 +106,8 @@ class Background:
     cmap = {'black':(0,0,0,255),'white':(255,255,255,255),'greenscreen':(0,177,64,255)}
     def __init__(self,filepath,pos = (0,0),label_color='Lavender'):
         if filepath in Background.cmap.keys(): #添加了，对纯色定义的背景的支持
-            self.media = Image.new((1920,1080),mode='RGBA') # GUI里面没有全局的screen_size，用1080p的参数替代
-            self.media.fill(Background.cmap[filepath])
+            self.media = Image.new(mode='RGBA',size=(1920,1080),color=Background.cmap[filepath]) # GUI里面没有全局的screen_size，用1080p的参数替代
+            #self.media.fill(Background.cmap[filepath])
         else:
             self.media = Image.open(filepath)
         self.pos = pos
@@ -708,7 +708,7 @@ def open_Edit_windows(father,Edit_filepath='',fig_W=960,fig_H=540):
     # 预览图
     image_canvas = Image.open('./media/canvas.png').crop((0,0,fig_W,fig_H))
     blank_canvas = image_canvas.copy()
-    blank_canvas.putalpha(220)
+    blank_canvas.putalpha(192) # alpha 1.10.6 220 -> 192 上一个预览画面的残影更强了
     show_canvas = ImageTk.PhotoImage(image_canvas.resize((fig_W//2,fig_H//2)))
     preview_canvas = tk.Label(frame_edit,bg='black')
     preview_canvas.config(image=show_canvas)
