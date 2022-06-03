@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.11.5'
+edtion = 'alpha 1.11.6'
 
 import tkinter as tk
 from tkinter import ttk
@@ -107,7 +107,6 @@ class Background:
     def __init__(self,filepath,pos = (0,0),label_color='Lavender'):
         if filepath in Background.cmap.keys(): #添加了，对纯色定义的背景的支持
             self.media = Image.new(mode='RGBA',size=(1920,1080),color=Background.cmap[filepath]) # GUI里面没有全局的screen_size，用1080p的参数替代
-            #self.media.fill(Background.cmap[filepath])
         else:
             self.media = Image.open(filepath)
         self.pos = pos
@@ -887,6 +886,11 @@ def open_Main_windows():
                 exit_status = os.system(command)
                 if exit_status != 0:
                     raise OSError('Major error occurred in replay_generator!')
+                else:
+                    # 如果指定了要先语音合成，而且星标文件存在，且退出状态是正常，把log文件设置为星标文件：
+                    if (synthanyway.get() == 1)&(os.path.isfile(output_path.get()+'/AsteriskMarkedLogFile.rgl')):
+                        messagebox.showinfo(title='完毕',message='语音合成程序执行完毕！\nLog文件已更新')
+                        stdin_logfile.set(output_path.get()+'/AsteriskMarkedLogFile.rgl')
             except Exception:
                 messagebox.showwarning(title='警告',message='似乎有啥不对劲的事情发生了，检视控制台输出获取详细信息！')
     def run_command_synth():
@@ -902,7 +906,11 @@ def open_Main_windows():
                 exit_status = os.system(command)
                 if exit_status != 0:
                     raise OSError('Major error occurred in speech_synthesizer!')
-                messagebox.showinfo(title='完毕',message='语音合成程序执行完毕！')
+                else:
+                    # 如果退出状态正常(0)，且星标文件存在，把log文件设置为星标文件
+                    if os.path.isfile(output_path.get()+'/AsteriskMarkedLogFile.rgl'):
+                        messagebox.showinfo(title='完毕',message='语音合成程序执行完毕！\nLog文件已更新')
+                        stdin_logfile.set(output_path.get()+'/AsteriskMarkedLogFile.rgl')
             except Exception:
                 messagebox.showwarning(title='警告',message='似乎有啥不对劲的事情发生了，检视控制台输出获取详细信息！')
     def run_command_xml():
@@ -920,7 +928,8 @@ def open_Main_windows():
                 exit_status = os.system(command)
                 if exit_status != 0:
                     raise OSError('Major error occurred in export_xml!')
-                messagebox.showinfo(title='完毕',message='导出XML程序执行完毕！')
+                else:
+                    messagebox.showinfo(title='完毕',message='导出XML程序执行完毕！')
             except Exception:
                 messagebox.showwarning(title='警告',message='似乎有啥不对劲的事情发生了，检视控制台输出获取详细信息！')
     def run_command_mp4():
@@ -938,7 +947,8 @@ def open_Main_windows():
                 exit_status = os.system(command)
                 if exit_status != 0:
                     raise OSError('Major error occurred in export_video!')
-                messagebox.showinfo(title='完毕',message='导出视频程序执行完毕！')
+                else:
+                    messagebox.showinfo(title='完毕',message='导出视频程序执行完毕！')
             except Exception:
                 messagebox.showwarning(title='警告',message='似乎有啥不对劲的事情发生了，检视控制台输出获取详细信息！')
     def highlight(target):
