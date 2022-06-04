@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.11.7'
+edtion = 'alpha 1.11.8'
 
 import tkinter as tk
 from tkinter import ttk
@@ -1246,7 +1246,7 @@ def open_Main_windows():
 
     flag_azs = tk.LabelFrame(synth_frame,text='标志')
     #flag_azs.place(x=10,y=320,width=600,height=110)
-    azure_logo = ImageTk.PhotoImage(Image.open('./media/azure.png'))
+    azure_logo = ImageTk.PhotoImage(Image.open('./media/Azure.png'))
     tk.Label(flag_azs,image = azure_logo).place(x=20,y=8)
     tk.Label(flag_azs,text='本项功能由Azure认知语音服务支持，了解更多：').place(x=300,y=15)
     tk.Button(flag_azs,text='https://docs.microsoft.com/azure/',command=lambda: webbrowser.open('https://docs.microsoft.com/zh-cn/azure/cognitive-services'),fg='blue',relief='flat').place(x=300,y=40)

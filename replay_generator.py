@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.11.7'
+edtion = 'alpha 1.11.8'
 
 # 外部参数输入
 
@@ -1512,14 +1512,14 @@ while n < break_point.max():
                     pygame.time.delay(1000)
                     pygame.quit()
                     system_terminated('User')
-                elif event.key == pygame.K_a:
+                elif event.key in [pygame.K_a,pygame.K_LEFT]:
                     n=break_point[(break_point-n)<0].max()
                     n=break_point[(break_point-n)<0].max()
                     if n != n: # 确保不会被a搞崩
                         n = 0
                     stop_SE()
                     continue
-                elif event.key == pygame.K_d:
+                elif event.key in [pygame.K_d,pygame.K_RIGHT]:
                     n=break_point[(break_point-n)>0].min()
                     stop_SE()
                     continue
