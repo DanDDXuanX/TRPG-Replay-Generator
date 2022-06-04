@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.11.6'
+edtion = 'alpha 1.11.7'
 
 import tkinter as tk
 from tkinter import ttk
@@ -1083,6 +1083,11 @@ def open_Main_windows():
         Appkey.set('Your_Appkey')
         AzureKey.set('Your_Azurekey')
         ServiceRegion.set('eastasia')
+        # 将取消系统缩放设为默认值
+        if sys.platform == 'win32':
+            fixscrzoom.set(1)
+        else:
+            fixscrzoom.set(0)
 
     # 获取python解释器的路径
     python3 = sys.executable.replace('\\','/')

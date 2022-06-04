@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.11.5'
+edtion = 'alpha 1.11.7'
 
 # 绝对的全局变量
 # 在开源发布的版本中，隐去了各个key
@@ -103,26 +103,30 @@ class Aliyun_TTS_engine:
                                          speech_rate=self.speech_rate,
                                          pitch_rate=self.pitch_rate,
                                          volume=self.volume)
-        if success == True:
+        # 检查是否是空文件 通常是由于AppKey错误导致的
+        if os.path.getsize(ofile) == 0:
+            raise Exception('[33m[AliyunError]:[0m Synthesis failed, an empty wav file is created!')
+            # os.remove(ofile) # 算了算了 0kb 也留着吧
+        # 检查合成返回值是否成功
+        elif success == False:
+            raise Exception('[33m[AliyunError]:[0m Other exception occurred!')
+        else:
             if len(text) >= 5:
                 print_text = text[0:5]+'...'
             else:
                 print_text = text
-            print("[{0}({1})]: {2} -> '{3}'".format(self.ID,self.voice,print_text,ofile))
-        else:
-            # os.remove(ofile) # 算了算了 0kb 也留着吧
-            raise Exception('[AliyunError]: Other exception occurred!')
+            print("[{0}({1})]: {2} -> '{3}'".format(self.ID,self.voice,print_text,ofile))            
     def on_close(self, *args):
         #print("on_close: args=>{}".format(args))
         try:
             self.ofile.close()
         except Exception as E:
-            print("[31m[TTSError]:[0m Close file failed since:", E)
+            print("[33m[AliyunError]:[0m Close file failed since:", E)
     def on_data(self, data, *args):
         try:
             self.ofile.write(data)
         except Exception as E:
-            print("[31m[TTSError]:[0m Write data failed:", E)
+            print("[33m[AliyunError]:[0m Write data failed:", E)
 
 # Azure 语音合成 alpha 1.10.3
 class Azure_TTS_engine:
@@ -148,7 +152,7 @@ class Azure_TTS_engine:
             try:
                 self.voice,self.style,self.degree,self.role = voice.split(':')
             except Exception:
-                raise ValueError('[31m[TTSError]:[0m Invalid Voice argument: '+voice)
+                raise ValueError('[31m[AzureError]:[0m Invalid Voice argument: '+voice)
         else:
             self.voice = voice
             self.style = 'general'
@@ -180,9 +184,9 @@ class Azure_TTS_engine:
             cancellation_details = speech_synthesis_result.cancellation_details
             if cancellation_details.reason == speechsdk.CancellationReason.Error:
                 if cancellation_details.error_details:
-                    print("[AzureError]: {}".format(cancellation_details.error_details))
+                    print("[33m[AzureError]:[0m {}".format(cancellation_details.error_details))
             # os.remove(ofile) # 算了算了 0kb 也留着吧
-            raise Exception("[AzureError]: {}".format(cancellation_details.reason))
+            raise Exception("[33m[AzureError]:[0m {}".format(cancellation_details.reason))
 
 
 # 正则表达式定义
@@ -447,7 +451,7 @@ def main():
 
     if len(refresh.index) == 0: #如果未合成任何语音
         print('[33m[warning]:[0m','No vaild asterisk label synthesised, execution terminated!')
-        sys.exit(0)
+        sys.exit(1) # alpha 1.11.7 未有合成也异常退出
 
     # 读取音频时长
     for key,value in refresh.iterrows():

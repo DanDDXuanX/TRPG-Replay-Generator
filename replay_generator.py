@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.11.5'
+edtion = 'alpha 1.11.7'
 
 # 外部参数输入
 
@@ -1316,6 +1316,7 @@ if synthfirst == True:
     print('[replay generator]: Flag --SynthesisAnyway detected, running command:\n'+'[32m'+command+'[0m')
     try:
         exit_status = os.system(command)
+        print('[32m------------------------------------------------------------[0m')
         # 如果是正常退出，将当前的标准输入调整为处理后的log文件
         if (exit_status == 0)&(os.path.isfile(output_path+'/AsteriskMarkedLogFile.rgl') == True):
             stdin_log = output_path+'/AsteriskMarkedLogFile.rgl'
@@ -1410,6 +1411,7 @@ if output_path != None:
         print('[replay generator]: Flag --ExportXML detected, running command:\n'+'[32m'+command+'[0m')
         try:
             exit_status = os.system(command)
+            print('[32m------------------------------------------------------------[0m')
             if exit_status != 0:
                 raise OSError('Major error occurred in export_xml!')
         except Exception as E:
@@ -1422,6 +1424,7 @@ if output_path != None:
         print('[replay generator]: Flag --ExportVideo detected, running command:\n'+'[32m'+command+'[0m')
         try:
             exit_status = os.system(command)
+            print('[32m------------------------------------------------------------[0m')
             if exit_status != 0:
                 raise OSError('Major error occurred in export_video!')
         except Exception as E:
