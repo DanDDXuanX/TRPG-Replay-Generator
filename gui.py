@@ -216,7 +216,6 @@ def open_PosSelect(father,bgfigure='',postype='green',current_pos=''):
 
     PosSelect_window = tk.Toplevel(father)
     PosSelect_window.resizable(0,0)
-    PosSelect_window.iconbitmap('./media/icon.ico')
     PosSelect_window.config(background ='#e0e0e0')
     #Objdef_windows.attributes('-topmost', True)
     PosSelect_window.title('选择位置')
@@ -224,6 +223,10 @@ def open_PosSelect(father,bgfigure='',postype='green',current_pos=''):
     PosSelect_window.transient(father)
     PosSelect_window.geometry("{0}x{1}".format(can_W+40,can_H+90))
     PosSelect_window.bind("<Key>",get_click) # 获取键盘事件
+    try:
+        PosSelect_window.iconbitmap('./media/icon.ico')
+    except tk.TclError:
+        pass
 
     sele_frame = tk.Frame(PosSelect_window)
     sele_frame.place(x=10,y=10,height=can_H+20,width=can_W+20)
@@ -293,12 +296,14 @@ def open_Media_def_window(father,i_name='',i_type='',i_args=''):
     Objdef_windows = tk.Toplevel(father)
     Objdef_windows.resizable(0,0)
     Objdef_windows.geometry("340x415")
-    Objdef_windows.iconbitmap('./media/icon.ico')
     Objdef_windows.config(background ='#e0e0e0')
-    #Objdef_windows.attributes('-topmost', True)
     Objdef_windows.title('媒体参数')
     Objdef_windows.protocol('WM_DELETE_WINDOW',close_window)
     Objdef_windows.transient(father)
+    try:
+        Objdef_windows.iconbitmap('./media/icon.ico')
+    except tk.TclError:
+        pass
 
     # 主框
     objdef = tk.Frame(Objdef_windows)
@@ -659,12 +664,15 @@ def open_Edit_windows(father,Edit_filepath='',fig_W=960,fig_H=540):
     Edit_windows = tk.Toplevel(father)
     Edit_windows.resizable(0,0)
     Edit_windows.geometry("{W}x{H}".format(W=window_W,H=window_H))
-    Edit_windows.iconbitmap('./media/icon.ico')
     Edit_windows.config(background ='#e0e0e0')
     Edit_windows.title('回声工坊 媒体定义文件编辑器')
     Edit_windows.protocol('WM_DELETE_WINDOW',close_window)
     Edit_windows.transient(father)
-
+    try:
+        Edit_windows.iconbitmap('./media/icon.ico')
+    except tk.TclError:
+        pass
+    
     frame_edit = tk.Frame(Edit_windows)
     frame_edit.place(x=10,y=10,height=window_H-20,width=window_W-20)
 
@@ -1020,11 +1028,14 @@ def open_Main_windows():
     Main_windows = tk.Tk()
     Main_windows.resizable(0,0)
     Main_windows.geometry("640x550")
-    Main_windows.iconbitmap('./media/icon.ico')
     Main_windows.config(background ='#e0e0e0')
     Main_windows.protocol('WM_DELETE_WINDOW',close_window)
     Main_windows.title('回声工坊 ' + edtion)
-
+    # linux:可能无法使用小图标
+    try:
+        Main_windows.iconbitmap('./media/icon.ico')
+    except tk.TclError:
+        pass
     # 大号字体
     try:
         big_text = font.Font(font=("微软雅黑",12))
