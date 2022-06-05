@@ -137,12 +137,15 @@ class Azure_TTS_engine:
     voice_list = voice_lib[voice_lib['service'] == 'Azure'].index
     # SSML模板
     SSML_tplt = open('./xml_templates/tplt_ssml.xml','r').read()
+    # 输出文件格式配置
+    output_format = {'mp3':23,# SpeechSynthesisOutputFormat.Audio48Khz192KBitRateMonoMp3
+                     'wav':21}# SpeechSynthesisOutputFormat.Riff48Khz16BitMonoPcm
     def __init__(self,name='unnamed',voice = 'zh-CN-XiaomoNeural:general:1:Default',speech_rate=0,pitch_rate=0,aformat='wav'):
         if 'azure.cognitiveservices.speech' not in sys.modules:
             global speechsdk
             import azure.cognitiveservices.speech as speechsdk
         self.ID = name
-        self.aformat = aformat
+        self.aformat = Azure_TTS_engine.output_format[aformat]
         # 500 - 2; -500 - 0.5
         self.speech_rate = str(speech_rate//5)+'%'
         # 500 - 12st; -500 - -12st
@@ -169,6 +172,7 @@ class Azure_TTS_engine:
     def start(self,text,ofile):
         # 准备配置
         speech_config = speechsdk.SpeechConfig(subscription=Azure_TTS_engine.AZUKEY, region=Azure_TTS_engine.service_region)
+        speech_config.set_speech_synthesis_output_format(speechsdk.SpeechSynthesisOutputFormat(self.aformat))
         audio_config = speechsdk.audio.AudioOutputConfig(filename=ofile)
         synthesizer = speechsdk.SpeechSynthesizer(speech_config=speech_config, audio_config=audio_config)
         # 开始合成
@@ -187,7 +191,6 @@ class Azure_TTS_engine:
                     print("[33m[AzureError]:[0m {}".format(cancellation_details.error_details))
             # os.remove(ofile) # 算了算了 0kb 也留着吧
             raise Exception("[33m[AzureError]:[0m {}".format(cancellation_details.reason))
-
 
 # 正则表达式定义
 

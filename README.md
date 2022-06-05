@@ -6,11 +6,11 @@
 
 ## 程序下载
 
-### [免安装版 93.8MB](https://github.com/DanDDXuanX/TRPG-Replay-Generator/releases/download/v1.0.1/TRPG-Replay-Generator-v1.0.1-win64.7z)
+### [免安装版 95.4MB](https://github.com/DanDDXuanX/TRPG-Replay-Generator/releases/download/v1.0.2/TRPG-Replay-Generator-v1.0.2-win64.7z)
 - 免安装版是二进制可执行文件（.exe），仅适用于windows 64位系统。<p>
 - **解压即可使用**，无需另外安装python环境及其依赖项目。<p>
 
-### [源代码 25.1MB](https://github.com/DanDDXuanX/TRPG-Replay-Generator/releases/download/v1.0.1/TRPG-Replay-Generator-v1.0.1-SourceCode.7z)
+### [源代码 25.3MB](https://github.com/DanDDXuanX/TRPG-Replay-Generator/releases/download/v1.0.2/TRPG-Replay-Generator-v1.0.2-SourceCode.7z)
 - 源代码是程序的源文件（.py），适用于 windows，linux和 macOS系统。<p>
 - **必须安装**[**环境要求**](./README.md#环境要求：)中指定的项目后才能运行。<p>
 
