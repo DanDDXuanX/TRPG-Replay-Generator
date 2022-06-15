@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.11.8'
+edtion = 'alpha 1.11.10'
 
 # 外部参数输入
 
@@ -877,6 +877,9 @@ def parser(stdin_text):
                     # 检查气泡文本的可用性 alpha 1.8.4
                     if ('"' in name) | ('\\' in name) | ('"' in ts) | ('\\' in ts):
                         raise ParserError('[31m[ParserError]:[0m','Invalid symbol (double quote or backslash) appeared in speech text in dialogue line ' + str(i+1)+'.')
+                    if ('#' in ts)&(ts[0]!='^'):
+                        ts = '^' + ts
+                        print('[33m[warning]:[0m','Undeclared manual break dialogue line ' + str(i+1)+'.')
                     # 气泡的参数
                     if k == 0:
                         this_bb = charactor_table.loc[name+subtype]['Bubble']

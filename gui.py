@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.11.8'
+edtion = 'alpha 1.11.10'
 
 import tkinter as tk
 from tkinter import ttk
@@ -756,8 +756,8 @@ def browse_file(text_obj,method='file'):
         getname = filedialog.askopenfilename()
     else:
         getname = filedialog.askdirectory()
-    if (' ' in getname) | ('$' in getname):
-        messagebox.showwarning(title='警告',message='请勿使用包含空格或特殊符号的路径！')
+    if (' ' in getname) | ('$' in getname) | ('(' in getname) | (')' in getname):
+        messagebox.showwarning(title='警告',message='请勿使用包含空格、括号或特殊符号的路径！')
         text_obj.set('')
         return None
     text_obj.set(getname)
