@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.11.8'
+edtion = 'alpha 1.11.11'
 
 # 外部参数输入
 
@@ -611,10 +611,10 @@ for key,values in bulitin_media.iteritems():
 print('[export Video]: Start mixing audio tracks')
 
 tracks = ['SE','Voice','BGM']
-main_Track = pydub.AudioSegment.silent(duration=int(break_point.values.max()/frame_rate*1000),frame_rate=16000) # 主轨道
+main_Track = pydub.AudioSegment.silent(duration=int(break_point.values.max()/frame_rate*1000),frame_rate=48000) # 主轨道
 
 for tr in tracks:
-    this_Track = pydub.AudioSegment.silent(duration=int(break_point.values.max()/frame_rate*1000),frame_rate=16000)
+    this_Track = pydub.AudioSegment.silent(duration=int(break_point.values.max()/frame_rate*1000),frame_rate=48000)
     if tr == 'BGM':
         BGM_clips = parse_timeline('BGM')
         for i,item in enumerate(BGM_clips):
@@ -630,7 +630,7 @@ for tr in tracks:
                 end = break_point.values.max()
             #print(begin,end)
             this_Track = this_Track.overlay(pydub.AudioSegment.silent(duration=int((end-begin)/frame_rate*1000),
-                                                              frame_rate=16000).overlay(eval(voice+'.media')
+                                                              frame_rate=48000).overlay(eval(voice+'.media')
                                                                                         ,loop=True),
                                     position = int(begin/frame_rate*1000))
     else:
@@ -641,8 +641,9 @@ for tr in tracks:
                 voice = 'temp_AU'
             this_Track = this_Track.overlay(eval(voice+'.media'),position = int(begin/frame_rate*1000))
     main_Track = main_Track.overlay(this_Track) #合成到主音轨
+    print('[export Video]: Track {0} finished.'.format(tr))
 
-main_Track.export(output_path+'/'+stdin_name+'.mp3',format='mp3',codec='mp3')
+main_Track.export(output_path+'/'+stdin_name+'.mp3',format='mp3',codec='mp3',bitrate='256k')
 
 print('[export Video]: Audio mixing done!')
 
