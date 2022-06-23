@@ -95,7 +95,7 @@ StrokeText(fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0
 - `color`	可选参数，设置字体的颜色，是一个4元素的元组，对应(R,G,B,A)，四个元素应为0-255的整数；默认值是黑色；
 - `line_limit`	可选参数，设置单行显示的字符数量上限，超过上限会触发自动换行；默认为20字；
 - `edge_color`	可选参数，设置字体的描边颜色，仅描边文本可用，是一个4元素的元组，对应(R,G,B,A)，四个元素应为0-255的整数；默认值是白色。
-- `label_color`	可选参数，设置字体内容在PR中显示的标签颜色，可用颜色参考 `./doc/XML_available_label_color.md`；默认值是淡紫色。
+- `label_color`	可选参数，设置字体内容在PR中显示的标签颜色，参考[可用颜色列表](./doc/XML_available_label_color.md)；默认值是淡紫色。
 
 > 注意：由于气泡对象需要引用文本对象，因此，文本对象在媒体定义文件中的位置必须在气泡对象的定义之前！。
 
@@ -113,7 +113,7 @@ Bubble(filepath,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),ht_pos=
 - `ht_pos`	可选参数，设置头文本相对于气泡底图的位置，是一个2元素的元组，对应 (X,Y)；默认为 (0,0)，即左上角；
 - `align`	可选参数，设置主文本的对齐模式，可选项有`"left"`、`"center"`，分别对应左侧对齐和居中对齐；默认为左侧对齐；
 - `line_distance`	可选参数，设置了多行显示时的行距，默认值为1.5倍行距。
-- `label_color`	可选参数，设置气泡底图在PR中显示的标签颜色，可用颜色参考 `./doc/XML_available_label_color.md`；默认值是淡紫色。
+- `label_color`	可选参数，设置气泡底图在PR中显示的标签颜色，参考[可用颜色列表](./doc/XML_available_label_color.md)；默认值是淡紫色。
 
 3.	**背景 Background**
 ```python
@@ -123,7 +123,7 @@ Background(filepath,pos=(0,0),label_color='Lavender')
 - 背景指整个屏幕的背景，通常位于最下的图层，可以在 *log文件* 中的 *背景行* 中设置背景及其切换效果；
 - `filepath`	必要参数，指定一个图片文件的路径；或者指定为 `{'black','white','greenscreen'}` 中的一个，以建立纯色背景；
 - `pos`	可选参数，指定了背景在屏幕上的位置，是一个2元素的元组，对应(X,Y)，默认为(0,0)，即左上角。
-- `label_color`	可选参数，设置背景图在PR中显示的标签颜色，可用颜色参考 `./doc/XML_available_label_color.md`；默认值是淡紫色。
+- `label_color`	可选参数，设置背景图在PR中显示的标签颜色，参考[可用颜色列表](./doc/XML_available_label_color.md)；默认值是淡紫色。
 
 > 注意：由于背景图通常都是全屏的图片，因此不建议修改 `Background` 的pos的默认值。
 
@@ -137,7 +137,7 @@ Animation(filepath,pos=(0,0),tick=1,loop=True,label_color='Lavender')
 - `pos`	可选参数，指定了立绘在屏幕上的位置，是一个2元素的元组，对应(X,Y)，默认为(0,0)，即左上角。
 - `tick`	可选参数，仅在动态立绘中生效，设置立绘动画的拍率，单位为 帧/拍；默认为1，即一拍一。
 - `loop`	可选参数，仅在动态立绘中生效，设置立绘动画是否循环播放，可以是`True`或者`False`，设置为否时，当动态立绘的完整播放了一次之后，会停留在最后帧；默认是`True`，即循环播放。
-- `label_color`	可选参数，设置立绘图在PR中显示的标签颜色，可用颜色参考 `./doc/XML_available_label_color.md`；默认值是淡紫色。
+- `label_color`	可选参数，设置立绘图在PR中显示的标签颜色，参考[可用颜色列表](./doc/XML_available_label_color.md)；默认值是淡紫色。
 
 > 注意：一个角色可以在不同的subtype下指定不同的立绘，用于实现差分效果；使用时在log文件的对话行里指定到不同的subtype。<p>
 > 注意：如果希望实现多人同框效果，建议为同框时的立绘另外建立 `Animation` 对象，并在定义时指定合适的位置。<p>
@@ -164,7 +164,7 @@ Audio(filepath,label_color='Caribbean')
 
 - 音效指短音频，音效通常只会完整地播放一次；支持的格式是 `.wav` ，如果是其他格式的音效，建议先进行格式转换。
 - `filepath`	必要参数，指定一个音频文件的路径。
-- `label_color`	可选参数，设置音频音效在PR中显示的标签颜色，可用颜色参考 `./doc/XML_available_label_color.md`；默认值是加勒比海蓝色。
+- `label_color`	可选参数，设置音频音效在PR中显示的标签颜色，参考[可用颜色列表](./doc/XML_available_label_color.md)；默认值是加勒比海蓝色。
 
 > 注意：本文提及的 *文件路径* 的格式均为字符串，即需要引号引起来。例子：`"./pic/zhang.png"`<p>
 > 注意：定义的媒体变量名需要符合python变量名标准，且不可以使用程序代码中已占用的变量名（详见[已占用变量名](./media/occupied_variable_name.list)）。<p>
@@ -503,13 +503,13 @@ python speech_synthesizer.py \
 
 1. `{*}` ：待语音合成的标志，将本对话行的全部发言文本执行语音合成；
 2. `{*speech_text}` ：合成指定文本的语音的标志；指定文本只能包含`，。：？！“”`等中文符号；
-3. `{"./media/voice.wav",*}` ：当需要使用外部音频，而非语音合成时，可以读取音频文件持续时间，并填补到星标之后；这可以使小节的时长和音频时长同步。
+3. `{"./media/voice.wav";*}` ：当需要使用外部音频，而非语音合成时，可以读取音频文件持续时间，并填补到星标之后；这可以使小节的时长和音频时长同步。
 
 待处理log文件例子:
 ```
 [张安翔]:阿里云语音合成。{*}
 [张安翔]:指定语音合成内容。{*将这一段文字合成为语音}
-[张安翔]:使用现成的音频文件。{'./media/voice.wav',*}
+[张安翔]:使用现成的音频文件。{'./media/voice.wav';*}
 ```
 
 > 注意：若语音合成为未成功执行，则待处理的星标音频将不会被更改。<p>
