@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.11.8'
+edtion = 'alpha 1.11.12'
 
 # 外部参数输入
 
@@ -160,7 +160,7 @@ class Bubble:
             else: # alpha 1.7.0 兼容居中
                 word_w = p3 - p1
                 canvas.paste(mt_text.crop((p1,p2,p3,p4)),
-                             (x + p1 + (self.MainText.size*self.MainText.line_limit - word_w)//2,
+                             (x + (self.MainText.size*self.MainText.line_limit - word_w)//2,
                               int(y+i*self.MainText.size*self.line_distance+p2)
                              )
                             )
