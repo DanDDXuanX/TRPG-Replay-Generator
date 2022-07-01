@@ -71,7 +71,7 @@ python ./replay_generator.py -l ./toy/LogFile.rgl -d ./toy/MediaObject.txt -t ./
 ```
 4. 进入程序后，按空格键（SPACE）开始播放；播放的过程中，按A键或左方向键跳转到前一小节，D键或右方向键跳转到后一小节，按空格暂停播放，按F5键或I键展示详细信息，按F11键或P键将画面缩放至50%，按ESC键终止播放并退出。
 
-# 参考文档（文档版本 alpha 1.11.12）
+# 参考文档（文档版本 alpha 1.11.13）
 
 ## 输入文件格式
 
@@ -102,11 +102,11 @@ StrokeText(fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0
 
 2.	**气泡 Bubble**
 ```python
-Bubble(filepath,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),ht_pos=(0,0),align='left',line_distance=1.5,label_color='Lavender')
+Bubble(filepath=None,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),ht_pos=(0,0),align='left',line_distance=1.5,label_color='Lavender')
 ```
 
 - 气泡是一个文本框，在角色发言时显示，包含了主文本、头文本、底图三个组成部分。
-- `filepath`	必要参数，指定一个图片文件的路径；即使不需要底图，也需要指定一个空白底图的路径；
+- `filepath`	可选参数，指定一个图片文件的路径；或者指定为None，表示不需要底图；默认值为None；
 - `Main_Text`	可选参数，为主文本指定一个 `Text`或者`StrokeText` 类的变量；主文本对应 *log文件* 中的 *发言文本*；默认值是默认参数的Text对象，不可以设置为None；
 - `Header_Text`	可选参数，为头文本指定一个 `Text`或者`StrokeText` 类的变量；头文本对应发言者的角色名；默认为None，既无头文本；
 - `pos`	可选参数，设置气泡在屏幕上的位置，是一个2元素的元组，对应 (X,Y)；默认为 (0,0)，即左上角；

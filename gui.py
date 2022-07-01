@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.11.10'
+edtion = 'alpha 1.11.13'
 
 import tkinter as tk
 from tkinter import ttk
@@ -60,8 +60,11 @@ class StrokeText(Text):
         p1,p2,p3,p4 = test_canvas.getbbox()
         return test_canvas.crop((0,0,p3,p4))
 class Bubble:
-    def __init__(self,filepath,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),ht_pos=(0,0),align='left',line_distance=1.5,label_color='Lavender'):
-        self.media = Image.open(filepath)
+    def __init__(self,filepath=None,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),ht_pos=(0,0),align='left',line_distance=1.5,label_color='Lavender'):
+        if filepath is None: # 支持气泡图缺省
+            self.media  = Image.new(mode='RGBA',size=(1920,1080),color=(0,0,0,0))
+        else:
+            self.media = Image.open(filepath)
         self.pos = pos
         self.MainText = Main_Text
         self.mt_pos = mt_pos
