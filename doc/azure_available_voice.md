@@ -2,15 +2,16 @@
 
 ## 角色配置表中的voice参数
 
-1. 所有的Azure音源都需要在语音名称前，添加`Azure::`；
-2. 如果需要指定风格化和角色扮演的语音，使用`Azure::语音名称:风格化:风格强度:角色扮演`作为voice值；
-3. 风格强度的取值范围为`(0-2]`，0.01为极弱，1为正常，2为较强；
-4. 角色扮演的可选参数是：`YoungAdultFemale, YoungAdultMale, OlderAdultFemale, OlderAdultMale, SeniorFemale, SeniorMale, Girl, Boy`
+1. 所有的Azure音源都需要在语音名称前，添加`Azure::`，以声明这是一个Azure的音源；
+2. 如果需要指定风格化和角色扮演的语音，则使用`Azure::语音名称:风格化:风格强度:角色扮演`作为voice值；
+3. 对于不支持风格化的角色，风格化这项参数应为：`general`；
+4. 风格强度的取值范围为`(0-2]`，0.01为极弱，1为正常，2为较强；
+5. 角色扮演的可选参数是：`YoungAdultFemale, YoungAdultMale, OlderAdultFemale, OlderAdultMale, SeniorFemale, SeniorMale, Girl, Boy`；若不支持角色扮演的语音，角色扮演这项参数应为：`Default`。
 
 **例子：**
 ```
 Azure::zh-CN-XiaochenNeural
-Azure::zh-CN-XiaohanNeural::affectionate::0.5:OlderAdultMale
+Azure::zh-CN-XiaohanNeural:affectionate:0.5:OlderAdultMale
 ```
 
 ## 角色配置表中的SpeechRate和PitchRate参数
@@ -50,3 +51,5 @@ Azure::zh-CN-XiaohanNeural::affectionate::0.5:OlderAdultMale
 |中文（普通话，简体）|zh-CN|男|zh-CN-YunxiNeural|angry, assistant, cheerful, depressed, disgruntled, embarrassed, fearful, narration-relaxed, sad, serious|支持|
 |中文（普通话，简体）|zh-CN|男|zh-CN-YunyangNeural|customerservice, narration-professional, newscast-casual|不支持|
 |中文（普通话，简体）|zh-CN|男|zh-CN-YunyeNeural|angry, calm, cheerful, disgruntled, embarrassed, fearful, sad, serious|支持|
+
+> 注意：这里仅列举了可用的普通话音源，但这并不是Azure所提供的全部音源。若需要了解其他语种音源的使用方法，请参考[Azure认知语音服务官方文档](https://docs.microsoft.com/zh-cn/azure/cognitive-services/speech-service/language-support?tabs=speechtotext#prebuilt-neural-voices)
