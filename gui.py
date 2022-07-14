@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.11.13'
+edtion = 'alpha 1.11.14'
 
 import tkinter as tk
 from tkinter import ttk
@@ -965,19 +965,32 @@ def open_Main_windows():
     def highlight(target):
         if target == exportmp4:
             if target.get() == 1:
-                tab4.config(fg='red',text='导出MP4 ⚑')
-                label_ql.config(fg='red')
+                warning_text = "注意！导出为MP4视频是相当耗时的！\n"
+                warning_text += "建议在导出前，通过演示界面，确认画面已定稿。\n"
+                warning_text += "以免在导出环节浪费时间。"
+                if messagebox.askokcancel(title='警告：请谨慎地使用"导出为.mp4视频"标志！',message=warning_text) == True:
+                    tab4.config(fg='red',text='导出MP4 ⚑')
+                    label_ql.config(fg='red')
+                else:
+                    target.set(0)
             else:
                 tab4.config(fg='black',text='导出MP4')
                 label_ql.config(fg='black')
         elif target == synthanyway:
             if target.get() == 1:
-                tab2.config(fg='red',text='语音合成 ⚑')
-                label_AP.config(fg='red')
-                label_AK.config(fg='red')
-                label_AS.config(fg='red')
-                label_AZ.config(fg='red')
-                label_SR.config(fg='red')
+                warning_text = "注意！语音合成模块并不能有效地处理异常！\n"
+                warning_text += "这意味着，如果运行出现了异常，程序的运行日志将会更难解读。\n"
+                warning_text += "如果您不熟悉如何通过运行日志追溯异常原因，建议您单独执行语音合成！"
+                if messagebox.askokcancel(title='警告：请谨慎地使用"先执行语音合成"标志！',message=warning_text) == True:
+                    tab2.config(fg='red',text='语音合成 ⚑')
+                    label_AP.config(fg='red')
+                    label_AK.config(fg='red')
+                    label_AS.config(fg='red')
+                    label_AZ.config(fg='red')
+                    label_SR.config(fg='red')
+                else:
+                    # 否则，将先执行语音合成重置为"否"
+                    target.set(0)
             else:
                 tab2.config(fg='black',text='语音合成')
                 label_AP.config(fg='black')
