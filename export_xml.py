@@ -177,7 +177,7 @@ class Bubble:
         pr_horiz,pr_vert = self.PRpos
         if self.path is None:
             clip_bubble = None
-            print('Render empty Bubble!')
+            # print('Render empty Bubble!')
         else:
             clip_bubble = clip_tplt.format(**{'clipid':'BB_clip_%d'%clip_index,
                                               'clipname':self.filename,
