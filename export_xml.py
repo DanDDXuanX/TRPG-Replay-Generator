@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.11.13'
+edtion = 'alpha 1.11.15'
 
 # 外部参数输入
 
@@ -449,10 +449,10 @@ class BuiltInAnimation(Animation):
                             p1,p2,p3,p4 = test_canvas.getbbox()
                         except TypeError:
                             p1,p2,p3,p4 = (0,0,1,int(0.0521*screensize[0])) # nx=1 ny =fontsize
-                        cx = p3 - p1
+                        #cx = p3 - p1
                         cy = p4 - p2
                         check_surf = test_canvas.crop((p1,p2,p3,p4))
-                        canvas.paste(check_surf,(int(0.7292*screensize[0]),y_anchor+i*y_unit+(y_unit-ny)//2)) # 0.7292*screensize[0] = 1400
+                        canvas.paste(check_surf,(int(0.7292*screensize[0]),y_anchor+i*y_unit+(y_unit-cy)//2)) # 0.7292*screensize[0] = 1400
                 self.size = screen_size
                 self.pos = (0,0)
             elif layer==1: #无法显示动态，留空白
@@ -622,8 +622,8 @@ def parse_timeline_bubble(layer):
                 end = key #否则把当前key作为一个clip的断点
                 clips.append((item,main_text,header_text,begin,end)) #并记录下这个断点
             item = values[layer] #无论如何，重设item和begin
-            main_text = values[layer + '_main']
-            header_text = values[layer + '_header']
+            # main_text = values[layer + '_main'] # v 1.10.15 这两行似乎没啥用？
+            # header_text = values[layer + '_header'] # 因为下面又赋值了一遍
             begin = key
         else: #如果不满足断点要求，那么就什么都不做
             pass

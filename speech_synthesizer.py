@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.11.12'
+edtion = 'alpha 1.11.15'
 
 # 绝对的全局变量
 # 在开源发布的版本中，隐去了各个key
@@ -34,12 +34,12 @@ media_obj = args.MediaObjDefine #媒体对象定义文件的路径
 
 try:
     for path in [stdin_log,char_tab,media_obj]:
-        if path == None:
+        if path is None:
             raise OSError("[31m[ArgumentError]:[0m Missing principal input argument!")
         if os.path.isfile(path) == False:
             raise OSError("[31m[ArgumentError]:[0m Cannot find file "+path)
 
-    if output_path == None:
+    if output_path is None:
         raise OSError("[31m[ArgumentError]:[0m No output path is specified!")
     elif os.path.isdir(output_path) == False:
         try:

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.11.13'
+edtion = 'alpha 1.11.15'
 
 # 外部参数输入
 
@@ -385,7 +385,7 @@ class BuiltInAnimation(Animation):
                     if dice_check != -1:
                         check_surf = BIA_text.render('/%d'%dice_check)
                         cx,cy = check_surf.get_size()
-                        canvas.blit(check_surf,(int(0.7292*screensize[0]),y_anchor+i*y_unit+(y_unit-ny)//2)) # 0.7292*screensize[0] = 1400
+                        canvas.blit(check_surf,(int(0.7292*screensize[0]),y_anchor+i*y_unit+(y_unit-cy)//2)) # 0.7292*screensize[0] = 1400
                 self.media = np.array([canvas])
                 self.pos = (0,0)
                 self.tick = 1
@@ -530,7 +530,6 @@ def render(this_frame):
             continue
         elif this_frame[layer] not in media_list:
             raise RuntimeError('[31m[RenderError]:[0m Undefined media object : "'+this_frame[layer]+'".')
-            continue
         elif layer[0:2] == 'BG':
             try:
                 exec('{0}.display(surface=screen,alpha={1},adjust={2})'.format(this_frame[layer],this_frame[layer+'_a'],'\"'+this_frame[layer+'_p']+'\"'))

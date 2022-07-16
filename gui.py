@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.11.14'
+edtion = 'alpha 1.11.15'
 
 import tkinter as tk
 from tkinter import ttk
@@ -965,23 +965,16 @@ def open_Main_windows():
     def highlight(target):
         if target == exportmp4:
             if target.get() == 1:
-                warning_text = "注意！导出为MP4视频是相当耗时的！\n"
-                warning_text += "建议在导出前，通过演示界面，确认画面已定稿。\n"
-                warning_text += "以免在导出环节浪费时间。"
-                if messagebox.askokcancel(title='警告：请谨慎地使用"导出为.mp4视频"标志！',message=warning_text) == True:
-                    tab4.config(fg='red',text='导出MP4 ⚑')
-                    label_ql.config(fg='red')
-                else:
-                    target.set(0)
+                tab4.config(fg='red',text='导出MP4 ⚑')
+                label_ql.config(fg='red')
             else:
                 tab4.config(fg='black',text='导出MP4')
                 label_ql.config(fg='black')
         elif target == synthanyway:
             if target.get() == 1:
-                warning_text = "注意！语音合成模块并不能有效地处理异常！\n"
-                warning_text += "这意味着，如果运行出现了异常，程序的运行日志将会更难解读。\n"
-                warning_text += "如果您不熟悉如何通过运行日志追溯异常原因，建议您单独执行语音合成！"
-                if messagebox.askokcancel(title='警告：请谨慎地使用"先执行语音合成"标志！',message=warning_text) == True:
+                warning_text = "注意！当使用“先执行语音合成”标志时，\n"
+                warning_text += "若语音合成出现了异常，运行日志将会更难解读！\n"
+                if messagebox.askokcancel(title='请谨慎使用“先执行语音合成”标志！',message=warning_text) == True:
                     tab2.config(fg='red',text='语音合成 ⚑')
                     label_AP.config(fg='red')
                     label_AK.config(fg='red')
@@ -1190,7 +1183,7 @@ def open_Main_windows():
     tk.Checkbutton(flag,text="保存设置内容",variable=save_config,anchor=tk.W).place(x=10,y=55,width=150,height=30)
 
     my_logo = ImageTk.PhotoImage(Image.open('./media/logo.png').resize((236,75)))
-    tk.Button(flag,image = my_logo,command=lambda: webbrowser.open('https://github.com/DanDDXuanX/TRPG-Replay-Generator'),relief='flat').place(x=339,y=0)
+    tk.Button(flag,image = my_logo,command=lambda: webbrowser.open('https://www.wolai.com/PjcZ7xwNTKB2VJ5AJYggv'),relief='flat').place(x=339,y=0)
 
     # 开始
     tk.Button(main_frame, command=run_command_main,text="开始",font=big_text).place(x=260,y=435,width=100,height=50)
@@ -1360,7 +1353,7 @@ def open_Main_windows():
     convert_file = tk.LabelFrame(format_frame,text='转换后音频文件')
     original_file.place(x=10,y=10,width=600,height=210)
     convert_file.place(x=10,y=220,width=600,height=210)
-
+    # 原始音频文件
     ybar_original = ttk.Scrollbar(original_file,orient='vertical')
     original_info = ttk.Treeview(original_file,columns=['index','filepath'],show = "headings",selectmode = tk.BROWSE,yscrollcommand=ybar_original.set)
     ybar_original.config(command=original_info.yview)
@@ -1373,13 +1366,7 @@ def open_Main_windows():
     original_info.heading("filepath", text = "路径")
 
     original_info.place(x=10,y=0,height=180,width=565)
-    #mediainfo.bind('<ButtonRelease-1>', treeviewClick)
-
-    convert_file = tk.LabelFrame(format_frame,text='原始音频文件')
-    convert_file = tk.LabelFrame(format_frame,text='转换后音频文件')
-    convert_file.place(x=10,y=10,width=600,height=210)
-    convert_file.place(x=10,y=220,width=600,height=210)
-
+    # 转换后音频文件
     ybar_convert = ttk.Scrollbar(convert_file,orient='vertical')
     convert_info = ttk.Treeview(convert_file,columns=['index','filepath'],show = "headings",selectmode = tk.BROWSE,yscrollcommand=ybar_convert.set)
     ybar_convert.config(command=convert_info.yview)
@@ -1392,7 +1379,7 @@ def open_Main_windows():
     convert_info.heading("filepath", text = "路径")
 
     convert_info.place(x=10,y=0,height=180,width=565)
-
+    # 按键
     tk.Button(format_frame, command=load_au_file,text="载入",font=big_text).place(x=65,y=440,width=100,height=40)
     tk.Button(format_frame, command=clear_au_file,text="清空",font=big_text).place(x=195,y=440,width=100,height=40)
     tk.Button(format_frame, command=lambda:run_convert('wav'),text="转wav",font=big_text).place(x=325,y=440,width=100,height=40)

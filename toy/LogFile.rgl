@@ -9,7 +9,7 @@
 <background><replace=30>:bg1
 
 [张安翔]:^本视频是DanDDXuanX 编写的#TRPG-Replay-Generator的基本演示工程。{SE1;*3.5}
-[KP]:项目链接：#https://github.com/DanDDXuanX/TRPG-Replay-Generator{SE1;5}
+[KP]:^项目链接：#https://github.com/DanDDXuanX/TRPG-Replay-Generator{SE1;5}
 <set:speech_speed>:300
 <hitpoint>:(张安翔,10,10,9)
 
@@ -58,7 +58,7 @@
 
 [张安翔(60),KP.double]<replace=0>:调整角色的透明度参数，手动设置立绘透明度。<w2w=5>{SE1;5}
 [张安翔.scared,KP.double]:指明角色的subtype，展示差分立绘。<w2w=5>{SE1;5}
-[张安翔,KP.double]:在发言文本中以井号作为换行符；#设置手动换行模式；#并逐行显示内容。<l2l=5>{SE1;5}
+[张安翔,KP.double]:^在发言文本中以井号作为换行符；#设置手动换行模式；#并逐行显示内容。<l2l=5>{SE1;5}
 
 [旁白]<black>:———————演示结束——————
 
