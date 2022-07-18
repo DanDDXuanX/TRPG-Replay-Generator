@@ -12,7 +12,7 @@
 
 ### [源代码 25.3MB](https://github.com/DanDDXuanX/TRPG-Replay-Generator/releases/download/v1.0.2/TRPG-Replay-Generator-v1.0.2-SourceCode.7z)
 - 源代码是程序的源文件（.py），适用于 windows，linux和 macOS系统。<p>
-- **必须安装**[**环境要求**](./README.md#环境要求：)中指定的项目后才能运行。<p>
+- **必须安装**[**环境要求**](./README.md#环境要求)中指定的项目后才能运行。<p>
 
 ## 配置要求：
 **最低：**
