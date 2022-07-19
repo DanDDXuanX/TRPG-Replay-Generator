@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.11.15'
+edtion = 'alpha 1.12.2'
 
 import tkinter as tk
 from tkinter import ttk
@@ -962,6 +962,18 @@ def open_Main_windows():
                     messagebox.showinfo(title='完毕',message='导出视频程序执行完毕！')
             except Exception:
                 messagebox.showwarning(title='警告',message='似乎有啥不对劲的事情发生了，检视控制台输出获取详细信息！')
+    def run_command_synth_preview(init_type='Aliyun'):
+        command = python3 +' ./speech_synthesizer.py --PreviewOnly --Init {IN} --AccessKey {AK} --AccessKeySecret {AS} --Appkey {AP} --Azurekey {AZ} --ServRegion {SR}'
+        command = command.format(IN=init_type, AK=AccessKey.get(), AS=AccessKeySecret.get(),AP=Appkey.get(),AZ=AzureKey.get(),SR=ServiceRegion.get())
+        try:
+            print('[32m'+command+'[0m')
+            exit_status = os.system(command)
+            if exit_status != 0:
+                raise OSError('Major error occurred in speech_synthesizer!')
+            else:
+                pass
+        except Exception:
+            messagebox.showwarning(title='警告',message='似乎有啥不对劲的事情发生了，检视控制台输出获取详细信息！')
     def highlight(target):
         if target == exportmp4:
             if target.get() == 1:
@@ -1252,6 +1264,7 @@ def open_Main_windows():
     tk.Label(flag_s,image = aliyun_logo).place(x=20,y=13)
     tk.Label(flag_s,text='本项功能由阿里云语音合成支持，了解更多：').place(x=300,y=15)
     tk.Button(flag_s,text='https://ai.aliyun.com/nls/',command=lambda: webbrowser.open('https://ai.aliyun.com/nls/'),fg='blue',relief='flat').place(x=300,y=40)
+    tk.Button(flag_s,text='试听',command=lambda:run_command_synth_preview('Aliyun')).place(x=540,y=55,width=50,height=25)
 
     flag_azs = tk.LabelFrame(synth_frame,text='标志')
     #flag_azs.place(x=10,y=320,width=600,height=110)
@@ -1259,6 +1272,7 @@ def open_Main_windows():
     tk.Label(flag_azs,image = azure_logo).place(x=20,y=8)
     tk.Label(flag_azs,text='本项功能由Azure认知语音服务支持，了解更多：').place(x=300,y=15)
     tk.Button(flag_azs,text='https://docs.microsoft.com/azure/',command=lambda: webbrowser.open('https://docs.microsoft.com/zh-cn/azure/cognitive-services'),fg='blue',relief='flat').place(x=300,y=40)
+    tk.Button(flag_azs,text='试听',command=lambda:run_command_synth_preview('Azure')).place(x=540,y=55,width=50,height=25)
 
     tk.Button(synth_frame, command=run_command_synth,text="开始",font=big_text).place(x=260,y=435,width=100,height=50)
 

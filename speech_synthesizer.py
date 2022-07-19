@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.11.15'
+edtion = 'alpha 1.12.2'
 
 # 绝对的全局变量
 # 在开源发布的版本中，隐去了各个key
@@ -25,6 +25,8 @@ ap.add_argument("-A", "--Appkey", help='Your Appkey.',type=str,default="Your_App
 ap.add_argument("-U", "--Azurekey", help='Your Azure TTS key.',type=str,default="Your_Azurekey")
 ap.add_argument("-R", "--ServRegion", help='Service region of Azure.', type=str, default="eastasia")
 
+ap.add_argument('--PreviewOnly',help='Ignore the input files, and open a speech preview gui windows.',action='store_true')
+ap.add_argument('--Init',help='The initial speech service in preview.',type=str,default='Aliyun')
 args = ap.parse_args()
 
 char_tab = args.CharacterTable #角色和媒体对象的对应关系文件的路径
@@ -32,7 +34,16 @@ stdin_log = args.LogFile #log路径
 output_path = args.OutputPath #保存的时间轴，断点文件的目录
 media_obj = args.MediaObjDefine #媒体对象定义文件的路径
 
+# 忽略输入文件
+class IgnoreInput(Exception):
+    pass
 try:
+    if args.PreviewOnly == 1:
+        # 如果选择仅预览，则忽略输入文件！
+        if args.Init in ['Aliyun','Azure']:
+            raise IgnoreInput('[speech synthesizer]: Preview Only!')
+        else:
+            raise ValueError("[31m[ArgumentError]:[0m Invalid initial status: "+args.Init)
     for path in [stdin_log,char_tab,media_obj]:
         if path is None:
             raise OSError("[31m[ArgumentError]:[0m Missing principal input argument!")
@@ -49,7 +60,8 @@ try:
     else:
         pass
     output_path = output_path.replace('\\','/')
-    
+except IgnoreInput as E:
+    print(E)
 except Exception as E:
     print(E)
     sys.exit(1)
@@ -60,6 +72,9 @@ import pandas as pd
 import numpy as np
 from pygame import mixer
 import re
+import tkinter as tk
+from tkinter import ttk
+from tkinter import messagebox
 
 # 类定义
 
@@ -192,6 +207,16 @@ class Azure_TTS_engine:
             # os.remove(ofile) # 算了算了 0kb 也留着吧
             raise Exception("[33m[AzureError]:[0m {}".format(cancellation_details.reason))
 
+# 从主程序借来的Audio类
+class Audio:
+    mixer.init()
+    def __init__(self,filepath,label_color='Caribbean'):
+        self.media = mixer.Sound(filepath)
+    def display(self,channel,volume=100):
+        channel.set_volume(volume/100)
+        channel.play(self.media)
+    def convert(self):
+        pass
 # 正则表达式定义
 
 RE_dialogue = re.compile('^\[([\ \w\.\;\(\)\,]+)\](<[\w\=\d]+>)?:(.+?)(<[\w\=\d]+>)?({.+})?$')
@@ -329,6 +354,158 @@ def get_audio_length(asterisk):
             print('[33m[warning]:[0m Unable to get audio length of '+str(asterisk.filepath)+', due to:',E)
             return np.nan
         return this_audio.get_length()
+
+def open_Tuning_windows(init_type='Aliyun'):
+    # 根据选中的语音服务，切换frame
+    def show_selected_options(event):
+        nonlocal servframe_display
+        servframe_display.place_forget()
+        try:
+            select = Servicetype[tts_service.get()]
+        except:
+            messagebox.showerror(title='错误',message='服务名错误！')
+            select = Servicetype['阿里云']
+        select.place(x=10,y=40,width=360,height=190)
+        servframe_display = select
+    # 根据选中的Azure音源，更新可用的role和style
+    def update_selected_voice(event):
+        azure_voice_selected = azure_voice.get()
+        azure_style_available = voice_lib.loc[azure_voice_selected,'style'].split(',')
+        azure_role_available = voice_lib.loc[azure_voice_selected,'role'].split(',')
+        azure_style_combobox.config(values=azure_style_available)
+        azure_role_combobox.config(values=azure_role_available)
+        azure_style.set('general')
+        azure_role.set('Default')
+        azure_degree.set(1.0)
+    # 将选择条的数值强行转换为整型
+    def get_scale_to_intvar(variable):
+        variable.set(int(variable.get()))
+    # 执行合成
+    def exec_synthesis():
+        # 音源不同，语音合成的服务不同
+        if tts_service.get() == '阿里云':
+            voice_this = aliyun_voice.get()
+            TTS_engine = Aliyun_TTS_engine
+        elif tts_service.get() == '微软Azure':
+            voice_this = azure_voice.get()+':'+azure_style.get()+':'+str(azure_degree.get())+':'+azure_role.get()
+            print(voice_this)
+            TTS_engine = Azure_TTS_engine
+        # 如果没有指定voice
+        if voice_this.split(':')[0]=='':
+            messagebox.showerror(title='错误',message='缺少音源名!')
+            return 0
+        this_tts_engine = TTS_engine(name='preview',
+                                     voice = voice_this,
+                                     speech_rate=speech_rate.get(),
+                                     pitch_rate=pitch_rate.get(),
+                                     aformat='wav')
+        # 执行合成
+        try:
+            this_tts_engine.start(text_to_synth.get("0.0","end"),'./media/preview_tempfile.wav')
+        except Exception as E:
+            import traceback
+            traceback.print_exc()
+            print('[33m[warning]:[0m Synthesis failed in preview,','due to:',E)
+            messagebox.showerror(title='合成失败',message="[错误]：语音合成失败，由于：\n"+E)
+            return 0
+        # 播放合成结果
+        try:
+            Audio('./media/preview_tempfile.wav').display(preview_channel)
+            return 1
+        except Exception as E:
+            print('[33m[warning]:[0m Failed to play the audio,','due to:',E)
+            messagebox.showerror(title='播放失败',message="[错误]：无法播放语音，由于：\n"+E)
+            return 0
+
+    # 窗口
+    Tuning_windows = tk.Tk()
+    Tuning_windows.resizable(0,0)
+    Tuning_windows.geometry("400x460")
+    Tuning_windows.config(background ='#e0e0e0')
+    Tuning_windows.title('语音合成试听')
+    try:
+        Tuning_windows.iconbitmap('./media/icon.ico')
+    except tk.TclError:
+        pass
+    #Tuning_windows.transient(father)
+    # 声音轨道
+    preview_channel = mixer.Channel(1)
+    # 主框
+    tune_main_frame = tk.Frame(Tuning_windows)
+    tune_main_frame.place(x=10,y=10,height=440,width=380)
+    # 语音服务变量
+    tts_service = tk.StringVar(tune_main_frame)
+    tts_service.set({'Aliyun':'阿里云','Azure':'微软Azure'}[init_type])
+    # 语速语调文本变量
+    pitch_rate = tk.IntVar(tune_main_frame)
+    pitch_rate.set(0)
+    speech_rate = tk.IntVar(tune_main_frame)
+    speech_rate.set(0)
+    # 版本号
+    tk.Label(tune_main_frame,text='Speech_synthesizer '+edtion,fg='#d0d0d0').place(x=170,y=5,height=15)
+    tk.Label(tune_main_frame,text='For TRPG-replay-generator.',fg='#d0d0d0').place(x=170,y=20,height=15)
+    # 选中音源变量
+    tk.Label(tune_main_frame,text='服务：').place(x=10,y=10,width=40,height=25)
+    choose_type = ttk.Combobox(tune_main_frame,textvariable=tts_service,value=['阿里云','微软Azure'])
+    choose_type.place(x=50,y=10,width=100,height=25)
+    choose_type.bind("<<ComboboxSelected>>",show_selected_options)
+    # 音源窗口
+    Aliyun_frame = tk.LabelFrame(tune_main_frame,text='阿里-参数')
+    Azure_frame = tk.LabelFrame(tune_main_frame,text='微软-参数')
+    text_frame = tk.LabelFrame(tune_main_frame,text='文本')
+    Servicetype = {'阿里云':Aliyun_frame,'微软Azure':Azure_frame}
+    # 初始化显示的服务
+    servframe_display = Servicetype[tts_service.get()]
+    servframe_display.place(x=10,y=40,width=360,height=190)
+    text_frame.place(x=10,y=240,width=360,height=150)
+    # 阿里云参数
+    aliyun_voice = tk.StringVar(Aliyun_frame)
+    ttk.Label(Aliyun_frame,text='音源名:').place(x=10,y=10,width=65,height=25)
+    ttk.Label(Aliyun_frame,text='语速:').place(x=10,y=40,width=65,height=25)
+    ttk.Label(Aliyun_frame,text='语调:').place(x=10,y=70,width=65,height=25)
+    ttk.Combobox(Aliyun_frame,textvariable=aliyun_voice,values=list(voice_lib[voice_lib.service=='Aliyun'].index)).place(x=75,y=10,width=260,height=25)
+    ttk.Spinbox(Aliyun_frame,from_=-500,to=500,textvariable=speech_rate,increment=10).place(x=75,y=40,width=50,height=25)
+    ttk.Spinbox(Aliyun_frame,from_=-500,to=500,textvariable=pitch_rate,increment=10).place(x=75,y=70,width=50,height=25)
+    ttk.Scale(Aliyun_frame,from_=-500,to=500,variable=speech_rate,command=lambda x:get_scale_to_intvar(speech_rate)).place(x=135,y=40,width=200,height=25)
+    ttk.Scale(Aliyun_frame,from_=-500,to=500,variable=pitch_rate,command=lambda x:get_scale_to_intvar(pitch_rate)).place(x=135,y=70,width=200,height=25)
+    # Azure参数
+    azure_voice = tk.StringVar(Azure_frame)
+    azure_style = tk.StringVar(Azure_frame)
+    azure_degree = tk.DoubleVar(Azure_frame)
+    azure_role = tk.StringVar(Azure_frame)
+    azure_style.set('general')
+    azure_degree.set(1.0)
+    azure_role.set('Default')
+    ttk.Label(Azure_frame,text='音源名:').place(x=10,y=10,width=65,height=25)
+    ttk.Label(Azure_frame,text='风格:').place(x=10,y=40,width=65,height=25)
+    ttk.Label(Azure_frame,text='风格强度:').place(x=215,y=40,width=65,height=25)
+    ttk.Label(Azure_frame,text='扮演:').place(x=10,y=70,width=65,height=25)
+    ttk.Label(Azure_frame,text='语速:').place(x=10,y=100,width=65,height=25)
+    ttk.Label(Azure_frame,text='语调:').place(x=10,y=130,width=65,height=25)
+    ## 选择音源名
+    azure_voice_combobox = ttk.Combobox(Azure_frame,textvariable=azure_voice,values=list(voice_lib[voice_lib.service=='Azure'].index))
+    azure_voice_combobox.place(x=75,y=10,width=260,height=25)
+    azure_voice_combobox.bind("<<ComboboxSelected>>",update_selected_voice)
+    ## 选择style就role
+    azure_style_combobox = ttk.Combobox(Azure_frame,textvariable=azure_style,values=['general'])
+    azure_style_combobox.place(x=75,y=40,width=130,height=25)
+    ttk.Spinbox(Azure_frame,textvariable=azure_degree,from_=0.01,to=2,increment=0.1).place(x=285,y=40,width=50,height=25)
+    azure_role_combobox = ttk.Combobox(Azure_frame,textvariable=azure_role,values=['Default'])
+    azure_role_combobox.place(x=75,y=70,width=260,height=25)
+    ## 选择语速和语调
+    ttk.Spinbox(Azure_frame,from_=-500,to=500,textvariable=speech_rate,increment=10).place(x=75,y=100,width=50,height=25)
+    ttk.Spinbox(Azure_frame,from_=-500,to=500,textvariable=pitch_rate,increment=10).place(x=75,y=130,width=50,height=25)
+    ttk.Scale(Azure_frame,from_=-500,to=500,variable=speech_rate,command=lambda x:get_scale_to_intvar(speech_rate)).place(x=135,y=100,width=200,height=25)
+    ttk.Scale(Azure_frame,from_=-500,to=500,variable=pitch_rate,command=lambda x:get_scale_to_intvar(pitch_rate)).place(x=135,y=130,width=200,height=25)
+    # 文本框体
+    text_to_synth = tk.Text(text_frame,font=("黑体",10))
+    text_to_synth.place(x=10,y=5,width=335,height=115)
+    text_to_synth.insert(tk.END,'在这里输入你想要合成的文本！')
+    # 确定合成按钮
+    ttk.Button(tune_main_frame,text='合成',command=exec_synthesis).place(x=160,y=395,height=40,width=60)
+
+    # 主循环
+    Tuning_windows.mainloop()
 
 def main():
     global charactor_table
@@ -478,4 +655,7 @@ def main():
     print('[speech synthesizer]: Done!')
 
 if __name__ == '__main__':
-    main()
+    if args.PreviewOnly == True:
+        open_Tuning_windows(init_type=args.Init)
+    else:
+        main()

@@ -1,5 +1,6 @@
 test_output/*
 media/save_config
+media/preview_tempfile.wav
 *.timeline
 *.breakpoint
 *.exe
