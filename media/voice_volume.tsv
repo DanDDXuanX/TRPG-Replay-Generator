@@ -1,88 +1,88 @@
-service	Voice	avaliable_volume
-Aliyun	xiaoyun	42
-Aliyun	xiaogang	43
-Aliyun	ruoxi	24
-Aliyun	siqi	88
-Aliyun	sijia	30
-Aliyun	sicheng	61
-Aliyun	aiqi	35
-Aliyun	aijia	38
-Aliyun	aicheng	52
-Aliyun	aida	69
-Aliyun	ninger	80
-Aliyun	ruilin	74
-Aliyun	siyue	22
-Aliyun	aiya	87
-Aliyun	aixia	73
-Aliyun	aimei	44
-Aliyun	aiyu	79
-Aliyun	aiyue	39
-Aliyun	aijing	90
-Aliyun	xiaomei	25
-Aliyun	aina	69
-Aliyun	yina	81
-Aliyun	sijing	25
-Aliyun	sitong	100
-Aliyun	xiaobei	44
-Aliyun	aitong	47
-Aliyun	aiwei	61
-Aliyun	aibao	76
-Aliyun	harry	62
-Aliyun	abby	75
-Aliyun	andy	81
-Aliyun	eric	63
-Aliyun	emily	72
-Aliyun	luna	65
-Aliyun	luca	61
-Aliyun	wendy	25
-Aliyun	william	33
-Aliyun	olivia	45
-Aliyun	shanshan	26
-Aliyun	chuangirl	39
-Aliyun	lydia	32
-Aliyun	aishuo	69
-Aliyun	qingqing	45
-Aliyun	cuijie	42
-Aliyun	xiaoze	43
-Aliyun	tomoka	42
-Aliyun	tomoya	53
-Aliyun	annie	79
-Aliyun	jiajia	72
-Aliyun	indah	72
-Aliyun	taozi	26
-Aliyun	guijie	67
-Aliyun	stella	95
-Aliyun	stanley	69
-Aliyun	kenny	73
-Aliyun	rosa	89
-Aliyun	farah	39
-Aliyun	mashu	78
-Aliyun	xiaoxian	38
-Aliyun	yuer	96
-Aliyun	maoxiaomei	76
-Aliyun	aifei	36
-Aliyun	yaqun	41
-Aliyun	qiaowei	37
-Aliyun	dahu	43
-Aliyun	ava	90
-Aliyun	ailun	35
-Aliyun	jielidou	73
-Aliyun	laotie	43
-Aliyun	laomei	48
-Aliyun	aikan	43
-Aliyun	tala	79
-Aliyun	zhitian	65
-Aliyun	zhiqing	80
-Azure	zh-CN-XiaochenNeural	78
-Azure	zh-CN-XiaohanNeural	100
-Azure	zh-CN-XiaomoNeural	100
-Azure	zh-CN-XiaoqiuNeural	100
-Azure	zh-CN-XiaoruiNeural	100
-Azure	zh-CN-XiaoshuangNeural	100
-Azure	zh-CN-XiaoxiaoNeural	71
-Azure	zh-CN-XiaoxuanNeural	97
-Azure	zh-CN-XiaoyanNeural	77
-Azure	zh-CN-XiaoyouNeural	91
-Azure	zh-CN-YunxiNeural	100
-Azure	zh-CN-YunyangNeural	100
-Azure	zh-CN-YunyeNeural	100
+service	Voice	avaliable_volume	style	role
+Aliyun	xiaoyun	42	general	Default
+Aliyun	xiaogang	43	general	Default
+Aliyun	ruoxi	24	general	Default
+Aliyun	siqi	88	general	Default
+Aliyun	sijia	30	general	Default
+Aliyun	sicheng	61	general	Default
+Aliyun	aiqi	35	general	Default
+Aliyun	aijia	38	general	Default
+Aliyun	aicheng	52	general	Default
+Aliyun	aida	69	general	Default
+Aliyun	ninger	80	general	Default
+Aliyun	ruilin	74	general	Default
+Aliyun	siyue	22	general	Default
+Aliyun	aiya	87	general	Default
+Aliyun	aixia	73	general	Default
+Aliyun	aimei	44	general	Default
+Aliyun	aiyu	79	general	Default
+Aliyun	aiyue	39	general	Default
+Aliyun	aijing	90	general	Default
+Aliyun	xiaomei	25	general	Default
+Aliyun	aina	69	general	Default
+Aliyun	yina	81	general	Default
+Aliyun	sijing	25	general	Default
+Aliyun	sitong	100	general	Default
+Aliyun	xiaobei	44	general	Default
+Aliyun	aitong	47	general	Default
+Aliyun	aiwei	61	general	Default
+Aliyun	aibao	76	general	Default
+Aliyun	harry	62	general	Default
+Aliyun	abby	75	general	Default
+Aliyun	andy	81	general	Default
+Aliyun	eric	63	general	Default
+Aliyun	emily	72	general	Default
+Aliyun	luna	65	general	Default
+Aliyun	luca	61	general	Default
+Aliyun	wendy	25	general	Default
+Aliyun	william	33	general	Default
+Aliyun	olivia	45	general	Default
+Aliyun	shanshan	26	general	Default
+Aliyun	chuangirl	39	general	Default
+Aliyun	lydia	32	general	Default
+Aliyun	aishuo	69	general	Default
+Aliyun	qingqing	45	general	Default
+Aliyun	cuijie	42	general	Default
+Aliyun	xiaoze	43	general	Default
+Aliyun	tomoka	42	general	Default
+Aliyun	tomoya	53	general	Default
+Aliyun	annie	79	general	Default
+Aliyun	jiajia	72	general	Default
+Aliyun	indah	72	general	Default
+Aliyun	taozi	26	general	Default
+Aliyun	guijie	67	general	Default
+Aliyun	stella	95	general	Default
+Aliyun	stanley	69	general	Default
+Aliyun	kenny	73	general	Default
+Aliyun	rosa	89	general	Default
+Aliyun	farah	39	general	Default
+Aliyun	mashu	78	general	Default
+Aliyun	xiaoxian	38	general	Default
+Aliyun	yuer	96	general	Default
+Aliyun	maoxiaomei	76	general	Default
+Aliyun	aifei	36	general	Default
+Aliyun	yaqun	41	general	Default
+Aliyun	qiaowei	37	general	Default
+Aliyun	dahu	43	general	Default
+Aliyun	ava	90	general	Default
+Aliyun	ailun	35	general	Default
+Aliyun	jielidou	73	general	Default
+Aliyun	laotie	43	general	Default
+Aliyun	laomei	48	general	Default
+Aliyun	aikan	43	general	Default
+Aliyun	tala	79	general	Default
+Aliyun	zhitian	65	general	Default
+Aliyun	zhiqing	80	general	Default
+Azure	zh-CN-XiaochenNeural	78	general	Default
+Azure	zh-CN-XiaohanNeural	100	general,affectionate,angry,calm,cheerful,disgruntled,embarrassed,fearful,gentle,sad,serious	Default
+Azure	zh-CN-XiaomoNeural	100	general,affectionate,angry,calm,cheerful,depressed,disgruntled,embarrassed,envious,fearful,gentle,sad,serious	Default,YoungAdultFemale,YoungAdultMale,OlderAdultFemale,OlderAdultMale,SeniorFemale,SeniorMale,Girl,Boy
+Azure	zh-CN-XiaoqiuNeural	100	general	Default
+Azure	zh-CN-XiaoruiNeural	100	general,angry,calm,fearful,sad	Default
+Azure	zh-CN-XiaoshuangNeural	100	general,chat	Default
+Azure	zh-CN-XiaoxiaoNeural	71	general,affectionate,angry,assistant,calm,chat,cheerful,customerservice,disgruntled,fearful,gentle,lyrical,newscast,poetry-reading,sad,serious	Default
+Azure	zh-CN-XiaoxuanNeural	97	general,angry,calm,cheerful,depressed,disgruntled,fearful,gentle,serious	Default,YoungAdultFemale,YoungAdultMale,OlderAdultFemale,OlderAdultMale,SeniorFemale,SeniorMale,Girl,Boy
+Azure	zh-CN-XiaoyanNeural	77	general	Default
+Azure	zh-CN-XiaoyouNeural	91	general	Default
+Azure	zh-CN-YunxiNeural	100	general,angry,assistant,cheerful,depressed,disgruntled,embarrassed,fearful,narration-relaxed,sad,serious	Default,Narrator,YoungAdultMale,Boy
+Azure	zh-CN-YunyangNeural	100	general,customerservice,narration-professional,newscast-casual	Default
+Azure	zh-CN-YunyeNeural	100	general,angry,calm,cheerful,disgruntled,embarrassed,fearful,sad,serious	Default,YoungAdultFemale,YoungAdultMale,OlderAdultFemale,OlderAdultMale,SeniorFemale,SeniorMale,Girl,Boy
