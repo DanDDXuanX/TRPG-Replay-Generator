@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.12.2'
+edtion = 'alpha 1.12.3'
 
 # 绝对的全局变量
 # 在开源发布的版本中，隐去了各个key
@@ -72,9 +72,12 @@ import pandas as pd
 import numpy as np
 from pygame import mixer
 import re
+from shutil import copy
+import time
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
+from tkinter import filedialog
 
 # 类定义
 
@@ -255,6 +258,25 @@ def clean_ts(text):
 def clean_ts_azure(text): # SSML的转义字符
     return text.replace('&','&amp;').replace('<','&lt;').replace('>','&gt;').replace("'",'&apos;')
 
+# 62进制时间戳*【1-1000】，s单位
+def rand_timestamp():
+    timestamp = int(time.time()*np.random.randint(1,1000))
+    outstring = ''
+    while timestamp > 1:
+        residual = timestamp%62
+        mod = timestamp//62
+        if residual<10:
+            # 数值 48=0
+            outstring = outstring + chr(48+residual)
+        elif residual<36:
+            # 大写 65=A
+            outstring = outstring + chr(65+residual-10)
+        else:
+            # 小写 97=a
+            outstring = outstring + chr(97+residual-36)
+        timestamp = timestamp//62
+    return outstring[::-1]
+
 # 解析函数
 def parser(stdin_text):
     asterisk_line = pd.DataFrame(index=range(0,len(stdin_text)),columns=asterisk_line_columns)
@@ -380,15 +402,24 @@ def open_Tuning_windows(init_type='Aliyun'):
     # 将选择条的数值强行转换为整型
     def get_scale_to_intvar(variable):
         variable.set(int(variable.get()))
+    # 复制到剪贴板
+    def copy_args_clipboard():
+        if tts_service.get() == '阿里云':
+            voice_this = aliyun_voice.get()
+        elif tts_service.get() == '微软Azure':
+            voice_this = 'Azure::'+azure_voice.get()+':'+azure_style.get()+':'+str(azure_degree.get())+':'+azure_role.get()
+        copy_to_clipboard = '\t'.join([voice_this,str(speech_rate.get()),str(pitch_rate.get())])
+        Tuning_windows.clipboard_clear()
+        Tuning_windows.clipboard_append(copy_to_clipboard)
+        #messagebox.showinfo(title='复制到剪贴板',message='已成功将\n'+copy_to_clipboard+'\n复制到剪贴板')
     # 执行合成
-    def exec_synthesis():
+    def exec_synthesis(command='play'):
         # 音源不同，语音合成的服务不同
         if tts_service.get() == '阿里云':
             voice_this = aliyun_voice.get()
             TTS_engine = Aliyun_TTS_engine
         elif tts_service.get() == '微软Azure':
             voice_this = azure_voice.get()+':'+azure_style.get()+':'+str(azure_degree.get())+':'+azure_role.get()
-            print(voice_this)
             TTS_engine = Azure_TTS_engine
         # 如果没有指定voice
         if voice_this.split(':')[0]=='':
@@ -408,14 +439,25 @@ def open_Tuning_windows(init_type='Aliyun'):
             print('[33m[warning]:[0m Synthesis failed in preview,','due to:',E)
             messagebox.showerror(title='合成失败',message="[错误]：语音合成失败，由于：\n"+E)
             return 0
-        # 播放合成结果
-        try:
-            Audio('./media/preview_tempfile.wav').display(preview_channel)
-            return 1
-        except Exception as E:
-            print('[33m[warning]:[0m Failed to play the audio,','due to:',E)
-            messagebox.showerror(title='播放失败',message="[错误]：无法播放语音，由于：\n"+E)
-            return 0
+        if command == 'play':
+            # 播放合成结果
+            try:
+                Audio('./media/preview_tempfile.wav').display(preview_channel)
+                return 1
+            except Exception as E:
+                print('[33m[warning]:[0m Failed to play the audio,','due to:',E)
+                messagebox.showerror(title='播放失败',message="[错误]：无法播放语音")
+                return 0
+        elif command == 'save':
+            try:
+                default_filename = voice_this.split(':')[0] + '_' + rand_timestamp()+ '.wav'
+                save_filepath = filedialog.asksaveasfilename(initialfile=default_filename,filetypes=[('音频文件','*.wav')])
+                if save_filepath != '':
+                    copy('./media/preview_tempfile.wav',save_filepath)
+            except Exception as E:
+                print('[33m[warning]:[0m Failed to save the file,','due to:',E)
+                messagebox.showerror(title='保存失败',message="[错误]：无法保存文件")
+                return 0
 
     # 窗口
     Tuning_windows = tk.Tk()
@@ -458,12 +500,15 @@ def open_Tuning_windows(init_type='Aliyun'):
     servframe_display = Servicetype[tts_service.get()]
     servframe_display.place(x=10,y=40,width=360,height=190)
     text_frame.place(x=10,y=240,width=360,height=150)
+    # 复制到剪贴板按钮
+    ttk.Button(Aliyun_frame,text='复制',command=copy_args_clipboard).place(x=310,y=-5,width=40,height=25)
+    ttk.Button(Azure_frame,text='复制',command=copy_args_clipboard).place(x=310,y=-5,width=40,height=25)
     # 阿里云参数
     aliyun_voice = tk.StringVar(Aliyun_frame)
     ttk.Label(Aliyun_frame,text='音源名:').place(x=10,y=10,width=65,height=25)
     ttk.Label(Aliyun_frame,text='语速:').place(x=10,y=40,width=65,height=25)
     ttk.Label(Aliyun_frame,text='语调:').place(x=10,y=70,width=65,height=25)
-    ttk.Combobox(Aliyun_frame,textvariable=aliyun_voice,values=list(voice_lib[voice_lib.service=='Aliyun'].index)).place(x=75,y=10,width=260,height=25)
+    ttk.Combobox(Aliyun_frame,textvariable=aliyun_voice,values=list(voice_lib[voice_lib.service=='Aliyun'].index)).place(x=75,y=10,width=225,height=25)
     ttk.Spinbox(Aliyun_frame,from_=-500,to=500,textvariable=speech_rate,increment=10).place(x=75,y=40,width=50,height=25)
     ttk.Spinbox(Aliyun_frame,from_=-500,to=500,textvariable=pitch_rate,increment=10).place(x=75,y=70,width=50,height=25)
     ttk.Scale(Aliyun_frame,from_=-500,to=500,variable=speech_rate,command=lambda x:get_scale_to_intvar(speech_rate)).place(x=135,y=40,width=200,height=25)
@@ -484,7 +529,7 @@ def open_Tuning_windows(init_type='Aliyun'):
     ttk.Label(Azure_frame,text='语调:').place(x=10,y=130,width=65,height=25)
     ## 选择音源名
     azure_voice_combobox = ttk.Combobox(Azure_frame,textvariable=azure_voice,values=list(voice_lib[voice_lib.service=='Azure'].index))
-    azure_voice_combobox.place(x=75,y=10,width=260,height=25)
+    azure_voice_combobox.place(x=75,y=10,width=225,height=25)
     azure_voice_combobox.bind("<<ComboboxSelected>>",update_selected_voice)
     ## 选择style就role
     azure_style_combobox = ttk.Combobox(Azure_frame,textvariable=azure_style,values=['general'])
@@ -498,12 +543,12 @@ def open_Tuning_windows(init_type='Aliyun'):
     ttk.Scale(Azure_frame,from_=-500,to=500,variable=speech_rate,command=lambda x:get_scale_to_intvar(speech_rate)).place(x=135,y=100,width=200,height=25)
     ttk.Scale(Azure_frame,from_=-500,to=500,variable=pitch_rate,command=lambda x:get_scale_to_intvar(pitch_rate)).place(x=135,y=130,width=200,height=25)
     # 文本框体
-    text_to_synth = tk.Text(text_frame,font=("黑体",10))
+    text_to_synth = tk.Text(text_frame,font=("黑体",11))
     text_to_synth.place(x=10,y=5,width=335,height=115)
     text_to_synth.insert(tk.END,'在这里输入你想要合成的文本！')
     # 确定合成按钮
-    ttk.Button(tune_main_frame,text='合成',command=exec_synthesis).place(x=160,y=395,height=40,width=60)
-
+    ttk.Button(tune_main_frame,text='播放',command=lambda:exec_synthesis('play')).place(x=120,y=395,height=40,width=60)
+    ttk.Button(tune_main_frame,text='保存',command=lambda:exec_synthesis('save')).place(x=200,y=395,height=40,width=60)
     # 主循环
     Tuning_windows.mainloop()
 
