@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.11.15'
+edtion = 'alpha 1.12.4'
 
 # 外部参数输入
 
@@ -1321,10 +1321,17 @@ if synthfirst == True:
         # 如果是正常退出，将当前的标准输入调整为处理后的log文件
         if (exit_status == 0)&(os.path.isfile(output_path+'/AsteriskMarkedLogFile.rgl') == True):
             stdin_log = output_path+'/AsteriskMarkedLogFile.rgl'
+        # 如果是重大错误退出，终止主程序
+        elif exit_status == 2:
+            raise RuntimeError('A major error occurred during speech synthesis.')
+        # 否则报出警告，继续主程序
         else:
             raise OSError('Exception above')
+    except RuntimeError as E:
+        print('[33m[FatalError]:[0m Failed to synthesis speech, due to:',E)
+        system_terminated('Error')
     except Exception as E:
-        print('[33m[warning]:[0m Failed to synthesis speech, due to:',E)
+        print('[33m[warning]:[0m Exception occured in synthesis speech, due to:',E)
 
 # 载入od文件
 print('[replay generator]: Loading media definition file.')

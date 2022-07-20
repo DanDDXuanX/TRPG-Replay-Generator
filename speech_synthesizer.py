@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.12.3'
+edtion = 'alpha 1.12.4'
 
 # 绝对的全局变量
 # 在开源发布的版本中，隐去了各个key
@@ -64,7 +64,7 @@ except IgnoreInput as E:
     print(E)
 except Exception as E:
     print(E)
-    sys.exit(1)
+    sys.exit(2) # 缺少必要文件路径，异常退出
 
 # 包导入
 
@@ -351,18 +351,24 @@ def synthesizer(key,asterisk):
         return 'None',False
     else:
         charactor_info = charactor_table.loc[asterisk['character']]
-    if charactor_info['TTS'] == 'None': #如果这个角色本身就不带有发言
+    #如果这个角色本身就不带有发言
+    if charactor_info['TTS'] == 'None':
         print('[33m[warning]:[0m No voice is specified for ',asterisk['character'])
         return 'None',False
     else:
-        ofile = output_path+'/'+'auto_AU_%d'%key+'.wav'
-        try:
-            charactor_info['TTS'].start(asterisk['speech_text'],ofile) #执行合成
-            #print(asterisk['speech_text'],ofile)
-        except Exception as E:
-            print('[33m[warning]:[0m Synthesis failed in line '+'%d'%(key+1),'due to:',E)
-            return 'None',False
-        return ofile,True
+        # alpha 1.12.4 在输出路径里加上timestamp，和序号和行号统一
+        ofile = output_path+'/'+'auto_AU_%d'%(key+1)+'_'+rand_timestamp()+'.wav'
+        # alpha 1.12.4 如果合成出现异常，重试
+        for time_retry in range(1,6):
+            # 最多重试5次
+            try:
+                charactor_info['TTS'].start(asterisk['speech_text'],ofile) #执行合成
+                return ofile,True  # 如果能不出异常的结束，则退出循环
+            except Exception as E:
+                # 如果出现了异常
+                print('[33m[warning]:[0m Synthesis failed in line %d'%(key+1), '(%d),'%time_retry, 'due to:',E)
+        # 如果超出了5次尝试，返回Fatal
+        return 'Fatal',False
 
 # 获取语音长度
 def get_audio_length(asterisk):
@@ -569,7 +575,7 @@ def main():
             print('[33m[warning]:[0m','Missing \'Voice\' columns.')
     except Exception as E:
         print('[31m[SyntaxError]:[0m Unable to load charactor table:',E)
-        sys.exit(1)
+        sys.exit(2) # 无法载入角色表，异常退出
 
     # 填补缺省值
     if 'Voice' not in charactor_table.columns:
@@ -604,17 +610,17 @@ def main():
         charactor_table['TTS'] = TTS.map(lambda x:eval(x))
     except ModuleNotFoundError as E:
         print('[31m[ImportError]:[0m ',E,' .Execution terminated!')
-        sys.exit(1)
+        sys.exit(2) # 缺乏依赖包，异常退出
     except ValueError as E: # 非法音源名
         print(E)
-        sys.exit(1)
+        sys.exit(2) # 包含非法音源名，异常退出
 
     # 载入od文件
     try:
         object_define_text = open(media_obj,'r',encoding='utf-8').read()#.split('\n')
     except UnicodeDecodeError as E:
         print('[31m[DecodeError]:[0m',E)
-        sys.exit(1)
+        sys.exit(2) # 解码角色配置表错误，异常退出
     if object_define_text[0] == '\ufeff': # UTF-8 BOM
         print('[33m[warning]:[0m','UTF8 BOM recognized in MediaDef, it will be drop from the begin of file!')
         object_define_text = object_define_text[1:]
@@ -636,14 +642,14 @@ def main():
                 media_list.append(obj_name) #记录新增对象名称
             except Exception as E:
                 print('[31m[SyntaxError]:[0m "'+text+'" appeared in media define file line ' + str(i+1)+':',E)
-                sys.exit(1)
+                sys.exit(2) # 媒体定义文件格式错误，异常退出
 
     # 载入log文件
     try:
         stdin_text = open(stdin_log,'r',encoding='utf8').read()#.split('\n')
     except UnicodeDecodeError as E:
         print('[31m[DecodeError]:[0m',E)
-        sys.exit(1)
+        sys.exit(2) # 解码log文件错误，异常退出！
     if stdin_text[0] == '\ufeff': # 139 debug
         print('[33m[warning]:[0m','UTF8 BOM recognized in Logfile, it will be drop from the begin of file!')
         stdin_text = stdin_text[1:]
@@ -652,7 +658,7 @@ def main():
         asterisk_line = parser(stdin_text)
     except Exception as E:
         print(E)
-        sys.exit(1)
+        sys.exit(2) # 解析log错误，异常退出！
 
     asterisk_line['synth_status'] = False #v1.6.1 初始值，以免生成refresh的时候报错！
 
@@ -665,6 +671,10 @@ def main():
             pass
         elif ofile_path == 'None':
             asterisk_line.loc[key,'filepath'] = synth_status
+        elif ofile_path == 'Fatal':
+            asterisk_line.loc[key,'filepath'] = synth_status
+            print("[31m[FatalError]:[0m", "A unresolvable error occurred during speech synthesis. Execution terminated!")
+            sys.exit(2) # 语音合成中遭遇致命错误，异常退出！
         elif os.path.isfile(ofile_path)==False:
             asterisk_line.loc[key,'filepath'] = 'None'
         else:
@@ -676,7 +686,7 @@ def main():
 
     if len(refresh.index) == 0: #如果未合成任何语音
         print('[33m[warning]:[0m','No valid asterisk label synthesised, execution terminated!')
-        sys.exit(1) # alpha 1.11.7 未有合成也异常退出
+        sys.exit(1) # 未有合成，警告退出
 
     # 读取音频时长
     for key,value in refresh.iterrows():
