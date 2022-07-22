@@ -1,11 +1,14 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.12.4'
+edtion = 'alpha 1.12.5'
 
-# 绝对的全局变量
 # 在开源发布的版本中，隐去了各个key
 
-asterisk_line_columns=['asterisk_label','character','speech_text','category','filepath']
+# 语音合成模块的退出代码：
+# 0. 有Alog生成，合成正常，可以继续执行主程序
+# 1. 无Alog生成，无需合成，可以继续执行主程序
+# 2. 无Alog生成，合成未完成，不能继续执行主程序
+# 3. 有Alog生成，合成未完成，不能继续执行主程序
 
 # 外部参数输入
 
@@ -83,6 +86,9 @@ from tkinter import filedialog
 
 #阿里云和Azure支持的所有voice名
 voice_lib = pd.read_csv('./media/voice_volume.tsv',sep='\t').set_index('Voice')
+
+# parsed log 列名
+asterisk_line_columns=['asterisk_label','character','speech_text','category','filepath']
 
 # 阿里云的TTS引擎
 class Aliyun_TTS_engine:
@@ -258,9 +264,9 @@ def clean_ts(text):
 def clean_ts_azure(text): # SSML的转义字符
     return text.replace('&','&amp;').replace('<','&lt;').replace('>','&gt;').replace("'",'&apos;')
 
-# 62进制时间戳*【1-1000】，s单位
-def rand_timestamp():
-    timestamp = int(time.time()*np.random.randint(1,1000))
+# 62进制时间戳*1000，ms单位
+def mod62_timestamp():
+    timestamp = int(time.time()*1000)
     outstring = ''
     while timestamp > 1:
         residual = timestamp%62
@@ -274,7 +280,7 @@ def rand_timestamp():
         else:
             # 小写 97=a
             outstring = outstring + chr(97+residual-36)
-        timestamp = timestamp//62
+        timestamp = mod
     return outstring[::-1]
 
 # 解析函数
@@ -357,7 +363,7 @@ def synthesizer(key,asterisk):
         return 'None',False
     else:
         # alpha 1.12.4 在输出路径里加上timestamp，和序号和行号统一
-        ofile = output_path+'/'+'auto_AU_%d'%(key+1)+'_'+rand_timestamp()+'.wav'
+        ofile = output_path+'/'+'auto_AU_%d'%(key+1)+'_'+mod62_timestamp()+'.wav'
         # alpha 1.12.4 如果合成出现异常，重试
         for time_retry in range(1,6):
             # 最多重试5次
@@ -440,10 +446,8 @@ def open_Tuning_windows(init_type='Aliyun'):
         try:
             this_tts_engine.start(text_to_synth.get("0.0","end"),'./media/preview_tempfile.wav')
         except Exception as E:
-            import traceback
-            traceback.print_exc()
             print('[33m[warning]:[0m Synthesis failed in preview,','due to:',E)
-            messagebox.showerror(title='合成失败',message="[错误]：语音合成失败，由于：\n"+E)
+            messagebox.showerror(title='合成失败',message="[错误]：语音合成失败！")
             return 0
         if command == 'play':
             # 播放合成结果
@@ -452,17 +456,17 @@ def open_Tuning_windows(init_type='Aliyun'):
                 return 1
             except Exception as E:
                 print('[33m[warning]:[0m Failed to play the audio,','due to:',E)
-                messagebox.showerror(title='播放失败',message="[错误]：无法播放语音")
+                messagebox.showerror(title='播放失败',message="[错误]：无法播放语音！")
                 return 0
         elif command == 'save':
             try:
-                default_filename = voice_this.split(':')[0] + '_' + rand_timestamp()+ '.wav'
+                default_filename = voice_this.split(':')[0] + '_' + mod62_timestamp()+ '.wav'
                 save_filepath = filedialog.asksaveasfilename(initialfile=default_filename,filetypes=[('音频文件','*.wav')])
                 if save_filepath != '':
                     copy('./media/preview_tempfile.wav',save_filepath)
             except Exception as E:
                 print('[33m[warning]:[0m Failed to save the file,','due to:',E)
-                messagebox.showerror(title='保存失败',message="[错误]：无法保存文件")
+                messagebox.showerror(title='保存失败',message="[错误]：无法保存文件！")
                 return 0
 
     # 窗口
@@ -660,8 +664,8 @@ def main():
         print(E)
         sys.exit(2) # 解析log错误，异常退出！
 
-    asterisk_line['synth_status'] = False #v1.6.1 初始值，以免生成refresh的时候报错！
-
+    asterisk_line['synth_status'] = False # v1.6.1 初始值，以免生成refresh的时候报错！
+    fatal_break = False # 是否发生中断？
     # 开始合成
     print('[speech synthesizer]: Begin to speech synthesis!')
     for key,value in asterisk_line.iterrows():
@@ -673,8 +677,9 @@ def main():
             asterisk_line.loc[key,'filepath'] = synth_status
         elif ofile_path == 'Fatal':
             asterisk_line.loc[key,'filepath'] = synth_status
-            print("[31m[FatalError]:[0m", "A unresolvable error occurred during speech synthesis. Execution terminated!")
-            sys.exit(2) # 语音合成中遭遇致命错误，异常退出！
+            fatal_break = True
+            print("[31m[FatalError]:[0m", "An unresolvable error occurred during speech synthesis!")
+            break
         elif os.path.isfile(ofile_path)==False:
             asterisk_line.loc[key,'filepath'] = 'None'
         else:
@@ -685,8 +690,12 @@ def main():
     refresh = asterisk_line[(asterisk_line.category==3)|(asterisk_line.synth_status==True)].dropna().copy() #检定是否成功合成
 
     if len(refresh.index) == 0: #如果未合成任何语音
-        print('[33m[warning]:[0m','No valid asterisk label synthesised, execution terminated!')
-        sys.exit(1) # 未有合成，警告退出
+        if fatal_break == True:
+            print('[33m[warning]:[0m','Speech synthesis cannot begin, execution terminated!')
+            sys.exit(2) # 在第一行就终止
+        else:
+            print('[33m[warning]:[0m','No valid asterisk label synthesised, execution terminated!')
+            sys.exit(1) # 未有合成，警告退出
 
     # 读取音频时长
     for key,value in refresh.iterrows():
@@ -707,7 +716,11 @@ def main():
     out_Logfile.close()
 
     print('[speech synthesizer]: Asterisk Marked Logfile path: '+output_path+'/AsteriskMarkedLogFile.rgl')
-    print('[speech synthesizer]: Done!')
+    if fatal_break == True:
+        print('[speech synthesizer]: Synthesis Breaked, due to FatalError!')
+        sys.exit(3)
+    else:
+        print('[speech synthesizer]: Synthesis Done!')
 
 if __name__ == '__main__':
     if args.PreviewOnly == True:

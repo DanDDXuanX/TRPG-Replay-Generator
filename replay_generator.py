@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.12.4'
+edtion = 'alpha 1.12.5'
 
 # 外部参数输入
 
@@ -1318,20 +1318,23 @@ if synthfirst == True:
     try:
         exit_status = os.system(command)
         print('[32m------------------------------------------------------------[0m')
-        # 如果是正常退出，将当前的标准输入调整为处理后的log文件
-        if (exit_status == 0)&(os.path.isfile(output_path+'/AsteriskMarkedLogFile.rgl') == True):
+        # 0. 有Alog生成，合成正常，可以继续执行主程序
+        if exit_status == 0: # &(os.path.isfile(output_path+'/AsteriskMarkedLogFile.rgl') == True):
             stdin_log = output_path+'/AsteriskMarkedLogFile.rgl'
-        # 如果是重大错误退出，终止主程序
+        # 1. 无Alog生成，无需合成，可以继续执行主程序
+        elif exit_status == 1:
+            pass
+        # 2. 无Alog生成，合成未完成，不能继续执行主程序
         elif exit_status == 2:
-            raise RuntimeError('A major error occurred during speech synthesis.')
-        # 否则报出警告，继续主程序
+            raise RuntimeError('Speech synthesis cannot begin.')
+        # 3. 有Alog生成，合成未完成，不能继续执行主程序
+        elif exit_status == 3:
+            raise RuntimeError('Speech synthesis breaked, due to unresolvable error.')
         else:
-            raise OSError('Exception above')
-    except RuntimeError as E:
-        print('[33m[FatalError]:[0m Failed to synthesis speech, due to:',E)
-        system_terminated('Error')
+            raise RuntimeError('Unknown Exception.')
     except Exception as E:
-        print('[33m[warning]:[0m Exception occured in synthesis speech, due to:',E)
+        print('[31m[SynthesisError]:[0m',E)
+        system_terminated('Error')
 
 # 载入od文件
 print('[replay generator]: Loading media definition file.')
