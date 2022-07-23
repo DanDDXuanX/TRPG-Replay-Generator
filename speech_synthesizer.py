@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.12.5'
+edtion = 'alpha 1.12.6'
 
 # 在开源发布的版本中，隐去了各个key
 
@@ -437,11 +437,16 @@ def open_Tuning_windows(init_type='Aliyun'):
         if voice_this.split(':')[0]=='':
             messagebox.showerror(title='错误',message='缺少音源名!')
             return 0
-        this_tts_engine = TTS_engine(name='preview',
-                                     voice = voice_this,
-                                     speech_rate=speech_rate.get(),
-                                     pitch_rate=pitch_rate.get(),
-                                     aformat='wav')
+        try:
+            this_tts_engine = TTS_engine(name='preview',
+                                         voice = voice_this,
+                                         speech_rate=speech_rate.get(),
+                                         pitch_rate=pitch_rate.get(),
+                                         aformat='wav')
+        except KeyError as E: # 非法的音源名
+            print('[33m[warning]:[0m Unsupported speaker name',E)
+            messagebox.showerror(title='合成失败',message="[错误]：不支持的音源名！")
+            return 0
         # 执行合成
         try:
             this_tts_engine.start(text_to_synth.get("0.0","end"),'./media/preview_tempfile.wav')
