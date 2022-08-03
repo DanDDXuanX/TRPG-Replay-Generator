@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.12.6'
+edtion = 'alpha 1.12.7'
 
 # 在开源发布的版本中，隐去了各个key
 
 # 语音合成模块的退出代码：
-# 0. 有Alog生成，合成正常，可以继续执行主程序
-# 1. 无Alog生成，无需合成，可以继续执行主程序
-# 2. 无Alog生成，合成未完成，不能继续执行主程序
-# 3. 有Alog生成，合成未完成，不能继续执行主程序
+# 0. 有覆盖原log，合成正常，可以继续执行主程序
+# 1. 无覆盖原log，无需合成，可以继续执行主程序
+# 2. 无覆盖原log，合成未完成，不能继续执行主程序
+# 3. 有覆盖原log，合成未完成，不能继续执行主程序
 
 # 外部参数输入
 
@@ -127,12 +127,15 @@ class Aliyun_TTS_engine:
                                          speech_rate=self.speech_rate,
                                          pitch_rate=self.pitch_rate,
                                          volume=self.volume)
-        # 检查是否是空文件 通常是由于AppKey错误导致的
-        if os.path.getsize(ofile) == 0:
+        # 检查是否是空文件 通常是由于AppKey错误导致的，或者输入为空
+        # 若没有发言内容，阿里云也会生成一个44字节的空文件！
+        if os.path.getsize(ofile) <= 128:
+            # 删除文件
+            os.remove(ofile)
             raise Exception('[33m[AliyunError]:[0m Synthesis failed, an empty wav file is created!')
-            # os.remove(ofile) # 算了算了 0kb 也留着吧
         # 检查合成返回值是否成功
         elif success == False:
+            os.remove(ofile)
             raise Exception('[33m[AliyunError]:[0m Other exception occurred!')
         else:
             if len(text) >= 5:
@@ -213,7 +216,8 @@ class Azure_TTS_engine:
             if cancellation_details.reason == speechsdk.CancellationReason.Error:
                 if cancellation_details.error_details:
                     print("[33m[AzureError]:[0m {}".format(cancellation_details.error_details))
-            # os.remove(ofile) # 算了算了 0kb 也留着吧
+            # 删除文件
+            os.remove(ofile)
             raise Exception("[33m[AzureError]:[0m {}".format(cancellation_details.reason))
 
 # 从主程序借来的Audio类
@@ -655,7 +659,7 @@ def main():
 
     # 载入log文件
     try:
-        stdin_text = open(stdin_log,'r',encoding='utf8').read()#.split('\n')
+        stdin_text = open(stdin_log,'r',encoding='utf-8').read()#.split('\n')
     except UnicodeDecodeError as E:
         print('[31m[DecodeError]:[0m',E)
         sys.exit(2) # 解码log文件错误，异常退出！
@@ -702,6 +706,13 @@ def main():
             print('[33m[warning]:[0m','No valid asterisk label synthesised, execution terminated!')
             sys.exit(1) # 未有合成，警告退出
 
+    # 原始log文件备份到输出路径
+    backup_log = output_path+'/OriginalLogfileBackup_'+mod62_timestamp()+'.rgl'
+    backup_logfile = open(backup_log,'w',encoding='utf-8')
+    backup_logfile.write('\n'.join(stdin_text))
+    backup_logfile.close()
+    print('[speech synthesizer]: Original LogFile backup path: '+backup_log)
+
     # 读取音频时长
     for key,value in refresh.iterrows():
         audio_lenth = get_audio_length(value)
@@ -715,12 +726,12 @@ def main():
     for key,value in refresh.iterrows():
         stdin_text[key] = stdin_text[key].replace(value.asterisk_label,value.new_asterisk_label)
 
-    # 输出新的目录
-    out_Logfile = open(output_path+'/AsteriskMarkedLogFile.rgl','w',encoding='utf-8')
-    out_Logfile.write('\n'.join(stdin_text))
-    out_Logfile.close()
+    # 覆盖原始log文件
+    stdout_logfile = open(stdin_log,'w',encoding='utf-8')
+    stdout_logfile.write('\n'.join(stdin_text))
+    stdout_logfile.close()
+    print('[speech synthesizer]: Logfile refresh Done!')
 
-    print('[speech synthesizer]: Asterisk Marked Logfile path: '+output_path+'/AsteriskMarkedLogFile.rgl')
     if fatal_break == True:
         print('[speech synthesizer]: Synthesis Breaked, due to FatalError!')
         sys.exit(3)

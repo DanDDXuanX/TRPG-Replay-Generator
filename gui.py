@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.12.5'
+edtion = 'alpha 1.12.7'
 
 import tkinter as tk
 from tkinter import ttk
@@ -899,9 +899,8 @@ def open_Main_windows():
                     raise OSError('Major error occurred in replay_generator!')
                 else:
                     # 如果指定了要先语音合成，而且星标文件存在，且退出状态是正常，把log文件设置为星标文件：
-                    if (synthanyway.get() == 1)&(os.path.isfile(output_path.get()+'/AsteriskMarkedLogFile.rgl')):
+                    if (synthanyway.get() == 1):
                         messagebox.showinfo(title='完毕',message='语音合成程序执行完毕！\nLog文件已更新')
-                        stdin_logfile.set(output_path.get()+'/AsteriskMarkedLogFile.rgl')
             except Exception:
                 messagebox.showwarning(title='警告',message='似乎有啥不对劲的事情发生了，检视控制台输出获取详细信息！')
     def run_command_synth():
@@ -918,7 +917,6 @@ def open_Main_windows():
                 # 0. 有Alog生成，合成正常，可以继续执行主程序
                 if exit_status == 0:
                     messagebox.showinfo(title='完毕',message='语音合成程序执行完毕！\nLog文件已更新')
-                    stdin_logfile.set(output_path.get()+'/AsteriskMarkedLogFile.rgl')
                 # 1. 无Alog生成，无需合成，可以继续执行主程序
                 elif exit_status == 1:
                     messagebox.showwarning(title='警告',message='未找到待合成星标！\n语音合成未执行')
@@ -928,7 +926,6 @@ def open_Main_windows():
                 # 3. 有Alog生成，合成未完成，不能继续执行主程序
                 elif exit_status == 3:
                     messagebox.showwarning(title='警告',message='语音合成进度中断！\nLog文件已更新')
-                    stdin_logfile.set(output_path.get()+'/AsteriskMarkedLogFile.rgl')
                 else:
                     raise OSError('Unknown Exception.')
             except Exception:

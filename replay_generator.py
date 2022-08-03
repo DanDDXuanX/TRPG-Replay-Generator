@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.12.5'
+edtion = 'alpha 1.12.7'
 
 # 外部参数输入
 
@@ -1318,16 +1318,16 @@ if synthfirst == True:
     try:
         exit_status = os.system(command)
         print('[32m------------------------------------------------------------[0m')
-        # 0. 有Alog生成，合成正常，可以继续执行主程序
-        if exit_status == 0: # &(os.path.isfile(output_path+'/AsteriskMarkedLogFile.rgl') == True):
-            stdin_log = output_path+'/AsteriskMarkedLogFile.rgl'
-        # 1. 无Alog生成，无需合成，可以继续执行主程序
-        elif exit_status == 1:
+        # 0. 有覆盖原log，合成正常，可以继续执行主程序
+        if exit_status == 0:
             pass
-        # 2. 无Alog生成，合成未完成，不能继续执行主程序
+        # 1. 无覆盖原log，无需合成，可以继续执行主程序
+        elif exit_status == 1:
+            print('[33m[warning]:[0m','No valid asterisk label synthesised!')
+        # 2. 无覆盖原log，合成未完成，不能继续执行主程序
         elif exit_status == 2:
             raise RuntimeError('Speech synthesis cannot begin.')
-        # 3. 有Alog生成，合成未完成，不能继续执行主程序
+        # 3. 有覆盖原log，合成未完成，不能继续执行主程序
         elif exit_status == 3:
             raise RuntimeError('Speech synthesis breaked, due to unresolvable error.')
         else:
