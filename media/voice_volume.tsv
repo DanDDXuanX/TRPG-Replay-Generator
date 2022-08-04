@@ -1,4 +1,8 @@
 service	Voice	avaliable_volume	style	role
+Aliyun	zhimi_emo	48	general	Default
+Aliyun	zhiyan_emo	45	general	Default
+Aliyun	zhibei_emo	42	general	Default
+Aliyun	zhitian_emo	39	general	Default
 Aliyun	xiaoyun	42	general	Default
 Aliyun	xiaogang	43	general	Default
 Aliyun	ruoxi	24	general	Default
@@ -71,6 +75,8 @@ Aliyun	laotie	43	general	Default
 Aliyun	laomei	48	general	Default
 Aliyun	aikan	43	general	Default
 Aliyun	tala	79	general	Default
+Aliyun	tien	100	general	Default
+Aliyun	becca	91	general	Default
 Aliyun	zhitian	65	general	Default
 Aliyun	zhiqing	80	general	Default
 Azure	zh-CN-XiaochenNeural	78	general	Default
