@@ -131,11 +131,11 @@ class Aliyun_TTS_engine:
         # 若没有发言内容，阿里云也会生成一个44字节的空文件！
         if os.path.getsize(ofile) <= 128:
             # 删除文件
-            os.remove(ofile)
+            # os.remove(ofile)
             raise Exception('[33m[AliyunError]:[0m Synthesis failed, an empty wav file is created!')
         # 检查合成返回值是否成功
         elif success == False:
-            os.remove(ofile)
+            # os.remove(ofile)
             raise Exception('[33m[AliyunError]:[0m Other exception occurred!')
         else:
             if len(text) >= 5:
@@ -217,7 +217,7 @@ class Azure_TTS_engine:
                 if cancellation_details.error_details:
                     print("[33m[AzureError]:[0m {}".format(cancellation_details.error_details))
             # 删除文件
-            os.remove(ofile)
+            # os.remove(ofile)
             raise Exception("[33m[AzureError]:[0m {}".format(cancellation_details.reason))
 
 # 从主程序借来的Audio类
