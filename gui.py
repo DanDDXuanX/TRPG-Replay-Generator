@@ -970,7 +970,7 @@ def open_Main_windows():
                 messagebox.showwarning(title='警告',message='似乎有啥不对劲的事情发生了，检视控制台输出获取详细信息！')
     def run_command_synth_preview(init_type='Aliyun'):
         command = python3 +' ./speech_synthesizer.py --PreviewOnly --Init {IN} --AccessKey {AK} --AccessKeySecret {AS} --Appkey {AP} --Azurekey {AZ} --ServRegion {SR}'
-        command = command.format(IN=init_type, AK=AccessKey.get(), AS=AccessKeySecret.get(),AP=Appkey.get(),AZ=AzureKey.get(),SR=ServiceRegion.get())
+        command = command.format(IN=init_type, AK=AccessKey.get(), AS=AccessKeySecret.get(),AP=Appkey.get(),AZ=AzureKey.get(),SR=ServiceRegion.get()).replace('\n','').replace('\r','')
         try:
             print('[32m'+command+'[0m')
             exit_status = os.system(command)
