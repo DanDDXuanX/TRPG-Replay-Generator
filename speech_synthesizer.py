@@ -153,6 +153,7 @@ class Aliyun_TTS_engine:
         try:
             self.ofile.write(data)
         except Exception as E:
+            # [AliyunError]: Write data failed: write to closed file 如果出现这个问题，会重复很多次，然后合成一个错误的文件
             print("[33m[AliyunError]:[0m Write data failed:", E)
 
 # Azure 语音合成 alpha 1.10.3
