@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.12.7'
+edtion = 'alpha 1.13.0'
 
 # 外部参数输入
 
@@ -167,7 +167,7 @@ class StrokeText(Text):
 
 # 对话框、气泡、文本框
 class Bubble:
-    def __init__(self,filepath=None,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),ht_pos=(0,0),align='left',line_distance=1.5,label_color='Lavender'):
+    def __init__(self,filepath=None,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),ht_pos=(0,0),ht_target='Name',align='left',line_distance=1.5,label_color='Lavender'):
         if filepath is None: # 支持气泡图缺省
             # 媒体设为空图
             self.media = pygame.Surface(screen_size,pygame.SRCALPHA)
@@ -179,6 +179,7 @@ class Bubble:
         self.mt_pos = mt_pos
         self.Header = Header_Text
         self.ht_pos = ht_pos
+        self.target = ht_target
         if line_distance >= 1:
             self.line_distance = line_distance
         elif line_distance > 0:
@@ -865,13 +866,19 @@ def parser(stdin_text):
                         alpha = -1
                     else:
                         alpha = int(alpha[1:-1])
-                    # 立绘的参数
+                    # 在角色表中找到指定角色 this_char_series -> pd.Series
                     try:
-                        this_am = charactor_table.loc[name+subtype]['Animation']
-                        this_timeline['Am'+str(k+1)] = this_am
-                    except Exception as E: # 在角色表里面找不到name，raise在这里！
+                        this_char_series = charactor_table.loc[name+subtype]
+                    except KeyError as E: # 在角色表里面找不到name，raise在这里！
                         raise ParserError('[31m[ParserError]:[0m Undefined Name '+ name+subtype +' in dialogue line ' + str(i+1)+'. due to:',E)
-                    # 动画的参数
+                    # 如果index存在重复值，则this_char_series不是一个 Series # 在这里处理的角色表index重复值，之后不再考虑这个异常
+                    if type(this_char_series) is not pd.Series:
+                        raise ParserError('[31m[ParserError]:[0m'+' Duplicate subtype '+name+subtype+' is set in charactor table!')
+                    
+                    # 立绘的参数
+                    this_am = this_char_series['Animation']
+                    this_timeline['Am'+str(k+1)] = this_am                        
+                    # 动画帧的参数（tick）
                     if (this_am!=this_am) | (this_am=='NA'):# this_am 可能为空的，需要先处理这种情况！
                         this_timeline['Am'+str(k+1)+'_t'] = 0
                     else:
@@ -879,23 +886,7 @@ def parser(stdin_text):
                             this_timeline['Am'+str(k+1)+'_t'] = eval('{am}.get_tick({dur})'.format(am=this_am,dur=this_duration))
                         except NameError as E: # 指定的am没有定义！
                             raise ParserError('[31m[ParserError]:[0m',E,', which is specified to',name+subtype,'as Animation!')
-                    # 检查气泡文本的可用性 alpha 1.8.4
-                    if ('"' in name) | ('\\' in name) | ('"' in ts) | ('\\' in ts):
-                        raise ParserError('[31m[ParserError]:[0m','Invalid symbol (double quote or backslash) appeared in speech text in dialogue line ' + str(i+1)+'.')
-                    if ('#' in ts)&(ts[0]!='^'):
-                        ts = '^' + ts
-                        print('[33m[warning]:[0m','Undeclared manual break dialogue line ' + str(i+1)+'.')
-                    # 气泡的参数
-                    if k == 0:
-                        this_bb = charactor_table.loc[name+subtype]['Bubble']
-                        if (this_bb!=this_bb) | (this_bb=='NA'): # 主要角色一定要有bubble！，次要的可用没有
-                            raise ParserError('[31m[ParserError]:[0m','No bubble is specified to major charactor',name+subtype,'of dialogue line '+str(i+1)+'.')
-                        this_timeline['Bb'] = charactor_table.loc[name+subtype]['Bubble'] # 异常处理，未定义的名字
-                        this_timeline['Bb_main'] = ts
-                        this_timeline['Bb_header'] = name
-                        this_timeline['Bb_a'] = alpha_timeline_B*100
-                        this_timeline['Bb_p'] = pos_timeline_B
-                    #透明度参数
+                    # 透明度参数（alpha）
                     if (alpha >= 0)&(alpha <= 100): # alpha 1.8.8 如果有指定合法的透明度，则使用指定透明度
                         this_timeline['Am'+str(k+1)+'_a']=alpha_timeline_A*alpha
                     else: # 如果没有指定透明度
@@ -903,20 +894,46 @@ def parser(stdin_text):
                             this_timeline['Am'+str(k+1)+'_a']=alpha_timeline_A*100
                         else: # 如果是次要角色，透明度为secondary_alpha，默认值60
                             this_timeline['Am'+str(k+1)+'_a']=alpha_timeline_A*secondary_alpha 
-                    # 位置时间轴信息
+                    # 位置参数（pos)
                     this_timeline['Am'+str(k+1)+'_p'] = pos_timeline_A
-    
-                # 针对文本内容的警告
-                try:
-                    this_line_limit = eval(this_timeline['Bb'][0]+'.MainText.line_limit') #获取行长，用来展示各类警告信息
-                    if (len(ts)>this_line_limit*4) | (len(ts.split('#'))>4): #行数过多的警告
-                        print('[33m[warning]:[0m','More than 4 lines will be displayed in dialogue line ' + str(i+1)+'.')
-                    if ((ts[0]=='^')|('#' in ts))&(np.frompyfunc(len,1,1)(ts.replace('^','').split('#')).max()>this_line_limit): # 手动换行的字数超限的警告
-                        print('[33m[warning]:[0m','Manual break line length exceed the Bubble line_limit in dialogue line ' + str(i+1)+'.') #alpha1.6.3
-                except AttributeError: # 'NoneType' object has no attribute 'line_limit'
-                    raise ParserError('[31m[ParserError]:[0m','Main_Text of "{0}" is None!'.format(this_timeline['Bb'][0]))
-                except NameError as E: # 指定的bb没有定义！
-                    raise ParserError('[31m[ParserError]:[0m',E,', which is specified to',name+subtype,'as Bubble!')
+                    # 气泡的参数
+                    if k == 0:
+                        this_bb = this_char_series['Bubble']
+                        # 主要角色一定要有bubble！，次要的可用没有
+                        if (this_bb!=this_bb) | (this_bb=='NA'):
+                            raise ParserError('[31m[ParserError]:[0m','No bubble is specified to major charactor',name+subtype,'of dialogue line '+str(i+1)+'.')
+                        # 获取目标的头文本
+                        try:
+                            target_text = this_char_series[eval(this_bb+'.target')]
+                        except NameError as E: # 指定的bb没有定义！
+                            raise ParserError('[31m[ParserError]:[0m',E,', which is specified to',name+subtype,'as Bubble!')
+                        except KeyError as E: # 指定的target不存在！
+                            raise ParserError('[31m[ParserError]:[0m','Target columns',E,'specified to Bubble object \''+this_bb+'\' is not exist!')
+                        # 针对文本内容的警告和报错
+                        try:
+                            this_line_limit = eval(this_bb+'.MainText.line_limit')
+                        except AttributeError: # 'NoneType' object has no attribute 'line_limit'
+                            raise ParserError('[31m[ParserError]:[0m','Main_Text of "{0}" is None!'.format(this_bb))
+                        # ts或者target_text里面有非法字符，双引号，反斜杠
+                        if ('"' in target_text) | ('\\' in target_text) | ('"' in ts) | ('\\' in ts):
+                            raise ParserError('[31m[ParserError]:[0m','Invalid symbol (double quote or backslash) appeared in speech text in dialogue line ' + str(i+1)+'.')
+                        # 未声明手动换行
+                        if ('#' in ts)&(ts[0]!='^'):
+                            ts = '^' + ts # 补齐申明符号
+                            print('[33m[warning]:[0m','Undeclared manual break dialogue line ' + str(i+1)+'.')
+                        #行数过多的警告
+                        if (len(ts)>this_line_limit*4) | (len(ts.split('#'))>4):
+                            print('[33m[warning]:[0m','More than 4 lines will be displayed in dialogue line ' + str(i+1)+'.')
+                        # 手动换行的字数超限的警告
+                        if ((ts[0]=='^')|('#' in ts))&(np.frompyfunc(len,1,1)(ts.replace('^','').split('#')).max()>this_line_limit):
+                            print('[33m[warning]:[0m','Manual break line length exceed the Bubble line_limit in dialogue line ' + str(i+1)+'.') #alpha1.6.3
+                        # 赋值给当前时间轴的Bb轨道
+                        this_timeline['Bb'] = this_bb
+                        this_timeline['Bb_main'] = ts
+                        this_timeline['Bb_header'] = target_text
+                        this_timeline['Bb_a'] = alpha_timeline_B*100
+                        this_timeline['Bb_p'] = pos_timeline_B
+
                 # 文字显示的参数
                 if text_method == 'all':
                     if text_dur == 0:
