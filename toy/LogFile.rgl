@@ -16,6 +16,12 @@
 [张安翔]:^本工具基于python3 和 pygame2.0，在windows10系统上开发。#演示使用的媒体素材来自网络，侵删。{SE1;5}
 [张安翔]:那么，演示开始。{SE1;5}
 
+<set:张安翔.default.Header>:张安翔（默认的）
+<set:张安翔.scared.Header>:张安翔（害怕的）
+<set:KP.Header>:KP（修改的）
+<set:KP.Header>:KP（修改的）
+<set:KP.Header.错误.Header>:Exception
+
 <hitpoint>:(张安翔,10,9,5)
 
 <dice>:(测试姓名1 力量,100,75,3),(测试姓名2 sancheck,100,60,25),(测试姓名3 图书馆,100,75,85),(测试姓名4 侦察,100,60,100)

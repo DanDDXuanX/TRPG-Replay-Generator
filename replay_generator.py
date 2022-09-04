@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.13.0'
+edtion = 'alpha 1.13.1'
 
 # 外部参数输入
 
@@ -546,7 +546,7 @@ class MediaError(ParserError):
 
 RE_dialogue = re.compile('^\[([\ \w\.\;\(\)\,]+)\](<[\w\=\d]+>)?:(.+?)(<[\w\=\d]+>)?({.+})?$')
 RE_background = re.compile('^<background>(<[\w\=]+>)?:(.+)$')
-RE_setting = re.compile('^<set:([\w\_]+)>:(.+)$')
+RE_setting = re.compile('^<set:([\w\ \.]+)>:(.+)$')
 RE_characor = re.compile('([\w\ ]+)(\(\d*\))?(\.\w+)?')
 RE_modify = re.compile('<(\w+)(=\d+)?>')
 RE_sound = re.compile('({.+?})')
@@ -710,6 +710,7 @@ def split_xy(concated):
     x,y = concated.split(',')
     return int(x),int(y)
 
+# 处理am和bb类的动态切换效果
 def am_methods(method_name,method_dur,this_duration,i):
     def dynamic(scale,duration,balance,cut,enable): # 动态(尺度,持续,平衡,进出,启用)
         if enable == True: # cutin=1,cutout=0
@@ -1039,17 +1040,20 @@ def parser(stdin_text):
         elif ('<set:' in text) & ('>:' in text):
             try:
                 target,args = get_seting_arg(text)
+                # 整数类型的变量
                 if target in ['am_dur_default','bb_dur_default','bg_dur_default','tx_dur_default','speech_speed','asterisk_pause','secondary_alpha']:
                     try: 
-                        args = int(args) #如果args是整数值型
+                        args = int(args)
                         if args < 0:
                             raise ParserError('invalid args')
                     except Exception:
                         print('[33m[warning]:[0m','Setting',target,'to invalid value',args,',the argument will not changed.')
                         args = eval(target) # 保持原数值不变
                     exec("global {0} ; {0} = {1}".format(target,str(args)))
+                # <method>类型的变量
                 elif target in ['am_method_default','bb_method_default','bg_method_default','tx_method_default']:
                     exec("global {0} ; {0} = {1}".format(target,'\"'+args+'\"')) # 当作文本型，无论是啥都接受
+                # BGM路径或者对象类的变量
                 elif target == 'BGM':
                     if args in media_list:
                         BGM_queue.append(args)
@@ -1059,6 +1063,7 @@ def parser(stdin_text):
                         BGM_queue.append(args)
                     else:
                         raise ParserError('[31m[ParserError]:[0m The BGM "'+args+'" specified in setting line ' + str(i+1)+' is not exist!')
+                # formula类型的变量
                 elif target == 'formula':
                     if args in formula_available.keys():
                         formula = formula_available[args]
@@ -1071,6 +1076,40 @@ def parser(stdin_text):
                             raise ParserError('[31m[ParserError]:[0m Unsupported formula "'+args+'" is specified in setting line ' + str(i+1)+'.')
                     else:
                         raise ParserError('[31m[ParserError]:[0m Unsupported formula "'+args+'" is specified in setting line ' + str(i+1)+'.')
+                # 角色表中的自定义列
+                elif '.' in target:
+                    target_split = target.split('.')
+                    target_column = target_split[-1]
+                    # 如果目标列不存在于角色表
+                    if target_column not in charactor_table.columns:
+                        raise ParserError('[31m[ParserError]:[0m Try to modify a undefined column \''+target_column+'\' in charactor table!')
+                    # 如果尝试修改受保护的列
+                    elif target_column in ['Name','Subtype','Animation','Bubble','Voice','SpeechRate','PitchRate']:
+                        raise ParserError('[31m[ParserError]:[0m Try to modify a protected column \''+target_column+'\' in charactor table!')
+                    # 如果只指定了一个角色名和列名，则变更应用于角色名下所有的subtype
+                    if len(target_split) == 2:
+                        name = target_split[0]
+                        if (name in charactor_table['Name'].values):
+                            try:
+                                charactor_table.loc[charactor_table['Name']==name,target_column] = args
+                            except Exception as E:
+                                raise ParserError('[31m[ParserError]:[0m Error occurred while modifying charactor table: ' + target + ', due to:',E)
+                        else:
+                            raise ParserError('[31m[ParserError]:[0m Target name \''+ name +'\' in setting line '+str(i+1)+' is not undefined!')
+                    # 如果只指定了角色名、差分名和列名，则变更仅应用于该subtype
+                    elif len(target_split) == 3:
+                        name,subtype = target_split[0:2]
+                        if (name+'.'+subtype in charactor_table.index):
+                            try:
+                                charactor_table.loc[name+'.'+subtype, target_column] = args
+                            except Exception as E:
+                                raise ParserError('[31m[ParserError]:[0m Error occurred while modifying charactor table: ' + target + ', due to:',E)
+                        else:
+                            raise ParserError('[31m[ParserError]: Target subtype '+ name+'.'+subtype +' in setting line '+str(i+1)+' is not undefined!')
+                    # 如果超过4个指定项目，无法解析，抛出ParserError(不被支持的参数)
+                    else:
+                        raise ParserError('[31m[ParserError]:[0m Unsupported setting "'+target+'" is specified in setting line ' + str(i+1)+'.')
+                # 不被支持的参数
                 else:
                     raise ParserError('[31m[ParserError]:[0m Unsupported setting "'+target+'" is specified in setting line ' + str(i+1)+'.')
             except Exception as E:
