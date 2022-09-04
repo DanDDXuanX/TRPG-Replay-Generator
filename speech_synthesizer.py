@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.12.7'
+edtion = 'alpha 1.13.3'
 
 # 在开源发布的版本中，隐去了各个key
 
@@ -81,6 +81,7 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
 from tkinter import filedialog
+import pydub
 
 # 类定义
 
@@ -168,6 +169,44 @@ class Azure_TTS_engine:
     # 输出文件格式配置
     output_format = {'mp3':23,# SpeechSynthesisOutputFormat.Audio48Khz192KBitRateMonoMp3
                      'wav':21}# SpeechSynthesisOutputFormat.Riff48Khz16BitMonoPcm
+    # 类方法：裁剪音频前后的空白
+    def silence_slicer(ifile):
+        input_au = pydub.AudioSegment.from_wav(ifile)
+        # 将音频转化为array，并取绝对值
+        input_au_array = np.abs(np.asarray(input_au.get_array_of_samples()))
+        # 计算窗口大小，一个窗口是0.1s
+        windows = input_au.frame_rate // 10
+        n_windows = int(input_au.frame_count()//windows+1)
+        # 是否是静音的
+        is_silence = np.zeros(n_windows,dtype=bool)
+        # 检定是否是静音的windows，阈值是20
+        threshold = 20
+        for i in range(0,n_windows):
+            if input_au_array[i*windows:(i+1)*windows].mean() > threshold:
+                is_silence[i] = True
+        # 定位第一个和最后一个非静音windows
+        first_true_index = 0
+        last_true_index = 0
+        for index,value in enumerate(is_silence):
+            if value == True:
+                last_true_index = index
+                if first_true_index == 0:
+                    first_true_index = index
+        # 裁剪音频
+        # |0|1|2|3|...|98|99|100|
+        # |F|F|F|T|...|T |T |F  |
+        #   first^    last^
+        # 3*windows   (99+1)*windows
+        sliced = input_au.get_sample_slice(start_sample=first_true_index*windows,end_sample=(last_true_index+1)*windows)
+        # 覆盖文件
+        if sliced.frame_count() < input_au.frame_count():
+            try:
+                sliced.export(ifile,format='wav')
+                return sliced.frame_count()
+            except Exception as E:
+                print('[33m[warning]:[0m Unable to clip the silence part from \"'+ ifile +'\", due to:',E)
+                return -1
+    # 初始化
     def __init__(self,name='unnamed',voice = 'zh-CN-XiaomoNeural:general:1:Default',speech_rate=0,pitch_rate=0,aformat='wav'):
         if 'azure.cognitiveservices.speech' not in sys.modules:
             global speechsdk
@@ -207,6 +246,8 @@ class Azure_TTS_engine:
         speech_synthesis_result = synthesizer.speak_ssml_async(self.ssml.format(text=clean_ts_azure(text))).get()
         # 检查结果
         if speech_synthesis_result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted:
+            # 先裁剪掉前后的静音部分
+            Azure_TTS_engine.silence_slicer(ofile)
             if len(text) >= 5:
                 print_text = text[0:5]+'...'
             else:
