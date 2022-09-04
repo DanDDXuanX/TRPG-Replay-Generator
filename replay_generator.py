@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.13.1'
+edtion = 'alpha 1.13.2'
 
 # 外部参数输入
 
@@ -212,6 +212,41 @@ class Bubble:
         surface.blit(temp,render_pos)
     def convert(self):
         self.media = self.media.convert_alpha()
+
+# 多头文本框，气球
+class Balloon(Bubble):
+    def __init__(self,filepath=None,Main_Text=Text(),Header_Text=[None],pos=(0,0),mt_pos=(0,0),ht_pos=[(0,0)],ht_target=['Name'],align='left',line_distance=1.5,label_color='Lavender'):
+        super().__init__(filepath=filepath,Main_Text=Main_Text,Header_Text=Header_Text,pos=pos,mt_pos=mt_pos,ht_pos=ht_pos,ht_target=ht_target,align=align,line_distance=line_distance,label_color=label_color)
+        if len(self.Header)!=len(self.ht_pos) or len(self.Header)!=len(self.target):
+            raise MediaError('[31m[BubbleError]:[0m', 'length of header params does not match!')
+        else:
+            self.header_num = len(self.Header)
+    def display(self,surface,text,header='',alpha=100,adjust='NA'):
+        if adjust in ['0,0','NA']:
+            render_pos = self.pos
+        else:
+            adx,ady = split_xy(adjust)
+            render_pos = (self.pos[0]+adx,self.pos[1]+ady)
+        temp = self.media.copy()
+        # 复合header用|作为分隔符
+        header_texts = header.split('|')
+        for i,header_text_this in enumerate(header_texts):
+            # Header 不为None ，且输入文本不为空
+            if (self.Header[i]!=None) & (header_text_this!=''):
+                temp.blit(self.Header[i].draw(header_text_this)[0],self.ht_pos[i])
+            # 如果达到了header数量上限，多余的header_text弃用
+            if i == self.header_num -1:
+                break
+        x,y = self.mt_pos
+        for i,s in enumerate(self.MainText.draw(text)):
+            if self.align == 'left':
+                temp.blit(s,(x,y+i*self.MainText.size*self.line_distance))
+            else: # 就只可能是center了
+                word_w,word_h = s.get_size()
+                temp.blit(s,(x+(self.MainText.size*self.MainText.line_limit - word_w)//2,y+i*self.MainText.size*self.line_distance))
+        if alpha !=100:
+            temp.set_alpha(alpha/100*255)            
+        surface.blit(temp,render_pos)
 
 # 背景图片
 class Background:
@@ -905,7 +940,13 @@ def parser(stdin_text):
                             raise ParserError('[31m[ParserError]:[0m','No bubble is specified to major charactor',name+subtype,'of dialogue line '+str(i+1)+'.')
                         # 获取目标的头文本
                         try:
-                            target_text = this_char_series[eval(this_bb+'.target')]
+                            targets = eval(this_bb+'.target')
+                            # Balloon 类
+                            if type(targets) is list:
+                                target_text = '|'.join(this_char_series[targets].values)
+                            # Bubble 类
+                            else:
+                                target_text = this_char_series[targets]
                         except NameError as E: # 指定的bb没有定义！
                             raise ParserError('[31m[ParserError]:[0m',E,', which is specified to',name+subtype,'as Bubble!')
                         except KeyError as E: # 指定的target不存在！
