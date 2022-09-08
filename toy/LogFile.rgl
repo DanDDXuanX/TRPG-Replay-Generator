@@ -15,11 +15,14 @@
 
 [张安翔]:^本工具基于python3 和 pygame2.0，在windows10系统上开发。#演示使用的媒体素材来自网络，侵删。{SE1;5}
 [张安翔]:那么，演示开始。{SE1;5}
-
+# 重设Header
 <set:张安翔.default.Header>:张安翔（默认的）
 <set:张安翔.scared.Header>:张安翔（害怕的）
 <set:KP.Header>:KP（修改的）
 <set:KP.Header>:KP（修改的）
+# 重设FreePos位置
+<set:pos_zhang>:PG[3,3]
+<set:pos_kp>:PG[5,5]
 
 <hitpoint>:(张安翔,10,9,5)
 
@@ -64,6 +67,56 @@
 [张安翔(60),KP.double]<replace=0>:调整角色的透明度参数，手动设置立绘透明度。<w2w=5>{SE1;5}
 [张安翔.scared,KP.double]:指明角色的subtype，展示差分立绘。<w2w=5>{SE1;5}
 [张安翔,KP.double]:^在发言文本中以井号作为换行符；#设置手动换行模式；#并逐行显示内容。<l2l=5>{SE1;5}
+
+# 自由位置测试
+
+<set:am_method_default>:<replace_pass_110_DG241=30>
+<set:formula>:linear
+
+<set:张安翔.default.Header>:张安翔（自由位置）
+<set:张安翔.default.Pos>:[0,0]
+<set:pos_zhang>:PG[0,0]
+[张安翔]:【0,0】
+<set:张安翔.default.Pos>:[1,1]
+<set:pos_zhang>:PG[1,1]
+[张安翔]:【1,1】
+<set:张安翔.default.Pos>:[2,2]
+<set:pos_zhang>:PG[2,2]
+[张安翔]:【2,2】
+<set:张安翔.default.Pos>:[3,3]
+<set:pos_zhang>:PG[3,3]
+[张安翔]:【3,3】
+<set:张安翔.default.Pos>:[4,4]
+<set:pos_zhang>:PG[4,4]
+[张安翔]:【4,4】
+<set:张安翔.default.Pos>:[5,5]
+<set:pos_zhang>:PG[5,5]
+[张安翔]:【5,5】
+<set:张安翔.default.Pos>:[6,6]
+<set:pos_zhang>:PG[6,6]
+[张安翔]:【6,6】
+<set:张安翔.default.Pos>:[7,7]
+<set:pos_zhang>:PG[7,7]
+[张安翔]:【7,7】
+<set:张安翔.default.Pos>:[8,8]
+<set:pos_zhang>:PG[8,8]
+[张安翔]:【8,8】
+<set:张安翔.default.Pos>:[9,9]
+<set:pos_zhang>:PG[9,9]
+[张安翔]:【9,9】
+
+# 以坐标位置设置
+<set:pos_zhang>:(123,123)
+# 以Pos对象设置
+<set:pos_zhang>:Pos(123,123)
+<set:pos_zhang>:pos_kp
+# 以Pos计算式设置
+<set:pos_zhang>:pos_zhang + (123,123)
+<set:pos_zhang>:pos_zhang - Pos(123,123)
+<set:pos_zhang>:-pos_zhang
+<set:pos_zhang>:(50*np.sin(30/180*np.pi),50*np.cos(30/180*np.pi))
+# 以PosGrid设置
+<set:pos_zhang>:PG[5,5]
 
 [旁白]<black>:———————演示结束——————
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.13.2'
+edtion = 'alpha 1.13.4'
 
 # 外部参数输入
 
@@ -112,6 +112,9 @@ import re
 import time #开发模式，显示渲染帧率
 import glob # 匹配路径
 
+# 自由点
+from FreePos import *
+
 # 类定义 alpha 1.11.0
 
 # 文字对象
@@ -174,11 +177,14 @@ class Bubble:
             self.media.fill((0,0,0,0))
         else:
             self.media = pygame.image.load(filepath)
-        self.pos = pos
+        if type(pos) in [Pos,FreePos]:
+            self.pos = pos
+        else:
+            self.pos = Pos(*pos)
         self.MainText = Main_Text
-        self.mt_pos = mt_pos
+        self.mt_pos = mt_pos # 只可以是tuple
         self.Header = Header_Text
-        self.ht_pos = ht_pos
+        self.ht_pos = ht_pos # 只可以是tuple or list tuple
         self.target = ht_target
         if line_distance >= 1:
             self.line_distance = line_distance
@@ -191,12 +197,15 @@ class Bubble:
             self.align = align
         else:
             raise MediaError('[31m[BubbleError]:[0m', 'Unsupported align:',align)
-    def display(self,surface,text,header='',alpha=100,adjust='NA'):
-        if adjust in ['0,0','NA']:
-            render_pos = self.pos
+    def display(self,surface,text,header='',alpha=100,center='NA',adjust='NA'):
+        if center == 'NA':
+            render_center = self.pos
         else:
-            adx,ady = split_xy(adjust)
-            render_pos = (self.pos[0]+adx,self.pos[1]+ady)
+            render_center = Pos(*eval(center))
+        if adjust in ['(0,0)','NA']:
+            render_pos = render_center
+        else:
+            render_pos = render_center + eval(adjust)
         temp = self.media.copy()
         if (self.Header!=None) & (header!=''):    # Header 有定义，且输入文本不为空
             temp.blit(self.Header.draw(header)[0],self.ht_pos)
@@ -209,7 +218,7 @@ class Bubble:
                 temp.blit(s,(x+(self.MainText.size*self.MainText.line_limit - word_w)//2,y+i*self.MainText.size*self.line_distance))
         if alpha !=100:
             temp.set_alpha(alpha/100*255)            
-        surface.blit(temp,render_pos)
+        surface.blit(temp,render_pos.get())
     def convert(self):
         self.media = self.media.convert_alpha()
 
@@ -221,12 +230,15 @@ class Balloon(Bubble):
             raise MediaError('[31m[BubbleError]:[0m', 'length of header params does not match!')
         else:
             self.header_num = len(self.Header)
-    def display(self,surface,text,header='',alpha=100,adjust='NA'):
-        if adjust in ['0,0','NA']:
-            render_pos = self.pos
+    def display(self,surface,text,header='',alpha=100,center='NA',adjust='NA'):
+        if center == 'NA':
+            render_center = self.pos
         else:
-            adx,ady = split_xy(adjust)
-            render_pos = (self.pos[0]+adx,self.pos[1]+ady)
+            render_center = Pos(*eval(center))
+        if adjust in ['(0,0)','NA']:
+            render_pos = render_center
+        else:
+            render_pos = render_center + eval(adjust)
         temp = self.media.copy()
         # 复合header用|作为分隔符
         header_texts = header.split('|')
@@ -246,7 +258,7 @@ class Balloon(Bubble):
                 temp.blit(s,(x+(self.MainText.size*self.MainText.line_limit - word_w)//2,y+i*self.MainText.size*self.line_distance))
         if alpha !=100:
             temp.set_alpha(alpha/100*255)            
-        surface.blit(temp,render_pos)
+        surface.blit(temp,render_pos.get())
 
 # 背景图片
 class Background:
@@ -256,19 +268,25 @@ class Background:
             self.media.fill(cmap[filepath])
         else:
             self.media = pygame.image.load(filepath)
-        self.pos = pos
-    def display(self,surface,alpha=100,adjust='NA'):
-        if adjust in ['0,0','NA']:
-            render_pos = self.pos
+        if type(pos) in [Pos,FreePos]:
+            self.pos = pos
         else:
-            adx,ady = split_xy(adjust)
-            render_pos = (self.pos[0]+adx,self.pos[1]+ady)
+            self.pos = Pos(*pos)
+    def display(self,surface,alpha=100,center='NA',adjust='NA'):
+        if center == 'NA':
+            render_center = self.pos
+        else:
+            render_center = Pos(*eval(center))
+        if adjust in ['(0,0)','NA']:
+            render_pos = render_center
+        else:
+            render_pos = render_center + eval(adjust)
         if alpha !=100:
             temp = self.media.copy()
             temp.set_alpha(alpha/100*255)
-            surface.blit(temp,render_pos)
+            surface.blit(temp,render_pos.get())
         else:
-            surface.blit(self.media,render_pos)
+            surface.blit(self.media,render_pos.get())
     def convert(self):
         self.media = self.media.convert_alpha()
 
@@ -280,23 +298,29 @@ class Animation:
         if self.length == 0:
             raise MediaError('[31m[AnimationError]:[0m','Cannot find file match',filepath)
         self.media = np.frompyfunc(pygame.image.load,1,1)(file_list)
-        self.pos = pos
+        if type(pos) in [Pos,FreePos]:
+            self.pos = pos
+        else:
+            self.pos = Pos(*pos)
         self.loop = loop
         self.this = 0
         self.tick = tick
-    def display(self,surface,alpha=100,adjust='NA',frame=0):
+    def display(self,surface,alpha=100,center='NA',adjust='NA',frame=0):
         self.this = frame
-        if adjust in ['0,0','NA']:
-            render_pos = self.pos
+        if center == 'NA':
+            render_center = self.pos
         else:
-            adx,ady = split_xy(adjust)
-            render_pos = (self.pos[0]+adx,self.pos[1]+ady)
+            render_center = Pos(*eval(center))
+        if adjust in ['(0,0)','NA']:
+            render_pos = render_center
+        else:
+            render_pos = render_center + eval(adjust)
         if alpha !=100:
             temp = self.media[int(self.this)].copy()
             temp.set_alpha(alpha/100*255)
-            surface.blit(temp,render_pos)
+            surface.blit(temp,render_pos.get())
         else:
-            surface.blit(self.media[int(self.this)],render_pos)
+            surface.blit(self.media[int(self.this)],render_pos.get())
     def get_tick(self,duration): # 1.8.0
         if self.length > 1: # 如果length > 1 说明是多帧的动画！
             tick_lineline = (np.arange(0,duration if self.loop else self.length,1/self.tick)[0:duration]%(self.length))
@@ -345,7 +369,7 @@ class BuiltInAnimation(Animation):
             nx,ny = nametx_surf.get_size() # 名牌尺寸
             # 开始制图
             if layer==0: # 底层 阴影图
-                self.pos = ((screensize[0]-max(nx,total_heart))/2,(4/5*screensize[1]-hy-ny)/2)
+                self.pos = Pos((screensize[0]-max(nx,total_heart))/2,(4/5*screensize[1]-hy-ny)/2)
                 canvas = pygame.Surface((max(nx,total_heart),hy+ny+screensize[1]//5),pygame.SRCALPHA)
                 canvas.fill((0,0,0,0))
                 if nx > total_heart:
@@ -367,7 +391,7 @@ class BuiltInAnimation(Animation):
                     left_heart_shape = heart_shape.subsurface((0,0,int(hx/2),hy))
                     canvas.blit(left_heart_shape,(total_heart-int(hx/2),posy))
             elif layer==1: # 剩余的血量
-                self.pos = ((screensize[0]-total_heart)/2,3/5*screensize[1]+ny/2-hy/2)
+                self.pos = Pos((screensize[0]-total_heart)/2,3/5*screensize[1]+ny/2-hy/2)
                 canvas = pygame.Surface((left_heart,hy),pygame.SRCALPHA)
                 canvas.fill((0,0,0,0))
                 posx,posy = 0,0
@@ -383,7 +407,7 @@ class BuiltInAnimation(Animation):
                     left_heart = heart.subsurface((0,0,int(hx/2),hy))
                     canvas.blit(left_heart,(heart_end//2*(hx + distance),0))
             elif layer==2: # 损失/恢复的血量
-                self.pos = (heart_end//2*(hx + distance)+(heart_end%2)*int(hx/2)+(screensize[0]-total_heart)/2,3/5*screensize[1]+ny/2-hy/2)
+                self.pos = Pos(heart_end//2*(hx + distance)+(heart_end%2)*int(hx/2)+(screensize[0]-total_heart)/2,3/5*screensize[1]+ny/2-hy/2)
                 canvas = pygame.Surface((lost_heart,hy),pygame.SRCALPHA)
                 canvas.fill((0,0,0,0))
                 posx,posy = 0,0
@@ -464,7 +488,7 @@ class BuiltInAnimation(Animation):
                         cx,cy = check_surf.get_size()
                         canvas.blit(check_surf,(int(0.7292*screensize[0]),y_anchor+i*y_unit+(y_unit-cy)//2)) # 0.7292*screensize[0] = 1400
                 self.media = np.array([canvas])
-                self.pos = (0,0)
+                self.pos = Pos(0,0)
                 self.tick = 1
                 self.loop = 1
             elif layer==1:
@@ -503,7 +527,7 @@ class BuiltInAnimation(Animation):
                         #canvas[t].blit(slot_surf[t],(int(0.1458*screensize[0]-dx-0.0278*screensize[1]),(l+1)*y_unit-dy-int(0.0278*screensize[1]))) #0.0278*screensize[1] = 30
                         canvas[t].blit(slot_surf[t],(int(0.1458*screensize[0]-dx-0.0278*screensize[1]),l*y_unit+(y_unit-dy)//2))
                 self.media = np.array(canvas)
-                self.pos = (int(0.5833*screensize[0]),y_anchor)
+                self.pos = Pos(int(0.5833*screensize[0]),y_anchor)
                 self.tick = 1
                 self.loop = 1
             elif layer==2:
@@ -524,7 +548,7 @@ class BuiltInAnimation(Animation):
                     #canvas.blit(face_surf,(int(0.1458*screensize[0]-fx-0.0278*screensize[1]),(i+1)*y_unit-fy-int(0.0278*screensize[1])))
                     canvas.blit(face_surf,(int(0.1458*screensize[0]-fx-0.0278*screensize[1]),i*y_unit+(y_unit-fy)//2))
                 self.media = np.array([canvas])
-                self.pos = (int(0.5833*screensize[0]),y_anchor) # 0.5833*screensize[0] = 1120
+                self.pos = Pos(int(0.5833*screensize[0]),y_anchor) # 0.5833*screensize[0] = 1120
                 self.tick = 1
                 self.loop = 1
             else:
@@ -600,9 +624,9 @@ python3 = sys.executable.replace('\\','/') # 获取python解释器的路径
 cmap = {'black':(0,0,0,255),'white':(255,255,255,255),'greenscreen':(0,177,64,255),'notetext':(118,185,0,255)}
 #render_arg = ['BG1','BG1_a','BG2','BG2_a','BG3','BG3_a','Am1','Am1_a','Am2','Am2_a','Am3','Am3_a','Bb','Bb_main','Bb_header','Bb_a']
 #render_arg = ['BG1','BG1_a','BG2','BG2_a','BG3','BG3_a','Am1','Am1_a','Am2','Am2_a','Am3','Am3_a','Bb','Bb_main','Bb_header','Bb_a','BGM','Voice','SE']
-render_arg = ['section','BG1','BG1_a','BG1_p','BG2','BG2_a','BG2_p','BG3','BG3_a','BG3_p',
-              'Am1','Am1_t','Am1_a','Am1_p','Am2','Am2_t','Am2_a','Am2_p','Am3','Am3_t','Am3_a','Am3_p',
-              'Bb','Bb_main','Bb_header','Bb_a','Bb_p','BGM','Voice','SE']
+render_arg = ['section','BG1','BG1_a','BG1_c','BG1_p','BG2','BG2_a','BG2_c','BG2_p','BG3','BG3_a','BG3_c','BG3_p',
+              'Am1','Am1_t','Am1_a','Am1_c','Am1_p','Am2','Am2_t','Am2_a','Am2_c','Am2_p','Am3','Am3_t','Am3_a','Am3_c','Am3_p',
+              'Bb','Bb_main','Bb_header','Bb_a','Bb_c','Bb_p','BGM','Voice','SE']
 # 1.6.3 Am的更新，再新增一列，动画的帧！
 # 被占用的变量名 # 1.7.7
 occupied_variable_name = open('./media/occupied_variable_name.list','r',encoding='utf8').read().split('\n')
@@ -738,12 +762,7 @@ def alpha_range(x):
         return x
 
 # UF : 将2个向量组合成"x,y"的形式
-concat_xy = np.frompyfunc(lambda x,y:'%d'%x+','+'%d'%y,2,1)
-
-# 把拼接起来的修正位置分隔开
-def split_xy(concated):
-    x,y = concated.split(',')
-    return int(x),int(y)
+concat_xy = np.frompyfunc(lambda x,y:'('+'%d'%x+','+'%d'%y+')',2,1)
 
 # 处理am和bb类的动态切换效果
 def am_methods(method_name,method_dur,this_duration,i):
@@ -917,9 +936,11 @@ def parser(stdin_text):
                     # 动画帧的参数（tick）
                     if (this_am!=this_am) | (this_am=='NA'):# this_am 可能为空的，需要先处理这种情况！
                         this_timeline['Am'+str(k+1)+'_t'] = 0
+                        this_timeline['Am'+str(k+1)+'_c'] = 'NA'
                     else:
                         try:
                             this_timeline['Am'+str(k+1)+'_t'] = eval('{am}.get_tick({dur})'.format(am=this_am,dur=this_duration))
+                            this_timeline['Am'+str(k+1)+'_c'] = str(eval(this_am+'.pos'))
                         except NameError as E: # 指定的am没有定义！
                             raise ParserError('[31m[ParserError]:[0m',E,', which is specified to',name+subtype,'as Animation!')
                     # 透明度参数（alpha）
@@ -975,6 +996,7 @@ def parser(stdin_text):
                         this_timeline['Bb_header'] = target_text
                         this_timeline['Bb_a'] = alpha_timeline_B*100
                         this_timeline['Bb_p'] = pos_timeline_B
+                        this_timeline['Bb_c'] = str(eval(this_bb+'.pos'))
 
                 # 文字显示的参数
                 if text_method == 'all':
@@ -1040,16 +1062,21 @@ def parser(stdin_text):
                     this_timeline=pd.DataFrame(index=range(0,method_dur),dtype=str,columns=render_arg)
                     this_timeline['BG1']=next_background
                     this_timeline['BG1_a']=100
+                    this_timeline['BG1_c']=str(eval(next_background+'.pos'))
                 elif method=='delay': # delay 等价于原来的replace，延后n秒，然后替换
                     this_timeline=pd.DataFrame(index=range(0,method_dur),dtype=str,columns=render_arg)
                     this_timeline['BG1']=this_background
                     this_timeline['BG1_a']=100
+                    this_timeline['BG1_c']=str(eval(this_background+'.pos'))
                 elif method in ['cross','black','white','push','cover']: # 交叉溶解，黑场，白场，推，覆盖
                     this_timeline=pd.DataFrame(index=range(0,method_dur),dtype=str,columns=render_arg)
                     this_timeline['BG1']=next_background
+                    this_timeline['BG1_c']=str(eval(next_background+'.pos'))
                     this_timeline['BG2']=this_background
+                    this_timeline['BG2_c']=str(eval(this_background+'.pos'))
                     if method in ['black','white']:
                         this_timeline['BG3']=method
+                        this_timeline['BG3_c']='(0,0)'
                         this_timeline['BG1_a']=formula(-100,100,method_dur)
                         this_timeline['BG1_a']=this_timeline['BG1_a'].map(alpha_range)
                         this_timeline['BG2_a']=formula(100,-100,method_dur)
@@ -1150,6 +1177,12 @@ def parser(stdin_text):
                     # 如果超过4个指定项目，无法解析，抛出ParserError(不被支持的参数)
                     else:
                         raise ParserError('[31m[ParserError]:[0m Unsupported setting "'+target+'" is specified in setting line ' + str(i+1)+'.')
+                # 重定位FreePos
+                elif type(eval(target)) is FreePos:
+                    try:
+                        eval(target).set(eval(args))
+                    except Exception as E:
+                        raise ParserError('[31m[ParserError]:[0m Invalid Syntax \''+args+'\' appeared  while repositioning FreePos object \''+target+'\', due to:',E)
                 # 不被支持的参数
                 else:
                     raise ParserError('[31m[ParserError]:[0m Unsupported setting "'+target+'" is specified in setting line ' + str(i+1)+'.')
@@ -1318,25 +1351,30 @@ def render(this_frame):
             raise RuntimeError('[31m[RenderError]:[0m Undefined media object : "'+this_frame[layer]+'".')
         elif layer[0:2] == 'BG':
             try:
-                exec('{0}.display(surface=screen,alpha={1},adjust={2})'.format(this_frame[layer],this_frame[layer+'_a'],'\"'+this_frame[layer+'_p']+'\"'))
+                exec('{0}.display(surface=screen,alpha={1},adjust={2},center={3})'.format(this_frame[layer],
+                                                                                          this_frame[layer+'_a'],
+                                                                                          '\"'+this_frame[layer+'_p']+'\"',
+                                                                                          '\"'+this_frame[layer+'_c']+'\"'))
             except Exception:
                 raise RuntimeError('[31m[RenderError]:[0m Failed to render "'+this_frame[layer]+'" as Background.')
         elif layer[0:2] == 'Am': # 兼容H_LG1(1)这种动画形式 alpha1.6.3
             try:
-                exec('{0}.display(surface=screen,alpha={1},adjust={2},frame={3})'.format(
+                exec('{0}.display(surface=screen,alpha={1},adjust={2},frame={3},center={4})'.format(
                                                                                          this_frame[layer],
                                                                                          this_frame[layer+'_a'],
                                                                                          '\"'+this_frame[layer+'_p']+'\"',
-                                                                                         this_frame[layer+'_t']))
+                                                                                         this_frame[layer+'_t'],
+                                                                                         '\"'+this_frame[layer+'_c']+'\"'))
             except Exception:
                 raise RuntimeError('[31m[RenderError]:[0m Failed to render "'+this_frame[layer]+'" as Animation.')
         elif layer == 'Bb':
             try:
-                exec('{0}.display(surface=screen,text={2},header={3},alpha={1},adjust={4})'.format(this_frame[layer],
+                exec('{0}.display(surface=screen,text={2},header={3},alpha={1},adjust={4},center={5})'.format(this_frame[layer],
                                                                                                    this_frame[layer+'_a'],
                                                                                                    '\"'+this_frame[layer+'_main']+'\"',
                                                                                                    '\"'+this_frame[layer+'_header']+'\"',
-                                                                                                   '\"'+this_frame[layer+'_p']+'\"'))
+                                                                                                   '\"'+this_frame[layer+'_p']+'\"',
+                                                                                                   '\"'+this_frame[layer+'_c']+'\"'))
             except Exception:
                 raise RuntimeError('[31m[RenderError]:[0m Failed to render "'+this_frame[layer]+'" as Bubble.')
     for key in ['BGM','Voice','SE']:

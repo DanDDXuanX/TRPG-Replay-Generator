@@ -1,6 +1,6 @@
-Name	Subtype	Animation	Bubble	Voice	Header
-张安翔	default	zhang	bubble1	sicheng	Init
-张安翔	scared	zhang_scared	bubble1	sicheng	Init
-KP	default	drink	bubble1_right	Azure::zh-CN-XiaomoNeural	Init
-KP	double	drink_left	bubble1	Azure::zh-CN-XiaomoNeural	Init
-旁白	default	NA	bubble2	NA	Init
+Name	Subtype	Animation	Bubble	Voice	Header	Pos
+张安翔	default	zhang	bubble1	sicheng	Init	Init
+张安翔	scared	zhang_scared	bubble1	sicheng	Init	Init
+KP	default	drink	bubble1_right	Azure::zh-CN-XiaomoNeural	Init	Init
+KP	double	drink_left	bubble1	Azure::zh-CN-XiaomoNeural	Init	Init
+旁白	default	NA	bubble2	NA	Init	Init

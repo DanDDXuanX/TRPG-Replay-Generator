@@ -4,3 +4,4 @@ media/preview_tempfile.wav
 *.timeline
 *.breakpoint
 *.exe
+__pycache__/*
