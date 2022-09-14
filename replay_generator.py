@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.13.4'
+edtion = 'alpha 1.13.5'
 
 # 外部参数输入
 
@@ -1514,9 +1514,9 @@ print('[replay generator]: Loading charactor table.')
 
 try:
     if char_tab.split('.')[-1] in ['xlsx','xls']:
-        charactor_table = pd.read_excel(char_tab,dtype = str) # 支持excel格式的角色配置表
+        charactor_table = pd.read_excel(char_tab,dtype = str).fillna('NA') # 支持excel格式的角色配置表
     else:
-        charactor_table = pd.read_csv(char_tab,sep='\t',dtype = str)
+        charactor_table = pd.read_csv(char_tab,sep='\t',dtype = str).fillna('NA')
     charactor_table.index = charactor_table['Name']+'.'+charactor_table['Subtype']
     if ('Animation' not in charactor_table.columns) | ('Bubble' not in charactor_table.columns): # 139debug
         raise SyntaxError('missing necessary columns.')
