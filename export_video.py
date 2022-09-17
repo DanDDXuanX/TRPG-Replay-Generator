@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.13.4'
+edtion = 'alpha 1.13.5'
 
 # 外部参数输入
 
@@ -74,7 +74,7 @@ import glob # 匹配路径
 import re
 
 # 自由点
-from FreePos import *
+from FreePos import Pos,FreePos,PosGrid
 
 # 类定义 alpha 1.11.0
 
@@ -132,7 +132,7 @@ class StrokeText(Text):
 # 对话框、气泡、文本框
 class Bubble:
     def __init__(self,filepath=None,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),ht_pos=(0,0),ht_target='Name',align='left',line_distance=1.5,label_color='Lavender'):
-        if filepath is None: # 支持气泡图缺省
+        if filepath is None or filepath == 'None': # 支持气泡图缺省
             # 媒体设为空图
             self.media = pygame.Surface(screen_size,pygame.SRCALPHA)
             self.media.fill((0,0,0,0))
@@ -291,6 +291,51 @@ class Animation:
         return tick_lineline
     def convert(self):
         self.media = np.frompyfunc(lambda x:x.convert_alpha(),1,1)(self.media)
+
+# a 1.13.5 组合立绘，Animation类的子类，组合立绘只能是静态立绘！
+class GroupedAnimation(Animation):
+    def __init__(self,subanimation_list,subanimation_current_pos=None,label_color='Mango'):
+        # 新建画板，尺寸为全屏
+        canvas_surface = pygame.Surface(screen_size,pygame.SRCALPHA)
+        canvas_surface.fill((0,0,0,0))
+        # 如果外部未指定位置参数，则使用子Animation类的自身的pos
+        if subanimation_current_pos is None:
+            subanimation_current_pos = [None]*len(subanimation_list)
+        # 如果指定的位置参数和子Animation的数量不一致，报出报错
+        elif len(subanimation_current_pos) != len(subanimation_list):
+            raise MediaError('[31m[AnimationError]:[0m','length of subanimation params does not match!')
+        # 开始在画板上绘制立绘
+        else:
+            # 越后面的位于越上层的图层
+            # [zhang,drink_left] [(0,0),(0,0)] # list of Animation/str | list of tuple/str
+            for am_name,am_pos in zip(subanimation_list,subanimation_current_pos):
+                try:
+                    if type(am_name) in [Animation,BuiltInAnimation,GroupedAnimation]:
+                        subanimation = am_name
+                    else: # type(am_name) is str
+                        subanimation = eval(am_name)
+                except NameError as E:
+                    raise MediaError('[31m[AnimationError]:[0m','The Animation "'+ am_name +'" is not defined, which was tried to group into GroupedAnimation!')
+                if subanimation.length > 1:
+                    raise MediaError('[31m[AnimationError]:[0m','Trying to group a dynamic Animation "'+ am_name +'" into GroupedAnimation!')
+                else:
+                    if am_pos is None:
+                        subanimation.display(canvas_surface)
+                    else:
+                        # 为什么需要指定center呢？是因为，如果使用了FreePos，pos在parser的进度中，可能会变动。
+                        # 正常来说，每个立绘的实时pos被记录在了timeline上，在render的时候，不采用本身的pos
+                        # 在主程序中，GroupedAnimation的定义发生在parser中，因此位置准确
+                        # 但是，在导出时，只能通过BIA的形式传递给导出模块。
+                        # 如果BIA的参数中没有包括每个子Animation的准确位置，就会一律使用初始化位置
+                        # （因为导出模块没有parser，FreePos类都停留在初始化位置）
+                        subanimation.display(canvas_surface,center=str(am_pos)) # am_pos = "(0,0)"
+        # 初始化
+        self.length = 1
+        self.media = np.array([canvas_surface])
+        self.pos = Pos(0,0)
+        self.loop = 0
+        self.this = 0
+        self.tick = 1
 
 # a1.7.5 内建动画，Animation类的子类
 class BuiltInAnimation(Animation):
@@ -696,11 +741,12 @@ for tr in tracks:
                 end = BGM_clips[i+1][1]
             except IndexError:
                 end = break_point.values.max()
-            #print(begin,end)
-            this_Track = this_Track.overlay(pydub.AudioSegment.silent(duration=int((end-begin)/frame_rate*1000),
-                                                              frame_rate=48000).overlay(eval(voice+'.media')
-                                                                                        ,loop=True),
-                                    position = int(begin/frame_rate*1000))
+            # print(begin,end)
+            # 这里似乎是有，BGM不正常循环的bug！！！！！！！！！！
+            this_Track = this_Track.overlay(
+                pydub.AudioSegment.silent(duration=int((end-begin)/frame_rate*1000),frame_rate=48000).overlay(eval(voice+'.media'),loop=eval(voice+'.loop')),
+                position = int(begin/frame_rate*1000)
+                )
     else:
         for item in parse_timeline(tr):
             voice,begin,drop = item

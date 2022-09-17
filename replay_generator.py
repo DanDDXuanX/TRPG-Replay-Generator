@@ -19,7 +19,7 @@ ap.add_argument("-F", "--FramePerSecond", help='Set the FPS of display, default 
 ap.add_argument("-W", "--Width", help='Set the resolution of display, default is 1920, larger than this may cause lag.',type=int,default=1920)
 ap.add_argument("-H", "--Height", help='Set the resolution of display, default is 1080, larger than this may cause lag.',type=int,default=1080)
 ap.add_argument("-Z", "--Zorder", help='Set the display order of layers, not recommended to change the values unless necessary!',type=str,
-                default='BG3,BG2,BG1,Am3,Am2,Am1,Bb')
+                default='BG3,BG2,BG1,Am3,Am2,Am1,AmS,Bb,BbS')
 # 用于语音合成的key
 ap.add_argument("-K", "--AccessKey", help='Your AccessKey, to use with --SynthsisAnyway',type=str,default="Your_AccessKey")
 ap.add_argument("-S", "--AccessKeySecret", help='Your AccessKeySecret, to use with --SynthsisAnyway',type=str,default="Your_AccessKey_Secret")
@@ -45,6 +45,8 @@ def system_terminated(exit_type='Error'):
                   'End':'Display finished!'}
     print('[replay generator]: '+exit_print[exit_type])
     if exit_type == 'Error':
+        import traceback
+        traceback.print_exc()
         sys.exit(1) # 错误退出的代码
     else:
         sys.exit(0) # 正常退出的代码
@@ -113,7 +115,7 @@ import time #开发模式，显示渲染帧率
 import glob # 匹配路径
 
 # 自由点
-from FreePos import *
+from FreePos import Pos,FreePos,PosGrid
 
 # 类定义 alpha 1.11.0
 
@@ -171,7 +173,7 @@ class StrokeText(Text):
 # 对话框、气泡、文本框
 class Bubble:
     def __init__(self,filepath=None,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),ht_pos=(0,0),ht_target='Name',align='left',line_distance=1.5,label_color='Lavender'):
-        if filepath is None: # 支持气泡图缺省
+        if filepath is None or filepath == 'None': # 支持气泡图缺省
             # 媒体设为空图
             self.media = pygame.Surface(screen_size,pygame.SRCALPHA)
             self.media.fill((0,0,0,0))
@@ -330,6 +332,51 @@ class Animation:
         return tick_lineline
     def convert(self):
         self.media = np.frompyfunc(lambda x:x.convert_alpha(),1,1)(self.media)
+
+# a 1.13.5 组合立绘，Animation类的子类，组合立绘只能是静态立绘！
+class GroupedAnimation(Animation):
+    def __init__(self,subanimation_list,subanimation_current_pos=None,label_color='Mango'):
+        # 新建画板，尺寸为全屏
+        canvas_surface = pygame.Surface(screen_size,pygame.SRCALPHA)
+        canvas_surface.fill((0,0,0,0))
+        # 如果外部未指定位置参数，则使用子Animation类的自身的pos
+        if subanimation_current_pos is None:
+            subanimation_current_pos = [None]*len(subanimation_list)
+        # 如果指定的位置参数和子Animation的数量不一致，报出报错
+        elif len(subanimation_current_pos) != len(subanimation_list):
+            raise MediaError('[31m[AnimationError]:[0m','length of subanimation params does not match!')
+        # 开始在画板上绘制立绘
+        else:
+            # 越后面的位于越上层的图层
+            # [zhang,drink_left] [(0,0),(0,0)] # list of Animation/str | list of tuple/str
+            for am_name,am_pos in zip(subanimation_list,subanimation_current_pos):
+                try:
+                    if type(am_name) in [Animation,BuiltInAnimation,GroupedAnimation]:
+                        subanimation = am_name
+                    else: # type(am_name) is str
+                        subanimation = eval(am_name)
+                except NameError as E:
+                    raise MediaError('[31m[AnimationError]:[0m','The Animation "'+ am_name +'" is not defined, which was tried to group into GroupedAnimation!')
+                if subanimation.length > 1:
+                    raise MediaError('[31m[AnimationError]:[0m','Trying to group a dynamic Animation "'+ am_name +'" into GroupedAnimation!')
+                else:
+                    if am_pos is None:
+                        subanimation.display(canvas_surface)
+                    else:
+                        # 为什么需要指定center呢？是因为，如果使用了FreePos，pos在parser的进度中，可能会变动。
+                        # 正常来说，每个立绘的实时pos被记录在了timeline上，在render的时候，不采用本身的pos
+                        # 在主程序中，GroupedAnimation的定义发生在parser中，因此位置准确
+                        # 但是，在导出时，只能通过BIA的形式传递给导出模块。
+                        # 如果BIA的参数中没有包括每个子Animation的准确位置，就会一律使用初始化位置
+                        # （因为导出模块没有parser，FreePos类都停留在初始化位置）
+                        subanimation.display(canvas_surface,center=str(am_pos)) # am_pos = "(0,0)"
+        # 初始化
+        self.length = 1
+        self.media = np.array([canvas_surface])
+        self.pos = Pos(0,0)
+        self.loop = 0
+        self.this = 0
+        self.tick = 1
 
 # a1.7.5 内建动画，Animation类的子类
 class BuiltInAnimation(Animation):
@@ -604,7 +651,8 @@ class MediaError(ParserError):
 # 正则表达式定义
 
 RE_dialogue = re.compile('^\[([\ \w\.\;\(\)\,]+)\](<[\w\=\d]+>)?:(.+?)(<[\w\=\d]+>)?({.+})?$')
-RE_background = re.compile('^<background>(<[\w\=]+>)?:(.+)$')
+RE_placeobj = re.compile('^<(background|animation|bubble)>(<[\w\=]+>)?:(.+)$')
+RE_bubble = re.compile('(\w+)\("([^\\"]*)","([^\\"]*)",?(<[\w\=]+>)?\)')
 RE_setting = re.compile('^<set:([\w\ \.]+)>:(.+)$')
 RE_characor = re.compile('([\w\ ]+)(\(\d*\))?(\.\w+)?')
 RE_modify = re.compile('<(\w+)(=\d+)?>')
@@ -612,6 +660,7 @@ RE_sound = re.compile('({.+?})')
 RE_asterisk = re.compile('(\{([^\{\}]*?[;])?\*([\w\ \.\,，。：？！“”]*)?\})') # v 1.11.4 音频框分隔符只能用; *后指定可以有空格
 RE_hitpoint = re.compile('<hitpoint>:\((.+?),(\d+),(\d+),(\d+)\)') # a 1.6.5 血条预设动画
 RE_dice = re.compile('\((.+?),(\d+),([\d]+|NA),(\d+)\)') # a 1.7.5 骰子预设动画，老虎机
+
 #RE_asterisk = re.compile('(\{([^\{\}]*?[,;])?\*([\w\.\,，。：？！“”]*)?\})') # v 1.8.7 给星标后文本额外增加几个可用的中文符号
 #RE_asterisk = re.compile('(\{([^\{\}]*?[,;])?\*([\w\.\,，]*)?\})') # v 1.7.3 修改匹配模式以匹配任何可能的字符（除了花括号）
 #RE_asterisk = re.compile('\{\w+[;,]\*(\d+\.?\d*)\}') # 这种格式对于{path;*time的}的格式无效！
@@ -622,12 +671,18 @@ RE_dice = re.compile('\((.+?),(\d+),([\d]+|NA),(\d+)\)') # a 1.7.5 骰子预设�
 python3 = sys.executable.replace('\\','/') # 获取python解释器的路径
 
 cmap = {'black':(0,0,0,255),'white':(255,255,255,255),'greenscreen':(0,177,64,255),'notetext':(118,185,0,255)}
-#render_arg = ['BG1','BG1_a','BG2','BG2_a','BG3','BG3_a','Am1','Am1_a','Am2','Am2_a','Am3','Am3_a','Bb','Bb_main','Bb_header','Bb_a']
-#render_arg = ['BG1','BG1_a','BG2','BG2_a','BG3','BG3_a','Am1','Am1_a','Am2','Am2_a','Am3','Am3_a','Bb','Bb_main','Bb_header','Bb_a','BGM','Voice','SE']
-render_arg = ['section','BG1','BG1_a','BG1_c','BG1_p','BG2','BG2_a','BG2_c','BG2_p','BG3','BG3_a','BG3_c','BG3_p',
-              'Am1','Am1_t','Am1_a','Am1_c','Am1_p','Am2','Am2_t','Am2_a','Am2_c','Am2_p','Am3','Am3_t','Am3_a','Am3_c','Am3_p',
-              'Bb','Bb_main','Bb_header','Bb_a','Bb_c','Bb_p','BGM','Voice','SE']
-# 1.6.3 Am的更新，再新增一列，动画的帧！
+
+# section:小节号, BG: 背景，Am：立绘，Bb：气泡，BGM：背景音乐，Voice：语音，SE：音效
+render_arg = [
+    'section',
+    'BG1','BG1_a','BG1_c','BG1_p','BG2','BG2_a','BG2_c','BG2_p','BG3','BG3_a','BG3_c','BG3_p',
+    'Am1','Am1_t','Am1_a','Am1_c','Am1_p','Am2','Am2_t','Am2_a','Am2_c','Am2_p','Am3','Am3_t','Am3_a','Am3_c','Am3_p',
+    'AmS','AmS_t','AmS_a','AmS_c','AmS_p',
+    'Bb','Bb_main','Bb_header','Bb_a','Bb_c','Bb_p',
+    'BbS','BbS_main','BbS_header','BbS_a','BbS_c','BbS_p',
+    'BGM','Voice','SE'
+    ]
+
 # 被占用的变量名 # 1.7.7
 occupied_variable_name = open('./media/occupied_variable_name.list','r',encoding='utf8').read().split('\n')
 
@@ -725,19 +780,29 @@ def get_dialogue_arg(text):
     return (this_charactor,this_duration,am_method,am_dur,bb_method,bb_dur,ts,text_method,text_dur,this_sound)
 
 # 解析背景行 <background>
-def get_background_arg(text):
+def get_placeobj_arg(text):
     try:
-        bge,bgc = RE_background.findall(text)[0]
+        obj_type,obje,objc = RE_placeobj.findall(text)[0]
     except IndexError:
-        raise ParserError("[31m[ParserError]:[0m","Unable to parse as background line, due to invalid syntax!")
-    if bge=='':
-        bge = bg_method_default
-    method,method_dur = RE_modify.findall(bge)[0]
+        raise ParserError("[31m[ParserError]:[0m","Unable to parse as " + obj_type + " line, due to invalid syntax!")
+    if obje=='':
+        if obj_type == 'background':
+            obje = bg_method_default
+        elif obj_type == 'bubble':
+            obje = bb_method_default
+        else: # obj_type == 'animation'
+            obje = am_method_default
+    method,method_dur = RE_modify.findall(obje)[0]
     if method_dur == '':
-        method_dur = bg_dur_default
+        if obj_type == 'background':
+            method_dur = bg_dur_default
+        elif obj_type == 'bubble':
+            method_dur = bb_dur_default
+        else: # obj_type == 'animation'
+            method_dur = am_dur_default
     else:
         method_dur = int(method_dur.replace('=',''))
-    return (bgc,method,method_dur)
+    return (objc,method,method_dur)
 
 # 解释设置行 <set:>
 def get_seting_arg(text):
@@ -860,14 +925,19 @@ def am_methods(method_name,method_dur,this_duration,i):
 
 # 解析函数
 def parser(stdin_text):
-    # 断点
     global formula
-    break_point = pd.Series(index=range(0,len(stdin_text)),dtype=int)
-    break_point[0]=0
+    # 断点文件
+    break_point = pd.Series(0,index=range(0,len(stdin_text)),dtype=int)
+    # break_point[0]=0
     # 视频+音轨 时间轴
-    render_timeline = []
+    render_timeline = pd.DataFrame(dtype=str,columns=render_arg)
     BGM_queue = []
+    # 当前背景、放置立绘、放置气泡
     this_background = "black"
+    last_placed_animation_section = 0
+    this_placed_animation = ('NA','replace',0,'NA') # am,method,method_dur,center
+    last_placed_bubble_section = 0
+    this_placed_bubble = 'NA' # bb,method,method_dur,MT,HT,tx_method,tx_dur
     # 内建的媒体，主要指BIA
     bulitin_media = {}
 
@@ -881,7 +951,7 @@ def parser(stdin_text):
             break_point[i+1]=break_point[i]
             continue
         # 对话行 格式： [角色1,角色2(30).happy]<replace=30>:巴拉#巴拉#巴拉<w2w=1>
-        elif text[0] == '[':
+        elif (text[0] == '[') & (']' in text):
             try:
                 # 从ts长度预设的 this_duration
                 this_charactor,this_duration,am_method,am_dur,bb_method,bb_dur,ts,text_method,text_dur,this_sound = get_dialogue_arg(text)
@@ -1017,8 +1087,6 @@ def parser(stdin_text):
                 else:
                     raise ParserError('[31m[ParserError]:[0m Unrecognized text display method: "'+text_method+'" appeared in dialogue line ' + str(i+1)+'.')
                 #音频信息
-                if BGM_queue != []:
-                    this_timeline.loc[0,'BGM'] = BGM_queue.pop(0) #从BGM_queue里取出来一个
                 for sound in this_sound: #this_sound = ['{SE_obj;30}','{SE_obj;30}']
                     try:
                         se_obj,delay = sound[1:-1].split(';')#sound = '{SE_obj;30}'# 由于这个地方，音频框的分隔符号只能用分号
@@ -1043,17 +1111,22 @@ def parser(stdin_text):
                         pass
                     else:
                         raise ParserError('[31m[ParserError]:[0m The sound effect "'+se_obj+'" specified in dialogue line ' + str(i+1)+' is not exist!')
+                # BGM
+                if BGM_queue != []:
+                    this_timeline.loc[0,'BGM'] = BGM_queue.pop(0) #从BGM_queue里取第一个出来 alpha 1.13.5
+                # 时间轴延长
                 this_timeline['section'] = i
-                render_timeline.append(this_timeline)
                 break_point[i+1]=break_point[i]+this_duration
+                this_timeline.index = range(break_point[i],break_point[i+1])
+                render_timeline = pd.concat([render_timeline,this_timeline],axis=0)
                 continue
             except Exception as E:
                 print(E)
                 raise ParserError('[31m[ParserError]:[0m Parse exception occurred in dialogue line ' + str(i+1)+'.')
         # 背景设置行，格式： <background><black=30>:BG_obj
-        elif '<background>' in text:
+        elif text[0:12] == '<background>':
             try:
-                bgc,method,method_dur = get_background_arg(text)
+                bgc,method,method_dur = get_placeobj_arg(text)
                 if bgc in media_list: # 检查是否是已定义的对象
                     next_background=bgc
                 else:
@@ -1097,15 +1170,97 @@ def parser(stdin_text):
                 else:
                     raise ParserError('[31m[ParserError]:[0m Unrecognized switch method: "'+method+'" appeared in background line ' + str(i+1)+'.')
                 this_background = next_background #正式切换背景
+                # BGM
+                if BGM_queue != []:
+                    this_timeline.loc[0,'BGM'] = BGM_queue.pop(0)                
+                # 时间轴延长
                 this_timeline['section'] = i
-                render_timeline.append(this_timeline)
                 break_point[i+1]=break_point[i]+len(this_timeline.index)
+                this_timeline.index = range(break_point[i],break_point[i+1])
+                render_timeline = pd.concat([render_timeline,this_timeline],axis=0)
                 continue
             except Exception as E:
                 print(E)
                 raise ParserError('[31m[ParserError]:[0m Parse exception occurred in background line ' + str(i+1)+'.')
+        # 常驻立绘设置行，格式：<animation><black=30>:(Am_obj,Am_obj2)
+        elif text[0:11] == '<animation>':
+            # 处理上一次的
+            last_placed_index = range(break_point[last_placed_animation_section],break_point[i])
+            this_duration = len(last_placed_index)
+            this_am,am_method,am_dur,am_center = this_placed_animation
+            # 如果place的this_duration小于切换时间，则清除动态切换效果
+            if this_duration<(2*am_dur+1):
+                print('[33m[warning]:[0m','The switch method of placed animation is dropped, due to short duration!')
+                am_dur = 0
+                am_method = 'replace'
+            render_timeline.loc[last_placed_index,'AmS'] = this_am
+            # this_am 可能为空的，需要先处理这种情况！
+            if (this_am!=this_am) | (this_am=='NA'):
+                render_timeline.loc[last_placed_index,'AmS_t'] = 0
+                render_timeline.loc[last_placed_index,'AmS_a'] = 0
+                render_timeline.loc[last_placed_index,'AmS_c'] = 'NA'
+                render_timeline.loc[last_placed_index,'AmS_p'] = 'NA'
+            else:
+                alpha_timeline_A,pos_timeline_A = am_methods(am_method,am_dur,this_duration,i)
+                render_timeline.loc[last_placed_index,'AmS_a'] = alpha_timeline_A*100
+                render_timeline.loc[last_placed_index,'AmS_p'] = pos_timeline_A
+                render_timeline.loc[last_placed_index,'AmS_t'] = eval('{am}.get_tick({dur})'.format(am=this_am,dur=this_duration))
+                render_timeline.loc[last_placed_index,'AmS_c'] = am_center
+            # 获取本次的
+            try:
+                amc,method,method_dur = get_placeobj_arg(text)
+                # 获取立绘列表，检查立绘是否定义
+                if (amc[0] == '(') and (amc[-1] == ')'):
+                    amc_list = amc[1:-1].split(',')
+                    grouped_ampos = []
+                    for amo in amc_list:
+                        # 检验指定的名称是否是Animation
+                        if amo not in media_list:
+                            raise ParserError('[31m[ParserError]:[0m The Animation "'+amo+'" specified in animation line ' + str(i+1)+' is not defined!')
+                        else:
+                            grouped_ampos.append(str(eval(amo).pos))
+                    # 新建GA
+                    Auto_media_name = 'BIA_'+str(i+1)
+                    code_to_run = 'global {media_name} ;{media_name} = GroupedAnimation(subanimation_list={subanime},subanimation_current_pos={animepos})'
+                    code_to_run = code_to_run.format(media_name=Auto_media_name,subanime='['+','.join(amc_list)+']',animepos='['+','.join(grouped_ampos)+']')
+                    # print(code_to_run)
+                    # 执行
+                    exec(code_to_run)
+                    # 添加到media_list和bulitin_media
+                    media_list.append(Auto_media_name)
+                    bulitin_media[Auto_media_name] = code_to_run
+                    # 标记为下一次
+                    this_placed_animation = (Auto_media_name,method,method_dur,'(0,0)') # 因为place的应用是落后于设置的，因此需要保留c参数！
+                    last_placed_animation_section = i
+                # 只有一个立绘
+                elif amc in media_list:
+                    this_placed_animation = (amc,method,method_dur,str(eval(amc).pos))
+                    last_placed_animation_section = i
+                # 取消place立绘
+                elif amc == 'NA':
+                    this_placed_animation = ('NA','replace',0,'(0,0)')
+                    last_placed_animation_section = i
+                else:
+                    raise ParserError('[31m[ParserError]:[0m The Animation "'+amc+'" specified in animation line ' + str(i+1)+' is not defined!')
+            except Exception as E:
+                print(E)
+                raise ParserError('[31m[ParserError]:[0m Parse exception occurred in animation line ' + str(i+1)+'.')
+        # 常驻气泡设置行，格式：<bubble><black=30>:Bubble_obj("Header_text","Main_text",<text_method>)
+        elif text[0:8] == '<bubble>':
+            try:
+                bbc,method,method_dur = get_placeobj_arg(text)
+                if bbc == 'NA':
+                    pass #############################
+                else:
+                    try:
+                        this_bb,this_hd,this_tx,this_tx_method = RE_bubble.findall(bbc)[0]
+                    except IndexError:
+                        raise Exception('[31m[ParserError]:[0m The Bubble expression "'+bbc+'" specified in bubble line ' + str(i+1)+' is invalid syntax!')
+            except Exception as E:
+                print(E)
+                raise ParserError('[31m[ParserError]:[0m Parse exception occurred in bubble line ' + str(i+1)+'.')
         # 参数设置行，格式：<set:speech_speed>:220
-        elif ('<set:' in text) & ('>:' in text):
+        elif (text[0:5] == '<set:') & ('>:' in text):
             try:
                 target,args = get_seting_arg(text)
                 # 整数类型的变量
@@ -1190,7 +1345,7 @@ def parser(stdin_text):
                 print(E)
                 raise ParserError('[31m[ParserError]:[0m Parse exception occurred in setting line ' + str(i+1)+'.')
         # 预设动画，损失生命
-        elif text[0:11]=='<hitpoint>:':
+        elif text[0:11] == '<hitpoint>:':
             try:
                 # 载入参数
                 name_tx,heart_max,heart_begin,heart_end = RE_hitpoint.findall(text)[0]
@@ -1248,18 +1403,20 @@ def parser(stdin_text):
                     this_timeline['Am1_t'] = np.hstack([np.zeros(frame_rate*1), # 第一秒静止
                                                         np.arange(0,frame_rate,1), # 第二秒播放
                                                         np.ones(frame_rate*2)*(frame_rate-1)]) # 后两秒静止
-                # 收尾
+                # BGM
                 if BGM_queue != []:
-                    this_timeline.loc[0,'BGM'] = BGM_queue.pop(0) #从BGM_queue里取出来一个 alpha 1.8.5 # 1.10.
+                    this_timeline.loc[0,'BGM'] = BGM_queue.pop(0) #从BGM_queue里取出来一个 alpha 1.8.5
+                # 时间轴延长
                 this_timeline['section'] = i
-                render_timeline.append(this_timeline)
                 break_point[i+1]=break_point[i]+len(this_timeline.index)
+                this_timeline.index = range(break_point[i],break_point[i+1])
+                render_timeline = pd.concat([render_timeline,this_timeline],axis=0)
                 continue
             except Exception as E:
                 print(E)
                 raise ParserError('[31m[ParserError]:[0m Parse exception occurred in hitpoint line ' + str(i+1)+'.')
         # 预设动画，骰子
-        elif text[0:7]=='<dice>:':
+        elif text[0:7] == '<dice>:':
             try:
                 # 获取参数
                 dice_args = RE_dice.findall(text[7:])
@@ -1311,12 +1468,14 @@ def parser(stdin_text):
                 this_timeline['Am1_p'] = 'NA'
                 # SE
                 this_timeline.loc[frame_rate//3,'SE'] = "'./media/SE_dice.wav'"
-                # 收尾
+                # BGM
                 if BGM_queue != []:
-                    this_timeline.loc[0,'BGM'] = BGM_queue.pop(0) #从BGM_queue里取第一个出来 alpha 1.10.6
+                    this_timeline.loc[0,'BGM'] = BGM_queue.pop(0) #从BGM_queue里取第一个出来 alpha 1.13.5
+                # 时间轴延长
                 this_timeline['section'] = i
-                render_timeline.append(this_timeline)
                 break_point[i+1]=break_point[i]+len(this_timeline.index)
+                this_timeline.index = range(break_point[i],break_point[i+1])
+                render_timeline = pd.concat([render_timeline,this_timeline],axis=0)
                 continue
             except Exception as E:
                 print(E)
@@ -1326,16 +1485,34 @@ def parser(stdin_text):
             raise ParserError('[31m[ParserError]:[0m Unrecognized line: '+ str(i+1)+'.')
         break_point[i+1]=break_point[i]
         
-    render_timeline = pd.concat(render_timeline,axis=0)
-    render_timeline.index = np.arange(0,len(render_timeline),1)
+    # 处理上一次的place:最终一次
+    last_placed_index = range(break_point[last_placed_animation_section],break_point[i])
+    this_duration = len(last_placed_index)
+    this_am,am_method,am_dur,am_center = this_placed_animation
+    render_timeline.loc[last_placed_index,'AmS'] = this_am
+    # this_am 可能为空的，需要先处理这种情况！
+    if (this_am!=this_am) | (this_am=='NA'):
+        render_timeline.loc[last_placed_index,'AmS_t'] = 0
+        render_timeline.loc[last_placed_index,'AmS_a'] = 0
+        render_timeline.loc[last_placed_index,'AmS_c'] = 'NA'
+        render_timeline.loc[last_placed_index,'AmS_p'] = 'NA'
+    else:
+        alpha_timeline_A,pos_timeline_A = am_methods(am_method,am_dur,this_duration,i)
+        render_timeline.loc[last_placed_index,'AmS_a'] = alpha_timeline_A*100
+        render_timeline.loc[last_placed_index,'AmS_p'] = pos_timeline_A
+        render_timeline.loc[last_placed_index,'AmS_t'] = eval('{am}.get_tick({dur})'.format(am=this_am,dur=this_duration))
+        render_timeline.loc[last_placed_index,'AmS_c'] = am_center
+    
+    # 去掉和前一帧相同的帧，节约了性能
     render_timeline = render_timeline.fillna('NA') #假设一共10帧
     timeline_diff = render_timeline.iloc[:-1].copy() #取第0-9帧
     timeline_diff.index = timeline_diff.index+1 #设置为第1-10帧
     timeline_diff.loc[0]='NA' #再把第0帧设置为NA
     dropframe = (render_timeline == timeline_diff.sort_index()).all(axis=1) # 这样，就是原来的第10帧和第9帧在比较了
+
+    # 导出
     bulitin_media = pd.Series(bulitin_media,dtype=str)
     break_point = break_point.astype(int) # breakpoint 数据类型改为整数
-    # 这样就去掉了，和前一帧相同的帧，节约了性能
     return render_timeline[dropframe == False].copy(),break_point,bulitin_media
 
 # 渲染函数
