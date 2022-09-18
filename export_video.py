@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.13.5'
+edtion = 'alpha 1.13.6'
 
 # 外部参数输入
 
@@ -652,7 +652,7 @@ def render(this_frame):
                                                                                          '\"'+this_frame[layer+'_c']+'\"'))
             except Exception:
                 raise RuntimeError('[31m[RenderError]:[0m Failed to render "'+this_frame[layer]+'" as Animation.')
-        elif layer == 'Bb':
+        elif layer[0:2] == 'Bb':
             try:
                 exec('{0}.display(surface=screen,text={2},header={3},alpha={1},adjust={4},center={5})'.format(this_frame[layer],
                                                                                                    this_frame[layer+'_a'],
