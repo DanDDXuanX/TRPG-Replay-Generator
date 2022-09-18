@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.13.5'
+edtion = 'alpha 1.13.6'
 
 # 外部参数输入
 
@@ -652,7 +652,7 @@ class MediaError(ParserError):
 
 RE_dialogue = re.compile('^\[([\ \w\.\;\(\)\,]+)\](<[\w\=\d]+>)?:(.+?)(<[\w\=\d]+>)?({.+})?$')
 RE_placeobj = re.compile('^<(background|animation|bubble)>(<[\w\=]+>)?:(.+)$')
-RE_bubble = re.compile('(\w+)\("([^\\"]*)","([^\\"]*)",?(<[\w\=]+>)?\)')
+RE_bubble = re.compile('(\w+)\("([^\\"]*)","([^\\"]*)",?(<(\w+)=?(\d+)?>)?\)')
 RE_setting = re.compile('^<set:([\w\ \.]+)>:(.+)$')
 RE_characor = re.compile('([\w\ ]+)(\(\d*\))?(\.\w+)?')
 RE_modify = re.compile('<(\w+)(=\d+)?>')
@@ -937,7 +937,7 @@ def parser(stdin_text):
     last_placed_animation_section = 0
     this_placed_animation = ('NA','replace',0,'NA') # am,method,method_dur,center
     last_placed_bubble_section = 0
-    this_placed_bubble = 'NA' # bb,method,method_dur,MT,HT,tx_method,tx_dur
+    this_placed_bubble = ('NA','replace',0,'','','all',0,'NA') # bb,method,method_dur,HT,MT,tx_method,tx_dur,center
     # 内建的媒体，主要指BIA
     bulitin_media = {}
 
@@ -1081,7 +1081,7 @@ def parser(stdin_text):
                     if ((ts[0]=='^')|('#' in ts)): #如果是手动换行的列
                         word_count_timeline = get_l2l(ts,text_dur,this_duration) # 不保证稳定呢！
                     else:
-                        line_limit = eval(this_timeline['Bb'][1]+'.MainText.line_limit') #获取主文本对象的line_limit参数
+                        line_limit = eval(this_timeline['Bb'][1]+'.MainText.line_limit') #获取主文本对象的line_limit参数 # 为什么是【1】？？
                         word_count_timeline = (np.arange(0,this_duration,1)//(text_dur*line_limit)+1)*line_limit
                     this_timeline['Bb_main'] = UF_cut_str(this_timeline['Bb_main'],word_count_timeline)
                 else:
@@ -1247,15 +1247,81 @@ def parser(stdin_text):
                 raise ParserError('[31m[ParserError]:[0m Parse exception occurred in animation line ' + str(i+1)+'.')
         # 常驻气泡设置行，格式：<bubble><black=30>:Bubble_obj("Header_text","Main_text",<text_method>)
         elif text[0:8] == '<bubble>':
+            # 处理上一次的
+            last_placed_index = range(break_point[last_placed_bubble_section],break_point[i])
+            this_duration = len(last_placed_index)
+            # bb,method,method_dur,HT,MT,text_method,tx_dur,center
+            this_bb,bb_method,bb_dur,this_hd,this_tx,text_method,text_dur,bb_center = this_placed_bubble
+            # 如果place的this_duration小于切换时间，则清除动态切换效果
+            if this_duration<(2*bb_dur+1):
+                print('[33m[warning]:[0m','The switch method of placed bubble is dropped, due to short duration!')
+                bb_dur = 0
+                bb_method = 'replace'
+            # 'BbS','BbS_main','BbS_header','BbS_a','BbS_c','BbS_p',
+            render_timeline.loc[last_placed_index,'BbS'] = this_bb
+            print(i,this_bb,last_placed_index)
+            # this_bb 可能为空的，需要先处理这种情况！
+            if (this_bb!=this_bb) | (this_bb=='NA'):
+                render_timeline.loc[last_placed_index,'BbS_main'] = ''
+                render_timeline.loc[last_placed_index,'BbS_header'] = ''
+                render_timeline.loc[last_placed_index,'BbS_a'] = 0
+                render_timeline.loc[last_placed_index,'BbS_c'] = 'NA'
+                render_timeline.loc[last_placed_index,'BbS_p'] = 'NA'
+            else:
+                # 
+                alpha_timeline_B,pos_timeline_B = am_methods(bb_method,bb_dur,this_duration,i)
+                render_timeline.loc[last_placed_index,'BbS_a'] = alpha_timeline_B*100
+                render_timeline.loc[last_placed_index,'BbS_c'] = bb_center
+                render_timeline.loc[last_placed_index,'BbS_p'] = pos_timeline_B
+                render_timeline.loc[last_placed_index,'BbS_main'] = this_tx
+                render_timeline.loc[last_placed_index,'BbS_header'] = this_hd
+                # 文字显示的参数
+                if text_method == 'all':
+                    if text_dur == 0:
+                        pass
+                    else:
+                        # 将前n帧的文本设置为空白
+                        render_timeline.loc[last_placed_index[0]:(last_placed_index[0]+text_dur),'BbS_main'] = ''
+                elif text_method == 'w2w':
+                    word_count_timeline = np.arange(0,this_duration,1)//text_dur+1
+                    render_timeline.loc[last_placed_index,'BbS_main'] = UF_cut_str(render_timeline.loc[last_placed_index,'BbS_main'],word_count_timeline)
+                elif text_method == 'l2l': 
+                    if ((this_tx[0]=='^')|('#' in this_tx)): #如果是手动换行的列
+                        word_count_timeline = get_l2l(this_tx,text_dur,this_duration) # 不保证稳定呢！
+                    else:
+                        line_limit = eval(this_bb+'.MainText.line_limit') #获取主文本对象的line_limit参数
+                        word_count_timeline = (np.arange(0,this_duration,1)//(text_dur*line_limit)+1)*line_limit
+                    render_timeline.loc[last_placed_index,'BbS_main'] = UF_cut_str(render_timeline.loc[last_placed_index,'BbS_main'],word_count_timeline)
+                else:
+                    raise ParserError('[31m[ParserError]:[0m However impossible!')
+            # 获取本次的
             try:
+                # type: str,str,int
                 bbc,method,method_dur = get_placeobj_arg(text)
+                # 如果是设置为NA
                 if bbc == 'NA':
-                    pass #############################
+                    # bb,method,method_dur,HT,MT,tx_method,tx_dur,center
+                    this_placed_bubble = ('NA','replace',0,'','','all',0,'NA')
+                    last_placed_bubble_section = i
+                # 如果是一个合法的Bubble表达式
                 else:
                     try:
-                        this_bb,this_hd,this_tx,this_tx_method = RE_bubble.findall(bbc)[0]
+                        this_bb,this_hd,this_tx,this_method_label,this_tx_method,this_tx_dur = RE_bubble.findall(bbc)[0]
+                        # 检查Bubble类媒体的可用性
+                        if this_bb not in media_list:
+                            raise NameError(this_bb)
+                        # 检查，tx_method 的合法性
+                        if this_tx_method not in ['all','w2w','l2l']:
+                            raise ValueError(this_method_label)
+                        else:
+                            this_placed_bubble = (this_bb,method,method_dur,this_hd,this_tx,this_tx_method,int(this_tx_dur),str(eval(this_bb).pos))
+                            last_placed_bubble_section = i
                     except IndexError:
-                        raise Exception('[31m[ParserError]:[0m The Bubble expression "'+bbc+'" specified in bubble line ' + str(i+1)+' is invalid syntax!')
+                        raise ParserError('[31m[ParserError]:[0m The Bubble expression "'+bbc+'" specified in bubble line ' + str(i+1)+' is invalid syntax!')
+                    except ValueError: # ValueError: invalid literal for int() with base 10: 'asd'
+                        raise ParserError('[31m[ParserError]:[0m Unrecognized text display method: "'+this_method_label+'" appeared in bubble line ' + str(i+1)+'.')
+                    except NameError as E:
+                        raise ParserError('[31m[ParserError]:[0m The Bubble "'+E+'" specified in bubble line ' + str(i+1)+' is not defined!')
             except Exception as E:
                 print(E)
                 raise ParserError('[31m[ParserError]:[0m Parse exception occurred in bubble line ' + str(i+1)+'.')
@@ -1484,25 +1550,76 @@ def parser(stdin_text):
         else:
             raise ParserError('[31m[ParserError]:[0m Unrecognized line: '+ str(i+1)+'.')
         break_point[i+1]=break_point[i]
-        
-    # 处理上一次的place:最终一次
-    last_placed_index = range(break_point[last_placed_animation_section],break_point[i])
-    this_duration = len(last_placed_index)
-    this_am,am_method,am_dur,am_center = this_placed_animation
-    render_timeline.loc[last_placed_index,'AmS'] = this_am
-    # this_am 可能为空的，需要先处理这种情况！
-    if (this_am!=this_am) | (this_am=='NA'):
-        render_timeline.loc[last_placed_index,'AmS_t'] = 0
-        render_timeline.loc[last_placed_index,'AmS_a'] = 0
-        render_timeline.loc[last_placed_index,'AmS_c'] = 'NA'
-        render_timeline.loc[last_placed_index,'AmS_p'] = 'NA'
-    else:
-        alpha_timeline_A,pos_timeline_A = am_methods(am_method,am_dur,this_duration,i)
-        render_timeline.loc[last_placed_index,'AmS_a'] = alpha_timeline_A*100
-        render_timeline.loc[last_placed_index,'AmS_p'] = pos_timeline_A
-        render_timeline.loc[last_placed_index,'AmS_t'] = eval('{am}.get_tick({dur})'.format(am=this_am,dur=this_duration))
-        render_timeline.loc[last_placed_index,'AmS_c'] = am_center
     
+    # 处理上一次的place最终一次
+    try:
+        # 处理上一次的place:AmS最终一次
+        last_placed_index = range(break_point[last_placed_animation_section],break_point[i])
+        this_duration = len(last_placed_index)
+        this_am,am_method,am_dur,am_center = this_placed_animation
+        render_timeline.loc[last_placed_index,'AmS'] = this_am
+        # this_am 可能为空的，需要先处理这种情况！
+        if (this_am!=this_am) | (this_am=='NA'):
+            render_timeline.loc[last_placed_index,'AmS_t'] = 0
+            render_timeline.loc[last_placed_index,'AmS_a'] = 0
+            render_timeline.loc[last_placed_index,'AmS_c'] = 'NA'
+            render_timeline.loc[last_placed_index,'AmS_p'] = 'NA'
+        else:
+            alpha_timeline_A,pos_timeline_A = am_methods(am_method,am_dur,this_duration,i)
+            render_timeline.loc[last_placed_index,'AmS_a'] = alpha_timeline_A*100
+            render_timeline.loc[last_placed_index,'AmS_p'] = pos_timeline_A
+            render_timeline.loc[last_placed_index,'AmS_t'] = eval('{am}.get_tick({dur})'.format(am=this_am,dur=this_duration))
+            render_timeline.loc[last_placed_index,'AmS_c'] = am_center
+
+        # 处理上一次的place:BbS最终一次
+        last_placed_index = range(break_point[last_placed_bubble_section],break_point[i])
+        this_duration = len(last_placed_index)
+        # bb,method,method_dur,HT,MT,text_method,tx_dur,center
+        this_bb,bb_method,bb_dur,this_hd,this_tx,text_method,text_dur,bb_center = this_placed_bubble
+        # 如果place的this_duration小于切换时间，则清除动态切换效果
+        if this_duration<(2*bb_dur+1):
+            print('[33m[warning]:[0m','The switch method of placed bubble is dropped, due to short duration!')
+            bb_dur = 0
+            bb_method = 'replace'
+        # 'BbS','BbS_main','BbS_header','BbS_a','BbS_c','BbS_p',
+        render_timeline.loc[last_placed_index,'BbS'] = this_bb
+        # this_bb 可能为空的，需要先处理这种情况！
+        if (this_bb!=this_bb) | (this_bb=='NA'):
+            render_timeline.loc[last_placed_index,'BbS_main'] = ''
+            render_timeline.loc[last_placed_index,'BbS_header'] = ''
+            render_timeline.loc[last_placed_index,'BbS_a'] = 0
+            render_timeline.loc[last_placed_index,'BbS_c'] = 'NA'
+            render_timeline.loc[last_placed_index,'BbS_p'] = 'NA'
+        else:
+            # 
+            alpha_timeline_B,pos_timeline_B = am_methods(bb_method,bb_dur,this_duration,i)
+            render_timeline.loc[last_placed_index,'BbS_a'] = alpha_timeline_B*100
+            render_timeline.loc[last_placed_index,'BbS_c'] = bb_center
+            render_timeline.loc[last_placed_index,'BbS_p'] = pos_timeline_B
+            render_timeline.loc[last_placed_index,'BbS_main'] = this_tx
+            render_timeline.loc[last_placed_index,'BbS_header'] = this_hd
+            # 文字显示的参数
+            if text_method == 'all':
+                if text_dur == 0:
+                    pass
+                else:
+                    # 将前n帧的文本设置为空白
+                    render_timeline.loc[last_placed_index[0]:(last_placed_index[0]+text_dur),'BbS_main'] = ''
+            elif text_method == 'w2w':
+                word_count_timeline = np.arange(0,this_duration,1)//text_dur+1
+                render_timeline.loc[last_placed_index,'BbS_main'] = UF_cut_str(render_timeline.loc[last_placed_index,'BbS_main'],word_count_timeline)
+            elif text_method == 'l2l': 
+                if ((this_tx[0]=='^')|('#' in this_tx)): #如果是手动换行的列
+                    word_count_timeline = get_l2l(this_tx,text_dur,this_duration) # 不保证稳定呢！
+                else:
+                    line_limit = eval(this_bb+'.MainText.line_limit') #获取主文本对象的line_limit参数
+                    word_count_timeline = (np.arange(0,this_duration,1)//(text_dur*line_limit)+1)*line_limit
+                render_timeline.loc[last_placed_index,'BbS_main'] = UF_cut_str(render_timeline.loc[last_placed_index,'BbS_main'],word_count_timeline)
+            else:
+                raise ParserError('[31m[ParserError]:[0m However impossible!')
+    except Exception as E:
+        raise ParserError('[31m[ParserError]:[0m Exception occurred while completing the placed medias.')
+
     # 去掉和前一帧相同的帧，节约了性能
     render_timeline = render_timeline.fillna('NA') #假设一共10帧
     timeline_diff = render_timeline.iloc[:-1].copy() #取第0-9帧
@@ -1544,7 +1661,7 @@ def render(this_frame):
                                                                                          '\"'+this_frame[layer+'_c']+'\"'))
             except Exception:
                 raise RuntimeError('[31m[RenderError]:[0m Failed to render "'+this_frame[layer]+'" as Animation.')
-        elif layer == 'Bb':
+        elif layer[0:2] == 'Bb':
             try:
                 exec('{0}.display(surface=screen,text={2},header={3},alpha={1},adjust={4},center={5})'.format(this_frame[layer],
                                                                                                    this_frame[layer+'_a'],

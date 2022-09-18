@@ -15,6 +15,9 @@
 <set:speech_speed>:300
 <hitpoint>:(张安翔,10,10,9)
 
+<animation>:NA
+<bubble><circular_major_100_black=30>:bubble1_right("放置气泡|气泡放置","通过气泡行，在画面中放置一个跨越小节限制的永续bubble，并置于图像的最上层"<w2w=3>)
+
 [张安翔]:^本工具基于python3 和 pygame2.0，在windows10系统上开发。#演示使用的媒体素材来自网络，侵删。{SE1;5}
 [张安翔]:那么，演示开始。{SE1;5}
 # 重设Header
