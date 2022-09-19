@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.14.1'
+from Utils import edtion
 
 # 外部参数输入
 
@@ -37,6 +37,10 @@ ap.add_argument('--FixScreenZoom',help='Windows system only, use this flag to fi
 
 args = ap.parse_args()
 
+Width,Height = args.Width,args.Height #显示的分辨率
+frame_rate = args.FramePerSecond #帧率 单位fps
+zorder = args.Zorder.split(',') #渲染图层顺序
+
 # 退出程序
 def system_terminated(exit_type='Error'):
     exit_print = {'Error':'A major error occurred. Execution terminated!',
@@ -51,44 +55,20 @@ def system_terminated(exit_type='Error'):
     else:
         sys.exit(0) # 正常退出的代码
 
-media_obj = args.MediaObjDefine #媒体对象定义文件的路径
-char_tab = args.CharacterTable #角色和媒体对象的对应关系文件的路径
-stdin_log = args.LogFile #log路径
-output_path = args.OutputPath #保存的时间轴，断点文件的目录
-
-screen_size = (args.Width,args.Height) #显示的分辨率
-frame_rate = args.FramePerSecond #帧率 单位fps
-zorder = args.Zorder.split(',') #渲染图层顺序
-
-# 阿里云合成的key
-AKID = args.AccessKey
-AKKEY = args.AccessKeySecret
-APPKEY = args.Appkey
-# Azure合成的key
-AZUKEY = args.Azurekey
-service_region = args.ServRegion
-
-crf = args.Quality # 导出视频的质量值
-
-exportXML = args.ExportXML #导出为XML
-exportVideo = args.ExportVideo #导出为视频
-synthfirst = args.SynthesisAnyway #是否先行执行语音合成
-fixscreen = args.FixScreenZoom # 是否修复窗体缩放
-
 try:
-    for path in [stdin_log,media_obj,char_tab]:
+    for path in [args.LogFile,args.MediaObjDefine,args.CharacterTable]:
         if path is None:
             raise OSError("[31m[ArgumentError]:[0m Missing principal input argument!")
         if os.path.isfile(path) == False:
             raise OSError("[31m[ArgumentError]:[0m Cannot find file "+path)
 
-    if output_path is None:
-        if (synthfirst == True) | (exportXML == True) | (exportVideo == True):
+    if args.OutputPath is None:
+        if (args.SynthesisAnyway == True) | (args.ExportXML == True) | (args.ExportVideo == True):
             raise OSError("[31m[ArgumentError]:[0m Some flags requires output path, but no output path is specified!")
-    elif os.path.isdir(output_path) == False:
-        raise OSError("[31m[ArgumentError]:[0m Cannot find directory "+output_path)
+    elif os.path.isdir(args.OutputPath) == False:
+        raise OSError("[31m[ArgumentError]:[0m Cannot find directory "+args.OutputPath)
     else:
-        output_path = output_path.replace('\\','/')
+        args.OutputPath = args.OutputPath.replace('\\','/')
 
     # FPS
     if frame_rate <= 0:
@@ -96,9 +76,9 @@ try:
     elif frame_rate>30:
         print("[33m[warning]:[0m",'FPS is set to '+str(frame_rate)+', which may cause lag in the display!')
 
-    if (screen_size[0]<=0) | (screen_size[1]<=0):
-        raise ValueError("[31m[ArgumentError]:[0m Invalid resolution:"+str(screen_size))
-    if screen_size[0]*screen_size[1] > 3e6:
+    if (Width<=0) | (Height<=0):
+        raise ValueError("[31m[ArgumentError]:[0m Invalid resolution:"+str((Width,Height)))
+    if Width*Height > 3e6:
         print("[33m[warning]:[0m",'Resolution is set to more than 3M, which may cause lag in the display!')
 except Exception as E:
     print(E)
@@ -129,7 +109,7 @@ from Medias import Audio
 from Medias import BGM
 # 窗体参数
 from Medias import screen_config
-screen_config['screen_size'] = screen_size
+screen_config['screen_size'] = (Width,Height)
 screen_config['frame_rate'] = frame_rate
 # 色图
 from Medias import cmap
@@ -162,7 +142,6 @@ render_arg = [
     'BbS','BbS_main','BbS_header','BbS_a','BbS_c','BbS_p',
     'BGM','Voice','SE'
     ]
-
 
 # 可以<set:keyword>动态调整的全局变量
 dynamic_globals = {
@@ -267,7 +246,7 @@ def get_seting_arg(text):
     return (target,args)
 
 # 处理am和bb类的动态切换效果
-def am_methods(method_name,method_dur,this_duration,i):
+def ambb_methods(method_name,method_dur,this_duration,i):
     def dynamic(scale,duration,balance,cut,enable): # 动态(尺度,持续,平衡,进出,启用)
         if enable == True: # cutin=1,cutout=0
             if cut == balance:
@@ -278,8 +257,6 @@ def am_methods(method_name,method_dur,this_duration,i):
             return np.ones(duration)*scale*balance
     if method_dur == 0:
         return np.ones(this_duration),'NA'
-    Height = screen_size[1]
-    Width = screen_size[0]
     method_keys = method_name.split('_')
     method_args = {'alpha':'replace','motion':'static','direction':'up','scale':'major','cut':'both'} #default
     scale_dic = {'major':0.3,'minor':0.12,'entire':1.0}
@@ -413,8 +390,8 @@ def parser(stdin_text):
                 this_timeline['BG1'] = this_background
                 this_timeline['BG1_a'] = 100
                 # 载入切换效果
-                alpha_timeline_A,pos_timeline_A = am_methods(am_method,am_dur,this_duration,i)
-                alpha_timeline_B,pos_timeline_B = am_methods(bb_method,bb_dur,this_duration,i)
+                alpha_timeline_A,pos_timeline_A = ambb_methods(am_method,am_dur,this_duration,i)
+                alpha_timeline_B,pos_timeline_B = ambb_methods(bb_method,bb_dur,this_duration,i)
                 #各个角色：
                 if len(this_charactor) > 3:
                     raise ParserError('[31m[ParserError]:[0m Too much charactor is specified in dialogue line ' + str(i+1)+'.')
@@ -598,10 +575,10 @@ def parser(stdin_text):
                         this_timeline['BG1_a']=100
                         this_timeline['BG2_a']=100
                         if method == 'push': # 新背景从右侧把旧背景推出去
-                            this_timeline['BG1_p'] = concat_xy(dynamic_globals['formula'](screen_size[0],0,method_dur),np.zeros(method_dur))
-                            this_timeline['BG2_p'] = concat_xy(dynamic_globals['formula'](0,-screen_size[0],method_dur),np.zeros(method_dur))
+                            this_timeline['BG1_p'] = concat_xy(dynamic_globals['formula'](Width,0,method_dur),np.zeros(method_dur))
+                            this_timeline['BG2_p'] = concat_xy(dynamic_globals['formula'](0,-Width,method_dur),np.zeros(method_dur))
                         else: #cover 新背景从右侧进来叠在原图上面
-                            this_timeline['BG1_p'] = concat_xy(dynamic_globals['formula'](screen_size[0],0,method_dur),np.zeros(method_dur))
+                            this_timeline['BG1_p'] = concat_xy(dynamic_globals['formula'](Width,0,method_dur),np.zeros(method_dur))
                             this_timeline['BG2_p'] = 'NA'
                 else:
                     raise ParserError('[31m[ParserError]:[0m Unrecognized switch method: "'+method+'" appeared in background line ' + str(i+1)+'.')
@@ -637,7 +614,7 @@ def parser(stdin_text):
                 render_timeline.loc[last_placed_index,'AmS_c'] = 'NA'
                 render_timeline.loc[last_placed_index,'AmS_p'] = 'NA'
             else:
-                alpha_timeline_A,pos_timeline_A = am_methods(am_method,am_dur,this_duration,i)
+                alpha_timeline_A,pos_timeline_A = ambb_methods(am_method,am_dur,this_duration,i)
                 render_timeline.loc[last_placed_index,'AmS_a'] = alpha_timeline_A*100
                 render_timeline.loc[last_placed_index,'AmS_p'] = pos_timeline_A
                 render_timeline.loc[last_placed_index,'AmS_t'] = eval('{am}.get_tick({dur})'.format(am=this_am,dur=this_duration))
@@ -695,7 +672,6 @@ def parser(stdin_text):
                 bb_method = 'replace'
             # 'BbS','BbS_main','BbS_header','BbS_a','BbS_c','BbS_p',
             render_timeline.loc[last_placed_index,'BbS'] = this_bb
-            print(i,this_bb,last_placed_index)
             # this_bb 可能为空的，需要先处理这种情况！
             if (this_bb!=this_bb) | (this_bb=='NA'):
                 render_timeline.loc[last_placed_index,'BbS_main'] = ''
@@ -705,7 +681,7 @@ def parser(stdin_text):
                 render_timeline.loc[last_placed_index,'BbS_p'] = 'NA'
             else:
                 # 
-                alpha_timeline_B,pos_timeline_B = am_methods(bb_method,bb_dur,this_duration,i)
+                alpha_timeline_B,pos_timeline_B = ambb_methods(bb_method,bb_dur,this_duration,i)
                 render_timeline.loc[last_placed_index,'BbS_a'] = alpha_timeline_B*100
                 render_timeline.loc[last_placed_index,'BbS_c'] = bb_center
                 render_timeline.loc[last_placed_index,'BbS_p'] = pos_timeline_B
@@ -858,7 +834,7 @@ def parser(stdin_text):
                 # 建立小节
                 this_timeline=pd.DataFrame(index=range(0,frame_rate*4),dtype=str,columns=render_arg)
                 # 背景
-                #alpha_timeline,pos_timeline = am_methods('black',method_dur=frame_rate//2,this_duration=frame_rate*4,i=i)
+                #alpha_timeline,pos_timeline = ambb_methods('black',method_dur=frame_rate//2,this_duration=frame_rate*4,i=i)
                 alpha_timeline = np.hstack([dynamic_globals['formula'](0,1,frame_rate//2),np.ones(frame_rate*3-frame_rate//2),dynamic_globals['formula'](1,0,frame_rate)])
                 this_timeline['BG1'] = 'black' # 黑色背景
                 this_timeline['BG1_a'] = alpha_timeline * 80
@@ -867,9 +843,9 @@ def parser(stdin_text):
                 # 新建内建动画
                 Auto_media_name = 'BIA_'+str(i+1)
                 code_to_run = 'global {media_name}_{layer} ;{media_name}_{layer} = BuiltInAnimation(anime_type="hitpoint",anime_args=("{name}",{hmax},{hbegin},{hend}),screensize = {screensize},layer={layer})'
-                code_to_run_0 = code_to_run.format(media_name=Auto_media_name,name=name_tx,hmax='%d'%heart_max,hbegin='%d'%heart_begin,hend='%d'%heart_end,screensize=str(screen_size),layer='0')
-                code_to_run_1 = code_to_run.format(media_name=Auto_media_name,name=name_tx,hmax='%d'%heart_max,hbegin='%d'%heart_begin,hend='%d'%heart_end,screensize=str(screen_size),layer='1')
-                code_to_run_2 = code_to_run.format(media_name=Auto_media_name,name=name_tx,hmax='%d'%heart_max,hbegin='%d'%heart_begin,hend='%d'%heart_end,screensize=str(screen_size),layer='2')
+                code_to_run_0 = code_to_run.format(media_name=Auto_media_name,name=name_tx,hmax='%d'%heart_max,hbegin='%d'%heart_begin,hend='%d'%heart_end,screensize=str((Width,Height)),layer='0')
+                code_to_run_1 = code_to_run.format(media_name=Auto_media_name,name=name_tx,hmax='%d'%heart_max,hbegin='%d'%heart_begin,hend='%d'%heart_end,screensize=str((Width,Height)),layer='1')
+                code_to_run_2 = code_to_run.format(media_name=Auto_media_name,name=name_tx,hmax='%d'%heart_max,hbegin='%d'%heart_begin,hend='%d'%heart_end,screensize=str((Width,Height)),layer='2')
                 exec(code_to_run_0) # 灰色框
                 exec(code_to_run_1) # 留下的血
                 exec(code_to_run_2) # 丢掉的血
@@ -897,8 +873,8 @@ def parser(stdin_text):
                                                         np.zeros(frame_rate*2-frame_rate//2)]) #0-0.5出现，2-2.5消失
                     this_timeline['Am1_p'] = concat_xy(np.zeros(frame_rate*4),
                                                        np.hstack([np.zeros(frame_rate*2), # 静止2秒
-                                                                  left(0,-int(screen_size[1]*0.3),frame_rate//2), # 半秒切走
-                                                                  int(screen_size[1]*0.3)*np.ones(frame_rate*2-frame_rate//2)])) #1.5秒停止
+                                                                  left(0,-int(Height*0.3),frame_rate//2), # 半秒切走
+                                                                  int(Height*0.3)*np.ones(frame_rate*2-frame_rate//2)])) #1.5秒停止
                     this_timeline['Am1_t'] = 0
                 else: # 回血模式
                     this_timeline['Am1_a'] = alpha_timeline * 100 # 跟随全局血量
@@ -936,9 +912,9 @@ def parser(stdin_text):
                 # 新建内建动画
                 Auto_media_name = 'BIA_'+str(i+1)
                 code_to_run = 'global {media_name}_{layer} ;{media_name}_{layer} = BuiltInAnimation(anime_type="dice",anime_args={dice_args},screensize = {screensize},layer={layer})'
-                code_to_run_0 = code_to_run.format(media_name=Auto_media_name,dice_args=str(dice_args),screensize=str(screen_size),layer='0')
-                code_to_run_1 = code_to_run.format(media_name=Auto_media_name,dice_args=str(dice_args),screensize=str(screen_size),layer='1')
-                code_to_run_2 = code_to_run.format(media_name=Auto_media_name,dice_args=str(dice_args),screensize=str(screen_size),layer='2')
+                code_to_run_0 = code_to_run.format(media_name=Auto_media_name,dice_args=str(dice_args),screensize=str((Width,Height)),layer='0')
+                code_to_run_1 = code_to_run.format(media_name=Auto_media_name,dice_args=str(dice_args),screensize=str((Width,Height)),layer='1')
+                code_to_run_2 = code_to_run.format(media_name=Auto_media_name,dice_args=str(dice_args),screensize=str((Width,Height)),layer='2')
                 exec(code_to_run_0) # 描述和检定值
                 exec(code_to_run_1) # 老虎机
                 exec(code_to_run_2) # 输出结果
@@ -1002,7 +978,7 @@ def parser(stdin_text):
             render_timeline.loc[last_placed_index,'AmS_c'] = 'NA'
             render_timeline.loc[last_placed_index,'AmS_p'] = 'NA'
         else:
-            alpha_timeline_A,pos_timeline_A = am_methods(am_method,am_dur,this_duration,i)
+            alpha_timeline_A,pos_timeline_A = ambb_methods(am_method,am_dur,this_duration,i)
             render_timeline.loc[last_placed_index,'AmS_a'] = alpha_timeline_A*100
             render_timeline.loc[last_placed_index,'AmS_p'] = pos_timeline_A
             render_timeline.loc[last_placed_index,'AmS_t'] = eval('{am}.get_tick({dur})'.format(am=this_am,dur=this_duration))
@@ -1029,7 +1005,7 @@ def parser(stdin_text):
             render_timeline.loc[last_placed_index,'BbS_p'] = 'NA'
         else:
             # 
-            alpha_timeline_B,pos_timeline_B = am_methods(bb_method,bb_dur,this_duration,i)
+            alpha_timeline_B,pos_timeline_B = ambb_methods(bb_method,bb_dur,this_duration,i)
             render_timeline.loc[last_placed_index,'BbS_a'] = alpha_timeline_B*100
             render_timeline.loc[last_placed_index,'BbS_c'] = bb_center
             render_timeline.loc[last_placed_index,'BbS_p'] = pos_timeline_B
@@ -1071,7 +1047,7 @@ def parser(stdin_text):
 
 # 渲染函数
 def render(this_frame):
-    global zorder,media_list
+    global media_list
     for layer in zorder:
         # 不渲染的条件：图层为"Na"，或者np.nan
         if (this_frame[layer]=='NA')|(this_frame[layer]!=this_frame[layer]):
@@ -1149,9 +1125,8 @@ def get_l2l(ts,text_dur,this_duration): #如果是手动换行的列
 
 # 倒计时器
 def timer(clock):
-    global W,H
     white.display(screen)
-    screen.blit(note_text.render('%d'%clock,fgcolor=(150,150,150,255),size=0.0926*H)[0],(0.484*W,0.463*H)) # for 1080p
+    screen.blit(note_text.render('%d'%clock,fgcolor=(150,150,150,255),size=0.0926*Height)[0],(0.484*Width,0.463*Height)) # for 1080p
     pygame.display.update()
     pygame.time.delay(1000)
 
@@ -1175,11 +1150,11 @@ print('[replay generator]: Welcome to use TRPG-replay-generator '+edtion)
 
 # 检查是否需要先做语音合成
 
-if synthfirst == True:
+if args.SynthesisAnyway == True:
     command = python3 +' ./speech_synthesizer.py --LogFile {lg} --MediaObjDefine {md} --CharacterTable {ct} --OutputPath {of} --AccessKey {AK} --AccessKeySecret {AS} --Appkey {AP} '
     command = command + '--Azurekey {AZ} --ServRegion {SR}'
-    command = command.format(lg = stdin_log.replace('\\','/'),md = media_obj.replace('\\','/'), of = output_path, ct = char_tab.replace('\\','/'),
-                             AK = AKID,AS = AKKEY,AP = APPKEY,AZ = AZUKEY, SR =service_region)
+    command = command.format(lg = args.LogFile.replace('\\','/'),md = args.MediaObjDefine.replace('\\','/'), of = args.OutputPath, ct = args.CharacterTable.replace('\\','/'),
+                             AK = args.AccessKey,AS = args.AccessKeySecret,AP = args.Appkey,AZ = args.Azurekey, SR =args.ServRegion)
     print('[replay generator]: Flag --SynthesisAnyway detected, running command:\n'+'[32m'+command+'[0m')
     try:
         exit_status = os.system(command)
@@ -1206,7 +1181,7 @@ if synthfirst == True:
 print('[replay generator]: Loading media definition file.')
 
 try:
-    object_define_text = open(media_obj,'r',encoding='utf-8').read()#.split('\n') # 修改后的逻辑
+    object_define_text = open(args.MediaObjDefine,'r',encoding='utf-8').read()#.split('\n') # 修改后的逻辑
 except UnicodeDecodeError as E:
     print('[31m[DecodeError]:[0m',E)
     system_terminated('Error')
@@ -1244,10 +1219,10 @@ media_list.append('white')
 print('[replay generator]: Loading charactor table.')
 
 try:
-    if char_tab.split('.')[-1] in ['xlsx','xls']:
-        charactor_table = pd.read_excel(char_tab,dtype = str).fillna('NA') # 支持excel格式的角色配置表
+    if args.CharacterTable.split('.')[-1] in ['xlsx','xls']:
+        charactor_table = pd.read_excel(args.CharacterTable,dtype = str).fillna('NA') # 支持excel格式的角色配置表
     else:
-        charactor_table = pd.read_csv(char_tab,sep='\t',dtype = str).fillna('NA')
+        charactor_table = pd.read_csv(args.CharacterTable,sep='\t',dtype = str).fillna('NA')
     charactor_table.index = charactor_table['Name']+'.'+charactor_table['Subtype']
     if ('Animation' not in charactor_table.columns) | ('Bubble' not in charactor_table.columns): # 139debug
         raise SyntaxError('missing necessary columns.')
@@ -1259,7 +1234,7 @@ except Exception as E:
 print('[replay generator]: Parsing Log file.')
 
 try:
-    stdin_text = open(stdin_log,'r',encoding='utf8').read()#.split('\n')
+    stdin_text = open(args.LogFile,'r',encoding='utf8').read()#.split('\n')
 except UnicodeDecodeError as E:
     print('[31m[DecodeError]:[0m',E)
     system_terminated('Error')
@@ -1274,17 +1249,17 @@ except ParserError as E:
     system_terminated('Error')
 
 # 判断是否指定输出路径，准备各种输出选项
-if output_path != None:
-    print('[replay generator]: The timeline and breakpoint file will be save at '+output_path)
+if args.OutputPath != None:
+    print('[replay generator]: The timeline and breakpoint file will be save at '+args.OutputPath)
     timenow = '%d'%time.time()
-    render_timeline.to_pickle(output_path+'/'+timenow+'.timeline')
-    break_point.to_pickle(output_path+'/'+timenow+'.breakpoint')
-    bulitin_media.to_pickle(output_path+'/'+timenow+'.bulitinmedia')
-    if exportXML == True:
+    render_timeline.to_pickle(args.OutputPath+'/'+timenow+'.timeline')
+    break_point.to_pickle(args.OutputPath+'/'+timenow+'.breakpoint')
+    bulitin_media.to_pickle(args.OutputPath+'/'+timenow+'.bulitinmedia')
+    if args.ExportXML == True:
         command = python3 + ' ./export_xml.py --TimeLine {tm} --MediaObjDefine {md} --OutputPath {of} --FramePerSecond {fps} --Width {wd} --Height {he} --Zorder {zd}'
-        command = command.format(tm = output_path+'/'+timenow+'.timeline',
-                                 md = media_obj.replace('\\','/'), of = output_path.replace('\\','/'), 
-                                 fps = frame_rate, wd = screen_size[0], he = screen_size[1], zd = ','.join(zorder))
+        command = command.format(tm = args.OutputPath+'/'+timenow+'.timeline',
+                                 md = args.MediaObjDefine.replace('\\','/'), of = args.OutputPath.replace('\\','/'), 
+                                 fps = frame_rate, wd = Width, he = Height, zd = args.Zorder)
         print('[replay generator]: Flag --ExportXML detected, running command:\n'+'[32m'+command+'[0m')
         try:
             exit_status = os.system(command)
@@ -1293,11 +1268,11 @@ if output_path != None:
                 raise OSError('Major error occurred in export_xml!')
         except Exception as E:
             print('[33m[warning]:[0m Failed to export XML, due to:',E)
-    if exportVideo == True:
+    if args.ExportVideo == True:
         command = python3 + ' ./export_video.py --TimeLine {tm} --MediaObjDefine {md} --OutputPath {of} --FramePerSecond {fps} --Width {wd} --Height {he} --Zorder {zd} --Quality {ql}'
-        command = command.format(tm = output_path+'/'+timenow+'.timeline',
-                                 md = media_obj.replace('\\','/'), of = output_path.replace('\\','/'), 
-                                 fps = frame_rate, wd = screen_size[0], he = screen_size[1], zd = ','.join(zorder),ql = crf)
+        command = command.format(tm = args.OutputPath+'/'+timenow+'.timeline',
+                                 md = args.MediaObjDefine.replace('\\','/'), of = args.OutputPath.replace('\\','/'), 
+                                 fps = frame_rate, wd = Width, he = Height, zd = args.Zorder,ql = args.Quality)
         print('[replay generator]: Flag --ExportVideo detected, running command:\n'+'[32m'+command+'[0m')
         try:
             exit_status = os.system(command)
@@ -1310,7 +1285,7 @@ if output_path != None:
 
 # 初始化界面
 
-if fixscreen == True:
+if args.FixScreenZoom == True:
     try:
         import ctypes
         ctypes.windll.user32.SetProcessDPIAware() #修复错误的缩放，尤其是在移动设备。
@@ -1320,7 +1295,7 @@ if fixscreen == True:
 pygame.init()
 pygame.display.set_caption('TRPG Replay Generator '+edtion)
 fps_clock=pygame.time.Clock()
-screen = pygame.display.set_mode(screen_size)
+screen = pygame.display.set_mode((Width,Height))
 pygame.display.set_icon(pygame.image.load('./media/icon.ico'))
 note_text = pygame.freetype.Font('./media/SourceHanSansCN-Regular.otf')
 
@@ -1338,12 +1313,12 @@ for media in media_list:
         system_terminated('Error')
 
 # 预备画面
-W,H = screen_size
+# W,H = Width,Height
 white.display(screen)
-screen.blit(pygame.transform.scale(pygame.image.load('./media/icon.png'),(H//5,H//5)),(0.01*H,0.79*H))
-screen.blit(note_text.render('Welcome to TRPG Replay Generator!',fgcolor=(150,150,150,255),size=0.0315*W)[0],(0.230*W,0.460*H)) # for 1080p
-screen.blit(note_text.render(edtion,fgcolor=(150,150,150,255),size=0.0278*H)[0],(0.900*W,0.963*H))
-screen.blit(note_text.render('Press space to begin.',fgcolor=(150,150,150,255),size=0.0278*H)[0],(0.417*W,0.926*H))
+screen.blit(pygame.transform.scale(pygame.image.load('./media/icon.png'),(Height//5,Height//5)),(0.01*Height,0.79*Height))
+screen.blit(note_text.render('Welcome to TRPG Replay Generator!',fgcolor=(150,150,150,255),size=0.0315*Width)[0],(0.230*Width,0.460*Height)) # for 1080p
+screen.blit(note_text.render(edtion,fgcolor=(150,150,150,255),size=0.0278*Height)[0],(0.900*Width,0.963*Height))
+screen.blit(note_text.render('Press space to begin.',fgcolor=(150,150,150,255),size=0.0278*Height)[0],(0.417*Width,0.926*Height))
 pygame.display.update()
 begin = False
 while begin == False:
@@ -1366,7 +1341,7 @@ for s in np.arange(5,0,-1):
 n=0
 forward = 1 #forward==0代表暂停
 show_detail_info = 0 # show_detail_info == 1代表显示详细信息
-detail_info = {0:"Project: Resolution: {0}x{1} ; FrameRate: {2} fps;".format(W,H,frame_rate),
+detail_info = {0:"Project: Resolution: {0}x{1} ; FrameRate: {2} fps;".format(Width,Height,frame_rate),
                1:"Render Speed: {0} fps",
                2:"Frame: {0}/"+str(break_point.max())+" ; Section: {1}/"+str(len(break_point)),
                3:"Command: {0}",
@@ -1405,11 +1380,11 @@ while n < break_point.max():
                     window = Window.from_display_module()
                     resize_screen = 1 - resize_screen
                     if resize_screen == 1:
-                        screen_resized = pygame.display.set_mode((W//2,H//2))
-                        screen = pygame.Surface(screen_size,pygame.SRCALPHA)
+                        screen_resized = pygame.display.set_mode((Width//2,Height//2))
+                        screen = pygame.Surface((Width,Height),pygame.SRCALPHA)
                         window.position = (100,100)
                     else:
-                        screen = pygame.display.set_mode(screen_size)
+                        screen = pygame.display.set_mode((Width,Height))
                         window.position = (0,0)
                     pygame.display.update()
                 elif event.key in [pygame.K_F5, pygame.K_i]: # 详细信息
@@ -1424,23 +1399,23 @@ while n < break_point.max():
             render(this_frame)
             # 如果正在暂停
             if forward == 0:
-                screen.blit(note_text.render('Press space to continue.',fgcolor=cmap['notetext'],size=0.0278*H)[0],(0.410*W,0.926*H)) # pause
+                screen.blit(note_text.render('Press space to continue.',fgcolor=cmap['notetext'],size=0.0278*Height)[0],(0.410*Width,0.926*Height)) # pause
             # 显示详情模式
             if show_detail_info == 1:
-                screen.blit(note_text.render(detail_info[0],fgcolor=cmap['notetext'],size=0.0185*H)[0],(10,10))
-                screen.blit(note_text.render(detail_info[2].format(n,this_frame['section']+1),fgcolor=cmap['notetext'],size=0.0185*H)[0],(10,10+0.0666*H))
-                screen.blit(note_text.render(detail_info[3].format(stdin_text[this_frame['section']]),fgcolor=cmap['notetext'],size=0.0185*H)[0],(10,10+0.1*H))
-                screen.blit(note_text.render(detail_info[4],fgcolor=cmap['notetext'],size=0.0185*H)[0],(10,10+0.1333*H))
-                screen.blit(note_text.render(detail_info[5].format(this_frame['BG1'],this_frame['BG2'],this_frame['BG3']),fgcolor=cmap['notetext'],size=0.0185*H)[0],(10,10+0.1666*H))
-                screen.blit(note_text.render(detail_info[6].format(this_frame['Am1'],this_frame['Am2'],this_frame['Am3']),fgcolor=cmap['notetext'],size=0.0185*H)[0],(10,10+0.2*H))
-                screen.blit(note_text.render(detail_info[7].format(this_frame['Bb'],this_frame['Bb_header'],this_frame['Bb_main']),fgcolor=cmap['notetext'],size=0.0185*H)[0],(10,10+0.2333*H))
-                screen.blit(note_text.render(detail_info[1].format(int(1/(time.time()-ct+1e-4))),fgcolor=cmap['notetext'],size=0.0185*H)[0],(10,10+0.0333*H))
+                screen.blit(note_text.render(detail_info[0],fgcolor=cmap['notetext'],size=0.0185*Height)[0],(10,10))
+                screen.blit(note_text.render(detail_info[2].format(n,this_frame['section']+1),fgcolor=cmap['notetext'],size=0.0185*Height)[0],(10,10+0.0666*Height))
+                screen.blit(note_text.render(detail_info[3].format(stdin_text[this_frame['section']]),fgcolor=cmap['notetext'],size=0.0185*Height)[0],(10,10+0.1*Height))
+                screen.blit(note_text.render(detail_info[4],fgcolor=cmap['notetext'],size=0.0185*Height)[0],(10,10+0.1333*Height))
+                screen.blit(note_text.render(detail_info[5].format(this_frame['BG1'],this_frame['BG2'],this_frame['BG3']),fgcolor=cmap['notetext'],size=0.0185*Height)[0],(10,10+0.1666*Height))
+                screen.blit(note_text.render(detail_info[6].format(this_frame['Am1'],this_frame['Am2'],this_frame['Am3']),fgcolor=cmap['notetext'],size=0.0185*Height)[0],(10,10+0.2*Height))
+                screen.blit(note_text.render(detail_info[7].format(this_frame['Bb'],this_frame['Bb_header'],this_frame['Bb_main']),fgcolor=cmap['notetext'],size=0.0185*Height)[0],(10,10+0.2333*Height))
+                screen.blit(note_text.render(detail_info[1].format(int(1/(time.time()-ct+1e-4))),fgcolor=cmap['notetext'],size=0.0185*Height)[0],(10,10+0.0333*Height))
             # 仅显示帧率
             else:
-                screen.blit(note_text.render('%d'%(1//(time.time()-ct+1e-4)),fgcolor=cmap['notetext'],size=0.0278*H)[0],(10,10)) ##render rate +1e-4 to avoid float divmod()
+                screen.blit(note_text.render('%d'%(1//(time.time()-ct+1e-4)),fgcolor=cmap['notetext'],size=0.0278*Height)[0],(10,10)) ##render rate +1e-4 to avoid float divmod()
             # 如果缩放到一半大小
             if resize_screen == 1:
-                screen_resized.blit(pygame.transform.scale(screen,(W//2,H//2)),(0,0))
+                screen_resized.blit(pygame.transform.scale(screen,(Width//2,Height//2)),(0,0))
         else:
             pass # 节约算力
         pygame.display.update()

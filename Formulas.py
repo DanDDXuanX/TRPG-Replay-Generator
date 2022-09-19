@@ -1,5 +1,8 @@
-import numpy as np
+#!/usr/bin/env python
+# coding: utf-8
 # 数学函数定义 formula
+
+import numpy as np
 
 def normalized(X):
     if len(X)>=2:

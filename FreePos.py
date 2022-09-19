@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.13.4'
 
 # Pos 和 FreePos的类定义，原来的所有pos，全修改为Pos类对象。
 # 注意：Pos类指画布全局的Pos，因此不可以给htpos和mtpos使用！

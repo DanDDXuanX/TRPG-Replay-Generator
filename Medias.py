@@ -1,14 +1,16 @@
-from FreePos import Pos,FreePos,PosGrid
-import pandas as pd
+#!/usr/bin/env python
+# coding: utf-8
+
+# RplGenCore 涉及的所有媒体类定义
+
 import numpy as np
 import pygame
-import pygame.freetype
 import glob # 匹配路径
+import pydub
 
+from FreePos import Pos,FreePos
 from Exceptions import MediaError
 from Formulas import sigmoid
-
-# from replay_generator import frame_rate
 
 screen_config = {
     'screen_size' : (1920,1080),
@@ -16,6 +18,8 @@ screen_config = {
 }
 
 cmap = {'black':(0,0,0,255),'white':(255,255,255,255),'greenscreen':(0,177,64,255),'notetext':(118,185,0,255)}
+
+# 主程序 replay_generator
 
 # 文字对象
 class Text:
@@ -509,10 +513,15 @@ class BuiltInAnimation(Animation):
 class Audio:
     pygame.mixer.init()
     def __init__(self,filepath,label_color='Caribbean'):
-        self.media = pygame.mixer.Sound(filepath)
+        try:
+            self.media = pygame.mixer.Sound(filepath)
+        except Exception as E:
+            raise MediaError('[31m[AudioError]:[0m','Unsupported audio files',filepath)
     def display(self,channel,volume=100):
         channel.set_volume(volume/100)
         channel.play(self.media)
+    def get_length(self):
+        return self.media.get_length()
     def convert(self):
         pass
 
@@ -536,5 +545,22 @@ class BGM:
         pygame.mixer.music.load(self.media) #进碟
         pygame.mixer.music.play(loops=self.loop) #开始播放
         pygame.mixer.music.set_volume(self.volume) #设置音量
+    def convert(self):
+        pass
+
+# 导出视频模块 export video
+
+# 音效
+class Audio_Video:
+    def __init__(self,filepath,label_color='Caribbean'):
+        self.media = pydub.AudioSegment.from_file(filepath)
+    def convert(self):
+        pass
+
+# 背景音乐
+class BGM_Video:
+    def __init__(self,filepath,volume=100,loop=True,label_color='Caribbean'):
+        self.media = pydub.AudioSegment.from_file(filepath) + np.log10(volume/100) * 20 # 调整音量
+        self.loop = loop
     def convert(self):
         pass

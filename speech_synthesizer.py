@@ -15,6 +15,7 @@ edtion = 'alpha 1.13.3'
 import argparse
 import sys
 import os
+from Exceptions import IgnoreInput, MediaError
 
 ap = argparse.ArgumentParser(description="Speech synthesis and preprocessing from you logfile.")
 ap.add_argument("-l", "--LogFile", help='The standerd input of this programme, which is mainly composed of TRPG log.',type=str)
@@ -32,14 +33,6 @@ ap.add_argument('--PreviewOnly',help='Ignore the input files, and open a speech 
 ap.add_argument('--Init',help='The initial speech service in preview.',type=str,default='Aliyun')
 args = ap.parse_args()
 
-char_tab = args.CharacterTable #角色和媒体对象的对应关系文件的路径
-stdin_log = args.LogFile #log路径
-output_path = args.OutputPath #保存的时间轴，断点文件的目录
-media_obj = args.MediaObjDefine #媒体对象定义文件的路径
-
-# 忽略输入文件
-class IgnoreInput(Exception):
-    pass
 try:
     if args.PreviewOnly == 1:
         # 如果选择仅预览，则忽略输入文件！
@@ -47,22 +40,22 @@ try:
             raise IgnoreInput('[speech synthesizer]: Preview Only!')
         else:
             raise ValueError("[31m[ArgumentError]:[0m Invalid initial status: "+args.Init)
-    for path in [stdin_log,char_tab,media_obj]:
+    for path in [args.LogFile,args.CharacterTable,args.MediaObjDefine]:
         if path is None:
             raise OSError("[31m[ArgumentError]:[0m Missing principal input argument!")
         if os.path.isfile(path) == False:
             raise OSError("[31m[ArgumentError]:[0m Cannot find file "+path)
 
-    if output_path is None:
+    if args.OutputPath is None:
         raise OSError("[31m[ArgumentError]:[0m No output path is specified!")
-    elif os.path.isdir(output_path) == False:
+    elif os.path.isdir(args.OutputPath) == False:
         try:
-            os.makedirs(output_path)
+            os.makedirs(args.OutputPath)
         except Exception:
-            raise OSError("[31m[SystemError]:[0m Cannot make directory "+output_path)
+            raise OSError("[31m[SystemError]:[0m Cannot make directory "+args.OutputPath)
     else:
         pass
-    output_path = output_path.replace('\\','/')
+    args.OutputPath = args.OutputPath.replace('\\','/')
 except IgnoreInput as E:
     print(E)
 except Exception as E:
@@ -76,207 +69,27 @@ import numpy as np
 from pygame import mixer
 import re
 from shutil import copy
-import time
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
 from tkinter import filedialog
-import pydub
 
-# 类定义
+# 语音合成服务
+from TTSengines import Aliyun_TTS_engine,Azure_TTS_engine,voice_lib
 
-#阿里云和Azure支持的所有voice名
-voice_lib = pd.read_csv('./media/voice_volume.tsv',sep='\t').set_index('Voice')
+Aliyun_TTS_engine.AKID = args.AccessKey
+Aliyun_TTS_engine.AKKEY = args.AccessKeySecret
+Aliyun_TTS_engine.APPKEY = args.Appkey
+Azure_TTS_engine.AZUKEY = args.Azurekey
+Azure_TTS_engine.service_region = args.ServRegion
+
+# 从主程序借来的Audio类
+from Medias import Audio
+# 正则表达式定义
+from Regexs import RE_dialogue,RE_characor,RE_asterisk
 
 # parsed log 列名
 asterisk_line_columns=['asterisk_label','character','speech_text','category','filepath']
-
-# 阿里云的TTS引擎
-class Aliyun_TTS_engine:
-    # Keys
-    AKID = args.AccessKey
-    AKKEY = args.AccessKeySecret
-    APPKEY = args.Appkey
-    # 服务的URL
-    URL="wss://nls-gateway.cn-shanghai.aliyuncs.com/ws/v1"
-    # 音源表
-    voice_list = voice_lib[voice_lib['service'] == 'Aliyun'].index
-    def __init__(self,name='unnamed',voice = 'ailun',speech_rate=0,pitch_rate=0,aformat='wav'):
-        if 'nls' not in sys.modules: # 兼容没有安装nls的使用 
-            global nls
-            import nls
-        self.ID = name
-        self.voice = voice
-        self.aformat = aformat
-        self.speech_rate = speech_rate
-        self.pitch_rate = pitch_rate
-        # 音量值如果是np.int64的话，无法导入json
-        self.volume = int(voice_lib.loc[self.voice,'avaliable_volume'])
-        self.synthesizer = nls.NlsSpeechSynthesizer(
-                    url=Aliyun_TTS_engine.URL,
-                    akid=Aliyun_TTS_engine.AKID,
-                    aksecret=Aliyun_TTS_engine.AKKEY,
-                    appkey=Aliyun_TTS_engine.APPKEY,
-                    on_data=self.on_data,
-                    on_close=self.on_close,
-                    callback_args=[self.ID,self.voice]
-                )
-    def start(self,text,ofile):
-        self.ofile = open(ofile,'wb')
-        success = self.synthesizer.start(text = text,
-                                         voice=self.voice,aformat=self.aformat,
-                                         speech_rate=self.speech_rate,
-                                         pitch_rate=self.pitch_rate,
-                                         volume=self.volume)
-        # 检查是否是空文件 通常是由于AppKey错误导致的，或者输入为空
-        # 若没有发言内容，阿里云也会生成一个44字节的空文件！
-        if os.path.getsize(ofile) <= 128:
-            # 删除文件
-            # os.remove(ofile)
-            raise Exception('[33m[AliyunError]:[0m Synthesis failed, an empty wav file is created!')
-        # 检查合成返回值是否成功
-        elif success == False:
-            # os.remove(ofile)
-            raise Exception('[33m[AliyunError]:[0m Other exception occurred!')
-        else:
-            if len(text) >= 5:
-                print_text = text[0:5]+'...'
-            else:
-                print_text = text
-            print("[{0}({1})]: {2} -> '{3}'".format(self.ID,self.voice,print_text,ofile))            
-    def on_close(self, *args):
-        #print("on_close: args=>{}".format(args))
-        try:
-            self.ofile.close()
-        except Exception as E:
-            print("[33m[AliyunError]:[0m Close file failed since:", E)
-    def on_data(self, data, *args):
-        try:
-            self.ofile.write(data)
-        except Exception as E:
-            # [AliyunError]: Write data failed: write to closed file 如果出现这个问题，会重复很多次，然后合成一个错误的文件
-            print("[33m[AliyunError]:[0m Write data failed:", E)
-
-# Azure 语音合成 alpha 1.10.3
-class Azure_TTS_engine:
-    # Key
-    AZUKEY = args.Azurekey
-    service_region = args.ServRegion
-    # 音源表
-    voice_list = voice_lib[voice_lib['service'] == 'Azure'].index
-    # SSML模板
-    SSML_tplt = open('./xml_templates/tplt_ssml.xml','r').read()
-    # 输出文件格式配置
-    output_format = {'mp3':23,# SpeechSynthesisOutputFormat.Audio48Khz192KBitRateMonoMp3
-                     'wav':21}# SpeechSynthesisOutputFormat.Riff48Khz16BitMonoPcm
-    # 类方法：裁剪音频前后的空白
-    def silence_slicer(ifile):
-        input_au = pydub.AudioSegment.from_wav(ifile)
-        # 将音频转化为array，并取绝对值
-        input_au_array = np.abs(np.asarray(input_au.get_array_of_samples()))
-        # 计算窗口大小，一个窗口是0.1s
-        windows = input_au.frame_rate // 10
-        n_windows = int(input_au.frame_count()//windows+1)
-        # 是否是静音的
-        is_silence = np.zeros(n_windows,dtype=bool)
-        # 检定是否是静音的windows，阈值是20
-        threshold = 20
-        for i in range(0,n_windows):
-            if input_au_array[i*windows:(i+1)*windows].mean() > threshold:
-                is_silence[i] = True
-        # 定位第一个和最后一个非静音windows
-        first_true_index = 0
-        last_true_index = 0
-        for index,value in enumerate(is_silence):
-            if value == True:
-                last_true_index = index
-                if first_true_index == 0:
-                    first_true_index = index
-        # 裁剪音频
-        # |0|1|2|3|...|98|99|100|
-        # |F|F|F|T|...|T |T |F  |
-        #   first^    last^
-        # 3*windows   (99+1)*windows
-        sliced = input_au.get_sample_slice(start_sample=first_true_index*windows,end_sample=(last_true_index+1)*windows)
-        # 覆盖文件
-        if sliced.frame_count() < input_au.frame_count():
-            try:
-                sliced.export(ifile,format='wav')
-                return sliced.frame_count()
-            except Exception as E:
-                print('[33m[warning]:[0m Unable to clip the silence part from \"'+ ifile +'\", due to:',E)
-                return -1
-    # 初始化
-    def __init__(self,name='unnamed',voice = 'zh-CN-XiaomoNeural:general:1:Default',speech_rate=0,pitch_rate=0,aformat='wav'):
-        if 'azure.cognitiveservices.speech' not in sys.modules:
-            global speechsdk
-            import azure.cognitiveservices.speech as speechsdk
-        self.ID = name
-        self.aformat = Azure_TTS_engine.output_format[aformat]
-        # 500 - 2; -500 - 0.5
-        self.speech_rate = str(speech_rate//5)+'%'
-        # 500 - 12st; -500 - -12st
-        self.pitch_rate = str(pitch_rate//10)+'%'
-        # voice = speaker_style_degreee_role
-        if ':' in voice:
-            try:
-                self.voice,self.style,self.degree,self.role = voice.split(':')
-            except Exception:
-                raise ValueError('[31m[AzureError]:[0m Invalid Voice argument: '+voice)
-        else:
-            self.voice = voice
-            self.style = 'general'
-            self.degree = '1'
-            self.role = 'Default'
-        if self.voice in Azure_TTS_engine.voice_list: # 如果是表内提供的音源名
-            self.volume = voice_lib.loc[self.voice,'avaliable_volume']
-        else:
-            self.volume = 100 # 音量的默认值
-        self.ssml = Azure_TTS_engine.SSML_tplt.format(lang='zh-CN',voice_name=self.voice,
-                                     style=self.style,degree=self.degree,role=self.role,
-                                     pitch=self.pitch_rate,rate=self.speech_rate,volume=self.volume,
-                                     speech_text="{text}")
-    def start(self,text,ofile):
-        # 准备配置
-        speech_config = speechsdk.SpeechConfig(subscription=Azure_TTS_engine.AZUKEY, region=Azure_TTS_engine.service_region)
-        speech_config.set_speech_synthesis_output_format(speechsdk.SpeechSynthesisOutputFormat(self.aformat))
-        audio_config = speechsdk.audio.AudioOutputConfig(filename=ofile)
-        synthesizer = speechsdk.SpeechSynthesizer(speech_config=speech_config, audio_config=audio_config)
-        # 开始合成
-        speech_synthesis_result = synthesizer.speak_ssml_async(self.ssml.format(text=clean_ts_azure(text))).get()
-        # 检查结果
-        if speech_synthesis_result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted:
-            # 先裁剪掉前后的静音部分
-            Azure_TTS_engine.silence_slicer(ofile)
-            if len(text) >= 5:
-                print_text = text[0:5]+'...'
-            else:
-                print_text = text
-            print("[{0}({1})]: {2} -> '{3}'".format(self.ID,self.voice,print_text,ofile))
-        elif speech_synthesis_result.reason == speechsdk.ResultReason.Canceled:
-            cancellation_details = speech_synthesis_result.cancellation_details
-            if cancellation_details.reason == speechsdk.CancellationReason.Error:
-                if cancellation_details.error_details:
-                    print("[33m[AzureError]:[0m {}".format(cancellation_details.error_details))
-            # 删除文件
-            # os.remove(ofile)
-            raise Exception("[33m[AzureError]:[0m {}".format(cancellation_details.reason))
-
-# 从主程序借来的Audio类
-class Audio:
-    mixer.init()
-    def __init__(self,filepath,label_color='Caribbean'):
-        self.media = mixer.Sound(filepath)
-    def display(self,channel,volume=100):
-        channel.set_volume(volume/100)
-        channel.play(self.media)
-    def convert(self):
-        pass
-# 正则表达式定义
-
-RE_dialogue = re.compile('^\[([\ \w\.\;\(\)\,]+)\](<[\w\=\d]+>)?:(.+?)(<[\w\=\d]+>)?({.+})?$')
-RE_characor = re.compile('([\ \w]+)(\(\d*\))?(\.\w+)?')
-RE_asterisk = re.compile('(\{([^\{\}]*?[;])?\*([\w\ \.\,，。：？！“”]*)?\})') # v 1.11.4 音频框分隔符只能用; *后指定可以有空格
 
 media_list=[]
 
@@ -295,39 +108,8 @@ def get_dialogue_arg(text):
         asterisk_label = RE_asterisk.findall(se)
 
     return (this_charactor,ts,asterisk_label)
-
-def isnumber(str):
-    try:
-        float(str)
-        return True
-    except Exception:
-        return False
     
-# 清理ts文本中的标记符号
-def clean_ts(text):
-    return text.replace('^','').replace('#','')
-
-def clean_ts_azure(text): # SSML的转义字符
-    return text.replace('&','&amp;').replace('<','&lt;').replace('>','&gt;').replace("'",'&apos;')
-
-# 62进制时间戳*1000，ms单位
-def mod62_timestamp():
-    timestamp = int(time.time()*1000)
-    outstring = ''
-    while timestamp > 1:
-        residual = timestamp%62
-        mod = timestamp//62
-        if residual<10:
-            # 数值 48=0
-            outstring = outstring + chr(48+residual)
-        elif residual<36:
-            # 大写 65=A
-            outstring = outstring + chr(65+residual-10)
-        else:
-            # 小写 97=a
-            outstring = outstring + chr(97+residual-36)
-        timestamp = mod
-    return outstring[::-1]
+from Utils import clean_ts,isnumber,mod62_timestamp
 
 # 解析函数
 def parser(stdin_text):
@@ -409,7 +191,7 @@ def synthesizer(key,asterisk):
         return 'None',False
     else:
         # alpha 1.12.4 在输出路径里加上timestamp，和序号和行号统一
-        ofile = output_path+'/'+'auto_AU_%d'%(key+1)+'_'+mod62_timestamp()+'.wav'
+        ofile = args.OutputPath+'/'+'auto_AU_%d'%(key+1)+'_'+mod62_timestamp()+'.wav'
         # alpha 1.12.4 如果合成出现异常，重试
         for time_retry in range(1,6):
             # 最多重试5次
@@ -421,19 +203,6 @@ def synthesizer(key,asterisk):
                 print('[33m[warning]:[0m Synthesis failed in line %d'%(key+1), '(%d),'%time_retry, 'due to:',E)
         # 如果超出了5次尝试，返回Fatal
         return 'Fatal',False
-
-# 获取语音长度
-def get_audio_length(asterisk):
-    if asterisk.category>3:
-        return np.nan
-    else:
-        mixer.init()
-        try:
-            this_audio = mixer.Sound(asterisk.filepath)
-        except Exception as E:
-            print('[33m[warning]:[0m Unable to get audio length of '+str(asterisk.filepath)+', due to:',E)
-            return np.nan
-        return this_audio.get_length()
 
 def open_Tuning_windows(init_type='Aliyun'):
     # 根据选中的语音服务，切换frame
@@ -618,13 +387,13 @@ def main():
     global media_list
 
     print('[speech synthesizer]: Welcome to use speech_synthesizer for TRPG-replay-generator '+edtion)
-    print('[speech synthesizer]: The processed Logfile and audio file will be saved at "'+output_path+'"')
+    print('[speech synthesizer]: The processed Logfile and audio file will be saved at "'+args.OutputPath+'"')
     # 载入ct文件
     try:
-        if char_tab.split('.')[-1] in ['xlsx','xls']:
-            charactor_table = pd.read_excel(char_tab,dtype = str) # 支持excel格式的角色配置表
+        if args.CharacterTable.split('.')[-1] in ['xlsx','xls']:
+            charactor_table = pd.read_excel(args.CharacterTable,dtype = str) # 支持excel格式的角色配置表
         else:
-            charactor_table = pd.read_csv(char_tab,sep='\t',dtype = str)
+            charactor_table = pd.read_csv(args.CharacterTable,sep='\t',dtype = str)
         charactor_table.index = charactor_table['Name']+'.'+charactor_table['Subtype']
         if 'Voice' not in charactor_table.columns:
             print('[33m[warning]:[0m','Missing \'Voice\' columns.')
@@ -672,7 +441,7 @@ def main():
 
     # 载入od文件
     try:
-        object_define_text = open(media_obj,'r',encoding='utf-8').read()#.split('\n')
+        object_define_text = open(args.MediaObjDefine,'r',encoding='utf-8').read()#.split('\n')
     except UnicodeDecodeError as E:
         print('[31m[DecodeError]:[0m',E)
         sys.exit(2) # 解码角色配置表错误，异常退出
@@ -701,7 +470,7 @@ def main():
 
     # 载入log文件
     try:
-        stdin_text = open(stdin_log,'r',encoding='utf-8').read()#.split('\n')
+        stdin_text = open(args.LogFile,'r',encoding='utf-8').read()#.split('\n')
     except UnicodeDecodeError as E:
         print('[31m[DecodeError]:[0m',E)
         sys.exit(2) # 解码log文件错误，异常退出！
@@ -749,7 +518,7 @@ def main():
             sys.exit(1) # 未有合成，警告退出
 
     # 原始log文件备份到输出路径
-    backup_log = output_path+'/OriginalLogfileBackup_'+mod62_timestamp()+'.rgl'
+    backup_log = args.OutputPath+'/OriginalLogfileBackup_'+mod62_timestamp()+'.rgl'
     backup_logfile = open(backup_log,'w',encoding='utf-8')
     backup_logfile.write('\n'.join(stdin_text))
     backup_logfile.close()
@@ -757,8 +526,11 @@ def main():
 
     # 读取音频时长
     for key,value in refresh.iterrows():
-        audio_lenth = get_audio_length(value)
-        refresh.loc[key,'audio_lenth'] = audio_lenth
+        try:
+            refresh.loc[key,'audio_lenth'] = Audio(value.filepath).get_length()
+        except MediaError as E:
+            print('[33m[warning]:[0m Unable to get audio length of '+str(value.filepath)+', due to:',E)
+            refresh.loc[key,'audio_lenth'] = np.nan
 
     # 生成新的标签
     new_asterisk_label = "{'"+refresh.filepath + "';*"+refresh.audio_lenth.map(lambda x:'%.3f'%x)+"}"
@@ -769,7 +541,7 @@ def main():
         stdin_text[key] = stdin_text[key].replace(value.asterisk_label,value.new_asterisk_label)
 
     # 覆盖原始log文件
-    stdout_logfile = open(stdin_log,'w',encoding='utf-8')
+    stdout_logfile = open(args.LogFile,'w',encoding='utf-8')
     stdout_logfile.write('\n'.join(stdin_text))
     stdout_logfile.close()
     print('[speech synthesizer]: Logfile refresh Done!')
