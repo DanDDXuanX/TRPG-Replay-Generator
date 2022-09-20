@@ -123,7 +123,7 @@ class StrokeText(Text):
 
     # 对话框、气泡、文本框
 class Bubble:
-    def __init__(self,filepath=None,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),ht_pos=(0,0),align='left',line_distance=1.5,label_color='Lavender'):
+    def __init__(self,filepath=None,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),ht_pos=(0,0),ht_target='Name',align='left',line_distance=1.5,label_color='Lavender'):
         global file_index
         # 支持气泡图缺省
         if filepath is None or filepath == 'None':
@@ -146,6 +146,7 @@ class Bubble:
         self.mt_pos = mt_pos
         self.Header = Header_Text
         self.ht_pos = ht_pos
+        self.target = ht_target
         self.line_distance = line_distance
         self.align = align
         # clip
