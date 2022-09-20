@@ -240,6 +240,7 @@ class Balloon(Bubble):
         else:
             self.header_num = len(self.Header)
     def display(self,begin,end,text,header='',center='NA'):
+        global outtext_index,clip_tplt,clip_index
         # 是否在timeline指定center？# 同Bubble类
         if center == 'NA':
             self.PRpos = PR_center_arg(np.array(self.size),np.array(self.pos.get()))
@@ -253,7 +254,7 @@ class Balloon(Bubble):
         for i,header_text_this in enumerate(header_texts):
             # Header 不为None ，且输入文本不为空
             if (self.Header[i]!=None) & (header_text_this!=''):
-                ht_text = self.Header.draw(header_text_this)[0]
+                ht_text = self.Header[i].draw(header_text_this)[0]
                 try:
                     p1,p2,p3,p4 = ht_text.getbbox()
                     canvas.paste(ht_text.crop((p1,p2,p3,p4)),(self.ht_pos[i][0]+p1,self.ht_pos[i][1]+p2)) # 兼容微软雅黑这种，bbox到处飘的字体
@@ -737,6 +738,8 @@ def reformat_path(path): # alpha 1.9.5 支持unix文件系统路径
         return 'file://localhost/' + path
     else:
         raise ValueError('invalid path type')
+
+# 优化导出PR clip的逻辑：是否一定要在小节断点处分段？不分段的话会怎样？
 
 # 处理bg 和 am 的parser
 def parse_timeline(layer):
