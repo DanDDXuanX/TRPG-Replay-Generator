@@ -18,7 +18,7 @@ ap.add_argument("-F", "--FramePerSecond", help='Set the FPS of display, default 
 ap.add_argument("-W", "--Width", help='Set the resolution of display, default is 1920, larger than this may cause lag.',type=int,default=1920)
 ap.add_argument("-H", "--Height", help='Set the resolution of display, default is 1080, larger than this may cause lag.',type=int,default=1080)
 ap.add_argument("-Z", "--Zorder", help='Set the display order of layers, not recommended to change the values unless necessary!',type=str,
-                default='BG3,BG2,BG1,Am3,Am2,Am1,Bb')
+                default='BG3,BG2,BG1,Am3,Am2,Am1,AmS,Bb,BbS')
 ap.add_argument("-Q", "--Quality", help='Choose the quality (ffmpeg crf) of output video.',type=int,default=24)
 args = ap.parse_args()
 

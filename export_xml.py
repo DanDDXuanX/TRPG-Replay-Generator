@@ -18,7 +18,7 @@ ap.add_argument("-F", "--FramePerSecond", help='Set the FPS of display, default 
 ap.add_argument("-W", "--Width", help='Set the resolution of display, default is 1920, larger than this may cause lag.',type=int,default=1920)
 ap.add_argument("-H", "--Height", help='Set the resolution of display, default is 1080, larger than this may cause lag.',type=int,default=1080)
 ap.add_argument("-Z", "--Zorder", help='Set the display order of layers, not recommended to change the values unless necessary!',type=str,
-                default='BG3,BG2,BG1,Am3,Am2,Am1,Bb')
+                default='BG3,BG2,BG1,Am3,Am2,Am1,AmS,Bb,BbS')
 args = ap.parse_args()
 
 media_obj = args.MediaObjDefine #媒体对象定义文件的路径
@@ -68,6 +68,8 @@ from PIL import Image,ImageFont,ImageDraw
 import re
 from pygame import mixer
 import glob # 匹配路径
+
+from FreePos import Pos,FreePos,PosGrid
 
 # 文字对象
 
@@ -124,27 +126,38 @@ class Bubble:
     def __init__(self,filepath=None,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),ht_pos=(0,0),align='left',line_distance=1.5,label_color='Lavender'):
         global file_index
         # 支持气泡图缺省
-        if filepath is None:
+        if filepath is None or filepath == 'None':
             self.path = None
+            self.media = None
             self.size = screen_size
             self.filename = None
         else:
             self.path = reformat_path(filepath)
-            self.size = Image.open(filepath).size
+            self.media = Image.open(filepath)
+            self.size = self.media.size
             self.filename = self.path.split('/')[-1]
+        # pos
+        if type(pos) in [Pos,FreePos]:
+            self.pos = pos
+        else:
+            self.pos = Pos(*pos)
+        # Text
         self.MainText = Main_Text
         self.mt_pos = mt_pos
         self.Header = Header_Text
         self.ht_pos = ht_pos
-        self.pos = pos
         self.line_distance = line_distance
-        self.fileindex = 'BBfile_' + '%d'% file_index
-        self.PRpos = PR_center_arg(np.array(self.size),np.array(self.pos))
         self.align = align
+        # clip
+        self.fileindex = 'BBfile_' + '%d'% file_index
         self.label_color = label_color
         file_index = file_index+1
-    def display(self,begin,end,text,header=''): # 这段代码是完全没有可读性的屎，但是确实可运行，非必要不要改
+    def display(self,begin,end,text,header='',center='NA'): # 这段代码是完全没有可读性的屎，但是确实可运行，非必要不要改
         global outtext_index,clip_tplt,clip_index
+        if center == 'NA':
+            self.PRpos = PR_center_arg(np.array(self.size),np.array(self.pos.get()))
+        else:
+            self.PRpos = PR_center_arg(np.array(self.size),np.array(Pos(*eval(center)).get()))
         # 生成文本图片
         ofile = output_path+'/auto_TX_%d'%outtext_index+'.png'
         canvas = Image.new(mode='RGBA',size=self.size,color=(0,0,0,0))
@@ -218,26 +231,127 @@ class Bubble:
     def convert(self):
         pass
 
+class Balloon(Bubble):
+    def __init__(self,filepath=None,Main_Text=Text(),Header_Text=[None],pos=(0,0),mt_pos=(0,0),ht_pos=[(0,0)],ht_target=['Name'],align='left',line_distance=1.5,label_color='Lavender'):
+        super().__init__(filepath=filepath,Main_Text=Main_Text,Header_Text=Header_Text,pos=pos,mt_pos=mt_pos,ht_pos=ht_pos,ht_target=ht_target,align=align,line_distance=line_distance,label_color=label_color)
+        if len(self.Header)!=len(self.ht_pos) or len(self.Header)!=len(self.target):
+            raise MediaError('[31m[BubbleError]:[0m', 'length of header params does not match!')
+        else:
+            self.header_num = len(self.Header)
+    def display(self,begin,end,text,header='',center='NA'):
+        # 是否在timeline指定center？# 同Bubble类
+        if center == 'NA':
+            self.PRpos = PR_center_arg(np.array(self.size),np.array(self.pos.get()))
+        else:
+            self.PRpos = PR_center_arg(np.array(self.size),np.array(Pos(*eval(center)).get()))
+        # 生成文本图片 # 同Bubble类
+        ofile = output_path+'/auto_TX_%d'%outtext_index+'.png'
+        canvas = Image.new(mode='RGBA',size=self.size,color=(0,0,0,0))
+        # 生成头文本
+        header_texts = header.split('|')
+        for i,header_text_this in enumerate(header_texts):
+            # Header 不为None ，且输入文本不为空
+            if (self.Header[i]!=None) & (header_text_this!=''):
+                ht_text = self.Header.draw(header_text_this)[0]
+                try:
+                    p1,p2,p3,p4 = ht_text.getbbox()
+                    canvas.paste(ht_text.crop((p1,p2,p3,p4)),(self.ht_pos[i][0]+p1,self.ht_pos[i][1]+p2)) # 兼容微软雅黑这种，bbox到处飘的字体
+                except TypeError:
+                    pass
+            if i == self.header_num -1:
+                break
+        # 生成主文本 # 同Bubble类
+        x,y = self.mt_pos
+        for i,mt_text in enumerate(self.MainText.draw(text)):
+            try:
+                p1,p2,p3,p4 = mt_text.getbbox() # 先按照bboxcrop，然后按照原位置放置
+            except TypeError: # 如果遇到了空图导致的TypeError，直接跳过这一循环，走到下一行
+                continue
+            if self.align == 'left':
+                canvas.paste(mt_text.crop((p1,p2,p3,p4)),(x+p1,int(y+i*self.MainText.size*self.line_distance+p2)))
+            else: # alpha 1.7.0 兼容居中
+                word_w = p3 - p1
+                canvas.paste(mt_text.crop((p1,p2,p3,p4)),
+                             (x + (self.MainText.size*self.MainText.line_limit - word_w)//2,
+                              int(y+i*self.MainText.size*self.line_distance+p2)
+                             )
+                            )
+        canvas.save(ofile)
+        # 生成序列 # 同Bubble类
+        width,height = self.size
+        pr_horiz,pr_vert = self.PRpos
+        if self.path is None:
+            clip_bubble = None
+            # print('Render empty Bubble!')
+        else:
+            clip_bubble = clip_tplt.format(**{'clipid':'BB_clip_%d'%clip_index,
+                                              'clipname':self.filename,
+                                              'timebase':'%d'%frame_rate,
+                                              'ntsc':Is_NTSC,
+                                              'start':'%d'%begin,
+                                              'end':'%d'%end,
+                                              'in':'%d'%90000,
+                                              'out':'%d'%(90000+end-begin),
+                                              'fileid':self.fileindex,
+                                              'filename':self.filename,
+                                              'filepath':self.path,
+                                              'filewidth':'%d'%width,
+                                              'fileheight':'%d'%height,
+                                              'horiz':'%.5f'%pr_horiz,
+                                              'vert':'%.5f'%pr_vert,
+                                              'colorlabel':self.label_color})
+        clip_text = clip_tplt.format(**{'clipid':'TX_clip_%d'%clip_index,
+                                        'clipname':'auto_TX_%d.png'%outtext_index,
+                                        'timebase':'%d'%frame_rate,
+                                        'ntsc':Is_NTSC,
+                                        'start':'%d'%begin,
+                                        'end':'%d'%end,
+                                        'in':'%d'%90000,
+                                        'out':'%d'%(90000+end-begin),
+                                        'fileid':'auto_TX_%d'%outtext_index,
+                                        'filename':'auto_TX_%d.png'%outtext_index,
+                                        'filepath':reformat_path(ofile),
+                                        'filewidth':'%d'%width,
+                                        'fileheight':'%d'%height,
+                                        'horiz':'%.5f'%pr_horiz,
+                                        'vert':'%.5f'%pr_vert,
+                                        'colorlabel':self.MainText.label_color})
+        outtext_index = outtext_index + 1
+        clip_index = clip_index+1
+        return (clip_bubble,clip_text)
+
 # 背景图片
 class Background:
     def __init__(self,filepath,pos = (0,0),label_color='Lavender'):
         global file_index 
-        if filepath in cmap.keys(): #对纯色定义的背景的支持
+        # 对纯色定义的背景的支持
+        if filepath in cmap.keys():
+            # 新建图像，并保存
             ofile = output_path+'/auto_BG_'+filepath+'.png'
-            Image.new(mode='RGBA',size=screen_size,color=cmap[filepath]).save(ofile)
+            self.media = Image.new(mode='RGBA',size=screen_size,color=cmap[filepath])
+            self.media.save(ofile)
+            # 路径和尺寸
             self.path = reformat_path(ofile)
             self.size = screen_size
         else:
             self.path = reformat_path(filepath)
-            self.size = Image.open(filepath).size
-        self.pos = pos
-        self.PRpos = PR_center_arg(np.array(self.size),np.array(self.pos))
+            self.media = Image.open(filepath)
+            self.size = self.media.size
+        if type(pos) in [Pos,FreePos]:
+            self.pos = pos
+        else:
+            self.pos = Pos(*pos)
+        # self.PRpos = PR_center_arg(np.array(self.size),np.array(self.pos.get()))
         self.filename = self.path.split('/')[-1]
         self.fileindex = 'BGfile_%d'% file_index
         self.label_color = label_color
         file_index = file_index+1
-    def display(self,begin,end):
+    def display(self,begin,end,center='NA'):
         global clip_tplt,clip_index
+        if center == 'NA':
+            self.PRpos = PR_center_arg(np.array(self.size),np.array(self.pos.get()))
+        else:
+            self.PRpos = PR_center_arg(np.array(self.size),np.array(Pos(*eval(center)).get()))
         width,height = self.size
         pr_horiz,pr_vert = self.PRpos
         clip_this = clip_tplt.format(**{'clipid':'BG_clip_%d'%clip_index,
@@ -266,15 +380,23 @@ class Animation:
     def __init__(self,filepath,pos = (0,0),tick=1,loop=True,label_color='Lavender'):
         global file_index 
         self.path = reformat_path(glob.glob(filepath)[0]) # 兼容动画Animation，只使用第一帧！
-        self.pos = pos
-        self.size = Image.open(glob.glob(filepath)[0].replace('\\','/')).size # 兼容动画
+        self.media = Image.open(glob.glob(filepath)[0].replace('\\','/'))
+        self.size = self.media.size
         self.filename = self.path.split('/')[-1]
+        if type(pos) in [Pos,FreePos]:
+            self.pos = pos
+        else:
+            self.pos = Pos(*pos)
         self.fileindex = 'AMfile_%d'% file_index
-        self.PRpos = PR_center_arg(np.array(self.size),np.array(self.pos))
+        # self.PRpos = PR_center_arg(np.array(self.size),np.array(self.pos.get()))
         self.label_color = label_color
         file_index = file_index+1
-    def display(self,begin,end):
+    def display(self,begin,end,center='NA'):
         global clip_tplt,clip_index
+        if center == 'NA':
+            self.PRpos = PR_center_arg(np.array(self.size),np.array(self.pos.get()))
+        else:
+            self.PRpos = PR_center_arg(np.array(self.size),np.array(Pos(*eval(center)).get()))
         width,height = self.size
         pr_horiz,pr_vert = self.PRpos
         clip_this = clip_tplt.format(**{'clipid':'AM_clip_%d'%clip_index,
@@ -298,6 +420,47 @@ class Animation:
     def convert(self):
         pass
 
+# a 1.13.5 组合立绘，Animation类的子类，组合立绘只能是静态立绘！
+class GroupedAnimation(Animation):
+    def __init__(self,subanimation_list,subanimation_current_pos=None,label_color='Mango'):
+        global file_index,outanime_index
+        ofile = output_path+'/auto_GA_%d'%outanime_index+'.png'
+        canvas = Image.new(size=screen_size,mode='RGBA',color=(0,0,0,0))
+        # 如果外部未指定位置参数，则使用子Animation类的自身的pos
+        if subanimation_current_pos is None:
+            subanimation_current_pos = [None]*len(subanimation_list)
+        # 如果指定的位置参数和子Animation的数量不一致，报出报错
+        elif len(subanimation_current_pos) != len(subanimation_list):
+            raise MediaError('[31m[AnimationError]:[0m','length of subanimation params does not match!')
+        # 开始在画板上绘制立绘
+        else:
+            # 越后面的位于越上层的图层
+            # [zhang,drink_left] [(0,0),(0,0)] # list of Animation/str | list of tuple/str
+            for am_name,am_pos in zip(subanimation_list,subanimation_current_pos):
+                # 判断AM
+                try:
+                    if type(am_name) in [Animation,BuiltInAnimation,GroupedAnimation]:
+                        subanimation = am_name
+                    else: # type(am_name) is str
+                        subanimation = eval(am_name)
+                except NameError as E:
+                    raise MediaError('[31m[AnimationError]:[0m','The Animation "'+ am_name +'" is not defined, which was tried to group into GroupedAnimation!')
+                if am_pos is None:
+                    # 打开 subanimation 的图片对象，将其按照self.pos, paste到canvas
+                    canvas.paste(subanimation.media,subanimation.pos.get(),mask=subanimation.media)
+                else:
+                    # 打开 subanimation 的图片对象，将其按照am_pos, paste到canvas
+                    canvas.paste(subanimation.media,am_pos,mask=subanimation.media)
+        # 保存文件
+        canvas.save(ofile)
+        self.pos = Pos(0,0)
+        self.path = reformat_path(ofile)
+        self.size = screen_size
+        self.filename = 'auto_GA_%d'%outanime_index+'.png'
+        self.fileindex = 'AMfile_%d'% file_index
+        self.label_color = label_color
+        file_index = file_index+1
+        outanime_index = outanime_index+1
 # a1.6.5 内建动画，这是一个Animation类的子类，重构了构造函数
 class BuiltInAnimation(Animation):
     def __init__(self,anime_type='hitpoint',anime_args=('0',0,0,0),screensize = (1920,1080),layer=0,label_color='Mango'):
@@ -342,7 +505,7 @@ class BuiltInAnimation(Animation):
             nametx_surf = test_canvas.crop((p1,p2,p3,p4))
             # 开始制图
             if layer==0: # 底层 阴影图
-                self.pos = ((screensize[0]-max(nx,total_heart))/2,(4/5*screensize[1]-hy-ny)/2)
+                self.pos = Pos((screensize[0]-max(nx,total_heart))/2,(4/5*screensize[1]-hy-ny)/2)
                 canvas = Image.new(size=(max(nx,total_heart),hy+ny+screensize[1]//5),mode='RGBA',color=(0,0,0,0))
                 self.size = canvas.size
                 if nx > total_heart:
@@ -362,7 +525,7 @@ class BuiltInAnimation(Animation):
                     left_heart_shape = heart_shape.crop((0,0,int(hx/2),hy))
                     canvas.paste(left_heart_shape,(total_heart-int(hx/2),posy))
             elif layer==1: # 剩余的血量
-                self.pos = ((screensize[0]-total_heart)/2,3/5*screensize[1]+ny/2-hy/2)
+                self.pos = Pos((screensize[0]-total_heart)/2,3/5*screensize[1]+ny/2-hy/2)
                 # 1.6.5 防止报错 剩余血量即使是空图，也要至少宽30pix
                 canvas = Image.new(size=(max(30,left_heart),hy),mode='RGBA',color=(0,0,0,0)) 
                 self.size = canvas.size
@@ -377,7 +540,7 @@ class BuiltInAnimation(Animation):
                     left_heart = heart.crop((0,0,int(hx/2),hy))
                     canvas.paste(left_heart,(heart_end//2*(hx + distance),0))
             elif layer==2: # 损失/恢复的血量
-                self.pos = (heart_end//2*(hx + distance)+(heart_end%2)*int(hx/2)+(screensize[0]-total_heart)/2,3/5*screensize[1]+ny/2-hy/2)
+                self.pos = Pos(heart_end//2*(hx + distance)+(heart_end%2)*int(hx/2)+(screensize[0]-total_heart)/2,3/5*screensize[1]+ny/2-hy/2)
                 canvas = Image.new(size=(lost_heart,hy),mode='RGBA',color=(0,0,0,0))
                 self.size = canvas.size
                 posx,posy = 0,0
@@ -400,11 +563,11 @@ class BuiltInAnimation(Animation):
             canvas.save(ofile)
 
             #剩下的需要定义的
+            self.media = canvas
             self.path = reformat_path(ofile) # 兼容动画Animation，只使用第一帧！
             self.filename = 'auto_BIA_%d'%outanime_index+'.png'
             self.fileindex = 'AMfile_%d'% file_index
-            #print(np.array(self.size),np.array(self.pos))
-            self.PRpos = PR_center_arg(np.array(self.size),np.array(self.pos))
+            # self.PRpos = PR_center_arg(np.array(self.size),np.array(self.pos.get()))
             outanime_index = outanime_index+1
             file_index = file_index+1
         if anime_type == 'dice':
@@ -454,16 +617,16 @@ class BuiltInAnimation(Animation):
                         check_surf = test_canvas.crop((p1,p2,p3,p4))
                         canvas.paste(check_surf,(int(0.7292*screensize[0]),y_anchor+i*y_unit+(y_unit-cy)//2)) # 0.7292*screensize[0] = 1400
                 self.size = screen_size
-                self.pos = (0,0)
+                self.pos = Pos(0,0)
             elif layer==1: #无法显示动态，留空白
                 canvas = Image.new(mode='RGBA',size=(int(0.1458*screensize[0]),y_unit*N_dice),color=(0,0,0,0))
                 self.size = (int(0.1458*screensize[0]),y_unit*N_dice)
-                self.pos = (int(0.5833*screensize[0]),y_anchor)
+                self.pos = Pos(int(0.5833*screensize[0]),y_anchor)
             elif layer==2:
                 dice_cmap={3:(124,191,85,255),1:(94,188,235,255),0:(245,192,90,255),2:(233,86,85,255),-1:(255,255,255,255)}
                 canvas = Image.new(mode='RGBA',size=(int(0.1458*screensize[0]),y_unit*N_dice),color=(0,0,0,0))
                 self.size = (int(0.1458*screensize[0]),y_unit*N_dice)
-                self.pos = (int(0.5833*screensize[0]),y_anchor)
+                self.pos = Pos(int(0.5833*screensize[0]),y_anchor)
                 for i,die in enumerate(anime_args): 
                     name_tx,dice_max,dice_check,dice_face = die
                     dice_max,dice_face,dice_check = map(lambda x:-1 if x=='NA' else int(x),(dice_max,dice_face,dice_check))
@@ -488,10 +651,11 @@ class BuiltInAnimation(Animation):
                 pass
             ofile = output_path+'/auto_BIA_%d'%outanime_index+'.png'
             canvas.save(ofile)
+            self.media = canvas
             self.path = reformat_path(ofile) # 兼容动画Animation，只使用第一帧！
             self.filename = 'auto_BIA_%d'%outanime_index+'.png'
             self.fileindex = 'AMfile_%d'% file_index
-            self.PRpos = PR_center_arg(np.array(self.size),np.array(self.pos))
+            # self.PRpos = PR_center_arg(np.array(self.size),np.array(self.pos.get()))
             outanime_index = outanime_index+1
             file_index = file_index+1
             
@@ -710,7 +874,8 @@ def main():
     video_tracks = []
     audio_tracks = []
     for layer in zorder + ['SE','Voice']:
-        if layer == 'Bb':
+        # 气泡图层
+        if layer[0:2] == 'Bb':
             track_items = parse_timeline_bubble(layer)
             bubble_clip_list = []
             text_clip_list = []
@@ -724,7 +889,7 @@ def main():
                 text_clip_list.append(text_this)
             video_tracks.append(track_tplt.format(**{'targeted':'False','clips':'\n'.join(bubble_clip_list)}))
             video_tracks.append(track_tplt.format(**{'targeted':'True','clips':'\n'.join(text_clip_list)}))
-            
+        # 音效图层
         elif layer in ['SE','Voice']:
             track_items = parse_timeline(layer)
             clip_list = []
@@ -737,7 +902,7 @@ def main():
                 else:
                     print("[33m[warning]:[0m",'Audio file',item[0],'is not exist.')
             audio_tracks.append(audio_track_tplt.format(**{'type':Audio_type,'clips':'\n'.join(clip_list)}))
-            
+        # 立绘或者背景图层
         else:
             track_items = parse_timeline(layer)
             clip_list = []
