@@ -7,7 +7,7 @@ pos_kp = FreePos()
 # 文本
 text1 = Text('./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(100,100,100,255),line_limit=30,label_color='Caribbean')
 text2 = Text('./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(100,100,100,255),line_limit=10)
-text3 = StrokeText('./media/SourceHanSerifSC-Heavy.otf',fontsize=60,color=(32,160,205,220),line_limit=17,edge_color=(0,0,0,255),label_color='Rose')
+text3 = StrokeText('./media/SourceHanSerifSC-Heavy.otf',fontsize=60,color=(32,160,205,220),line_limit=17,edge_color=(0,0,0,220),label_color='Rose')
 # 气泡
 bubble1 = Balloon('./toy/media/bubble1.png',Main_Text=text1,Header_Text=[text2,text3],pos=pos_bubble_left,mt_pos=(57,115),ht_pos=[(652,10),(30,10)],line_distance=1.2,label_color='Lavender',ht_target=['Header','Pos'])
 bubble1_right = Balloon('./toy/media/bubble1.png',Main_Text=text1,Header_Text=[text2,text3],pos=pos_bubble_right,mt_pos=(57,115),ht_pos=[(652,10),(30,10)],line_distance=1.2,align='center',label_color='Cerulean',ht_target=['Header','Pos'])

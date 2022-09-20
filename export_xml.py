@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.11.15'
+from Utils import edtion
 
 # 外部参数输入
 
@@ -744,12 +744,13 @@ def reformat_path(path): # alpha 1.9.5 支持unix文件系统路径
 # 处理bg 和 am 的parser
 def parse_timeline(layer):
     global timeline,break_point
+    break_at_breakpoint = ((layer[0:2]!='BG') & (layer[-1]!='S'))
     track = timeline[[layer]]
     clips = []
     item,begin,end = 'NA',0,0
     for key,values in track.iterrows():
-        #如果item变化了，或者进入了指定的断点
-        if (values[layer] != item) | (key in break_point.values): 
+        #如果item变化了，或者进入了指定的断点(仅断点分隔的图层)
+        if (values[layer] != item) | ((key in break_point.values) & break_at_breakpoint): 
             if (item == 'NA') | (item!=item): # 如果itme是空 
                 pass # 则不输出什么
             else:
@@ -771,12 +772,13 @@ def parse_timeline(layer):
 # 处理Bb 的parser
 def parse_timeline_bubble(layer):
     global timeline,break_point
+    break_at_breakpoint = ((layer[0:2]!='BG') & (layer[-1]!='S'))
     track = timeline[[layer,layer+'_main',layer+'_header']]
     clips = []
     item,begin,end = 'NA',0,0
     for key,values in track.iterrows():
-        #如果item变化了，或者进入了指定的断点(这是保证断句的关键！)
-        if (values[layer] != item) | (key in break_point.values): 
+        #如果item变化了，或者进入了指定的断点(这是保证断句的关键！)(仅断点分隔的图层)
+        if (values[layer] != item) | ((key in break_point.values) & break_at_breakpoint): 
             if (item == 'NA') | (item!=item): # 如果itme是空 
                 pass # 则不输出什么
             else:

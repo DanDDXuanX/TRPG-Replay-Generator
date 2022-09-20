@@ -59,17 +59,21 @@ class StrokeText(Text):
     def __init__(self,fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0,0,255),line_limit=20,edge_color=(255,255,255,255),label_color='Lavender'):
         super().__init__(fontfile=fontfile,fontsize=fontsize,color=color,line_limit=line_limit,label_color=label_color) # 继承
         self.edge_color=edge_color
+        # bug：受限于pygame的性能，无法正确的表现透明度不同的描边和字体，但在导出PR项目时是正常的
+        if (self.color[3] < 255) | (self.edge_color[3] < 255):
+            print("[33m[warning]:[0m",'The transparency of text and edge may not be displayed normally, due to the limit of pygame!')
     def render(self,tx):
         edge = self.text_render.render(tx,True,self.edge_color[0:3])
         face = self.text_render.render(tx,True,self.color[0:3])
-        if self.edge_color[3] < 255:
-            edge.set_alpha(self.edge_color[3])
-        if self.color[3] < 255:
-            face.set_alpha(self.color[3])
         canvas = pygame.Surface((edge.get_size()[0]+2,edge.get_size()[1]+2),pygame.SRCALPHA)
         for pos in [(0,0),(0,1),(0,2),(1,0),(1,2),(2,0),(2,1),(2,2)]:
-            canvas.blit(edge,pos)
+            canvas.blit(edge,pos) # 最大值混合，避免多次blit的叠加
         canvas.blit(face,(1,1))
+        # bug：受限于pygame的性能，无法正确的表现透明度不同的描边和字体，但在导出PR项目时是正常的
+        if (self.color[3] < 255) | (self.edge_color[3] < 255):
+            # 按照透明度的最小值显示
+            min_alpha = min(self.color[3],self.edge_color[3])
+            canvas.set_alpha(min_alpha)
         return canvas
 
 # 对话框、气泡、文本框
