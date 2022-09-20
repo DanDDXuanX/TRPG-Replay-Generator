@@ -132,17 +132,6 @@ python3 = sys.executable.replace('\\','/')
 # 被占用的变量名 # 1.7.7
 occupied_variable_name = open('./media/occupied_variable_name.list','r',encoding='utf8').read().split('\n')
 
-# section:小节号, BG: 背景，Am：立绘，Bb：气泡，BGM：背景音乐，Voice：语音，SE：音效
-render_arg = [
-    'section',
-    'BG1','BG1_a','BG1_c','BG1_p','BG2','BG2_a','BG2_c','BG2_p','BG3','BG3_a','BG3_c','BG3_p',
-    'Am1','Am1_t','Am1_a','Am1_c','Am1_p','Am2','Am2_t','Am2_a','Am2_c','Am2_p','Am3','Am3_t','Am3_a','Am3_c','Am3_p',
-    'AmS','AmS_t','AmS_a','AmS_c','AmS_p',
-    'Bb','Bb_main','Bb_header','Bb_a','Bb_c','Bb_p',
-    'BbS','BbS_main','BbS_header','BbS_a','BbS_c','BbS_p',
-    'BGM','Voice','SE'
-    ]
-
 # 可以<set:keyword>动态调整的全局变量
 dynamic_globals = {
     #默认切换效果（立绘）
@@ -212,7 +201,7 @@ def get_dialogue_arg(text):
 
     return (this_charactor,this_duration,am_method,am_dur,bb_method,bb_dur,ts,text_method,text_dur,this_sound)
 
-# 解析背景行 <background>
+# 解析背景、立绘、气泡行 <background><animation><bubble>
 def get_placeobj_arg(text):
     try:
         obj_type,obje,objc = RE_placeobj.findall(text)[0]
@@ -339,6 +328,16 @@ def ambb_methods(method_name,method_dur,this_duration,i):
 
 # 解析函数
 def parser(stdin_text):
+    # section:小节号, BG: 背景，Am：立绘，Bb：气泡，BGM：背景音乐，Voice：语音，SE：音效
+    render_arg = [
+    'section',
+    'BG1','BG1_a','BG1_c','BG1_p','BG2','BG2_a','BG2_c','BG2_p','BG3','BG3_a','BG3_c','BG3_p',
+    'Am1','Am1_t','Am1_a','Am1_c','Am1_p','Am2','Am2_t','Am2_a','Am2_c','Am2_p','Am3','Am3_t','Am3_a','Am3_c','Am3_p',
+    'AmS','AmS_t','AmS_a','AmS_c','AmS_p',
+    'Bb','Bb_main','Bb_header','Bb_a','Bb_c','Bb_p',
+    'BbS','BbS_main','BbS_header','BbS_a','BbS_c','BbS_p',
+    'BGM','Voice','SE'
+    ]
     # 断点文件
     break_point = pd.Series(0,index=range(0,len(stdin_text)),dtype=int)
     # break_point[0]=0
@@ -1177,7 +1176,7 @@ if args.SynthesisAnyway == True:
         print('[31m[SynthesisError]:[0m',E)
         system_terminated('Error')
 
-# 载入od文件
+# 载入媒体文件
 print('[replay generator]: Loading media definition file.')
 
 try:
@@ -1215,7 +1214,7 @@ white = Background('white')
 media_list.append('black')
 media_list.append('white')
 
-# 载入ct文件
+# 载入角色配置文件
 print('[replay generator]: Loading charactor table.')
 
 try:
@@ -1251,10 +1250,12 @@ except ParserError as E:
 # 判断是否指定输出路径，准备各种输出选项
 if args.OutputPath != None:
     print('[replay generator]: The timeline and breakpoint file will be save at '+args.OutputPath)
+    # 如果有输出路径，导出时间轴文件
     timenow = '%d'%time.time()
     render_timeline.to_pickle(args.OutputPath+'/'+timenow+'.timeline')
     break_point.to_pickle(args.OutputPath+'/'+timenow+'.breakpoint')
     bulitin_media.to_pickle(args.OutputPath+'/'+timenow+'.bulitinmedia')
+    # 如果导出PR项目
     if args.ExportXML == True:
         command = python3 + ' ./export_xml.py --TimeLine {tm} --MediaObjDefine {md} --OutputPath {of} --FramePerSecond {fps} --Width {wd} --Height {he} --Zorder {zd}'
         command = command.format(tm = args.OutputPath+'/'+timenow+'.timeline',
@@ -1268,6 +1269,7 @@ if args.OutputPath != None:
                 raise OSError('Major error occurred in export_xml!')
         except Exception as E:
             print('[33m[warning]:[0m Failed to export XML, due to:',E)
+    # 如果导出视频文件
     if args.ExportVideo == True:
         command = python3 + ' ./export_video.py --TimeLine {tm} --MediaObjDefine {md} --OutputPath {of} --FramePerSecond {fps} --Width {wd} --Height {he} --Zorder {zd} --Quality {ql}'
         command = command.format(tm = args.OutputPath+'/'+timenow+'.timeline',
@@ -1281,10 +1283,10 @@ if args.OutputPath != None:
                 raise OSError('Major error occurred in export_video!')
         except Exception as E:
             print('[33m[warning]:[0m Failed to export Video, due to:',E)
-        system_terminated('Video') # 如果导出为视频，则提前终止程序
+        # 如果导出为视频，则提前终止程序
+        system_terminated('Video')
 
 # 初始化界面
-
 if args.FixScreenZoom == True:
     try:
         import ctypes
@@ -1313,7 +1315,6 @@ for media in media_list:
         system_terminated('Error')
 
 # 预备画面
-# W,H = Width,Height
 white.display(screen)
 screen.blit(pygame.transform.scale(pygame.image.load('./media/icon.png'),(Height//5,Height//5)),(0.01*Height,0.79*Height))
 screen.blit(note_text.render('Welcome to TRPG Replay Generator!',fgcolor=(150,150,150,255),size=0.0315*Width)[0],(0.230*Width,0.460*Height)) # for 1080p

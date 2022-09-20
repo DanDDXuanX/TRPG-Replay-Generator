@@ -87,15 +87,12 @@ Azure_TTS_engine.service_region = args.ServRegion
 from Medias import Audio
 # 正则表达式定义
 from Regexs import RE_dialogue,RE_characor,RE_asterisk
-
-# parsed log 列名
-asterisk_line_columns=['asterisk_label','character','speech_text','category','filepath']
-
-media_list=[]
-
-occupied_variable_name = open('./media/occupied_variable_name.list','r',encoding='utf8').read().split('\n')
-
 # 函数定义
+from Utils import clean_ts,isnumber,mod62_timestamp
+
+# 全局变量
+media_list=[]
+occupied_variable_name = open('./media/occupied_variable_name.list','r',encoding='utf8').read().split('\n')
 
 # 解析对话行 []
 def get_dialogue_arg(text):
@@ -108,11 +105,11 @@ def get_dialogue_arg(text):
         asterisk_label = RE_asterisk.findall(se)
 
     return (this_charactor,ts,asterisk_label)
-    
-from Utils import clean_ts,isnumber,mod62_timestamp
 
 # 解析函数
 def parser(stdin_text):
+    # parsed log 列名
+    asterisk_line_columns=['asterisk_label','character','speech_text','category','filepath']
     asterisk_line = pd.DataFrame(index=range(0,len(stdin_text)),columns=asterisk_line_columns)
     for i,text in enumerate(stdin_text):
         # 空白行
@@ -204,6 +201,7 @@ def synthesizer(key,asterisk):
         # 如果超出了5次尝试，返回Fatal
         return 'Fatal',False
 
+# 预览窗体
 def open_Tuning_windows(init_type='Aliyun'):
     # 根据选中的语音服务，切换frame
     def show_selected_options(event):
@@ -382,6 +380,7 @@ def open_Tuning_windows(init_type='Aliyun'):
     # 主循环
     Tuning_windows.mainloop()
 
+# 语音合成
 def main():
     global charactor_table
     global media_list

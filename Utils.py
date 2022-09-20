@@ -6,7 +6,7 @@ edtion = 'alpha 1.14.2'
 import numpy as np
 import time
 
-# UF : 将2个向量组合成"x,y"的形式
+# UF : 将2个向量组合成"(x,y)"的形式
 concat_xy = np.frompyfunc(lambda x,y:'('+'%d'%x+','+'%d'%y+')',2,1)
 
 # 截断字符串
