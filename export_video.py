@@ -65,6 +65,7 @@ import ffmpeg
 import pydub
 import time
 import re
+import pickle
 
 # 自由点
 from FreePos import Pos,FreePos,PosGrid
@@ -162,9 +163,9 @@ print('[export Video]: Welcome to use exportVideo for TRPG-replay-generator '+ed
 print('[export Video]: The output mp4 file will be saved at "'+args.OutputPath+'"')
 
 # 载入timeline 和 breakpoint
-render_timeline = pd.read_pickle(args.TimeLine)
-break_point = pd.read_pickle(args.TimeLine.replace('timeline','breakpoint'))
-bulitin_media = pd.read_pickle(args.TimeLine.replace('timeline','bulitinmedia'))
+timeline_ifile = open(args.TimeLine,'rb')
+render_timeline,break_point,bulitin_media = pickle.load(timeline_ifile)
+timeline_ifile.close()
 stdin_name = args.TimeLine.replace('\\','/').split('/')[-1]
 
 cmap = {'black':(0,0,0,255),'white':(255,255,255,255),'greenscreen':(0,177,64,255)}

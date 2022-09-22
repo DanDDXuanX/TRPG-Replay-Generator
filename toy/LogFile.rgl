@@ -20,6 +20,8 @@
 
 [张安翔]:^本工具基于python3 和 pygame2.0，在windows10系统上开发。#演示使用的媒体素材来自网络，侵删。{SE1;5}
 [张安翔]:那么，演示开始。{SE1;5}
+
+<bubble>:NA
 # 重设Header
 <set:张安翔.default.Header>:张安翔（默认的）
 <set:张安翔.scared.Header>:张安翔（害怕的）
@@ -50,9 +52,12 @@
 
 <hitpoint>:(张安翔,10,5,7)
 
+<set:inline_method_apply>:animation
 [张安翔]<black=30>:在切换效果修饰符中，指定切换时间为30。{SE1;5}
-[KP]<black>:使用文本效果修饰符，指定文字显示模式为逐字显示。<w2w>{SE1;5}
-[张安翔]<black>:在文本效果修饰符中，指定单位时间为2。<w2w=2>{SE1;5}
+<set:inline_method_apply>:bubble
+[KP]<black=30>:使用文本效果修饰符，指定文字显示模式为逐字显示。<w2w>{SE1;5}
+<set:inline_method_apply>:both
+[张安翔]<black=30>:在文本效果修饰符中，指定单位时间为2。<w2w=2>{SE1;5}
 
 <hitpoint>:(张安翔,10,7,4)
 

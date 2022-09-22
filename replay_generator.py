@@ -92,6 +92,7 @@ import pygame
 import pygame.freetype
 import re
 import time #开发模式，显示渲染帧率
+import pickle
 
 # 自由点
 from FreePos import Pos,FreePos,PosGrid
@@ -158,6 +159,8 @@ dynamic_globals = {
     'asterisk_pause' : 20,
     # a 1.8.8 次要立绘的默认透明度
     'secondary_alpha' : 60,
+    # 对话行内指定的方法的应用对象：animation、bubble、both、none
+    'inline_method_apply' : 'both'
 }
 
 # 其他函数定义
@@ -170,25 +173,33 @@ def get_dialogue_arg(text):
         raise ParserError("[31m[ParserError]:[0m","Unable to parse as dialogue line, due to invalid syntax!")
     this_duration = int(len(ts)/(dynamic_globals['speech_speed']/60/frame_rate))
     this_charactor = RE_characor.findall(cr)
-    # 切换参数
-    if cre=='': # 没有指定 都走默认值
+    # 切换 method
+    if (cre=='') | (dynamic_globals['inline_method_apply']=='none'): # 没有指定，或者禁用指定，都走默认值
         am_method,am_dur = RE_modify.findall(dynamic_globals['am_method_default'])[0]
         bb_method,bb_dur = RE_modify.findall(dynamic_globals['bb_method_default'])[0]
-    else: # 有指定，变得相同
-        am_method,am_dur = RE_modify.findall(cre)[0] 
+    elif dynamic_globals['inline_method_apply']=='animation': # 有指定，参照inline_method_apply
+        am_method,am_dur = RE_modify.findall(cre)[0]
+        bb_method,bb_dur = RE_modify.findall(dynamic_globals['bb_method_default'])[0]
+    elif dynamic_globals['inline_method_apply']=='bubble':
+        am_method,am_dur = RE_modify.findall(dynamic_globals['am_method_default'])[0]
+        bb_method,bb_dur = RE_modify.findall(cre)[0]
+    elif dynamic_globals['inline_method_apply']=='both':
+        am_method,am_dur = RE_modify.findall(cre)[0]
         bb_method,bb_dur = am_method,am_dur
-    if am_dur == '':# 没有指定 都走默认值
+    # 切换 dur
+    if am_dur == '':# 没有指定 走默认值
         am_dur = dynamic_globals['am_dur_default']
-    else:# 有指定，变得相同
+    else: # 有指定，走指定值
         am_dur = int(am_dur.replace('=',''))
     if bb_dur == '':
         bb_dur = dynamic_globals['bb_dur_default']
     else:
         bb_dur = int(bb_dur.replace('=',''))
-    # 文本显示参数
+    # 文本显示 method
     if tse=='':
         tse = dynamic_globals['tx_method_default']
     text_method,text_dur = RE_modify.findall(tse)[0] #<black=\d+> 
+    # 文本显示 dur
     if text_dur == '':
         text_dur = dynamic_globals['tx_dur_default']
     else:
@@ -777,6 +788,12 @@ def parser(stdin_text):
                             raise ParserError('[31m[ParserError]:[0m Unsupported formula "'+args+'" is specified in setting line ' + str(i+1)+'.')
                     else:
                         raise ParserError('[31m[ParserError]:[0m Unsupported formula "'+args+'" is specified in setting line ' + str(i+1)+'.')
+                # 枚举类型的变量
+                elif target == 'inline_method_apply':
+                    if args in ['animation','bubble','both','none']:
+                        dynamic_globals['inline_method_apply'] = args
+                    else:
+                        print('[33m[warning]:[0m','Setting',target,'to invalid value',args,',the argument will not changed.')
                 # 角色表中的自定义列
                 elif '.' in target:
                     target_split = target.split('.')
@@ -1252,9 +1269,9 @@ if args.OutputPath != None:
     print('[replay generator]: The timeline and breakpoint file will be save at '+args.OutputPath)
     # 如果有输出路径，导出时间轴文件
     timenow = '%d'%time.time()
-    render_timeline.to_pickle(args.OutputPath+'/'+timenow+'.timeline')
-    break_point.to_pickle(args.OutputPath+'/'+timenow+'.breakpoint')
-    bulitin_media.to_pickle(args.OutputPath+'/'+timenow+'.bulitinmedia')
+    timeline_ofile = open(args.OutputPath+'/'+timenow+'.timeline','wb')
+    pickle.dump([render_timeline,break_point,bulitin_media],timeline_ofile)
+    timeline_ofile.close()
     # 如果导出PR项目
     if args.ExportXML == True:
         command = python3 + ' ./export_xml.py --TimeLine {tm} --MediaObjDefine {md} --OutputPath {of} --FramePerSecond {fps} --Width {wd} --Height {he} --Zorder {zd}'

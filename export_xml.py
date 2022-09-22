@@ -68,6 +68,7 @@ from PIL import Image,ImageFont,ImageDraw
 import re
 from pygame import mixer
 import glob # 匹配路径
+import pickle
 
 from FreePos import Pos,FreePos,PosGrid
 
@@ -826,9 +827,9 @@ audio_clip_tplt = open('./xml_templates/tplt_audio_clip.xml','r',encoding='utf8'
 
 # 载入timeline 和 breakpoint
 
-timeline = pd.read_pickle(stdin_log)
-break_point = pd.read_pickle(stdin_log.replace('timeline','breakpoint'))
-bulitin_media = pd.read_pickle(stdin_log.replace('timeline','bulitinmedia'))
+timeline_ifile = open(args.TimeLine,'rb')
+timeline,break_point,bulitin_media = pickle.load(timeline_ifile)
+timeline_ifile.close()
 
 def main():
     global media_list
