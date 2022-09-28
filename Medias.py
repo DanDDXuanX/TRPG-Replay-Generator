@@ -169,6 +169,105 @@ class Balloon(Bubble):
             temp.set_alpha(alpha/100*255)            
         surface.blit(temp,render_pos.get())
 
+# 尺寸自适应气泡
+class DynamicBubble(Bubble):
+    def __init__(self,filepath=None,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),mt_end=(0,0),ht_pos=(0,0),ht_target='Name',fill_mode='stretch',line_distance=1.5,label_color='Lavender'):
+        # align 只能为left
+        super().__init__(filepath=filepath,Main_Text=Main_Text,Header_Text=Header_Text,pos=pos,mt_pos=mt_pos,ht_pos=ht_pos,ht_target=ht_target,line_distance=line_distance,label_color=label_color)
+        if (mt_pos[0] > mt_end[0]) | (mt_pos[1] > mt_end[1]):
+            raise MediaError('【气泡错误】：气泡的分割参数mt_end的值不合法！')
+        else:
+            self.mt_end = mt_end
+        # fill_mode 只能是 stretch 或者 collage
+        if fill_mode in ['stretch','collage']:
+            self.fill_mode = fill_mode
+        else:
+            raise MediaError('【气泡错误】：非法的填充参数！')
+        # x,y轴上的四条分割线
+        self.x_tick = [0,self.mt_pos[0],self.mt_end[0],self.media.get_size()[0]]
+        self.y_tick = [0,self.mt_pos[1],self.mt_end[1],self.media.get_size()[1]]
+        self.bubble_clip = []
+        # 0 3 6
+        # 1 4 7
+        # 2 5 8
+        for i in range(0,3):
+            for j in range(0,3):
+                self.bubble_clip.append(self.media.subsurface((self.x_tick[i],self.y_tick[j],
+                                                               self.x_tick[i+1]-self.x_tick[i],
+                                                               self.y_tick[j+1]-self.y_tick[j]
+                                                               )))
+        # 以np array 的形式存储气泡碎片
+        self.bubble_clip = np.array(self.bubble_clip)
+    def display(self, surface, text, header='', alpha=100, center='NA', adjust='NA'):
+        if center == 'NA':
+            render_center = self.pos
+        else:
+            render_center = Pos(*eval(center))
+        if adjust in ['(0,0)','NA']:
+            render_pos = render_center
+        else:
+            render_pos = render_center + eval(adjust)
+        # 首先，需要把主文本渲染出来
+        main_text_list = self.MainText.draw(text)
+        # 第一次循环：获取最大的x和最大的y
+        xlim=0
+        for i,text_surf in enumerate(main_text_list):
+            x_this,y_this = text_surf.get_size()
+            y_this = i*self.MainText.size*self.line_distance + y_this
+            if x_this > xlim:
+                xlim = x_this
+            ylim = int(y_this)
+        # 建立变形后的气泡
+        temp_size_x = xlim + self.x_tick[1] + self.x_tick[3] - self.x_tick[2]
+        temp_size_y = ylim + self.y_tick[1] + self.y_tick[3] - self.y_tick[2]
+        temp = pygame.Surface((temp_size_x,temp_size_y),pygame.SRCALPHA)
+        temp.fill((0,0,0,0))
+        # 目前只支持 fill_mode == 'stretch'
+        # 位置0
+        temp.blit(self.bubble_clip[0],(0,0))
+        # 位置1
+        temp.blit(pygame.transform.scale(self.bubble_clip[1],(self.x_tick[1],ylim)),
+                  (0,self.y_tick[1]))
+        # 位置2
+        temp.blit(self.bubble_clip[2],(0,self.y_tick[1]+ylim))
+        # 位置3
+        temp.blit(pygame.transform.scale(self.bubble_clip[3],(xlim,self.y_tick[1])),
+                  (self.x_tick[1],0))
+        # 位置4
+        temp.blit(pygame.transform.scale(self.bubble_clip[4],(xlim,ylim)),
+                  (self.x_tick[1],self.y_tick[1]))
+        # 位置5
+        temp.blit(pygame.transform.scale(self.bubble_clip[5],(xlim,self.y_tick[3]-self.y_tick[2])),
+                  (self.x_tick[1],self.y_tick[1]+ylim))
+        # 位置6
+        temp.blit(self.bubble_clip[6],(self.x_tick[1]+xlim,0))
+        # 位置7
+        temp.blit(pygame.transform.scale(self.bubble_clip[7],(self.x_tick[3]-self.x_tick[2],ylim)),
+                  (self.x_tick[1]+xlim,self.y_tick[1]))
+        # 位置8
+        temp.blit(self.bubble_clip[8],(self.x_tick[1]+xlim,self.y_tick[1]+ylim))
+        # 第二次循环：把主文本blit到临时容器
+        for i,text_surf in enumerate(main_text_list):
+            temp.blit(text_surf,(self.x_tick[1],self.y_tick[1]+i*self.MainText.size*self.line_distance))
+        # 头文本
+        if (self.Header!=None) & (header!=''):    # Header 有定义，且输入文本不为空
+            if self.ht_pos[0] > self.x_tick[2]:
+                ht_renderpos_x = self.ht_pos[0] - self.x_tick[2] + self.x_tick[1] + xlim
+            else:
+                ht_renderpos_x = self.ht_pos[0]
+            if self.ht_pos[1] > self.y_tick[2]:
+                ht_renderpos_y = self.ht_pos[1] - self.y_tick[2] + self.y_tick[1] + ylim
+            else:
+                ht_renderpos_y = self.ht_pos[1]
+            temp.blit(self.Header.draw(header)[0],(ht_renderpos_x,ht_renderpos_y))
+        # 将bubble blit 到 surface
+        if alpha !=100:
+            temp.set_alpha(alpha/100*255)            
+        surface.blit(temp,render_pos.get())
+    def convert(self): # 和Animation类相同的convert
+        super().convert()
+        self.bubble_clip = np.frompyfunc(lambda x:x.convert_alpha(),1,1)(self.bubble_clip)
+        
 # 背景图片
 class Background:
     def __init__(self,filepath,pos = (0,0),label_color='Lavender'):

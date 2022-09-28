@@ -102,6 +102,7 @@ from Medias import Text
 from Medias import StrokeText
 from Medias import Bubble
 from Medias import Balloon
+from Medias import DynamicBubble
 from Medias import Background
 from Medias import Animation
 from Medias import GroupedAnimation
@@ -1315,7 +1316,7 @@ pygame.init()
 pygame.display.set_caption('TRPG Replay Generator '+edtion)
 fps_clock=pygame.time.Clock()
 screen = pygame.display.set_mode((Width,Height))
-pygame.display.set_icon(pygame.image.load('./media/icon.ico'))
+pygame.display.set_icon(pygame.image.load('./media/icon.png'))
 note_text = pygame.freetype.Font('./media/SourceHanSansCN-Regular.otf')
 
 # 建立音频轨道
