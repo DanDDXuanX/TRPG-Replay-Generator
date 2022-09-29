@@ -9,10 +9,12 @@ text1 = Text('./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(100,100,10
 text2 = Text('./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(100,100,100,255),line_limit=10)
 text3 = StrokeText('./media/SourceHanSerifSC-Heavy.otf',fontsize=60,color=(32,160,205,220),line_limit=17,edge_color=(0,0,0,220),label_color='Rose')
 # 气泡
-bubble1 = DynamicBubble('./toy/media/bubble1.png',Main_Text=text1,Header_Text=None,pos=pos_bubble_left,mt_pos=(57,115),mt_end=(1242,300),line_distance=1.2,label_color='Lavender')
-# bubble1 = Balloon('./toy/media/bubble1.png',Main_Text=text1,Header_Text=[text2,text3],pos=pos_bubble_left,mt_pos=(57,115),ht_pos=[(652,10),(30,10)],line_distance=1.2,label_color='Lavender',ht_target=['Header','Pos'])
+bubble1 = Balloon('./toy/media/bubble1.png',Main_Text=text1,Header_Text=[text2,text3],pos=pos_bubble_left,mt_pos=(57,115),ht_pos=[(652,10),(30,10)],line_distance=1.2,label_color='Lavender',ht_target=['Header','Pos'])
 bubble1_right = Balloon('./toy/media/bubble1.png',Main_Text=text1,Header_Text=[text2,text3],pos=pos_bubble_right,mt_pos=(57,115),ht_pos=[(652,10),(30,10)],line_distance=1.2,align='center',label_color='Cerulean',ht_target=['Header','Pos'])
-bubble2 = Balloon(filepath=None,Main_Text=text3,pos=(0,0),mt_pos=(436,458),line_distance=1.6,align='center',label_color='Blue')
+bubble2 = Bubble(filepath=None,Main_Text=text3,pos=(0,0),mt_pos=(436,458),line_distance=1.6,align='center',label_color='Blue')
+
+bubble3 = DynamicBubble('./toy/media/bubble4.png',Main_Text=text1,Header_Text=None,pos=(0,0),mt_pos=(50,50),mt_end=(88,88),line_distance=1.2,label_color='Lavender')
+chatwindows1 = ChatWindow('./toy/media/bubble3.png',sub_Bubble=[bubble3,bubble3],sub_key=['left','right'],align=['left','right'],pos=(241,122),sub_pos=(60,190),sub_end=(1362,772),am_left=0,am_right=0,sub_distance=10,label_color='Lavender')
 # 背景
 bg1 = Background('./toy/media/bg1.jpg')
 bg2 = Background('./toy/media/bg2.jpg')

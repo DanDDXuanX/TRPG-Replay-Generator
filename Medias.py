@@ -78,6 +78,7 @@ class StrokeText(Text):
 
 # 对话框、气泡、文本框
 class Bubble:
+    # 初始化
     def __init__(self,filepath=None,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),ht_pos=(0,0),ht_target='Name',align='left',line_distance=1.5,label_color='Lavender'):
         if filepath is None or filepath == 'None': # 支持气泡图缺省
             # 媒体设为空图
@@ -106,15 +107,8 @@ class Bubble:
             self.align = align
         else:
             raise MediaError('[31m[BubbleError]:[0m', 'Unsupported align:',align)
-    def display(self,surface,text,header='',alpha=100,center='NA',adjust='NA'):
-        if center == 'NA':
-            render_center = self.pos
-        else:
-            render_center = Pos(*eval(center))
-        if adjust in ['(0,0)','NA']:
-            render_pos = render_center
-        else:
-            render_pos = render_center + eval(adjust)
+    # 渲染一个添加文字的Bubble Surface
+    def draw(self, text, header=''):
         temp = self.media.copy()
         if (self.Header!=None) & (header!=''):    # Header 有定义，且输入文本不为空
             temp.blit(self.Header.draw(header)[0],self.ht_pos)
@@ -125,9 +119,26 @@ class Bubble:
             else: # 就只可能是center了
                 word_w,word_h = s.get_size()
                 temp.blit(s,(x+(self.MainText.size*self.MainText.line_limit - word_w)//2,y+i*self.MainText.size*self.line_distance))
+        return temp,temp.get_size()
+    # 将气泡对象丢上主Surface
+    def display(self, surface, text, header='', alpha=100, center='NA', adjust='NA'):
+        # 中心位置
+        if center == 'NA':
+            render_center = self.pos
+        else:
+            render_center = Pos(*eval(center))
+        # 校正位置
+        if adjust in ['(0,0)','NA']:
+            render_pos = render_center
+        else:
+            render_pos = render_center + eval(adjust)
+        # Bubble Surface
+        temp,tempsize = self.draw(text,header)
+        # 将Bubble blit 到 surface
         if alpha !=100:
-            temp.set_alpha(alpha/100*255)            
+            temp.set_alpha(alpha/100*255)
         surface.blit(temp,render_pos.get())
+    # 转换媒体对象
     def convert(self):
         self.media = self.media.convert_alpha()
 
@@ -139,15 +150,8 @@ class Balloon(Bubble):
             raise MediaError('[31m[BubbleError]:[0m', 'length of header params does not match!')
         else:
             self.header_num = len(self.Header)
-    def display(self,surface,text,header='',alpha=100,center='NA',adjust='NA'):
-        if center == 'NA':
-            render_center = self.pos
-        else:
-            render_center = Pos(*eval(center))
-        if adjust in ['(0,0)','NA']:
-            render_pos = render_center
-        else:
-            render_pos = render_center + eval(adjust)
+    # 重载draw
+    def draw(self, text, header=''):
         temp = self.media.copy()
         # 复合header用|作为分隔符
         header_texts = header.split('|')
@@ -165,9 +169,7 @@ class Balloon(Bubble):
             else: # 就只可能是center了
                 word_w,word_h = s.get_size()
                 temp.blit(s,(x+(self.MainText.size*self.MainText.line_limit - word_w)//2,y+i*self.MainText.size*self.line_distance))
-        if alpha !=100:
-            temp.set_alpha(alpha/100*255)            
-        surface.blit(temp,render_pos.get())
+        return temp,temp.get_size()
 
 # 尺寸自适应气泡
 class DynamicBubble(Bubble):
@@ -198,16 +200,11 @@ class DynamicBubble(Bubble):
                                                                )))
         # 以np array 的形式存储气泡碎片
         self.bubble_clip = np.array(self.bubble_clip)
-    def display(self, surface, text, header='', alpha=100, center='NA', adjust='NA'):
-        if center == 'NA':
-            render_center = self.pos
-        else:
-            render_center = Pos(*eval(center))
-        if adjust in ['(0,0)','NA']:
-            render_pos = render_center
-        else:
-            render_pos = render_center + eval(adjust)
+    # 重载draw
+    def draw(self, text, header=''):
         # 首先，需要把主文本渲染出来
+        if text == '':
+            text = ' '
         main_text_list = self.MainText.draw(text)
         # 第一次循环：获取最大的x和最大的y
         xlim=0
@@ -260,14 +257,109 @@ class DynamicBubble(Bubble):
             else:
                 ht_renderpos_y = self.ht_pos[1]
             temp.blit(self.Header.draw(header)[0],(ht_renderpos_x,ht_renderpos_y))
-        # 将bubble blit 到 surface
-        if alpha !=100:
-            temp.set_alpha(alpha/100*255)            
-        surface.blit(temp,render_pos.get())
+        return temp,(temp_size_x,temp_size_y)
     def convert(self): # 和Animation类相同的convert
         super().convert()
         self.bubble_clip = np.frompyfunc(lambda x:x.convert_alpha(),1,1)(self.bubble_clip)
-        
+
+# 聊天窗
+class ChatWindow(Bubble):
+    def __init__(self,filepath=None,sub_Bubble=[Bubble()],sub_key=['Bubble()'],align=[],pos=(0,0),sub_pos=(0,0),sub_end=(0,0),am_left=0,am_right=0,sub_distance=50,label_color='Lavender'):
+        # 检查子气泡和key是否是能匹配
+        if len(sub_Bubble) != len(sub_key):
+            raise MediaError('[31m[BubbleError]:[0m', 'length of sub-bubble params does not match!')
+        # 空白底图
+        if filepath is None or filepath == 'None': # 支持气泡图缺省
+            # 媒体设为空图
+            screen_size = screen_config['screen_size']
+            self.media = pygame.Surface(screen_size,pygame.SRCALPHA)
+            self.media.fill((0,0,0,0))
+        else:
+            self.media = pygame.image.load(filepath)
+        if type(pos) in [Pos,FreePos]:
+            self.pos = pos
+        else:
+            self.pos = Pos(*pos)
+        # 子气泡和对齐
+        self.sub_Bubble = {}
+        self.sub_align = {}
+        for i,key in enumerate(sub_key):
+            # 检查气泡是否是 Ballon
+            if type(sub_Bubble[i]) is Balloon:
+                raise MediaError('[31m[BubbleError]:[0m','Ballon object "'+key+'" is not supported to be set as a sub-bubble of ChatWindow!')
+            self.sub_Bubble[key] = sub_Bubble[i]
+            try:
+                if align[i] in ['left','right']:
+                    self.sub_align[key] = align[i]
+                else:
+                    raise MediaError('[31m[BubbleError]:[0m', 'Unsupported align:',align[i])
+            except IndexError:
+                self.sub_align[key] = 'left'
+        # 子气泡尺寸
+        if (sub_pos[0] > sub_end[0]) | (sub_pos[1] > sub_end[1]):
+            raise MediaError('【气泡错误】：气泡的分割参数sub_end的值不合法！')
+        else:
+            self.sub_size = (sub_end[0]-sub_pos[0],sub_end[1]-sub_pos[1])
+            self.sub_pos = sub_pos
+        # 立绘对齐位置
+        self.am_left = am_left
+        self.am_right = am_right
+        # 子气泡间隔
+        self.sub_distance = sub_distance
+        # 留存文本容器：
+        self.main_text = ''
+        self.header_text = ''
+    def append(self, text, header = '', subbubble = ''):
+        if self.main_text == '':
+            self.main_text = text
+            self.header_text = subbubble + '#' + header
+        else:
+            self.main_text = self.main_text + '|' + text
+            self.header_text = self.header_text + '|' + subbubble + '#' + header
+        return self.header_text,self.main_text
+    def draw(self, text, header=''):
+        # 母气泡的复制品
+        temp = self.media.copy()
+        # 容纳子气泡的容器
+        sub_surface = pygame.Surface(self.sub_size,pygame.SRCALPHA)
+        sub_surface.fill((0,0,0,0))
+        # 拆分主文本和头文本，并倒叙
+        main_text_list = text.split('|')
+        header_text_list = header.split('|')
+        # 注意，由于w2w或者l2l的设定，main_text_list 很可能和 header_text_list 并不能完全匹配！
+        # 主1|主2|主3|
+        # 头1|头2|头3|头4|头5
+        # 头：|key#header_text|
+        # 第一次循环：对应主文本和头文本的关系
+        header_main_pair = []
+        for i,main_text in enumerate(main_text_list):
+            header_main_pair.append((header_text_list[i],main_text))
+        # 将头主文本对列表倒序
+        header_main_pair = header_main_pair[::-1]
+        # 第二次循环：渲染子气泡
+        y_bottom = self.sub_size[1] # 当前句子的可用y底部
+        for header_main in header_main_pair:
+            # 解析|键|头文本|主文本|
+            bubble_header_this,main_this = header_main
+            key_this,header_this = bubble_header_this.split('#')
+            # 绘制子气泡
+            subbubble_surface_this,subbubble_surface_size = self.sub_Bubble[key_this].draw(main_this,header_this)
+            if self.sub_align[key_this] == 'left':
+                # x = 0，y = 底部-子气泡的高度
+                print()
+                sub_surface.blit(subbubble_surface_this,(0,y_bottom-subbubble_surface_size[1]))
+            else:
+                # x = 右侧 - 子气泡的宽度，y同上
+                sub_surface.blit(subbubble_surface_this,(self.sub_size[0]-subbubble_surface_size[0],y_bottom-subbubble_surface_size[1]))
+            # 更新可用底部 = 前一次底部 - 子气泡高度 - 子气泡间距
+            y_bottom = y_bottom - subbubble_surface_size[1] - self.sub_distance
+            # 如果可用底部已经达到顶部之外
+            if y_bottom < 0:
+                break
+        # 将子气泡容器渲染到母气泡容器
+        temp.blit(sub_surface,self.sub_pos)
+        return temp,temp.get_size()
+
 # 背景图片
 class Background:
     def __init__(self,filepath,pos = (0,0),label_color='Lavender'):
