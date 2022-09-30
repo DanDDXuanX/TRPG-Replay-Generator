@@ -14,6 +14,8 @@ import os
 import sys
 import re
 import pickle
+from Medias import Audio
+from Medias import BGM
 
 # preview 的类定义
 label_pos_show_text = ImageFont.truetype('./media/SourceHanSerifSC-Heavy.otf', 30)
@@ -143,6 +145,9 @@ class Animation:
         draw.line([p_x-100,p_y,p_x+100,p_y],fill='green',width=2)
         draw.line([p_x,p_y-100,p_x,p_y+100],fill='green',width=2)
         draw.text((p_x,p_y),'({0},{1})'.format(p_x,p_y),font=label_pos_show_text,fill='green')
+
+
+
 
 # 选择位置窗
 def open_PosSelect(father,bgfigure='',postype='green',current_pos=''):
@@ -533,8 +538,11 @@ def open_Edit_windows(father,Edit_filepath='',fig_W=960,fig_H=540):
     edit_return_value = False
     available_Text = ['None','Text()']
     used_variable_name = []
+    media_lines = [] # 保存当前所有媒体行，用于筛选时避免丢失原有媒体。有used_variable_name的地方就有它
+    
 
-    def new_obj(): # 新建
+    def new_obj(event=None): # 新建
+        treeviewClick(event)
         try:# 非win系统，可能没有disable
             Edit_windows.attributes('-disabled',True)
         except Exception:
@@ -548,12 +556,16 @@ def open_Edit_windows(father,Edit_filepath='',fig_W=960,fig_H=540):
         Edit_windows.focus_force()
         if new_obj:
             used_variable_name.append(new_obj[0]) # 新建的媒体名
+            media_lines.append(new_obj)
+
             if new_obj[1] in ['Text','StrokeText']: # 如果新建了文本
                 mediainfo.insert('',0,values =new_obj) # 则插入在最上层
                 available_Text.append(new_obj[0])
             else:
                 mediainfo.insert('','end',values =new_obj) # 否则插入在最后
-    def copy_obj(): # 复制
+        sortMedia()
+    def copy_obj(event=None): # 复制
+        treeviewClick(event)
         if selected == 0:
             pass
         else:
@@ -565,12 +577,17 @@ def open_Edit_windows(father,Edit_filepath='',fig_W=960,fig_H=540):
                 else:
                     break
             used_variable_name.append(new_name) # 新建的媒体名
+            media_lines.append((new_name,selected_type,selected_args))
+
             if selected_type in ['Text','StrokeText']: # 如果新建了文本
                 available_Text.append(new_name)
                 mediainfo.insert('',0,values =(new_name,selected_type,selected_args)) # 插入到最前面
             else:
                 mediainfo.insert('','end',values =(new_name,selected_type,selected_args)) # 否则插入到最后面
-    def preview_obj(): # 预览
+
+        sortMedia()
+    def preview_obj(event=None): # 预览
+        treeviewClick(event) # 预览前先将当前选中项写入变量
         global image_canvas
         nonlocal show_canvas # 必须是全局变量，否则在函数后就被回收了，不再显示
         if selected_type in ['Text','StrokeText','Bubble','Background','Animation']: # 执行
@@ -585,14 +602,17 @@ def open_Edit_windows(father,Edit_filepath='',fig_W=960,fig_H=540):
             except Exception as E: # 其他错误，主要是参数错误
                 messagebox.showerror(title='错误',message=E)
         elif selected_type in ['BGM','Audio']:
-            messagebox.showwarning(title='警告',message='音频类对象不支持预览！')
+            exec('global {name};{name}={type}{args}'.format(name=selected_name,type=selected_type,args=selected_args))
+            exec('global {name};{name}.display()'.format(name=selected_name))
+
         elif selected_type == 'BuiltInAnimation':
             messagebox.showwarning(title='警告',message='内建动画对象不支持GUI编辑！')
         elif selected_type == 'None':
             messagebox.showwarning(title='警告',message='未选中任何对象！')
         else:
             messagebox.showerror(title='错误',message='不支持的媒体定义类型：'+selected_type)
-    def edit_obj(): # 编辑
+    def edit_obj(event=None): # 编辑
+        treeviewClick(event)
         nonlocal selected,selected_name,selected_type,selected_args
         if selected == 0:
             pass
@@ -611,18 +631,25 @@ def open_Edit_windows(father,Edit_filepath='',fig_W=960,fig_H=540):
             if new_obj:
                 used_variable_name.remove(selected_name) # 原来的媒体名
                 used_variable_name.append(new_obj[0]) # 新建的媒体名
+                media_lines.remove((selected_name,selected_type,selected_args))
+                media_lines.append(new_obj)
+
                 if selected_type in ['Text','StrokeText']: # 如果编辑的对象是文本
                     available_Text.remove(selected_name)
                     available_Text.append(new_obj[0])
                 mediainfo.item(selected,values=new_obj)
                 selected_name,selected_type,selected_args = new_obj
-    def del_obj(): # 删除
+        sortMedia()
+    def del_obj(event=None): # 删除
+        treeviewClick(event)
         nonlocal selected,selected_name,selected_type,selected_args
         if selected == 0:
             pass
         else:
             mediainfo.delete(selected)
             used_variable_name.remove(selected_name)
+            media_lines.remove((selected_name,selected_type,selected_args))
+
             if selected_type in ['Text','StrokeText']: # 如果删除了文本
                 available_Text.remove(selected_name)
             selected = 0
@@ -639,6 +666,11 @@ def open_Edit_windows(father,Edit_filepath='',fig_W=960,fig_H=540):
                 return False
             ofile = open(Save_filepath,'w',encoding='utf8')
             edit_return_value = Save_filepath
+        
+        # 保存前先将筛选器调回All
+        media_type.set("All")
+        filterMedia(None)
+
         for lid in mediainfo.get_children(): # 输出表格内容
             #print(mediainfo.item(lid, "values"))
             ofile.write('{0} = {1}{2}\n'.format(*mediainfo.item(lid, "values")))
@@ -661,6 +693,100 @@ def open_Edit_windows(father,Edit_filepath='',fig_W=960,fig_H=540):
             #print(selected_name,selected_type,selected_args)
         except Exception:
             pass
+    def keyHandler(event): # 按键事件处理
+        if event.char == 'e' or event.char == 'E':# 编辑（Edit）
+            edit_obj(event)
+        elif event.char == 'a' or event.char == 'A':# 新建（Add）
+            new_obj(event)
+        elif event.char == 'd' or event.char == 'D':# 复制（Duplicate）
+            copy_obj(event)
+    def filterMedia(event):
+        nonlocal media_lines,media_type
+        t = media_type.get()
+        
+        if t == 'All':
+            filtered_list = media_lines
+        else:
+            filtered_list = [x for x in media_lines if x[1] == t]
+        
+        # 由于没有改动media_lines，所以不必在“All”选项时将文本媒体特地插到头部，按顺序遍历即可
+        updateTreeView(filtered_list)
+
+    def updateTreeView(new_list):# 更新表格显示数据，注意并不会修改统计数据，只会更新表格显示的内容
+        i = 0
+        mediainfo.delete(*mediainfo.get_children()) # 清空媒体
+        for medium in new_list:
+            if i % 2 == 1:
+                mediainfo.insert('','end',values=medium)
+            else:
+                mediainfo.insert('','end',values=medium,tags=("evenColor"))
+            i+=1
+
+
+    def sortMedia(): # 给媒体分类排序
+        priority = {
+            "Text":1,
+            "StrokeText":2,
+            "Animation":3, 
+            "Bubble":4, 
+            "Background":5,
+            "Audio":6, 
+            "BGM":7
+        }
+
+        media_lines.sort(key=lambda elem:priority[elem[1]])
+        updateTreeView(media_lines)
+
+    def searchMedia(event): # 搜索框的回车事件处理函数
+        text = search_text.get()
+        result_list = [x for x in media_lines if x[0].find(text)!=-1 ]
+        updateTreeView(result_list)
+
+    def importMedia(): # 批量导入媒体
+        path = filedialog.askdirectory()
+        media_parameter_dict = {
+            "Bubble":"(filepath='{}',Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),ht_pos=(0,0),align='left',line_distance=1.5)",
+            "Background":"(filepath='{}',pos=(0,0))",
+            "Animation":"(filepath='{}',pos=(0,0),tick=1,loop=True)",
+            "BGM":"(filepath='{}',volume=100,loop=True)",
+            "Audio":"(filepath='{}')"
+        }
+        media = []
+        warning_line = []
+        for root, dirs, files in os.walk(path):
+            for dir in dirs:
+                if dir in media_parameter_dict.keys():
+                    # 如果是对应的媒体文件夹，则进入其中遍历文件
+                    for sub_root, sub_dirs, sub_files in os.walk(os.path.join(root, dir),topdown=False):
+                        for sub_file in sub_files:
+                            # 将媒体文件夹中的每个媒体都添加到列表中
+                            abs_path = os.path.join(sub_root, sub_file).replace('\\','/')
+
+                            medium_name = sub_file.split('.')[0] # 去除扩展名
+                            
+                            if ((medium_name in occupied_variable_name)|(medium_name in used_variable_name)):
+                                # 名字在已经占用（用户或系统）的名字里面
+                                warning_line.append("“{}”是已经被占用的变量名！".format(medium_name))
+                            elif (len(re.findall('^\w+$',medium_name))==0) | (medium_name[0].isdigit()): # 全字符是\w，且首字符不是数字
+                                # 如果新名字是非法的变量名
+                                warning_line.append("“{}”是非法的变量名！".format(medium_name))
+                            else:
+                                medium = (medium_name,dir,media_parameter_dict[dir].format(abs_path))
+                                media.append(medium)
+        if warning_line == []:
+            messagebox.showinfo(title='完毕',message='载入完毕，共载入{}条记录！'.format(len(media)))
+        else:
+            messagebox.showwarning(title='完毕',message='载入完毕，共载入{i}条记录，\n无法解析而被舍弃的内容与原因如下：\n{warning}'.format(i=len(media),warning='\n'.join(map(str,warning_line))))
+        media_lines.extend(media)
+        media_type.set('All')
+        updateTreeView(media_lines)
+
+        
+
+
+        
+
+
 
     window_W , window_H = fig_W//2+40,fig_H//2+440
 
@@ -700,14 +826,24 @@ def open_Edit_windows(father,Edit_filepath='',fig_W=960,fig_H=540):
     mediainfo.heading("args", text = "参数")
 
     mediainfo.place(x=10,y=10,height=285,width=fig_W//2-35)
+    mediainfo.tag_configure("evenColor",background="#E6E6E6") # 行标签，用于偶数行着色
+
     mediainfo.bind('<ButtonRelease-1>', treeviewClick)
+    mediainfo.bind('<Double-Button-1>',preview_obj) # 双击左键预览
+    mediainfo.bind('<Button-3>',edit_obj) # 单击右键编辑
+    mediainfo.bind('<Delete>',del_obj) # Delete键删除
+    mediainfo.bind('<Key>',keyHandler) # 按键处理
+    
+    
+
+
 
     # 按键
 
     button_w = (fig_W//2-20)//8 # 这数字8 应该等于按键的 数量+1
     button_x = lambda x:10+(fig_W//2-20-button_w)//6*x # 这个数字6 应该等于按键的 数量-1
 
-    ttk.Button(mediainfo_frame,text='预览',command=preview_obj).place(x=button_x(0),y=320,width=button_w,height=40)
+    ttk.Button(mediainfo_frame,text='导入',command=importMedia).place(x=button_x(0),y=320,width=button_w,height=40)
     ttk.Button(mediainfo_frame,text='新建',command=new_obj).place(x=button_x(1),y=320,width=button_w,height=40)
     ttk.Button(mediainfo_frame,text='复制',command=copy_obj).place(x=button_x(2),y=320,width=button_w,height=40)    
     ttk.Button(mediainfo_frame,text='编辑',command=edit_obj).place(x=button_x(3),y=320,width=button_w,height=40)
@@ -724,6 +860,19 @@ def open_Edit_windows(father,Edit_filepath='',fig_W=960,fig_H=540):
     preview_canvas.config(image=show_canvas)
     preview_canvas.place(x=10,y=410,height=fig_H//2,width=fig_W//2)
 
+    # 筛选媒体下拉框
+    media_type = tk.StringVar(Edit_windows)
+    choose_type = ttk.Combobox(Edit_windows,textvariable=media_type,value=['All','Text','StrokeText','Bubble','Background','Animation','BGM','Audio'])
+    choose_type.place(x=Edit_windows.winfo_width()-100,y=10,width=100,height=25) # 我就随便找个位置先放着，等后来人调整布局（都是绝对坐标很难搞啊）
+    choose_type.current(0)
+    choose_type.bind("<<ComboboxSelected>>",filterMedia)
+
+    # 搜索框
+    search_text = tk.StringVar(Edit_windows)
+    search_entry =  tk.Entry(Edit_windows, textvariable=search_text)
+    search_entry.place(x=200,y=10,width=300,height=25) # 同上，位置暂时随便摆的
+    search_entry.bind('<Key-Return>',searchMedia) # 回车后搜索
+
     # 载入文件
     if Edit_filepath!='': # 如果有指定输入文件
         try:
@@ -732,15 +881,32 @@ def open_Edit_windows(father,Edit_filepath='',fig_W=960,fig_H=540):
                 mediadef_text.pop() # 如果最后一行是空行，则无视掉最后一行
             warning_line = []
             i = -1 # 即使是输入空文件，也能正确弹出提示框
+
+            
             for i,line in enumerate(mediadef_text):
                 parseline = RE_parse_mediadef.findall(line)
                 if len(parseline) == 1:
-                    mediainfo.insert('','end',values = parseline[0])
+                    # 插入行，并进行偶数行着色
+                    if i % 2 ==1:
+                        mediainfo.insert('','end',values = parseline[0])
+                    else:
+                        mediainfo.insert('','end',values = parseline[0],tags=("evenColor"))
+                    
+                    # 如果是字体媒体，提前载入
+                    if parseline[0][1] == "Text" or parseline[0][1] == "StrokeText":
+                        exec('global {name};{name}={type}{args}'.format(name=parseline[0][0],type=parseline[0][1],args=parseline[0][2]))
+
+
                     used_variable_name.append(parseline[0][0])
+                    media_lines.append(parseline[0])
+
                     if parseline[0][1] in ['Text','StrokeText']:
                         available_Text.append(parseline[0][0])
                 else:
                     warning_line.append(i+1)
+            
+            # 载入完毕先排个序
+            sortMedia()
             if warning_line == []:
                 messagebox.showinfo(title='完毕',message='载入完毕，共载入{i}条记录！'.format(i=i+1))
             else:
