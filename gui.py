@@ -730,6 +730,11 @@ def open_Edit_windows(father,Edit_filepath='',fig_W=960,fig_H=540):
         media_lines.sort(key=lambda elem:priority[elem[1]])
         updateTreeView(media_lines)
 
+    def searchMedia(event): # 搜索框的回车事件处理函数
+        text = search_text.get()
+        result_list = [x for x in media_lines if x[0].find(text)!=-1 ]
+        updateTreeView(result_list)
+
         
         
 
@@ -816,6 +821,12 @@ def open_Edit_windows(father,Edit_filepath='',fig_W=960,fig_H=540):
     choose_type.place(x=Edit_windows.winfo_width()-100,y=10,width=100,height=25) # 我就随便找个位置先放着，等后来人调整布局（都是绝对坐标很难搞啊）
     choose_type.current(0)
     choose_type.bind("<<ComboboxSelected>>",filterMedia)
+
+    # 搜索框
+    search_text = tk.StringVar(Edit_windows)
+    search_entry =  tk.Entry(Edit_windows, textvariable=search_text)
+    search_entry.place(x=200,y=10,width=300,height=25) # 同上，位置暂时随便摆的
+    search_entry.bind('<Key-Return>',searchMedia) # 回车后搜索
 
     # 载入文件
     if Edit_filepath!='': # 如果有指定输入文件
