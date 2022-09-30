@@ -534,7 +534,8 @@ def open_Edit_windows(father,Edit_filepath='',fig_W=960,fig_H=540):
     available_Text = ['None','Text()']
     used_variable_name = []
 
-    def new_obj(): # 新建
+    def new_obj(event=None): # 新建
+        treeviewClick(event)
         try:# 非win系统，可能没有disable
             Edit_windows.attributes('-disabled',True)
         except Exception:
@@ -553,7 +554,8 @@ def open_Edit_windows(father,Edit_filepath='',fig_W=960,fig_H=540):
                 available_Text.append(new_obj[0])
             else:
                 mediainfo.insert('','end',values =new_obj) # 否则插入在最后
-    def copy_obj(): # 复制
+    def copy_obj(event=None): # 复制
+        treeviewClick(event)
         if selected == 0:
             pass
         else:
@@ -664,6 +666,14 @@ def open_Edit_windows(father,Edit_filepath='',fig_W=960,fig_H=540):
             #print(selected_name,selected_type,selected_args)
         except Exception:
             pass
+    def keyHandler(event): # 按键事件处理
+        if event.char == 'e' or event.char == 'E':# 编辑（Edit）
+            edit_obj(event)
+        elif event.char == 'a' or event.char == 'A':# 新建（Add）
+            new_obj(event)
+        elif event.char == 'd' or event.char == 'D':# 复制（Duplicate）
+            copy_obj(event)
+        
 
     window_W , window_H = fig_W//2+40,fig_H//2+440
 
@@ -707,6 +717,7 @@ def open_Edit_windows(father,Edit_filepath='',fig_W=960,fig_H=540):
     mediainfo.bind('<Double-Button-1>',preview_obj) # 双击左键预览
     mediainfo.bind('<Button-3>',edit_obj) # 单击右键编辑
     mediainfo.bind('<Delete>',del_obj) # Delete键删除
+    mediainfo.bind('<Key>',keyHandler) # 按键处理
     
     
 
