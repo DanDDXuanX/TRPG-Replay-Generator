@@ -570,7 +570,8 @@ def open_Edit_windows(father,Edit_filepath='',fig_W=960,fig_H=540):
                 mediainfo.insert('',0,values =(new_name,selected_type,selected_args)) # 插入到最前面
             else:
                 mediainfo.insert('','end',values =(new_name,selected_type,selected_args)) # 否则插入到最后面
-    def preview_obj(): # 预览
+    def preview_obj(event=None): # 预览
+        treeviewClick(event) # 预览前先将当前选中项写入变量
         global image_canvas
         nonlocal show_canvas # 必须是全局变量，否则在函数后就被回收了，不再显示
         if selected_type in ['Text','StrokeText','Bubble','Background','Animation']: # 执行
@@ -701,6 +702,7 @@ def open_Edit_windows(father,Edit_filepath='',fig_W=960,fig_H=540):
 
     mediainfo.place(x=10,y=10,height=285,width=fig_W//2-35)
     mediainfo.bind('<ButtonRelease-1>', treeviewClick)
+    mediainfo.bind('<Double-Button-1>',preview_obj) # 双击左键预览
 
     # 按键
 
