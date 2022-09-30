@@ -8,6 +8,10 @@
 <set:speech_speed>:500
 <background><replace=30>:bg1
 
+<bubble>:chatwindows1("left#|right#|left#|right#|left#|right#|left#|right#","离#离#原#上#草#，|一岁一枯荣。|野火烧不尽，|春风吹又生。|远芳侵古道，|晴翠接荒城。|又送王孙去，|萋萋满别情。"<w2w=6>)
+<background><replace=360>:bg1
+<bubble>:NA
+
 <animation><circular_major_100_black=30>:(zhang,drink_left)
 
 [张安翔]:^本视频是DanDDXuanX 编写的#TRPG-Replay-Generator的基本演示工程。{SE1;*3.5}

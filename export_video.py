@@ -76,6 +76,8 @@ from Medias import Text
 from Medias import StrokeText
 from Medias import Bubble
 from Medias import Balloon
+from Medias import DynamicBubble
+from Medias import ChatWindow
 from Medias import Background
 from Medias import Animation
 from Medias import GroupedAnimation
