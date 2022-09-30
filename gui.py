@@ -558,6 +558,7 @@ def open_Edit_windows(father,Edit_filepath='',fig_W=960,fig_H=540):
                 available_Text.append(new_obj[0])
             else:
                 mediainfo.insert('','end',values =new_obj) # 否则插入在最后
+        sortMedia()
     def copy_obj(event=None): # 复制
         treeviewClick(event)
         if selected == 0:
@@ -578,6 +579,8 @@ def open_Edit_windows(father,Edit_filepath='',fig_W=960,fig_H=540):
                 mediainfo.insert('',0,values =(new_name,selected_type,selected_args)) # 插入到最前面
             else:
                 mediainfo.insert('','end',values =(new_name,selected_type,selected_args)) # 否则插入到最后面
+
+        sortMedia()
     def preview_obj(event=None): # 预览
         treeviewClick(event) # 预览前先将当前选中项写入变量
         global image_canvas
@@ -629,6 +632,7 @@ def open_Edit_windows(father,Edit_filepath='',fig_W=960,fig_H=540):
                     available_Text.append(new_obj[0])
                 mediainfo.item(selected,values=new_obj)
                 selected_name,selected_type,selected_args = new_obj
+        sortMedia()
     def del_obj(event=None): # 删除
         treeviewClick(event)
         nonlocal selected,selected_name,selected_type,selected_args
@@ -692,19 +696,41 @@ def open_Edit_windows(father,Edit_filepath='',fig_W=960,fig_H=540):
     def filterMedia(event):
         nonlocal media_lines,media_type
         t = media_type.get()
-        mediainfo.delete(*mediainfo.get_children()) # 清空媒体
+        
         if t == 'All':
             filtered_list = media_lines
         else:
             filtered_list = [x for x in media_lines if x[1] == t]
-        i = 0
+        
         # 由于没有改动media_lines，所以不必在“All”选项时将文本媒体特地插到头部，按顺序遍历即可
-        for medium in filtered_list:
+        updateTreeView(filtered_list)
+
+    def updateTreeView(new_list):# 更新表格显示数据，注意并不会修改统计数据，只会更新表格显示的内容
+        i = 0
+        mediainfo.delete(*mediainfo.get_children()) # 清空媒体
+        for medium in new_list:
             if i % 2 == 1:
                 mediainfo.insert('','end',values=medium)
             else:
                 mediainfo.insert('','end',values=medium,tags=("evenColor"))
             i+=1
+
+
+    def sortMedia(): # 给媒体分类排序
+        priority = {
+            "Text":1,
+            "StrokeText":2,
+            "Animation":3, 
+            "Bubble":4, 
+            "Background":5,
+            "Audio":6, 
+            "BGM":7
+        }
+
+        media_lines.sort(key=lambda elem:priority[elem[1]])
+        updateTreeView(media_lines)
+
+        
         
 
 
@@ -822,6 +848,9 @@ def open_Edit_windows(father,Edit_filepath='',fig_W=960,fig_H=540):
                         available_Text.append(parseline[0][0])
                 else:
                     warning_line.append(i+1)
+            
+            # 载入完毕先排个序
+            sortMedia()
             if warning_line == []:
                 messagebox.showinfo(title='完毕',message='载入完毕，共载入{i}条记录！'.format(i=i+1))
             else:
