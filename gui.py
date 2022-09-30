@@ -742,7 +742,45 @@ def open_Edit_windows(father,Edit_filepath='',fig_W=960,fig_H=540):
         result_list = [x for x in media_lines if x[0].find(text)!=-1 ]
         updateTreeView(result_list)
 
-        
+    def importMedia(): # 批量导入媒体
+        path = filedialog.askdirectory()
+        media_parameter_dict = {
+            "Bubble":"(filepath='{}',Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),ht_pos=(0,0),align='left',line_distance=1.5)",
+            "Background":"(filepath='{}',pos=(0,0))",
+            "Animation":"(filepath='{}',pos=(0,0),tick=1,loop=True)",
+            "BGM":"(filepath='{}',volume=100,loop=True)",
+            "Audio":"(filepath='{}')"
+        }
+        media = []
+        warning_line = []
+        for root, dirs, files in os.walk(path):
+            for dir in dirs:
+                if dir in media_parameter_dict.keys():
+                    # 如果是对应的媒体文件夹，则进入其中遍历文件
+                    for sub_root, sub_dirs, sub_files in os.walk(os.path.join(root, dir),topdown=False):
+                        for sub_file in sub_files:
+                            # 将媒体文件夹中的每个媒体都添加到列表中
+                            abs_path = os.path.join(sub_root, sub_file).replace('\\','/')
+
+                            medium_name = sub_file.split('.')[0] # 去除扩展名
+                            
+                            if ((medium_name in occupied_variable_name)|(medium_name in used_variable_name)):
+                                # 名字在已经占用（用户或系统）的名字里面
+                                warning_line.append("“{}”是已经被占用的变量名！".format(medium_name))
+                            elif (len(re.findall('^\w+$',medium_name))==0) | (medium_name[0].isdigit()): # 全字符是\w，且首字符不是数字
+                                # 如果新名字是非法的变量名
+                                warning_line.append("“{}”是非法的变量名！".format(medium_name))
+                            else:
+                                medium = (medium_name,dir,media_parameter_dict[dir].format(abs_path))
+                                media.append(medium)
+        if warning_line == []:
+            messagebox.showinfo(title='完毕',message='载入完毕，共载入{}条记录！'.format(len(media)))
+        else:
+            messagebox.showwarning(title='完毕',message='载入完毕，共载入{i}条记录，\n无法解析而被舍弃的内容与原因如下：\n{warning}'.format(i=len(media),warning='\n'.join(map(str,warning_line))))
+        media_lines.extend(media)
+        media_type.set('All')
+        updateTreeView(media_lines)
+
         
 
 
@@ -805,7 +843,7 @@ def open_Edit_windows(father,Edit_filepath='',fig_W=960,fig_H=540):
     button_w = (fig_W//2-20)//8 # 这数字8 应该等于按键的 数量+1
     button_x = lambda x:10+(fig_W//2-20-button_w)//6*x # 这个数字6 应该等于按键的 数量-1
 
-    ttk.Button(mediainfo_frame,text='预览',command=preview_obj).place(x=button_x(0),y=320,width=button_w,height=40)
+    ttk.Button(mediainfo_frame,text='导入',command=importMedia).place(x=button_x(0),y=320,width=button_w,height=40)
     ttk.Button(mediainfo_frame,text='新建',command=new_obj).place(x=button_x(1),y=320,width=button_w,height=40)
     ttk.Button(mediainfo_frame,text='复制',command=copy_obj).place(x=button_x(2),y=320,width=button_w,height=40)    
     ttk.Button(mediainfo_frame,text='编辑',command=edit_obj).place(x=button_x(3),y=320,width=button_w,height=40)
