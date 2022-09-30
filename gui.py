@@ -593,7 +593,8 @@ def open_Edit_windows(father,Edit_filepath='',fig_W=960,fig_H=540):
             messagebox.showwarning(title='警告',message='未选中任何对象！')
         else:
             messagebox.showerror(title='错误',message='不支持的媒体定义类型：'+selected_type)
-    def edit_obj(): # 编辑
+    def edit_obj(event=None): # 编辑
+        treeviewClick(event)
         nonlocal selected,selected_name,selected_type,selected_args
         if selected == 0:
             pass
@@ -617,7 +618,8 @@ def open_Edit_windows(father,Edit_filepath='',fig_W=960,fig_H=540):
                     available_Text.append(new_obj[0])
                 mediainfo.item(selected,values=new_obj)
                 selected_name,selected_type,selected_args = new_obj
-    def del_obj(): # 删除
+    def del_obj(event=None): # 删除
+        treeviewClick(event)
         nonlocal selected,selected_name,selected_type,selected_args
         if selected == 0:
             pass
@@ -703,6 +705,12 @@ def open_Edit_windows(father,Edit_filepath='',fig_W=960,fig_H=540):
     mediainfo.place(x=10,y=10,height=285,width=fig_W//2-35)
     mediainfo.bind('<ButtonRelease-1>', treeviewClick)
     mediainfo.bind('<Double-Button-1>',preview_obj) # 双击左键预览
+    mediainfo.bind('<Button-3>',edit_obj) # 单击右键编辑
+    mediainfo.bind('<Delete>',del_obj) # Delete键删除
+    
+    
+
+
 
     # 按键
 
@@ -734,10 +742,22 @@ def open_Edit_windows(father,Edit_filepath='',fig_W=960,fig_H=540):
                 mediadef_text.pop() # 如果最后一行是空行，则无视掉最后一行
             warning_line = []
             i = -1 # 即使是输入空文件，也能正确弹出提示框
+
+            mediainfo.tag_configure("evenColor",background="#E6E6E6") # 行标签，用于偶数行着色
             for i,line in enumerate(mediadef_text):
                 parseline = RE_parse_mediadef.findall(line)
                 if len(parseline) == 1:
-                    mediainfo.insert('','end',values = parseline[0])
+                    # 插入行，并进行偶数行着色
+                    if i % 2 ==1:
+                        mediainfo.insert('','end',values = parseline[0])
+                    else:
+                        mediainfo.insert('','end',values = parseline[0],tags=("evenColor"))
+                    
+                    # 如果是字体媒体，提前载入
+                    if parseline[0][1] == "Text" or parseline[0][1] == "StrokeText":
+                        exec('global {name};{name}={type}{args}'.format(name=parseline[0][0],type=parseline[0][1],args=parseline[0][2]))
+
+
                     used_variable_name.append(parseline[0][0])
                     if parseline[0][1] in ['Text','StrokeText']:
                         available_Text.append(parseline[0][0])
