@@ -710,11 +710,20 @@ class Audio:
     def __init__(self,filepath,label_color='Caribbean'):
         try:
             self.media = pygame.mixer.Sound(filepath)
+            self.filepath = filepath
         except Exception as E:
             raise MediaError('[31m[AudioError]:[0m','Unsupported audio files',filepath)
     def display(self,channel,volume=100):
         channel.set_volume(volume/100)
         channel.play(self.media)
+    def display(self):
+        """
+        重载的一个不需要channel参数的函数，用于GUI的音频预览
+        """
+        pygame.mixer.music.load(self.filepath)  # 加载音乐  
+        pygame.mixer.music.set_volume(1)# 设置音量大小0~1的浮点数
+        pygame.mixer.music.play() # 播放音频
+        
     def get_length(self):
         return self.media.get_length()
     def convert(self):

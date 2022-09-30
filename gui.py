@@ -14,6 +14,8 @@ import os
 import sys
 import re
 import pickle
+from Medias import Audio
+from Medias import BGM
 
 # preview 的类定义
 label_pos_show_text = ImageFont.truetype('./media/SourceHanSerifSC-Heavy.otf', 30)
@@ -143,6 +145,9 @@ class Animation:
         draw.line([p_x-100,p_y,p_x+100,p_y],fill='green',width=2)
         draw.line([p_x,p_y-100,p_x,p_y+100],fill='green',width=2)
         draw.text((p_x,p_y),'({0},{1})'.format(p_x,p_y),font=label_pos_show_text,fill='green')
+
+
+
 
 # 选择位置窗
 def open_PosSelect(father,bgfigure='',postype='green',current_pos=''):
@@ -597,7 +602,9 @@ def open_Edit_windows(father,Edit_filepath='',fig_W=960,fig_H=540):
             except Exception as E: # 其他错误，主要是参数错误
                 messagebox.showerror(title='错误',message=E)
         elif selected_type in ['BGM','Audio']:
-            messagebox.showwarning(title='警告',message='音频类对象不支持预览！')
+            exec('global {name};{name}={type}{args}'.format(name=selected_name,type=selected_type,args=selected_args))
+            exec('global {name};{name}.display()'.format(name=selected_name))
+
         elif selected_type == 'BuiltInAnimation':
             messagebox.showwarning(title='警告',message='内建动画对象不支持GUI编辑！')
         elif selected_type == 'None':
