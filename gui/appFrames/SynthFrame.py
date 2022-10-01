@@ -51,12 +51,12 @@ class SynthFrame(AppFrame):
         optional_s = tk.LabelFrame(self,text='选项')
         optional_s.place(x=10,y=210,width=600,height=110)
 
-        label_AP = tk.Label(optional_s, text="Appkey：",anchor=tk.W)
-        label_AP.place(x=10,y=0,width=110,height=25)
-        label_AK = tk.Label(optional_s, text="AccessKey：",anchor=tk.W)
-        label_AK.place(x=10,y=30,width=110,height=25)
-        label_AS = tk.Label(optional_s, text="AccessKeySecret：",anchor=tk.W)
-        label_AS.place(x=10,y=60,width=110,height=25)
+        self.label_AP = tk.Label(optional_s, text="Appkey：",anchor=tk.W)
+        self.label_AP.place(x=10,y=0,width=110,height=25)
+        self.label_AK = tk.Label(optional_s, text="AccessKey：",anchor=tk.W)
+        self.label_AK.place(x=10,y=30,width=110,height=25)
+        self.label_AS = tk.Label(optional_s, text="AccessKeySecret：",anchor=tk.W)
+        self.label_AS.place(x=10,y=60,width=110,height=25)
 
         tk.Entry(optional_s, textvariable=self.v["Appkey"]).place(x=120,y=0,width=390,height=25)
         tk.Entry(optional_s, textvariable=self.v["AccessKey"]).place(x=120,y=30,width=390,height=25)
@@ -66,10 +66,10 @@ class SynthFrame(AppFrame):
         optional_azs = tk.LabelFrame(self,text='选项')
         #optional_azs.place(x=10,y=210,width=600,height=110)
 
-        label_AZ = tk.Label(optional_azs, text="AzureKey：",anchor=tk.W)
-        label_AZ.place(x=10,y=10,width=110,height=25)
-        label_SR = tk.Label(optional_azs, text="服务区域：",anchor=tk.W)
-        label_SR.place(x=10,y=50,width=110,height=25)
+        self.label_AZ = tk.Label(optional_azs, text="AzureKey：",anchor=tk.W)
+        self.label_AZ.place(x=10,y=10,width=110,height=25)
+        self.label_SR = tk.Label(optional_azs, text="服务区域：",anchor=tk.W)
+        self.label_SR.place(x=10,y=50,width=110,height=25)
 
         tk.Entry(optional_azs, textvariable=self.v["AzureKey"]).place(x=120,y=10,width=390,height=25)
         tk.Entry(optional_azs, textvariable=self.v["ServiceRegion"]).place(x=120,y=50,width=390,height=25)

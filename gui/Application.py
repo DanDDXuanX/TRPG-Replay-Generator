@@ -137,17 +137,17 @@ class Application():
         self.tab5.place(x=562,y=10,width=68,height=40)
         
         # 界面
-        main_frame = af.MainFrame(self.root,self,height=490 ,width=620)
-        synth_frame = af.SynthFrame(self.root,self,height=490 ,width=620)
-        xml_frame = af.XmlFrame(self.root,self,height=490 ,width=620)
-        mp4_frame = af.Mp4Frame(self.root,self,height=490 ,width=620)
-        format_frame = af.FormatFrame(self.root,self,height=490 ,width=620)
+        self.main_frame = af.MainFrame(self.root,self,height=490 ,width=620)
+        self.synth_frame = af.SynthFrame(self.root,self,height=490 ,width=620)
+        self.xml_frame = af.XmlFrame(self.root,self,height=490 ,width=620)
+        self.mp4_frame = af.Mp4Frame(self.root,self,height=490 ,width=620)
+        self.format_frame = af.FormatFrame(self.root,self,height=490 ,width=620)
         
-        self.tab_frame = {1:main_frame,2:synth_frame,3:xml_frame,4:mp4_frame,5:format_frame}
+        self.tab_frame = {1:self.main_frame,2:self.synth_frame,3:self.xml_frame,4:self.mp4_frame,5:self.format_frame}
         
         # 初始界面
         self.v["tab"].set(1)
-        self.frame_display = main_frame #目前展示的frame
+        self.frame_display = self.main_frame #目前展示的frame
         
     def printFrame(self):
         """

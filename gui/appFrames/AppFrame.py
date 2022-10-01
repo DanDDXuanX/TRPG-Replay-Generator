@@ -28,36 +28,35 @@ class AppFrame(tk.Frame):
         根据目前标志的状态来高亮对应的目标
         """
         app = self.app
-        #TODO:某些还未声明的组件被使用了
         if target == self.v["exportmp4"]:
             
             if target.get() == 1:
                 app.tab4.config(fg='red',text='导出MP4 ⚑')
-                # label_ql.config(fg='red')
+                app.mp4_frame.label_ql.config(fg='red')
             else:
                 app.tab4.config(fg='black',text='导出MP4')
-                # label_ql.config(fg='black')
+                app.mp4_frame.label_ql.config(fg='black')
         elif target == self.v["synthanyway"]:
             if target.get() == 1:
                 warning_text = "注意！当使用“先执行语音合成”标志时，\n"
                 warning_text += "若语音合成出现了异常，运行日志将会更难解读！\n"
                 if messagebox.askokcancel(title='请谨慎使用“先执行语音合成”标志！',message=warning_text) == True:
                     app.tab2.config(fg='red',text='语音合成 ⚑')
-                    # label_AP.config(fg='red')
-                    # label_AK.config(fg='red')
-                    # label_AS.config(fg='red')
-                    # label_AZ.config(fg='red')
-                    # label_SR.config(fg='red')
+                    app.synth_frame.label_AP.config(fg='red')
+                    app.synth_frame.label_AK.config(fg='red')
+                    app.synth_frame.label_AS.config(fg='red')
+                    app.synth_frame.label_AZ.config(fg='red')
+                    app.synth_frame.label_SR.config(fg='red')
                 else:
                     # 否则，将先执行语音合成重置为"否"
                     target.set(0)
             else:
                 app.tab2.config(fg='black',text='语音合成')
-                # label_AP.config(fg='black')
-                # label_AK.config(fg='black')
-                # label_AS.config(fg='black')
-                # label_AZ.config(fg='black')
-                # label_SR.config(fg='black')
+                app.synth_frame.label_AP.config(fg='black')
+                app.synth_frame.label_AK.config(fg='black')
+                app.synth_frame.label_AS.config(fg='black')
+                app.synth_frame.label_AZ.config(fg='black')
+                app.synth_frame.label_SR.config(fg='black')
         elif target == self.v["exportprxml"]:
             if target.get() == 1:
                 app.tab3.config(text='导出XML ⚑')

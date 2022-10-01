@@ -39,8 +39,8 @@ class Mp4Frame(AppFrame):
         tk.Label(optional_v,text="分辨率-高:",anchor=tk.W).place(x=160,y=5,width=70,height=30)
         tk.Label(optional_v,text="帧率:",anchor=tk.W).place(x=310,y=5,width=70,height=30)
         tk.Label(optional_v,text="图层顺序:",anchor=tk.W).place(x=10,y=50,width=70,height=30)
-        label_ql = tk.Label(optional_v,text="质量:",anchor=tk.W)
-        label_ql.place(x=310,y=50,width=70,height=30)
+        self.label_ql = tk.Label(optional_v,text="质量:",anchor=tk.W)
+        self.label_ql.place(x=310,y=50,width=70,height=30)
 
         tk.Entry(optional_v,textvariable=self.v["project_W"]).place(x=80,y=5,width=70,height=25)
         tk.Entry(optional_v,textvariable=self.v["project_H"]).place(x=230,y=5,width=70,height=25)
