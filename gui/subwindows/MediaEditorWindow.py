@@ -117,7 +117,7 @@ class MediaEditorWindow(SubWindow):
 
         self.mediainfo.bind('<ButtonRelease-1>', self.treeviewClick)
         self.mediainfo.bind('<Double-Button-1>',self.preview_obj) # 双击左键预览
-        # self.mediainfo.bind('<Button-3>',self.edit_obj) # 单击右键编辑
+        self.mediainfo.bind('<Button-3>',self.edit_obj) # 单击右键编辑
         # mediainfo.bind('<Delete>',del_obj) # Delete键删除
         # mediainfo.bind('<Key>',keyHandler) # 按键处理
         
@@ -126,7 +126,7 @@ class MediaEditorWindow(SubWindow):
         ttk.Button(mediainfo_frame,text='导入',command=self.importMedia).place(x=button_x(0),y=325,width=button_w,height=35)
         ttk.Button(mediainfo_frame,text='新建',command=self.new_obj).place(x=button_x(1),y=325,width=button_w,height=35)
         ttk.Button(mediainfo_frame,text='复制',command=self.copy_obj).place(x=button_x(2),y=325,width=button_w,height=35)    
-        # ttk.Button(mediainfo_frame,text='编辑',command=self.edit_obj).place(x=button_x(3),y=325,width=button_w,height=35)
+        ttk.Button(mediainfo_frame,text='编辑',command=self.edit_obj).place(x=button_x(3),y=325,width=button_w,height=35)
         # ttk.Button(mediainfo_frame,text='删除',command=del_obj).place(x=button_x(4),y=325,width=button_w,height=35)
         # ttk.Button(mediainfo_frame,text='保存',command=lambda:finish(False)).place(x=button_x(5),y=325,width=button_w,height=35)
         # ttk.Button(mediainfo_frame,text='另存',command=lambda:finish(True)).place(x=button_x(6),y=325,width=button_w,height=35)
@@ -288,7 +288,39 @@ class MediaEditorWindow(SubWindow):
                 self.available_Text.append(new_name)
 
         self.sortMedia()
-    
+    # 编辑
+    def edit_obj(self,event=None):
+        selected = self.selected
+        selected_name = self.selected_name
+        selected_type = self.selected_type
+        selected_args = self.selected_args
+        if selected == 0:
+            pass
+        else:
+            try:
+                self.attributes('-disabled',True)
+            except Exception:
+                pass
+            new_obj = open_Media_def_window(self,i_name=selected_name,i_type=selected_type,i_args=selected_args,image_canvas = self.image_canvas,available_Text= self.available_Text,used_variable_name=self.used_variable_name)
+            try:
+                self.attributes('-disabled',False)
+            except Exception:
+                pass
+            self.lift()
+            self.focus_force()
+            if new_obj:
+                self.used_variable_name.remove(selected_name) # 原来的媒体名
+                self.used_variable_name.append(new_obj[0]) # 新建的媒体名
+                self.media_lines.remove((selected_name,selected_type,selected_args))
+                self.media_lines.append(new_obj)
+
+                if selected_type in ['Text','StrokeText']: # 如果编辑的对象是文本
+                    self.available_Text.remove(selected_name)
+                    self.available_Text.append(new_obj[0])
+
+                self.mediainfo.item(selected,values=new_obj)
+                selected_name,selected_type,selected_args = new_obj
+        self.sortMedia()
     # 更新表格显示数据，注意并不会修改统计数据，只会更新表格显示的内容
     def updateTreeView(self,new_list):
         i = 0
