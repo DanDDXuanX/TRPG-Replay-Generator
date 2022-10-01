@@ -29,7 +29,7 @@ class MainFrame(AppFrame):
         tk.Entry(filepath, textvariable=self.app.characor_table).place(x=80,y=50+3,width=430,height=25)
         tk.Entry(filepath, textvariable=self.app.stdin_logfile).place(x=80,y=95+3,width=430,height=25)
         tk.Entry(filepath, textvariable=self.app.output_path).place(x=80,y=140+3,width=430,height=25)
-        self.new_or_edit = tk.Button(filepath, command=self.call_Edit_windows,text="新建")
+        self.new_or_edit = tk.Button(filepath, command=self.app.call_Edit_windows,text="新建")
         self.new_or_edit.place(x=555,y=5,width=35,height=30)
         tk.Button(filepath, command=lambda:self.call_browse_file(self.app.media_define),text="浏览").place(x=520,y=5,width=35,height=30)
         tk.Button(filepath, command=lambda:self.call_browse_file(self.app.characor_table),text="浏览").place(x=520,y=50,width=70,height=30)
@@ -77,37 +77,6 @@ class MainFrame(AppFrame):
                 self.new_or_edit.config(text='新建')
         except Exception:
             pass
-
-    def call_Edit_windows(self):
-        """
-        调出媒体定义文件编辑器
-        """
-        Edit_filepath=self.app.media_define.get()
-        fig_W = self.app.project_W.get()
-        fig_H = self.app.project_H.get()
-        try:
-            self.master.attributes('-disabled',True) # 开着编辑器的时候，将窗体设置为禁用
-        except Exception:
-            pass
-        # 如果Edit_filepath是合法路径
-        if os.path.isfile(Edit_filepath): # alpha 1.8.5 非法路径
-            return_from_Edit = af.EditorFrame(self.master,Edit_filepath,fig_W,fig_H).openEditorWindows()
-        else:
-            self.new_or_edit.config(text='新建')
-            self.app.media_define.set('')
-            return_from_Edit = af.EditorFrame(self.master,'',fig_W,fig_H).openEditorWindows()
-        try:
-            self.master.attributes('-disabled',False)
-        except Exception:
-            pass
-        self.master.lift()
-        self.master.focus_force()
-        # 如果编辑窗的返回值是合法路径
-        if os.path.isfile(return_from_Edit):
-            self.media_define.set(return_from_Edit)
-            self.new_or_edit.config(text='编辑')
-        else:
-            self.new_or_edit.config(text='新建')
 
     def run_command_main(self):
         optional = {1:'--OutputPath {of} ',2:'--ExportXML ',3:'--ExportVideo --Quality {ql} ',4:'--SynthesisAnyway --AccessKey {AK} --AccessKeySecret {AS} --Appkey {AP} --Azurekey {AZ} --ServRegion {SR} ',5:'--FixScreenZoom '}

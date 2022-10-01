@@ -15,7 +15,7 @@ import os
 import sys
 import re
 import pickle
-
+from subwindows.MediaEditorWindow import MediaEditorWindow
 
 
 class Application():
@@ -150,6 +150,35 @@ class Application():
         select = self.tab_frame[self.tab.get()]
         select.place(x=10,y=50)
         self.frame_display = select
+    
+    def call_Edit_windows(self):
+        Edit_filepath=self.media_define.get()
+        fig_W = self.project_W.get()
+        fig_H = self.project_H.get()
+        try:
+            Main_windows = self.root
+            Main_windows.attributes('-disabled',True)
+        except Exception:
+            pass
+        # 如果Edit_filepath是合法路径
+        if os.path.isfile(Edit_filepath): # alpha 1.8.5 非法路径
+            return_from_Edit = MediaEditorWindow(Main_windows,Edit_filepath,fig_W,fig_H).open()
+        else:
+            self.main_frame.new_or_edit.config(text='新建')
+            self.media_define.set('')
+            return_from_Edit = MediaEditorWindow(Main_windows,'',fig_W,fig_H).open()
+        try:
+            Main_windows.attributes('-disabled',False)
+        except Exception:
+            pass
+        Main_windows.lift()
+        Main_windows.focus_force()
+        # 如果编辑窗的返回值是合法路径
+        if os.path.isfile(return_from_Edit):
+            self.media_define.set(return_from_Edit)
+            self.main_frame.new_or_edit.config(text='编辑')
+        else:
+            self.main_frame.new_or_edit.config(text='新建')
      
     def close_window(self):
         try:
