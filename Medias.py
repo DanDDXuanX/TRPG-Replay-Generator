@@ -264,10 +264,10 @@ class DynamicBubble(Bubble):
 
 # 聊天窗
 class ChatWindow(Bubble):
-    def __init__(self,filepath=None,sub_Bubble=[Bubble()],sub_key=['Bubble()'],align=[],pos=(0,0),sub_pos=(0,0),sub_end=(0,0),am_left=0,am_right=0,sub_distance=50,label_color='Lavender'):
+    def __init__(self,filepath=None,sub_key=['Bubble()'],sub_Bubble=[Bubble()],sub_Anime=[],sub_align=[],pos=(0,0),sub_pos=(0,0),sub_end=(0,0),am_left=0,am_right=0,sub_distance=50,label_color='Lavender'):
         # 检查子气泡和key是否是能匹配
         if len(sub_Bubble) != len(sub_key):
-            raise MediaError('[31m[BubbleError]:[0m', 'length of sub-bubble params does not match!')
+            raise MediaError('[31m[BubbleError]:[0m', 'length of sub-key and sub-bubble does not match!')
         # 空白底图
         if filepath is None or filepath == 'None': # 支持气泡图缺省
             # 媒体设为空图
@@ -282,48 +282,83 @@ class ChatWindow(Bubble):
             self.pos = Pos(*pos)
         # 子气泡和对齐
         self.sub_Bubble = {}
+        self.sub_Anime = {}
         self.sub_align = {}
         for i,key in enumerate(sub_key):
             # 检查气泡是否是 Ballon
             if type(sub_Bubble[i]) is Balloon:
                 raise MediaError('[31m[BubbleError]:[0m','Ballon object "'+key+'" is not supported to be set as a sub-bubble of ChatWindow!')
             self.sub_Bubble[key] = sub_Bubble[i]
+            # 载入对齐，默认是左对齐
             try:
-                if align[i] in ['left','right']:
-                    self.sub_align[key] = align[i]
+                if sub_align[i] in ['left','right']:
+                    self.sub_align[key] = sub_align[i]
                 else:
-                    raise MediaError('[31m[BubbleError]:[0m', 'Unsupported align:',align[i])
+                    raise MediaError('[31m[BubbleError]:[0m', 'Unsupported align:',sub_align[i])
             except IndexError:
                 self.sub_align[key] = 'left'
+            # 载入子立绘，默认是None
+            try:
+                if sub_Anime[i].length == 1:
+                    self.sub_Anime[key] = sub_Anime[i]
+                else:
+                    raise MediaError('[31m[BubbleError]:[0m', 'Dynamic Animations is not supported as sub-animations for ChatWindow!')
+            except IndexError:
+                self.sub_Anime[key] = None
         # 子气泡尺寸
-        if (sub_pos[0] > sub_end[0]) | (sub_pos[1] > sub_end[1]):
+        if (sub_pos[0] >= sub_end[0]) | (sub_pos[1] >= sub_end[1]):
             raise MediaError('【气泡错误】：气泡的分割参数sub_end的值不合法！')
         else:
             self.sub_size = (sub_end[0]-sub_pos[0],sub_end[1]-sub_pos[1])
             self.sub_pos = sub_pos
         # 立绘对齐位置
-        self.am_left = am_left
-        self.am_right = am_right
+        if am_left >= am_right:
+            raise MediaError('【气泡错误】：气泡的分割参数am_right的值不合法！')
+        else:
+            self.am_left = am_left
+            self.am_right = am_right
         # 子气泡间隔
         self.sub_distance = sub_distance
         # 留存文本容器：
         self.main_text = ''
         self.header_text = ''
-    def append(self, text, header = '', subbubble = ''):
+        # 测试子气泡尺寸，基于第一个子气泡对象，渲染一个最小子气泡图层
+        test_subsurface_size = self.sub_Bubble[sub_key[0]].draw(' ')[1]
+        # 按照最小子气泡图层的高度 + sub_distance 作为一个单位长度
+        self.max_recode = np.ceil(self.sub_size[1]/(test_subsurface_size[1] + self.sub_distance))
+    # 给聊天窗添加记录
+    def append(self, text, header):
         if self.main_text == '':
             self.main_text = text
-            self.header_text = subbubble + '#' + header
+            self.header_text = header
         else:
+            # 如果当前的记录数达到最大记录数
+            if len(self.header_text.split('|')) >= self.max_recode:
+                # 将记录的句子的一个段删除 S = S[S.find('|')+1:]
+                self.main_text = self.main_text[self.main_text.find('|')+1:]
+                self.header_text = self.header_text[self.header_text.find('|')+1:]
             self.main_text = self.main_text + '|' + text
-            self.header_text = self.header_text + '|' + subbubble + '#' + header
-        return self.header_text,self.main_text
+            self.header_text = self.header_text + '|' + header
+    # 清空聊天窗
+    def clear(self):
+        self.main_text = ''
+        self.header_text = ''
+    # 执行向量相加
+    def UF_add_main_text(self,text):
+        return np.frompyfunc(lambda x : x if self.main_text == '' else self.main_text+'|'+x,1,1)(text)
+    def UF_add_header_text(self,header):
+        return np.frompyfunc(lambda x : x if self.header_text == '' else self.header_text+'|'+x,1,1)(header)
+    # 渲染气泡
     def draw(self, text, header=''):
         # 母气泡的复制品
         temp = self.media.copy()
         # 容纳子气泡的容器
         sub_surface = pygame.Surface(self.sub_size,pygame.SRCALPHA)
         sub_surface.fill((0,0,0,0))
-        # 拆分主文本和头文本，并倒叙
+        # 容纳左侧立绘的容器，宽度=amright-amleft，高度等于子气泡
+        sub_groupam = pygame.Surface((self.am_right-self.am_left,self.sub_size[1]),pygame.SRCALPHA)
+        sub_groupam.fill((0,0,0,0))
+        # 拆分主文本和头文本
         main_text_list = text.split('|')
         header_text_list = header.split('|')
         # 注意，由于w2w或者l2l的设定，main_text_list 很可能和 header_text_list 并不能完全匹配！
@@ -339,18 +374,21 @@ class ChatWindow(Bubble):
         # 第二次循环：渲染子气泡
         y_bottom = self.sub_size[1] # 当前句子的可用y底部
         for header_main in header_main_pair:
-            # 解析|键|头文本|主文本|
+            # 解析(键#头文本,主文本)
             bubble_header_this,main_this = header_main
             key_this,header_this = bubble_header_this.split('#')
             # 绘制子气泡
             subbubble_surface_this,subbubble_surface_size = self.sub_Bubble[key_this].draw(main_this,header_this)
             if self.sub_align[key_this] == 'left':
                 # x = 0，y = 底部-子气泡的高度
-                print()
                 sub_surface.blit(subbubble_surface_this,(0,y_bottom-subbubble_surface_size[1]))
+                if self.sub_Anime[key_this] is not None:
+                    sub_groupam.blit(self.sub_Anime[key_this].media[0],(0,y_bottom-subbubble_surface_size[1]))
             else:
                 # x = 右侧 - 子气泡的宽度，y同上
                 sub_surface.blit(subbubble_surface_this,(self.sub_size[0]-subbubble_surface_size[0],y_bottom-subbubble_surface_size[1]))
+                if self.sub_Anime[key_this] is not None:
+                    sub_groupam.blit(self.sub_Anime[key_this].media[0],(self.am_right-self.am_left-self.sub_Anime[key_this].media[0].get_size()[0],y_bottom-subbubble_surface_size[1]))
             # 更新可用底部 = 前一次底部 - 子气泡高度 - 子气泡间距
             y_bottom = y_bottom - subbubble_surface_size[1] - self.sub_distance
             # 如果可用底部已经达到顶部之外
@@ -358,6 +396,7 @@ class ChatWindow(Bubble):
                 break
         # 将子气泡容器渲染到母气泡容器
         temp.blit(sub_surface,self.sub_pos)
+        temp.blit(sub_groupam,(self.am_left,self.sub_pos[1]))
         return temp,temp.get_size()
 
 # 背景图片

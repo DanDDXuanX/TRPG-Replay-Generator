@@ -456,22 +456,42 @@ def parser(stdin_text):
                             raise ParserError('[31m[ParserError]:[0m','No bubble is specified to major charactor',name+subtype,'of dialogue line '+str(i+1)+'.')
                         # 获取目标的头文本
                         try:
-                            targets = eval(this_bb+'.target')
-                            # Balloon 类
-                            if type(targets) is list:
-                                target_text = '|'.join(this_char_series[targets].values)
-                            # Bubble 类
+                            # 存在:分隔，说明是聊天窗类，始终取:前面的内容识别为气泡
+                            if ':' in this_bb:
+                                chatwindow_key = this_bb.split(':')[1]
+                                this_bb = this_bb.split(':')[0]
+                                # 聊天窗类的target采用子气泡的target
+                                bubble_obj = eval(this_bb)
+                                targets = bubble_obj.sub_Bubble[chatwindow_key].target
                             else:
+                                bubble_obj = eval(this_bb)
+                                targets = bubble_obj.target
+                            # Bubble,DynamicBubble类：只有一个头文本
+                            if type(bubble_obj) in [Bubble,DynamicBubble]:
                                 target_text = this_char_series[targets]
+                            # Balloon 类：有若干个头文本，targets是一个list,用 | 分隔
+                            elif type(bubble_obj) is Balloon:
+                                target_text = '|'.join(this_char_series[targets].values)
+                            # ChatWindow 类：只有一个头文本，头文本不能包含|和#，还需要附上key
+                            elif type(bubble_obj) is ChatWindow:
+                                if ('|' in this_char_series[targets]) | ('#' in this_char_series[targets]):
+                                    raise ParserError('[31m[ParserError]:[0m','Invalid symbol (pound mark or vertical bar) appeared in header text of charactor ' + name+subtype+'.')
+                                else:
+                                    target_text = chatwindow_key+'#'+this_char_series[targets]
+                            else:
+                                raise NameError('Media object "' + this_bb + '" is not a Bubble!')
                         except NameError as E: # 指定的bb没有定义！
                             raise ParserError('[31m[ParserError]:[0m',E,', which is specified to',name+subtype,'as Bubble!')
                         except KeyError as E: # 指定的target不存在！
                             raise ParserError('[31m[ParserError]:[0m','Target columns',E,'specified to Bubble object \''+this_bb+'\' is not exist!')
                         # 针对文本内容的警告和报错
                         try:
-                            this_line_limit = eval(this_bb+'.MainText.line_limit')
+                            this_line_limit = bubble_obj.MainText.line_limit
                         except AttributeError: # 'NoneType' object has no attribute 'line_limit'
-                            raise ParserError('[31m[ParserError]:[0m','Main_Text of "{0}" is None!'.format(this_bb))
+                            if type(bubble_obj) is ChatWindow:
+                                this_line_limit = bubble_obj.sub_Bubble[chatwindow_key].MainText.line_limit
+                            else:
+                                raise ParserError('[31m[ParserError]:[0m','Main_Text of "{0}" is None!'.format(this_bb))
                         # ts或者target_text里面有非法字符，双引号，反斜杠
                         if ('"' in target_text) | ('\\' in target_text) | ('"' in ts) | ('\\' in ts):
                             raise ParserError('[31m[ParserError]:[0m','Invalid symbol (double quote or backslash) appeared in speech text in dialogue line ' + str(i+1)+'.')
@@ -511,6 +531,18 @@ def parser(stdin_text):
                     this_timeline['Bb_main'] = UF_cut_str(this_timeline['Bb_main'],word_count_timeline)
                 else:
                     raise ParserError('[31m[ParserError]:[0m Unrecognized text display method: "'+text_method+'" appeared in dialogue line ' + str(i+1)+'.')
+                # 如果是ChatWindow
+                if type(bubble_obj) is ChatWindow:
+                    # 记录本次需要添加的文本（最后一帧）
+                    maintext_end = this_timeline['Bb_main'].values[-1]
+                    header_end = this_timeline['Bb_header'].values[-1]
+                    this_timeline['Bb_main'].values[-1]
+                    this_timeline['Bb_header'].values[-1]
+                    # 更新timeline对象，追加历史记录
+                    this_timeline['Bb_header'] = bubble_obj.UF_add_header_text(this_timeline['Bb_header'])
+                    this_timeline['Bb_main'] = bubble_obj.UF_add_main_text(this_timeline['Bb_main'])
+                    # 更新bubble对象的历史记录
+                    bubble_obj.append(maintext_end,header_end)
                 #音频信息
                 for sound in this_sound: #this_sound = ['{SE_obj;30}','{SE_obj;30}']
                     try:
@@ -1367,8 +1399,9 @@ detail_info = {0:"Project: Resolution: {0}x{1} ; FrameRate: {2} fps;".format(Wid
                3:"Command: {0}",
                4:"Zorder: {0}".format('>>>'+'>'.join(zorder)+'>>>'),
                5:"Layer: BG1:{0}; BG2:{1}; BG3:{2}",
-               6:"Layer: Am1:{0}; Am2:{1}; Am3:{2}",
+               6:"Layer: Am1:{0}; Am2:{1}; Am3:{2}; AmS:{3}",
                7:"Layer: Bb:{0}; HD:{1}; TX:{2}",
+               8:"Layer: BbS:{0}; HDS:{1}; TXS:{2}"
                }
 resize_screen = 0 # 是否要强制缩小整个演示窗体
 while n < break_point.max():
@@ -1427,8 +1460,9 @@ while n < break_point.max():
                 screen.blit(note_text.render(detail_info[3].format(stdin_text[this_frame['section']]),fgcolor=cmap['notetext'],size=0.0185*Height)[0],(10,10+0.1*Height))
                 screen.blit(note_text.render(detail_info[4],fgcolor=cmap['notetext'],size=0.0185*Height)[0],(10,10+0.1333*Height))
                 screen.blit(note_text.render(detail_info[5].format(this_frame['BG1'],this_frame['BG2'],this_frame['BG3']),fgcolor=cmap['notetext'],size=0.0185*Height)[0],(10,10+0.1666*Height))
-                screen.blit(note_text.render(detail_info[6].format(this_frame['Am1'],this_frame['Am2'],this_frame['Am3']),fgcolor=cmap['notetext'],size=0.0185*Height)[0],(10,10+0.2*Height))
+                screen.blit(note_text.render(detail_info[6].format(this_frame['Am1'],this_frame['Am2'],this_frame['Am3'],this_frame['AmS']),fgcolor=cmap['notetext'],size=0.0185*Height)[0],(10,10+0.2*Height))
                 screen.blit(note_text.render(detail_info[7].format(this_frame['Bb'],this_frame['Bb_header'],this_frame['Bb_main']),fgcolor=cmap['notetext'],size=0.0185*Height)[0],(10,10+0.2333*Height))
+                screen.blit(note_text.render(detail_info[8].format(this_frame['BbS'],this_frame['BbS_header'],this_frame['BbS_main']),fgcolor=cmap['notetext'],size=0.0185*Height)[0],(10,10+0.2666*Height))
                 screen.blit(note_text.render(detail_info[1].format(int(1/(time.time()-ct+1e-4))),fgcolor=cmap['notetext'],size=0.0185*Height)[0],(10,10+0.0333*Height))
             # 仅显示帧率
             else:

@@ -871,7 +871,7 @@ def open_Edit_windows(father,Edit_filepath='',fig_W=960,fig_H=540):
     
     # 底部按键
 
-    ttk.Button(mediainfo_frame,text='导入',command=importMedia).place(x=button_x(0),y=325,width=button_w,height=35)
+    ttk.Button(mediainfo_frame,text='预览',command=preview_obj).place(x=button_x(0),y=325,width=button_w,height=35)
     ttk.Button(mediainfo_frame,text='新建',command=new_obj).place(x=button_x(1),y=325,width=button_w,height=35)
     ttk.Button(mediainfo_frame,text='复制',command=copy_obj).place(x=button_x(2),y=325,width=button_w,height=35)    
     ttk.Button(mediainfo_frame,text='编辑',command=edit_obj).place(x=button_x(3),y=325,width=button_w,height=35)

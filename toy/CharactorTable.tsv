@@ -4,3 +4,7 @@ Name	Subtype	Animation	Bubble	Voice	Header	Pos
 KP	default	drink	bubble1_right	Azure::zh-CN-XiaomoNeural	Init	Init
 KP	double	drink_left	bubble1	Azure::zh-CN-XiaomoNeural	Init	Init
 旁白	default	NA	bubble2	NA	Init	Init
+张安翔	chat	NA	chatwindows1:Z	kenny	张安翔	Init
+诺兰	chat	NA	chatwindows1:N	aishuo	诺兰	Init
+斯托克	chat	NA	chatwindows1:S	stanley	斯托克	Init
+KP	chat	NA	chatwindows1:K	Azure::zh-CN-XiaomoNeural	KP	Init
