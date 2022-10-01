@@ -50,10 +50,10 @@ class FormatFrame(AppFrame):
 
         self.convert_info.place(x=10,y=0,height=180,width=565)
         # 按键
-        tk.Button(self, command=self.load_au_file,text="载入",font=self.v["big_text"]).place(x=65,y=440,width=100,height=40)
-        tk.Button(self, command=self.clear_au_file,text="清空",font=self.v["big_text"]).place(x=195,y=440,width=100,height=40)
-        tk.Button(self, command=lambda:self.run_convert('wav'),text="转wav",font=self.v["big_text"]).place(x=325,y=440,width=100,height=40)
-        tk.Button(self, command=lambda:self.run_convert('ogg'),text="转ogg",font=self.v["big_text"]).place(x=455,y=440,width=100,height=40)
+        tk.Button(self, command=self.load_au_file,text="载入",font=self.app.big_text).place(x=65,y=440,width=100,height=40)
+        tk.Button(self, command=self.clear_au_file,text="清空",font=self.app.big_text).place(x=195,y=440,width=100,height=40)
+        tk.Button(self, command=lambda:self.run_convert('wav'),text="转wav",font=self.app.big_text).place(x=325,y=440,width=100,height=40)
+        tk.Button(self, command=lambda:self.run_convert('ogg'),text="转ogg",font=self.app.big_text).place(x=455,y=440,width=100,height=40)
 
     def load_au_file(self): # 载入多个音频文件
         getnames = filedialog.askopenfilenames(filetypes=[('mp3文件','.mp3')])
@@ -68,11 +68,11 @@ class FormatFrame(AppFrame):
 
     def run_convert(self,target):
         # 检查输出路径
-        if self.v["output_path"].get() == '':
+        if self.app.output_path.get() == '':
             messagebox.showerror(title='错误',message='缺少输出路径，去主程序界面填写！')
             return -1
         else:
-            opath = self.v["output_path"].get()+'/'
+            opath = self.app.output_path.get()+'/'
         # 检查ffmpeg
         if os.path.isfile('./ffmpeg.exe'):
             ffmpeg_exec = 'ffmpeg.exe'

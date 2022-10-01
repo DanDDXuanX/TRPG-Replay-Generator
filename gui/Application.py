@@ -5,10 +5,7 @@ edtion = 'alpha 1.12.7'
 """
 这个gui.py是对根目录下的gui.py的实验性重构
 """
-"""
-self\.v\.(\w+)
-self.v["$1"]
-"""
+
 import tkinter as tk
 from tkinter import font
 from tkinter import messagebox
@@ -38,41 +35,39 @@ class Application():
 
         self.root = root
 
-        self.v = {} # 用于存储与传递变量的字典
-
         # 大号字体
         try:
-            self.v["big_text"] = font.Font(font=("微软雅黑",12))
+            self.big_text = font.Font(font=("微软雅黑",12))
         except Exception:
-            self.v["big_text"] = font.Font(font=("System",12))
+            self.big_text = font.Font(font=("System",12))
         
         
         # 选中的sheet
-        self.v["tab"] = tk.IntVar(self.root)
+        self.tab = tk.IntVar(self.root)
         # 几个文件的路径
-        self.v["stdin_logfile"] = tk.StringVar(self.root)
-        self.v["characor_table"] = tk.StringVar(self.root)
-        self.v["media_define"] = tk.StringVar(self.root)
-        self.v["output_path"] = tk.StringVar(self.root)
-        self.v["timeline_file"] = tk.StringVar(self.root)
+        self.stdin_logfile = tk.StringVar(self.root)
+        self.characor_table = tk.StringVar(self.root)
+        self.media_define = tk.StringVar(self.root)
+        self.output_path = tk.StringVar(self.root)
+        self.timeline_file = tk.StringVar(self.root)
         # 可选参数
-        self.v["project_W"] = tk.IntVar(self.root)
-        self.v["project_H"] = tk.IntVar(self.root)
-        self.v["project_F"] = tk.IntVar(self.root)
-        self.v["project_Z"] = tk.StringVar(self.root)
-        self.v["project_Q"] = tk.IntVar(self.root)
+        self.project_W = tk.IntVar(self.root)
+        self.project_H = tk.IntVar(self.root)
+        self.project_F = tk.IntVar(self.root)
+        self.project_Z = tk.StringVar(self.root)
+        self.project_Q = tk.IntVar(self.root)
         # 语音合成的key
-        self.v["AccessKey"] = tk.StringVar(self.root)
-        self.v["Appkey"] = tk.StringVar(self.root)
-        self.v["AccessKeySecret"] = tk.StringVar(self.root)
-        self.v["AzureKey"] = tk.StringVar(self.root)
-        self.v["ServiceRegion"] = tk.StringVar(self.root)
+        self.AccessKey = tk.StringVar(self.root)
+        self.Appkey = tk.StringVar(self.root)
+        self.AccessKeySecret = tk.StringVar(self.root)
+        self.AzureKey = tk.StringVar(self.root)
+        self.ServiceRegion = tk.StringVar(self.root)
         # flag
-        self.v["synthanyway"] = tk.IntVar(self.root)
-        self.v["exportprxml"] = tk.IntVar(self.root)
-        self.v["exportmp4"] = tk.IntVar(self.root)
-        self.v["fixscrzoom"] = tk.IntVar(self.root)
-        self.v["save_config"] = tk.IntVar(self.root)
+        self.synthanyway = tk.IntVar(self.root)
+        self.exportprxml = tk.IntVar(self.root)
+        self.exportmp4 = tk.IntVar(self.root)
+        self.fixscrzoom = tk.IntVar(self.root)
+        self.save_config = tk.IntVar(self.root)
 
         # 读取配置
         self.loadConfigure()
@@ -125,11 +120,11 @@ class Application():
     
     def createWidgets(self):
         # 标签页选项
-        self.tab1 = tk.Radiobutton(self.root,text="主程序", font= self.v["big_text"],command=self.printFrame,variable=self.v["tab"],value=1,indicatoron=False)
-        self.tab2 = tk.Radiobutton(self.root,text="语音合成", font=self.v["big_text"],command=self.printFrame,variable=self.v["tab"],value=2,indicatoron=False)
-        self.tab3 = tk.Radiobutton(self.root,text="导出XML", font=self.v["big_text"],command=self.printFrame,variable=self.v["tab"],value=3,indicatoron=False)
-        self.tab4 = tk.Radiobutton(self.root,text="导出MP4", font=self.v["big_text"],command=self.printFrame,variable=self.v["tab"],value=4,indicatoron=False)
-        self.tab5 = tk.Radiobutton(self.root,text="音频\n格式转换",command=self.printFrame,variable=self.v["tab"],value=5,indicatoron=False)
+        self.tab1 = tk.Radiobutton(self.root,text="主程序", font= self.big_text,command=self.printFrame,variable=self.tab,value=1,indicatoron=False)
+        self.tab2 = tk.Radiobutton(self.root,text="语音合成", font=self.big_text,command=self.printFrame,variable=self.tab,value=2,indicatoron=False)
+        self.tab3 = tk.Radiobutton(self.root,text="导出XML", font=self.big_text,command=self.printFrame,variable=self.tab,value=3,indicatoron=False)
+        self.tab4 = tk.Radiobutton(self.root,text="导出MP4", font=self.big_text,command=self.printFrame,variable=self.tab,value=4,indicatoron=False)
+        self.tab5 = tk.Radiobutton(self.root,text="音频\n格式转换",command=self.printFrame,variable=self.tab,value=5,indicatoron=False)
         self.tab1.place(x=10,y=10,width=138,height=40)
         self.tab2.place(x=148,y=10,width=138,height=40)
         self.tab3.place(x=286,y=10,width=138,height=40)
@@ -146,7 +141,7 @@ class Application():
         self.tab_frame = {1:self.main_frame,2:self.synth_frame,3:self.xml_frame,4:self.mp4_frame,5:self.format_frame}
         
         # 初始界面
-        self.v["tab"].set(1)
+        self.tab.set(1)
         self.frame_display = self.main_frame #目前展示的frame
         
     def printFrame(self):
@@ -154,7 +149,7 @@ class Application():
         显示当前选中的页面
         """
         self.frame_display.place_forget()
-        select = self.tab_frame[self.v["tab"].get()]
+        select = self.tab_frame[self.tab.get()]
         select.place(x=10,y=50)
         self.frame_display = select
      
