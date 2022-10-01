@@ -96,8 +96,8 @@ class Application():
                     raise ValueError('Edition change!')
             # 应用变更
             for key,value in configs.items():
-                eval(key).set(value)
-        except Exception: # 使用原装默认参数
+                eval("self.{}".format(key)).set(value) # 重构后这里在key前面加了个self
+        except Exception as e: # 使用原装默认参数
             self.project_W.set(1920)
             self.project_H.set(1080)
             self.project_F.set(30)
@@ -113,6 +113,7 @@ class Application():
                 self.fixscrzoom.set(1)
             else:
                 self.fixscrzoom.set(0)
+            print(repr(e)) # 打印异常信息
         
     
     def createWidgets(self):
