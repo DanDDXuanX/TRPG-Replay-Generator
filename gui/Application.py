@@ -83,9 +83,6 @@ class Application():
         self.root.mainloop()
 
     def loadConfigure(self):
-        #TODO：装载参数
-        pass
-        """
         try:
             # 读取保存参数的文件
             i_config = open('./media/save_config','rb')
@@ -101,22 +98,22 @@ class Application():
             for key,value in configs.items():
                 eval(key).set(value)
         except Exception: # 使用原装默认参数
-            project_W.set(1920)
-            project_H.set(1080)
-            project_F.set(30)
-            project_Z.set('BG3,BG2,BG1,Am3,Am2,Am1,Bb')
-            project_Q.set(24)
-            AccessKey.set('Your_AccessKey')
-            AccessKeySecret.set('Your_AccessKey_Secret')
-            Appkey.set('Your_Appkey')
-            AzureKey.set('Your_Azurekey')
-            ServiceRegion.set('eastasia')
+            self.project_W.set(1920)
+            self.project_H.set(1080)
+            self.project_F.set(30)
+            self.project_Z.set('BG3,BG2,BG1,Am3,Am2,Am1,Bb')
+            self.project_Q.set(24)
+            self.AccessKey.set('Your_AccessKey')
+            self.AccessKeySecret.set('Your_AccessKey_Secret')
+            self.Appkey.set('Your_Appkey')
+            self.AzureKey.set('Your_Azurekey')
+            self.ServiceRegion.set('eastasia')
             # 将取消系统缩放设为默认值
             if sys.platform == 'win32':
-                fixscrzoom.set(1)
+                self.fixscrzoom.set(1)
             else:
-                fixscrzoom.set(0)
-        """
+                self.fixscrzoom.set(0)
+        
     
     def createWidgets(self):
         # 标签页选项
@@ -154,28 +151,25 @@ class Application():
         self.frame_display = select
      
     def close_window(self):
-        #TODO：退出时保存当前参数
         try:
-            """之后再想办法处理保存参数的事，先重构其他部分
             o_config = open('./media/save_config','wb')
-            if save_config.get() == 1: # 以一个字典的形式把设置保存下来
+            if self.save_config.get() == 1: # 以一个字典的形式把设置保存下来
                 pickle.dump({
-                    'stdin_logfile':stdin_logfile.get(),'characor_table':characor_table.get(),
-                    'media_define':media_define.get(),'output_path':output_path.get(),
-                    'timeline_file':timeline_file.get(),'project_W':project_W.get(),
-                    'project_H':project_H.get(),'project_F':project_F.get(),
-                    'project_Z':project_Z.get(),'project_Q':project_Q.get(),
-                    'AccessKey':AccessKey.get(),'Appkey':Appkey.get(),'AccessKeySecret':AccessKeySecret.get(),
-                    'AzureKey':AzureKey.get(),'ServiceRegion':ServiceRegion.get(),
-                    'synthanyway':synthanyway.get(),'exportprxml':exportprxml.get(),
-                    'exportmp4':exportmp4.get(),'fixscrzoom':fixscrzoom.get(),'save_config':save_config.get(),
+                    'stdin_logfile':self.stdin_logfile.get(),'characor_table':self.characor_table.get(),
+                    'media_define':self.media_define.get(),'output_path':self.output_path.get(),
+                    'timeline_file':self.timeline_file.get(),'project_W':self.project_W.get(),
+                    'project_H':self.project_H.get(),'project_F':self.project_F.get(),
+                    'project_Z':self.project_Z.get(),'project_Q':self.project_Q.get(),
+                    'AccessKey':self.AccessKey.get(),'Appkey':self.Appkey.get(),'AccessKeySecret':self.AccessKeySecret.get(),
+                    'AzureKey':self.AzureKey.get(),'ServiceRegion':self.ServiceRegion.get(),
+                    'synthanyway':self.synthanyway.get(),'exportprxml':self.exportprxml.get(),
+                    'exportmp4':self.exportmp4.get(),'fixscrzoom':self.fixscrzoom.get(),'save_config':self.save_config.get(),
                     'version':edtion
                 },o_config) # 把版本信息保存下来
             else: # 如果选择不保存，则抹除保存的参数
-                pickle.dump({'save_config':save_config.get()},o_config)
+                pickle.dump({'save_config':self.save_config.get()},o_config)
             
             o_config.close()
-            """
         except Exception:
             messagebox.showwarning(title='警告',message='保存设置内容失败!')
         finally: # 关闭主窗口

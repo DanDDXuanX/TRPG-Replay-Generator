@@ -49,12 +49,12 @@ class XmlFrame(AppFrame):
         flag_x = tk.LabelFrame(self,text='标志')
         flag_x.place(x=10,y=320,width=600,height=110)
 
-        PR_logo = ImageTk.PhotoImage(Image.open('./media/PR.png'))
-        Eta_logo = ImageTk.PhotoImage(Image.open('./media/eta.png'))
-        tk.Label(flag_x,image = PR_logo).place(x=20,y=10)
+        self.PR_logo = ImageTk.PhotoImage(Image.open('./media/PR.png'))
+        self.Eta_logo = ImageTk.PhotoImage(Image.open('./media/eta.png'))
+        tk.Label(flag_x,image = self.PR_logo).place(x=20,y=10)
         tk.Label(flag_x,text='通向Premiere Pro世界的通道。').place(x=110,y=30)
         tk.Label(flag_x,text='感谢up主伊塔的Idea，了解更多：').place(x=300,y=30)
-        tk.Button(flag_x,image = Eta_logo,command=lambda: webbrowser.open('https://space.bilibili.com/10414609'),relief='flat').place(x=500,y=7)
+        tk.Button(flag_x,image = self.Eta_logo,command=lambda: webbrowser.open('https://space.bilibili.com/10414609'),relief='flat').place(x=500,y=7)
 
         tk.Button(self, command=self.run_command_xml,text="开始",font=self.app.big_text).place(x=260,y=435,width=100,height=50)
 

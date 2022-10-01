@@ -7,6 +7,7 @@ from PIL import Image,ImageTk,ImageFont,ImageDraw
 import webbrowser
 import os
 import appFrames as af
+from tkinter import messagebox
 
 class MainFrame(AppFrame):
     def __init__(self,master,app,*args, **kwargs):
@@ -59,8 +60,8 @@ class MainFrame(AppFrame):
         tk.Checkbutton(flag,text="取消系统缩放",variable=self.app.fixscrzoom,anchor=tk.W,command=lambda:self.highlight(self.app.fixscrzoom)).place(x=170,y=0,width=150,height=30)
         tk.Checkbutton(flag,text="保存设置内容",variable=self.app.save_config,anchor=tk.W).place(x=10,y=55,width=150,height=30)
 
-        my_logo = ImageTk.PhotoImage(Image.open('./media/logo.png').resize((236,75)))
-        tk.Button(flag,image = my_logo,command=lambda: webbrowser.open('https://www.wolai.com/PjcZ7xwNTKB2VJ5AJYggv'),relief='flat').place(x=339,y=0)
+        self.my_logo = ImageTk.PhotoImage(Image.open('./media/logo.png').resize((236,75))) # 教训：如果不设置为属性，则图片对象会被回收
+        tk.Button(flag,image = self.my_logo,command=lambda: webbrowser.open('https://www.wolai.com/PjcZ7xwNTKB2VJ5AJYggv'),relief='flat').place(x=339,y=0)
 
         # 开始
         tk.Button(self, command=self.run_command_main,text="开始",font=self.app.big_text).place(x=260,y=435,width=100,height=50)
@@ -109,5 +110,33 @@ class MainFrame(AppFrame):
             self.new_or_edit.config(text='新建')
 
     def run_command_main(self):
-        #TODO
-        pass
+        optional = {1:'--OutputPath {of} ',2:'--ExportXML ',3:'--ExportVideo --Quality {ql} ',4:'--SynthesisAnyway --AccessKey {AK} --AccessKeySecret {AS} --Appkey {AP} --Azurekey {AZ} --ServRegion {SR} ',5:'--FixScreenZoom '}
+        command = self.app.python3 + ' ./replay_generator.py --LogFile {lg} --MediaObjDefine {md} --CharacterTable {ct} '
+        command = command + '--FramePerSecond {fps} --Width {wd} --Height {he} --Zorder {zd} '
+        if self.app.output_path.get()!='':
+            command = command + optional[1].format(of=self.app.output_path.get().replace('\\','/'))
+        if self.app.synthanyway.get()==1:
+            command = command + optional[4].format(AK=self.app.AccessKey.get(),AS=self.app.AccessKeySecret.get(),AP=self.app.Appkey.get(),AZ=self.app.AzureKey.get(),SR=self.app.ServiceRegion.get()).replace('\n','').replace('\r','') # a 1.10.7 处理由于key复制导致的异常换行
+        if self.app.exportprxml.get()==1:
+            command = command + optional[2]
+        if self.app.exportmp4.get()==1:
+            command = command + optional[3].format(ql=self.app.project_Q.get())
+        if self.app.fixscrzoom.get()==1:
+            command = command + optional[5]
+        if '' in [self.app.stdin_logfile.get(),self.app.characor_table.get(),self.app.media_define.get(),self.app.project_W.get(),self.app.project_H.get(),self.app.project_F.get(),self.app.project_Z.get()]:
+            messagebox.showerror(title='错误',message='缺少必要的参数！')
+        else:
+            command = command.format(lg = self.app.stdin_logfile.get().replace('\\','/'),md = self.app.media_define.get().replace('\\','/'),
+                                     ct=self.app.characor_table.get().replace('\\','/'),fps=self.app.project_F.get(),
+                                     wd=self.app.project_W.get(),he=self.app.project_H.get(),zd=self.app.project_Z.get())
+            try:
+                print('[32m'+command+'[0m')
+                exit_status = os.system(command)
+                if exit_status != 0:
+                    raise OSError('Major error occurred in replay_generator!')
+                else:
+                    # 如果指定了要先语音合成，而且星标文件存在，且退出状态是正常，把log文件设置为星标文件：
+                    if (self.app.synthanyway.get() == 1):
+                        messagebox.showinfo(title='完毕',message='语音合成程序执行完毕！\nLog文件已更新')
+            except Exception:
+                messagebox.showwarning(title='警告',message='似乎有啥不对劲的事情发生了，检视控制台输出获取详细信息！')

@@ -8,6 +8,7 @@ from PIL import Image,ImageTk,ImageFont,ImageDraw
 import webbrowser
 import os
 import appFrames as af
+from tkinter import messagebox
 
 class SynthFrame(AppFrame):
     def __init__(self,master,app,*args, **kwargs):
@@ -77,16 +78,16 @@ class SynthFrame(AppFrame):
 
         flag_s = tk.LabelFrame(self,text='标志')
         flag_s.place(x=10,y=320,width=600,height=110)
-        aliyun_logo = ImageTk.PhotoImage(Image.open('./media/aliyun.png'))
-        tk.Label(flag_s,image = aliyun_logo).place(x=20,y=13)
+        self.aliyun_logo = ImageTk.PhotoImage(Image.open('./media/aliyun.png'))
+        tk.Label(flag_s,image = self.aliyun_logo).place(x=20,y=13)
         tk.Label(flag_s,text='本项功能由阿里云语音合成支持，了解更多：').place(x=300,y=15)
         tk.Button(flag_s,text='https://ai.aliyun.com/nls/',command=lambda: webbrowser.open('https://ai.aliyun.com/nls/'),fg='blue',relief='flat').place(x=300,y=40)
         tk.Button(flag_s,text='试听',command=lambda:self.run_command_synth_preview('Aliyun')).place(x=540,y=55,width=50,height=25)
 
         flag_azs = tk.LabelFrame(self,text='标志')
         #flag_azs.place(x=10,y=320,width=600,height=110)
-        azure_logo = ImageTk.PhotoImage(Image.open('./media/Azure.png'))
-        tk.Label(flag_azs,image = azure_logo).place(x=20,y=8)
+        self.azure_logo = ImageTk.PhotoImage(Image.open('./media/Azure.png'))
+        tk.Label(flag_azs,image = self.azure_logo).place(x=20,y=8)
         tk.Label(flag_azs,text='本项功能由Azure认知语音服务支持，了解更多：').place(x=300,y=15)
         tk.Button(flag_azs,text='https://docs.microsoft.com/azure/',command=lambda: webbrowser.open('https://docs.microsoft.com/zh-cn/azure/cognitive-services'),fg='blue',relief='flat').place(x=300,y=40)
         tk.Button(flag_azs,text='试听',command=lambda:self.run_command_synth_preview('Azure')).place(x=540,y=55,width=50,height=25)
@@ -94,8 +95,41 @@ class SynthFrame(AppFrame):
         tk.Button(self, command=self.run_command_synth,text="开始",font=self.app.big_text).place(x=260,y=435,width=100,height=50)
 
     def run_command_synth_preview(self,init_type='Aliyun'):
-        #TODO
-        pass
+        command = self.app.python3 +' ./speech_synthesizer.py --PreviewOnly --Init {IN} --AccessKey {AK} --AccessKeySecret {AS} --Appkey {AP} --Azurekey {AZ} --ServRegion {SR}'
+        command = command.format(IN=init_type, AK=self.app.AccessKey.get(), AS=self.app.AccessKeySecret.get(),AP=self.app.Appkey.get(),AZ=self.app.AzureKey.get(),SR=self.app.ServiceRegion.get()).replace('\n','').replace('\r','')
+        try:
+            print('[32m'+command+'[0m')
+            exit_status = os.system(command)
+            if exit_status != 0:
+                raise OSError('Major error occurred in speech_synthesizer!')
+            else:
+                pass
+        except Exception:
+            messagebox.showwarning(title='警告',message='似乎有啥不对劲的事情发生了，检视控制台输出获取详细信息！')
     def run_command_synth(self):
-        #TODO
-        pass
+        command = self.app.python3 +' ./speech_synthesizer.py --LogFile {lg} --MediaObjDefine {md} --CharacterTable {ct} --OutputPath {of} --AccessKey {AK} --AccessKeySecret {AS} --Appkey {AP} --Azurekey {AZ} --ServRegion {SR}'
+        if '' in [self.app.stdin_logfile.get(),self.app.characor_table.get(),self.app.media_define.get(),self.app.output_path.get(),self.app.AccessKey.get(),self.app.AccessKeySecret.get(),self.app.Appkey.get(),self.app.AzureKey.get(),self.app.ServiceRegion.get()]:
+            messagebox.showerror(title='错误',message='缺少必要的参数！')
+        else:
+            command = command.format(lg = self.app.stdin_logfile.get().replace('\\','/'),md = self.app.media_define.get().replace('\\','/'),
+                                     of = self.app.output_path.get().replace('\\','/'), ct = self.app.characor_table.get().replace('\\','/'),
+                                     AK=self.app.AccessKey.get(), AS=self.app.AccessKeySecret.get(),AP=self.app.Appkey.get(),AZ=self.app.AzureKey.get(),SR=self.app.ServiceRegion.get()).replace('\n','').replace('\r','') # a 1.10.7 处理由于key复制导致的异常换行
+            try:
+                print('[32m'+command+'[0m')
+                exit_status = os.system(command)
+                # 0. 有Alog生成，合成正常，可以继续执行主程序
+                if exit_status == 0:
+                    messagebox.showinfo(title='完毕',message='语音合成程序执行完毕！\nLog文件已更新')
+                # 1. 无Alog生成，无需合成，可以继续执行主程序
+                elif exit_status == 1:
+                    messagebox.showwarning(title='警告',message='未找到待合成星标！\n语音合成未执行')
+                # 2. 无Alog生成，合成未完成，不能继续执行主程序
+                elif exit_status == 2:
+                    messagebox.showwarning(title='警告',message='无法执行语音合成！\n检视控制台输出获取详细信息！')
+                # 3. 有Alog生成，合成未完成，不能继续执行主程序
+                elif exit_status == 3:
+                    messagebox.showwarning(title='警告',message='语音合成进度中断！\nLog文件已更新')
+                else:
+                    raise OSError('Unknown Exception.')
+            except Exception:
+                messagebox.showwarning(title='警告',message='似乎有啥不对劲的事情发生了，检视控制台输出获取详细信息！')
