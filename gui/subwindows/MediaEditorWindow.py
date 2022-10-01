@@ -117,7 +117,7 @@ class MediaEditorWindow(SubWindow):
 
         self.mediainfo.bind('<ButtonRelease-1>', self.treeviewClick)
         self.mediainfo.bind('<Double-Button-1>',self.preview_obj) # 双击左键预览
-        # mediainfo.bind('<Button-3>',edit_obj) # 单击右键编辑
+        # self.mediainfo.bind('<Button-3>',self.edit_obj) # 单击右键编辑
         # mediainfo.bind('<Delete>',del_obj) # Delete键删除
         # mediainfo.bind('<Key>',keyHandler) # 按键处理
         
@@ -125,8 +125,8 @@ class MediaEditorWindow(SubWindow):
 
         ttk.Button(mediainfo_frame,text='导入',command=self.importMedia).place(x=button_x(0),y=325,width=button_w,height=35)
         ttk.Button(mediainfo_frame,text='新建',command=self.new_obj).place(x=button_x(1),y=325,width=button_w,height=35)
-        # ttk.Button(mediainfo_frame,text='复制',command=copy_obj).place(x=button_x(2),y=325,width=button_w,height=35)    
-        # ttk.Button(mediainfo_frame,text='编辑',command=edit_obj).place(x=button_x(3),y=325,width=button_w,height=35)
+        ttk.Button(mediainfo_frame,text='复制',command=self.copy_obj).place(x=button_x(2),y=325,width=button_w,height=35)    
+        # ttk.Button(mediainfo_frame,text='编辑',command=self.edit_obj).place(x=button_x(3),y=325,width=button_w,height=35)
         # ttk.Button(mediainfo_frame,text='删除',command=del_obj).place(x=button_x(4),y=325,width=button_w,height=35)
         # ttk.Button(mediainfo_frame,text='保存',command=lambda:finish(False)).place(x=button_x(5),y=325,width=button_w,height=35)
         # ttk.Button(mediainfo_frame,text='另存',command=lambda:finish(True)).place(x=button_x(6),y=325,width=button_w,height=35)
@@ -268,8 +268,27 @@ class MediaEditorWindow(SubWindow):
                 self.available_Text.append(new_obj[0])
 
         self.sortMedia()
+    # 复制
+    def copy_obj(self,event=None):
+        if self.selected == 0:
+            pass
+        else:
+            i = 1
+            while True:
+                new_name = self.selected_name+'_cp'+str(i)
+                if (new_name in self.used_variable_name)|(new_name in self.occupied_variable_name):
+                    i = i + 1
+                else:
+                    break
+            self.used_variable_name.append(new_name) # 新建的媒体名
+            self.media_lines.append((new_name,self.selected_type,self.selected_args))
+            self.mediainfo.insert('','end',values =(new_name,self.selected_type,self.selected_args)) # 否则插入到最后面
+
+            if self.selected_type in ['Text','StrokeText']: # 如果新建了文本
+                self.available_Text.append(new_name)
+
+        self.sortMedia()
     
-        
     # 更新表格显示数据，注意并不会修改统计数据，只会更新表格显示的内容
     def updateTreeView(self,new_list):
         i = 0
