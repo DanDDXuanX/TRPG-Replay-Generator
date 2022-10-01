@@ -10,6 +10,7 @@ import os
 import re
 
 from .SubWindow import SubWindow
+from .MediaDefWindow import MediaDefWindow,open_Media_def_window
 from .Media import Text,StrokeText,Background,Animation,Bubble
 
 
@@ -122,8 +123,8 @@ class MediaEditorWindow(SubWindow):
         
         # 底部按键
 
-        # ttk.Button(mediainfo_frame,text='导入',command=importMedia).place(x=button_x(0),y=325,width=button_w,height=35)
-        # ttk.Button(mediainfo_frame,text='新建',command=new_obj).place(x=button_x(1),y=325,width=button_w,height=35)
+        ttk.Button(mediainfo_frame,text='导入',command=self.importMedia).place(x=button_x(0),y=325,width=button_w,height=35)
+        ttk.Button(mediainfo_frame,text='新建',command=self.new_obj).place(x=button_x(1),y=325,width=button_w,height=35)
         # ttk.Button(mediainfo_frame,text='复制',command=copy_obj).place(x=button_x(2),y=325,width=button_w,height=35)    
         # ttk.Button(mediainfo_frame,text='编辑',command=edit_obj).place(x=button_x(3),y=325,width=button_w,height=35)
         # ttk.Button(mediainfo_frame,text='删除',command=del_obj).place(x=button_x(4),y=325,width=button_w,height=35)
@@ -244,10 +245,32 @@ class MediaEditorWindow(SubWindow):
             messagebox.showwarning(title='警告',message='未选中任何对象！')
         else:
             messagebox.showerror(title='错误',message='不支持的媒体定义类型：'+self.selected_type)
+    # 新建
+    def new_obj(self,event=None):
+        try:# 非win系统，可能没有disable
+            self.attributes('-disabled',True)
+        except Exception:
+            pass
+        # new_obj = MediaDefWindow(self).open()
+        new_obj = open_Media_def_window(father = self,image_canvas = self.image_canvas,available_Text= self.available_Text,used_variable_name=self.used_variable_name)
+        try:
+            self.attributes('-disabled',False)
+        except Exception:
+            pass
+        self.lift()
+        self.focus_force()
+        if new_obj:
+            self.used_variable_name.append(new_obj[0]) # 新建的媒体名
+            self.media_lines.append(new_obj)
+            self.mediainfo.insert('','end',values =new_obj) # 否则插入在最后
 
+            if new_obj[1] in ['Text','StrokeText']: # 如果新建了文本
+                self.available_Text.append(new_obj[0])
+
+        self.sortMedia()
     
         
-     # 更新表格显示数据，注意并不会修改统计数据，只会更新表格显示的内容
+    # 更新表格显示数据，注意并不会修改统计数据，只会更新表格显示的内容
     def updateTreeView(self,new_list):
         i = 0
         self.mediainfo.delete(*self.mediainfo.get_children()) # 清空媒体
