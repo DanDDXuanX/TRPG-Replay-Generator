@@ -214,14 +214,13 @@ class DynamicBubble(Bubble):
             x_this,y_this = text_surf.get_size()
             y_this = i*self.MainText.size*self.line_distance + y_this
             if x_this > xlim:
-                xlim = x_this
+                xlim = int(x_this)
             ylim = int(y_this)
         # 建立变形后的气泡
         temp_size_x = xlim + self.x_tick[1] + self.x_tick[3] - self.x_tick[2]
         temp_size_y = ylim + self.y_tick[1] + self.y_tick[3] - self.y_tick[2]
         temp = pygame.Surface((temp_size_x,temp_size_y),pygame.SRCALPHA)
         temp.fill((0,0,0,0))
-        # 目前只支持 fill_mode == 'stretch'
         # 气泡碎片的渲染位置
         bubble_clip_pos = {
             0:(0,0),
@@ -258,6 +257,7 @@ class DynamicBubble(Bubble):
                     elif self.fill_mode == 'collage':
                         # 新建拼贴图层，尺寸为气泡碎片的目标大小
                         collage = pygame.Surface(bubble_clip_scale[i],pygame.SRCALPHA)
+                        collage.fill((0,0,0,0))
                         col_x,col_y = (0,0)
                         while col_y < bubble_clip_scale[i][1]:
                             while col_x < bubble_clip_scale[i][0]:
