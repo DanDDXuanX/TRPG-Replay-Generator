@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.14.8'
+edtion = 'alpha 1.14.9'
 
 import tkinter as tk
 from tkinter import ttk
@@ -585,11 +585,15 @@ def open_Edit_windows(father,Edit_filepath='',fig_W=960,fig_H=540):
     # 预览
     def preview_obj(event=None):
         global image_canvas
-        nonlocal show_canvas # 必须是全局变量，否则在函数后就被回收了，不再显示
+        nonlocal show_canvas,last_fade # 必须是全局变量，否则在函数后就被回收了，不再显示
         # 预览前先将当前选中项写入变量
         treeviewClick(event) 
         if selected_type in ['Text','StrokeText','Bubble','Background','Animation']: # 执行
             try:
+                this_fade = round(preview_fade.get()*2.55)
+                if last_fade != this_fade:
+                    blank_canvas.putalpha(this_fade)
+                    last_fade = this_fade
                 image_canvas.paste(blank_canvas,(0,0),mask=blank_canvas)
                 exec('global {name};{name}={type}{args}'.format(name=selected_name,type=selected_type,args=selected_args))
                 exec('global {name};{name}.preview()'.format(name=selected_name))
@@ -807,20 +811,44 @@ def open_Edit_windows(father,Edit_filepath='',fig_W=960,fig_H=540):
     # 信息框
     mediainfo_frame = tk.LabelFrame(frame_edit,text='媒体对象')
     mediainfo_frame.place(x=10,y=10,height=390,width=fig_W//2)
+
+    # 顶部控件
+    
+    button_w = (fig_W//2-20)//8 # 这数字8 应该等于按键的 数量+1
+    button_x = lambda x:10+(fig_W//2-20-button_w)//6*x # 这个数字6 应该等于按键的 数量-1
+
+    # 导入媒体的按钮，宽
+    ttk.Button(mediainfo_frame,text='载入目录',command=importMedia).place(x=button_x(0),y=0,width=max(button_w,60),height=25)
     
     # 筛选媒体下拉框
     media_type = tk.StringVar(Edit_windows)
+    ttk.Label(mediainfo_frame,text='筛选：').place(x=button_x(1),y=0,width=40,height=25)
     choose_type = ttk.Combobox(mediainfo_frame,textvariable=media_type,value=['All','Text','StrokeText','Bubble','Background','Animation','BGM','Audio'])
-    choose_type.place(x=250,y=0,width=100,height=25) # 我就随便找个位置先放着，等后来人调整布局（都是绝对坐标很难搞啊）
+    choose_type.place(x=button_x(1)+40,y=0,width=button_w*2-40,height=25) # 我就随便找个位置先放着，等后来人调整布局（都是绝对坐标很难搞啊）
     choose_type.current(0)
     choose_type.bind("<<ComboboxSelected>>",filterMedia)
 
     # 搜索框
     search_text = tk.StringVar(Edit_windows)
+    ttk.Label(mediainfo_frame,text='搜索:').place(x=button_x(3),y=0,width=40,height=25)
     search_entry =  ttk.Entry(mediainfo_frame, textvariable=search_text)
-    search_entry.place(x=10,y=0,width=200,height=25) # 同上，位置暂时随便摆的
+    search_entry.place(x=button_x(3)+40,y=0,width=button_w*2-40,height=25) # 同上，位置暂时随便摆的
     search_entry.bind('<Key-Return>',searchMedia) # 回车后搜索
 
+    # 缩放比例
+    preview_fade = tk.DoubleVar(Edit_windows)
+    preview_fade.set(75)
+    ttk.Label(mediainfo_frame,text='淡去:').place(x=button_x(5),y=0,width=40,height=25)
+    ttk.Entry(mediainfo_frame,textvariable=preview_fade).place(x=button_x(5)+40,y=0,width=30,height=25)
+    choose_fade = ttk.Scale(mediainfo_frame,from_=0,to=100,variable=preview_fade)
+    choose_fade.place(x=button_x(5)+70,y=0,width=max(60,button_w*2-70),height=25)
+    
+    # 解决偶数颜色不显示的bug
+    def fixed_map(option):
+        return [elm for elm in style.map("Treeview", query_opt=option) if elm[:2] != ("!disabled","!selected")]
+    style = ttk.Style()
+    style.map("Treeview",foreground=fixed_map("foreground"),background=fixed_map("background"))
+    # 媒体列表
     ybar = ttk.Scrollbar(mediainfo_frame,orient='vertical')
     xbar = ttk.Scrollbar(mediainfo_frame,orient='horizontal')
     mediainfo = ttk.Treeview(mediainfo_frame,columns=['name','type','args'],show = "headings",selectmode = tk.BROWSE,yscrollcommand=ybar.set,xscrollcommand=xbar.set)
@@ -837,7 +865,7 @@ def open_Edit_windows(father,Edit_filepath='',fig_W=960,fig_H=540):
     mediainfo.heading("args", text = "参数")
 
     mediainfo.place(x=10,y=30,height=270,width=fig_W//2-35)
-    mediainfo.tag_configure("evenColor",background="#000000") # 行标签，用于偶数行着色
+    mediainfo.tag_configure("evenColor",background="#e6e6e6") # 行标签，用于偶数行着色
 
     mediainfo.bind('<ButtonRelease-1>', treeviewClick)
     mediainfo.bind('<Double-Button-1>',preview_obj) # 双击左键预览
@@ -847,21 +875,19 @@ def open_Edit_windows(father,Edit_filepath='',fig_W=960,fig_H=540):
     
     # 底部按键
 
-    button_w = (fig_W//2-20)//8 # 这数字8 应该等于按键的 数量+1
-    button_x = lambda x:10+(fig_W//2-20-button_w)//6*x # 这个数字6 应该等于按键的 数量-1
-
-    ttk.Button(mediainfo_frame,text='导入',command=importMedia).place(x=button_x(0),y=320,width=button_w,height=40)
-    ttk.Button(mediainfo_frame,text='新建',command=new_obj).place(x=button_x(1),y=320,width=button_w,height=40)
-    ttk.Button(mediainfo_frame,text='复制',command=copy_obj).place(x=button_x(2),y=320,width=button_w,height=40)    
-    ttk.Button(mediainfo_frame,text='编辑',command=edit_obj).place(x=button_x(3),y=320,width=button_w,height=40)
-    ttk.Button(mediainfo_frame,text='删除',command=del_obj).place(x=button_x(4),y=320,width=button_w,height=40)
-    ttk.Button(mediainfo_frame,text='保存',command=lambda:finish(False)).place(x=button_x(5),y=320,width=button_w,height=40)
-    ttk.Button(mediainfo_frame,text='另存',command=lambda:finish(True)).place(x=button_x(6),y=320,width=button_w,height=40)
+    ttk.Button(mediainfo_frame,text='预览',command=preview_obj).place(x=button_x(0),y=325,width=button_w,height=35)
+    ttk.Button(mediainfo_frame,text='新建',command=new_obj).place(x=button_x(1),y=325,width=button_w,height=35)
+    ttk.Button(mediainfo_frame,text='复制',command=copy_obj).place(x=button_x(2),y=325,width=button_w,height=35)    
+    ttk.Button(mediainfo_frame,text='编辑',command=edit_obj).place(x=button_x(3),y=325,width=button_w,height=35)
+    ttk.Button(mediainfo_frame,text='删除',command=del_obj).place(x=button_x(4),y=325,width=button_w,height=35)
+    ttk.Button(mediainfo_frame,text='保存',command=lambda:finish(False)).place(x=button_x(5),y=325,width=button_w,height=35)
+    ttk.Button(mediainfo_frame,text='另存',command=lambda:finish(True)).place(x=button_x(6),y=325,width=button_w,height=35)
 
     # 预览图
     image_canvas = Image.open('./media/canvas.png').crop((0,0,fig_W,fig_H))
     blank_canvas = image_canvas.copy()
-    blank_canvas.putalpha(192) # alpha 1.10.6 220 -> 192 上一个预览画面的残影更强了
+    last_fade = 191
+    blank_canvas.putalpha(last_fade) # alpha 1.10.6 220 -> 192 上一个预览画面的残影更强了
     show_canvas = ImageTk.PhotoImage(image_canvas.resize((fig_W//2,fig_H//2)))
     preview_canvas = tk.Label(frame_edit,bg='black')
     preview_canvas.config(image=show_canvas)

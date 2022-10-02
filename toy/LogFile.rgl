@@ -1,16 +1,22 @@
 # 综合演示
 <set:formula>:sincurve
 <set:am_method_default>:<pass_up_black=20>
-<set:tx_method_default>:<w2w=1>
 <set:bb_method_default>:<replace=0>
 
 <set:BGM>:BGM1
 <set:speech_speed>:500
 <background><replace=30>:bg1
 
-<bubble>:chatwindows1("left#|right#|left#|right#|left#|right#|left#|right#","离#离#原#上#草#，|一岁一枯荣。|野火烧不尽，|春风吹又生。|远芳侵古道，|晴翠接荒城。|又送王孙去，|萋萋满别情。"<w2w=6>)
-<background><replace=360>:bg1
-<bubble>:NA
+[KP.chat]:离离原上草，
+[斯托克.chat]:一岁一枯荣。
+[诺兰.chat]:野火烧不尽，
+[张安翔.chat]:春风吹又生。
+[KP.chat]:远芳侵古道，
+[斯托克.chat]:晴翠接荒城。
+[诺兰.chat]:又送王孙去，
+[张安翔.chat]:萋萋满别情。
+
+<set:tx_method_default>:<w2w=1>
 
 <animation><circular_major_100_black=30>:(zhang,drink_left)
 
