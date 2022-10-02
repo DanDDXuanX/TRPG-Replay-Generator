@@ -162,8 +162,8 @@ class MediaEditorWindow(SubWindow):
                             self.mediainfo.insert('','end',values = parseline[0],tags=("evenColor"))
                         
                         # 如果是字体媒体，提前载入
-                        if parseline[0][1] == "Text" or parseline[0][1] == "StrokeText":
-                            exec('global {name};{name}={type}{args}'.format(name=parseline[0][0],type=parseline[0][1],args=parseline[0][2]))
+                        # if parseline[0][1] == "Text" or parseline[0][1] == "StrokeText":
+                        #     exec('global {name};{name}={type}{args}'.format(name=parseline[0][0],type=parseline[0][1],args=parseline[0][2]))
 
                         self.used_variable_name.append(parseline[0][0])
                         self.media_lines.append(parseline[0])
@@ -209,6 +209,41 @@ class MediaEditorWindow(SubWindow):
             self.selected_name,self.selected_type,self.selected_args = self.mediainfo.item(self.selected, "values")
         except Exception:
             pass
+    def instantiate_media_fromname(self,media_name):
+        """
+        实例化媒体名，返回值：
+        0: 成功，媒体名（包括子对象已经全部实例化）
+        NameError: 失败
+        """
+        def get_medianame(_NameError):
+            # 获取NameError的变量名
+            name_error = str(_NameError)
+            name_err = name_error[name_error.index("'")+1:]
+            name = name_err[:name_err.index("'")]
+            return name
+        # 遍历所有整个媒体列表
+        for line in self.media_lines:
+            name_this,type_this,args_this = line
+            # 如果名字相匹配！
+            if name_this == media_name:
+                # 循环重试次数不可能超过媒体变量的总长
+                for i in range(0,len(self.media_lines)):
+                    try:
+                        exec('global {name};{name}={type}{args}'.format(name=name_this,type=type_this,args=args_this))
+                        # 未发生异常，则退出重试循环，返回0
+                        return 0
+                    except NameError as E:
+                        # 如果存在尚未实例化，获取尚未定义的变量名
+                        err_name = get_medianame(E)
+                        # 递归调用
+                        instantiation_return = self.instantiate_media_fromname(err_name)
+                        # 如果递归调用遭遇未定义变量名，返回NameError
+                        if instantiation_return != 0:
+                            return instantiation_return
+            else:
+                pass
+        # 找不到指定的媒体名
+        return NameError("Media object name '" + media_name + "' is not defined!")
     # 预览
     def preview_obj(self,event=None):
         """预览媒体"""
@@ -225,13 +260,17 @@ class MediaEditorWindow(SubWindow):
                     self.blank_canvas.putalpha(this_fade)
                     last_fade = this_fade
                 image_canvas.paste(blank_canvas,(0,0),mask=blank_canvas)
-                exec('global {name};{name}={type}{args}'.format(name=self.selected_name,type=self.selected_type,args=self.selected_args))
-                exec('global {name};{name}.preview(image_canvas)'.format(name=self.selected_name))
-                # eval(self.selected_name).preview(image_canvas) # 另一种方法
-                self.show_canvas = ImageTk.PhotoImage(image_canvas.resize((self.fig_W//2,self.fig_H//2)))
-                preview_canvas.config(image = self.show_canvas)
+                # 实例化选中的
+                instantiation_return = self.instantiate_media_fromname(self.selected_name)
+                if instantiation_return != 0:
+                    raise instantiation_return # NameError
+                else:
+                    # eval(self.selected_name).preview(image_canvas) # 另一种方法
+                    exec('global {name};{name}.preview(image_canvas)'.format(name=self.selected_name))
+                    self.show_canvas = ImageTk.PhotoImage(image_canvas.resize((self.fig_W//2,self.fig_H//2)))
+                    preview_canvas.config(image = self.show_canvas)
             except NameError as E: # 使用了尚未定义的对象！
-                messagebox.showwarning(title='请先预览字体',message=E)
+                messagebox.showerror(title='媒体名尚未定义！',message=E)
             except Exception as E: # 其他错误，主要是参数错误
                 messagebox.showerror(title='错误',message=E)
         elif self.selected_type in ['BGM','Audio']:
