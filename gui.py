@@ -14,6 +14,8 @@ import os
 import sys
 import re
 import pickle
+from Medias import Audio
+from Medias import BGM
 
 # preview 的类定义
 label_pos_show_text = ImageFont.truetype('./media/SourceHanSerifSC-Heavy.otf', 30)
@@ -602,7 +604,9 @@ def open_Edit_windows(father,Edit_filepath='',fig_W=960,fig_H=540):
             except Exception as E: # 其他错误，主要是参数错误
                 messagebox.showerror(title='错误',message=E)
         elif selected_type in ['BGM','Audio']:
-            messagebox.showwarning(title='警告',message='音频类对象不支持预览！')
+            exec('global {name};{name}={type}{args}'.format(name=selected_name,type=selected_type,args=selected_args))
+            exec('global {name};{name}.display()'.format(name=selected_name))
+
         elif selected_type == 'BuiltInAnimation':
             messagebox.showwarning(title='警告',message='内建动画对象不支持GUI编辑！')
         elif selected_type == 'None':
@@ -888,6 +892,19 @@ def open_Edit_windows(father,Edit_filepath='',fig_W=960,fig_H=540):
     preview_canvas = tk.Label(frame_edit,bg='black')
     preview_canvas.config(image=show_canvas)
     preview_canvas.place(x=10,y=410,height=fig_H//2,width=fig_W//2)
+
+    # 筛选媒体下拉框
+    media_type = tk.StringVar(Edit_windows)
+    choose_type = ttk.Combobox(Edit_windows,textvariable=media_type,value=['All','Text','StrokeText','Bubble','Background','Animation','BGM','Audio'])
+    choose_type.place(x=Edit_windows.winfo_width()-100,y=10,width=100,height=25) # 我就随便找个位置先放着，等后来人调整布局（都是绝对坐标很难搞啊）
+    choose_type.current(0)
+    choose_type.bind("<<ComboboxSelected>>",filterMedia)
+
+    # 搜索框
+    search_text = tk.StringVar(Edit_windows)
+    search_entry =  tk.Entry(Edit_windows, textvariable=search_text)
+    search_entry.place(x=200,y=10,width=300,height=25) # 同上，位置暂时随便摆的
+    search_entry.bind('<Key-Return>',searchMedia) # 回车后搜索
 
     # 载入文件
     if Edit_filepath!='': # 如果有指定输入文件
