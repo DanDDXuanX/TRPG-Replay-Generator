@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-from Utils import edtion
+from Utils import EDITION
 
 # 外部参数输入
 
@@ -1196,7 +1196,7 @@ def pause_SE(stats):
 
 # Main():
 
-print('[replay generator]: Welcome to use TRPG-replay-generator '+edtion)
+print('[replay generator]: Welcome to use TRPG-replay-generator '+EDITION)
 
 # 检查是否需要先做语音合成
 
@@ -1346,7 +1346,7 @@ if args.FixScreenZoom == True:
         print('[33m[warning]:[0m OS exception, --FixScreenZoom is only avaliable on windows system!')
 
 pygame.init()
-pygame.display.set_caption('TRPG Replay Generator '+edtion)
+pygame.display.set_caption('TRPG Replay Generator '+EDITION)
 fps_clock=pygame.time.Clock()
 screen = pygame.display.set_mode((Width,Height))
 pygame.display.set_icon(pygame.image.load('./media/icon.png'))
@@ -1369,7 +1369,7 @@ for media in media_list:
 white.display(screen)
 screen.blit(pygame.transform.scale(pygame.image.load('./media/icon.png'),(Height//5,Height//5)),(0.01*Height,0.79*Height))
 screen.blit(note_text.render('Welcome to TRPG Replay Generator!',fgcolor=(150,150,150,255),size=0.0315*Width)[0],(0.230*Width,0.460*Height)) # for 1080p
-screen.blit(note_text.render(edtion,fgcolor=(150,150,150,255),size=0.0278*Height)[0],(0.900*Width,0.963*Height))
+screen.blit(note_text.render(EDITION,fgcolor=(150,150,150,255),size=0.0278*Height)[0],(0.900*Width,0.963*Height))
 screen.blit(note_text.render('Press space to begin.',fgcolor=(150,150,150,255),size=0.0278*Height)[0],(0.417*Width,0.926*Height))
 pygame.display.update()
 begin = False

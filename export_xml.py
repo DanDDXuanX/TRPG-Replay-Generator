@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-from Utils import edtion
+from Utils import EDITION
 
 # 外部参数输入
 
@@ -833,7 +833,7 @@ timeline_ifile.close()
 
 def main():
     global media_list
-    print('[export XML]: Welcome to use exportXML for TRPG-replay-generator '+edtion)
+    print('[export XML]: Welcome to use exportXML for TRPG-replay-generator '+EDITION)
     print('[export XML]: The output xml file and refered png files will be saved at "'+output_path+'"')
 
     # 载入od文件

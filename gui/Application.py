@@ -12,7 +12,7 @@ from tkinter import font, messagebox
 import appframes as af
 from subwindows.MediaEditorWindow import MediaEditorWindow
 
-EDITION = 'alpha 1.14.9'
+EDITION = 'alpha 1.15.0'
 
 
 class Application():

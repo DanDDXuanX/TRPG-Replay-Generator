@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-edtion = 'alpha 1.13.3'
+EDITION = 'alpha 1.13.3'
 
 # 在开源发布的版本中，隐去了各个key
 
@@ -312,7 +312,7 @@ def open_Tuning_windows(init_type='Aliyun'):
     speech_rate = tk.IntVar(tune_main_frame)
     speech_rate.set(0)
     # 版本号
-    tk.Label(tune_main_frame,text='Speech_synthesizer '+edtion,fg='#d0d0d0').place(x=170,y=5,height=15)
+    tk.Label(tune_main_frame,text='Speech_synthesizer '+EDITION,fg='#d0d0d0').place(x=170,y=5,height=15)
     tk.Label(tune_main_frame,text='For TRPG-replay-generator.',fg='#d0d0d0').place(x=170,y=20,height=15)
     # 选中音源变量
     tk.Label(tune_main_frame,text='服务：').place(x=10,y=10,width=40,height=25)
@@ -385,7 +385,7 @@ def main():
     global charactor_table
     global media_list
 
-    print('[speech synthesizer]: Welcome to use speech_synthesizer for TRPG-replay-generator '+edtion)
+    print('[speech synthesizer]: Welcome to use speech_synthesizer for TRPG-replay-generator '+EDITION)
     print('[speech synthesizer]: The processed Logfile and audio file will be saved at "'+args.OutputPath+'"')
     # 载入ct文件
     try:
