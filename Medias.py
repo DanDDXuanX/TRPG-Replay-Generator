@@ -176,15 +176,15 @@ class DynamicBubble(Bubble):
     def __init__(self,filepath=None,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),mt_end=(0,0),ht_pos=(0,0),ht_target='Name',fill_mode='stretch',line_distance=1.5,label_color='Lavender'):
         # align 只能为left
         super().__init__(filepath=filepath,Main_Text=Main_Text,Header_Text=Header_Text,pos=pos,mt_pos=mt_pos,ht_pos=ht_pos,ht_target=ht_target,line_distance=line_distance,label_color=label_color)
-        if (mt_pos[0] > mt_end[0]) | (mt_pos[1] > mt_end[1]):
-            raise MediaError('【气泡错误】：气泡的分割参数mt_end的值不合法！')
+        if (mt_pos[0] >= mt_end[0]) | (mt_pos[1] >= mt_end[1]):
+            raise MediaError('[31m[BubbleError]:[0m', 'Invalid bubble separate params mt_end!')
         else:
             self.mt_end = mt_end
         # fill_mode 只能是 stretch 或者 collage
         if fill_mode in ['stretch','collage']:
             self.fill_mode = fill_mode
         else:
-            raise MediaError('【气泡错误】：非法的填充参数！')
+            raise MediaError('[31m[BubbleError]:[0m', 'Invalid fill mode params ' + fill_mode)
         # x,y轴上的四条分割线
         self.x_tick = [0,self.mt_pos[0],self.mt_end[0],self.media.get_size()[0]]
         self.y_tick = [0,self.mt_pos[1],self.mt_end[1],self.media.get_size()[1]]
@@ -199,7 +199,9 @@ class DynamicBubble(Bubble):
                                                                self.y_tick[j+1]-self.y_tick[j]
                                                                )))
         # 以np array 的形式存储气泡碎片
+        # 注意，这9个碎片有的尺寸有可能为0！这种情况是能够兼容的。
         self.bubble_clip = np.array(self.bubble_clip)
+        self.bubble_clip_size = np.frompyfunc(lambda x:x.get_size(),1,1)(self.bubble_clip)
     # 重载draw
     def draw(self, text, header=''):
         # 首先，需要把主文本渲染出来
@@ -220,29 +222,49 @@ class DynamicBubble(Bubble):
         temp = pygame.Surface((temp_size_x,temp_size_y),pygame.SRCALPHA)
         temp.fill((0,0,0,0))
         # 目前只支持 fill_mode == 'stretch'
-        # 位置0
-        temp.blit(self.bubble_clip[0],(0,0))
-        # 位置1
-        temp.blit(pygame.transform.scale(self.bubble_clip[1],(self.x_tick[1],ylim)),
-                  (0,self.y_tick[1]))
-        # 位置2
-        temp.blit(self.bubble_clip[2],(0,self.y_tick[1]+ylim))
-        # 位置3
-        temp.blit(pygame.transform.scale(self.bubble_clip[3],(xlim,self.y_tick[1])),
-                  (self.x_tick[1],0))
-        # 位置4
-        temp.blit(pygame.transform.scale(self.bubble_clip[4],(xlim,ylim)),
-                  (self.x_tick[1],self.y_tick[1]))
-        # 位置5
-        temp.blit(pygame.transform.scale(self.bubble_clip[5],(xlim,self.y_tick[3]-self.y_tick[2])),
-                  (self.x_tick[1],self.y_tick[1]+ylim))
-        # 位置6
-        temp.blit(self.bubble_clip[6],(self.x_tick[1]+xlim,0))
-        # 位置7
-        temp.blit(pygame.transform.scale(self.bubble_clip[7],(self.x_tick[3]-self.x_tick[2],ylim)),
-                  (self.x_tick[1]+xlim,self.y_tick[1]))
-        # 位置8
-        temp.blit(self.bubble_clip[8],(self.x_tick[1]+xlim,self.y_tick[1]+ylim))
+        # 气泡碎片的渲染位置
+        bubble_clip_pos = {
+            0:(0,0),
+            1:(0,self.y_tick[1]),
+            2:(0,self.y_tick[1]+ylim),
+            3:(self.x_tick[1],0),
+            4:(self.x_tick[1],self.y_tick[1]),
+            5:(self.x_tick[1],self.y_tick[1]+ylim),
+            6:(self.x_tick[1]+xlim,0),
+            7:(self.x_tick[1]+xlim,self.y_tick[1]),
+            8:(self.x_tick[1]+xlim,self.y_tick[1]+ylim)
+        }
+        # 气泡碎片的目标大小
+        bubble_clip_scale = {
+            0:False,
+            1:(self.x_tick[1],ylim),
+            2:False,
+            3:(xlim,self.y_tick[1]),
+            4:(xlim,ylim),
+            5:(xlim,self.y_tick[3]-self.y_tick[2]),
+            6:False,
+            7:(self.x_tick[3]-self.x_tick[2],ylim),
+            8:False
+        }
+        for i in range(0,9):
+            if 0 in self.bubble_clip_size[i]:
+                continue
+            else:
+                if bubble_clip_scale[i] == False:
+                    temp.blit(self.bubble_clip[i],bubble_clip_pos[i])
+                else:
+                    if self.fill_mode == 'stretch':
+                        temp.blit(pygame.transform.scale(self.bubble_clip[i],bubble_clip_scale[i]),bubble_clip_pos[i])
+                    elif self.fill_mode == 'collage':
+                        # 新建拼贴图层，尺寸为气泡碎片的目标大小
+                        collage = pygame.Surface(bubble_clip_scale[i],pygame.SRCALPHA)
+                        col_x,col_y = (0,0)
+                        while col_y < bubble_clip_scale[i][1]:
+                            while col_x < bubble_clip_scale[i][0]:
+                                collage.blit(self.bubble_clip[i],(col_x,col_y))
+                                col_x = col_x + self.bubble_clip_size[i][0]
+                            col_y = col_y + self.bubble_clip_size[i][1]
+                        temp.blit(collage,bubble_clip_pos[i])
         # 第二次循环：把主文本blit到临时容器
         for i,text_surf in enumerate(main_text_list):
             temp.blit(text_surf,(self.x_tick[1],self.y_tick[1]+i*self.MainText.size*self.line_distance))
@@ -307,13 +329,13 @@ class ChatWindow(Bubble):
                 self.sub_Anime[key] = None
         # 子气泡尺寸
         if (sub_pos[0] >= sub_end[0]) | (sub_pos[1] >= sub_end[1]):
-            raise MediaError('【气泡错误】：气泡的分割参数sub_end的值不合法！')
+            raise MediaError('[31m[BubbleError]:[0m', 'Invalid bubble separate params sub_end!')
         else:
             self.sub_size = (sub_end[0]-sub_pos[0],sub_end[1]-sub_pos[1])
             self.sub_pos = sub_pos
         # 立绘对齐位置
         if am_left >= am_right:
-            raise MediaError('【气泡错误】：气泡的分割参数am_right的值不合法！')
+            raise MediaError('[31m[BubbleError]:[0m', 'Invalid bubble separate params am_right!')
         else:
             self.am_left = am_left
             self.am_right = am_right
