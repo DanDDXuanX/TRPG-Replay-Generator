@@ -48,7 +48,7 @@ class StrokeText(Text):
         return test_canvas.crop((0,0,p3,p4))
 class Bubble(Media):
     def __init__(self,filepath=None,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),ht_pos=(0,0),align='left',line_distance=1.5,label_color='Lavender'):
-        if filepath is None: # 支持气泡图缺省
+        if filepath is None or filepath == 'None': # 支持气泡图缺省
             self.media  = Image.new(mode='RGBA',size=(1920,1080),color=(0,0,0,0))
         else:
             self.media = Image.open(filepath)

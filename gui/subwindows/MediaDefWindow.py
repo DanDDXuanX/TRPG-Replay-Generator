@@ -313,9 +313,9 @@ def open_media_def_window(father,image_canvas,available_Text,used_variable_name,
         Objdef_windows.quit()
     def call_possele(target): # target是一个stringVar，pos的
         if target in [mt_pos,ht_pos]:
-            get = open_pos_select_window(father=Objdef_windows,bgfigure=filepath.get(),postype='blue',current_pos=target.get())
+            get = open_pos_select_window(father=Objdef_windows,image_canvas=image_canvas,bgfigure=filepath.get(),postype='blue',current_pos=target.get())
         elif target is pos:
-            get = open_pos_select_window(father=Objdef_windows,bgfigure=filepath.get(),postype='green',current_pos=target.get())
+            get = open_pos_select_window(father=Objdef_windows,image_canvas=image_canvas,bgfigure=filepath.get(),postype='green',current_pos=target.get())
         target.set(get) # 设置为的得到的返回值
 
     Objdef_windows = tk.Toplevel(father)
