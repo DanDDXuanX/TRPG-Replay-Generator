@@ -122,7 +122,7 @@ class MediaEditorWindow(SubWindow):
         
         # 底部按键
 
-        ttk.Button(mediainfo_frame,text='导入',command=self.import_media).place(x=button_x(0),y=325,width=button_w,height=35)
+        ttk.Button(mediainfo_frame,text='预览',command=self.preview_obj).place(x=button_x(0),y=325,width=button_w,height=35)
         ttk.Button(mediainfo_frame,text='新建',command=self.new_obj).place(x=button_x(1),y=325,width=button_w,height=35)
         ttk.Button(mediainfo_frame,text='复制',command=self.copy_obj).place(x=button_x(2),y=325,width=button_w,height=35)    
         ttk.Button(mediainfo_frame,text='编辑',command=self.edit_obj).place(x=button_x(3),y=325,width=button_w,height=35)
