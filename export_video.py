@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-from Utils import edtion
+from Utils import EDITION
 
 # 外部参数输入
 
@@ -161,7 +161,7 @@ occupied_variable_name = open('./media/occupied_variable_name.list','r',encoding
 
 # Main():
 
-print('[export Video]: Welcome to use exportVideo for TRPG-replay-generator '+edtion)
+print('[export Video]: Welcome to use exportVideo for TRPG-replay-generator '+EDITION)
 print('[export Video]: The output mp4 file will be saved at "'+args.OutputPath+'"')
 
 # 载入timeline 和 breakpoint
