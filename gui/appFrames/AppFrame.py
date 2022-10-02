@@ -1,12 +1,14 @@
-"""
-页面的公共父类，用来添加公共方法
-"""
+import os
 import tkinter as tk
 from tkinter import messagebox
+
 from utils import browse_file
-import os
+
 
 class AppFrame(tk.Frame):
+    """
+    页面的公共父类，用来添加公共方法
+    """
     def __init__(self,master,app,*args, **kwargs):
         super().__init__(master,*args, **kwargs)
         self.app = app
@@ -21,6 +23,7 @@ class AppFrame(tk.Frame):
                 self.new_or_edit.config(text='编辑')
             else:
                 self.new_or_edit.config(text='新建')
+
     def highlight(self,target):
         """
         根据目前标志的状态来高亮对应的目标
@@ -38,7 +41,7 @@ class AppFrame(tk.Frame):
             if target.get() == 1:
                 warning_text = "注意！当使用“先执行语音合成”标志时，\n"
                 warning_text += "若语音合成出现了异常，运行日志将会更难解读！\n"
-                if messagebox.askokcancel(title='请谨慎使用“先执行语音合成”标志！',message=warning_text) == True:
+                if messagebox.askokcancel(title='请谨慎使用“先执行语音合成”标志！',message=warning_text):
                     app.tab2.config(fg='red',text='语音合成 ⚑')
                     app.synth_frame.label_AP.config(fg='red')
                     app.synth_frame.label_AK.config(fg='red')

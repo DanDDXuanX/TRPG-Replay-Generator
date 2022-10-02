@@ -1,23 +1,20 @@
-"""
-转换音频格式
-"""
+import os
+import tkinter as tk
+from tkinter import filedialog, messagebox, ttk
+
 from .AppFrame import AppFrame
 
-import tkinter as tk
-from PIL import Image,ImageTk,ImageFont,ImageDraw
-import webbrowser
-import os
-import appFrames as af
-from tkinter import ttk
-from tkinter import filedialog
-from tkinter import messagebox
 
 class FormatFrame(AppFrame):
+    """
+    转换音频格式
+    """
     def __init__(self,master,app,*args, **kwargs):
         super().__init__(master,app,*args, **kwargs)
-        self.createWidgets()
+        self.create_widgets()
 
-    def createWidgets(self):
+    def create_widgets(self):
+        """创建组件"""
         # format_frame
         original_file = tk.LabelFrame(self,text='原始音频文件')
         convert_file = tk.LabelFrame(self,text='转换后音频文件')
@@ -55,18 +52,21 @@ class FormatFrame(AppFrame):
         tk.Button(self, command=lambda:self.run_convert('wav'),text="转wav",font=self.app.big_text).place(x=325,y=440,width=100,height=40)
         tk.Button(self, command=lambda:self.run_convert('ogg'),text="转ogg",font=self.app.big_text).place(x=455,y=440,width=100,height=40)
 
-    def load_au_file(self): # 载入多个音频文件
+    def load_au_file(self):
+        """载入多个音频文件"""
         getnames = filedialog.askopenfilenames(filetypes=[('mp3文件','.mp3')])
         for index,filepath in enumerate(getnames):
             self.original_info.insert('','end',values =(index,filepath))
 
-    def clear_au_file(self): # 清空所有音频文件
+    def clear_au_file(self):
+        """清空所有音频文件"""
         for item in self.original_info.get_children():
             self.original_info.delete(item)
         for item in self.convert_info.get_children():
             self.convert_info.delete(item)
 
     def run_convert(self,target):
+        """执行音频转换"""
         # 检查输出路径
         if self.app.output_path.get() == '':
             messagebox.showerror(title='错误',message='缺少输出路径，去主程序界面填写！')

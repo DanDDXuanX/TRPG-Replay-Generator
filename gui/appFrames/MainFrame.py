@@ -1,21 +1,24 @@
-"""
-回声工坊主页面
-"""
-import tkinter as tk
-from .AppFrame import AppFrame
-from PIL import Image,ImageTk,ImageFont,ImageDraw
-import webbrowser
 import os
-import appFrames as af
+import tkinter as tk
+import webbrowser
 from tkinter import messagebox
 
+from PIL import Image, ImageTk
+
+from .AppFrame import AppFrame
+
+
 class MainFrame(AppFrame):
+    """
+    回声工坊主页面
+    """
     def __init__(self,master,app,*args, **kwargs):
         super().__init__(master,app,*args, **kwargs)
         self.place(x=10,y=50)
-        self.createWidgets()
+        self.create_widgets()
 
-    def createWidgets(self):
+    def create_widgets(self):
+        """创建组件"""
         # main_frame
         # 路径
         filepath = tk.LabelFrame(self,text='文件路径')
@@ -29,7 +32,7 @@ class MainFrame(AppFrame):
         tk.Entry(filepath, textvariable=self.app.characor_table).place(x=80,y=50+3,width=430,height=25)
         tk.Entry(filepath, textvariable=self.app.stdin_logfile).place(x=80,y=95+3,width=430,height=25)
         tk.Entry(filepath, textvariable=self.app.output_path).place(x=80,y=140+3,width=430,height=25)
-        self.new_or_edit = tk.Button(filepath, command=self.app.call_Edit_windows,text="新建")
+        self.new_or_edit = tk.Button(filepath, command=self.app.call_media_editor_window,text="新建")
         self.new_or_edit.place(x=555,y=5,width=35,height=30)
         tk.Button(filepath, command=lambda:self.call_browse_file(self.app.media_define),text="浏览").place(x=520,y=5,width=35,height=30)
         tk.Button(filepath, command=lambda:self.call_browse_file(self.app.characor_table),text="浏览").place(x=520,y=50,width=70,height=30)
@@ -79,6 +82,9 @@ class MainFrame(AppFrame):
             pass
 
     def run_command_main(self):
+        """
+        在命令行运行主程序
+        """
         optional = {1:'--OutputPath {of} ',2:'--ExportXML ',3:'--ExportVideo --Quality {ql} ',4:'--SynthesisAnyway --AccessKey {AK} --AccessKeySecret {AS} --Appkey {AP} --Azurekey {AZ} --ServRegion {SR} ',5:'--FixScreenZoom '}
         command = self.app.python3 + ' ./replay_generator.py --LogFile {lg} --MediaObjDefine {md} --CharacterTable {ct} '
         command = command + '--FramePerSecond {fps} --Width {wd} --Height {he} --Zorder {zd} '

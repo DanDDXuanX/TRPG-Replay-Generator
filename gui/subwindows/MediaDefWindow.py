@@ -5,18 +5,21 @@ TODO
 （深感工作量恐怖，所以这个还是不抽取为类了，就把原来的函数直接拿来用吧，想优化的时候可以把这个类写完，然后调用它的open函数来代替原来的函数）
 """
 
-import tkinter as tk
-from tkinter import ttk
-from tkinter import filedialog
-from tkinter import messagebox
-from PIL import Image,ImageTk,ImageFont,ImageDraw
 import re
+import tkinter as tk
+from tkinter import filedialog, messagebox, ttk
 
+from PIL import Image, ImageDraw, ImageFont, ImageTk
+from utils import browse_file, choose_color
+
+from .Media import Animation, Background, Bubble, StrokeText, Text
 from .SubWindow import SubWindow
-from .Media import Text,StrokeText,Background,Animation,Bubble
-from utils import browse_file,choose_color
+
 
 class MediaDefWindow(SubWindow):
+    """
+    未完成，未使用
+    """
     
     def __init__(self,master,i_name='',i_type='',i_args='',*args, **kwargs):
         super().__init__(master,*args, **kwargs)
@@ -162,7 +165,7 @@ RE_vaildname = re.compile('^\w+$')
 occupied_variable_name = open('./media/occupied_variable_name.list','r',encoding='utf8').read().split('\n') # 已经被系统占用的变量名
 
 # 选择位置窗
-def open_PosSelect(father,image_canvas,bgfigure='',postype='green',current_pos=''):
+def open_pos_select_window(father,image_canvas,bgfigure='',postype='green',current_pos=''):
     def close_window(): # 取消 关闭窗口
         nonlocal posselect_return
         posselect_return = current_pos
@@ -267,7 +270,7 @@ def open_PosSelect(father,image_canvas,bgfigure='',postype='green',current_pos='
     return posselect_return
 
 # 媒体定义窗
-def open_Media_def_window(father,image_canvas,available_Text,used_variable_name,i_name='',i_type='',i_args=''):
+def open_media_def_window(father,image_canvas,available_Text,used_variable_name,i_name='',i_type='',i_args=''):
     # 函数正文
     obj_return_value = False
     def show_selected_options(event):
@@ -310,9 +313,9 @@ def open_Media_def_window(father,image_canvas,available_Text,used_variable_name,
         Objdef_windows.quit()
     def call_possele(target): # target是一个stringVar，pos的
         if target in [mt_pos,ht_pos]:
-            get = open_PosSelect(father=Objdef_windows,bgfigure=filepath.get(),postype='blue',current_pos=target.get())
+            get = open_pos_select_window(father=Objdef_windows,bgfigure=filepath.get(),postype='blue',current_pos=target.get())
         elif target is pos:
-            get = open_PosSelect(father=Objdef_windows,bgfigure=filepath.get(),postype='green',current_pos=target.get())
+            get = open_pos_select_window(father=Objdef_windows,bgfigure=filepath.get(),postype='green',current_pos=target.get())
         target.set(get) # 设置为的得到的返回值
 
     Objdef_windows = tk.Toplevel(father)

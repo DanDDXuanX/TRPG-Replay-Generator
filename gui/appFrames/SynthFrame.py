@@ -1,22 +1,23 @@
-"""
-语音合成页面
-"""
-from .AppFrame import AppFrame
-
-import tkinter as tk
-from PIL import Image,ImageTk,ImageFont,ImageDraw
-import webbrowser
 import os
-import appFrames as af
+import tkinter as tk
+import webbrowser
 from tkinter import messagebox
 
+from PIL import Image, ImageTk
+
+from .AppFrame import AppFrame
+
+
 class SynthFrame(AppFrame):
+    """
+    语音合成页面
+    """
     def __init__(self,master,app,*args, **kwargs):
         super().__init__(master,app,*args, **kwargs)
         # self.place(x=10,y=50) # 不需要在这里place，Application.printFrame函数里面已经做了这件事
-        self.createWidgets()
+        self.create_widgets()
         
-    def createWidgets(self):
+    def create_widgets(self):
         # synth_frame
         filepath_s = tk.LabelFrame(self,text='文件路径')
         filepath_s.place(x=10,y=10,width=600,height=200)
@@ -95,6 +96,9 @@ class SynthFrame(AppFrame):
         tk.Button(self, command=self.run_command_synth,text="开始",font=self.app.big_text).place(x=260,y=435,width=100,height=50)
 
     def run_command_synth_preview(self,init_type='Aliyun'):
+        """
+        执行试听命令
+        """
         command = self.app.python3 +' ./speech_synthesizer.py --PreviewOnly --Init {IN} --AccessKey {AK} --AccessKeySecret {AS} --Appkey {AP} --Azurekey {AZ} --ServRegion {SR}'
         command = command.format(IN=init_type, AK=self.app.AccessKey.get(), AS=self.app.AccessKeySecret.get(),AP=self.app.Appkey.get(),AZ=self.app.AzureKey.get(),SR=self.app.ServiceRegion.get()).replace('\n','').replace('\r','')
         try:
@@ -106,7 +110,11 @@ class SynthFrame(AppFrame):
                 pass
         except Exception:
             messagebox.showwarning(title='警告',message='似乎有啥不对劲的事情发生了，检视控制台输出获取详细信息！')
+    
     def run_command_synth(self):
+        """
+        执行语音合成命令
+        """
         command = self.app.python3 +' ./speech_synthesizer.py --LogFile {lg} --MediaObjDefine {md} --CharacterTable {ct} --OutputPath {of} --AccessKey {AK} --AccessKeySecret {AS} --Appkey {AP} --Azurekey {AZ} --ServRegion {SR}'
         if '' in [self.app.stdin_logfile.get(),self.app.characor_table.get(),self.app.media_define.get(),self.app.output_path.get(),self.app.AccessKey.get(),self.app.AccessKeySecret.get(),self.app.Appkey.get(),self.app.AzureKey.get(),self.app.ServiceRegion.get()]:
             messagebox.showerror(title='错误',message='缺少必要的参数！')

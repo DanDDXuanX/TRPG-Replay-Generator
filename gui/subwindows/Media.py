@@ -1,4 +1,4 @@
-from PIL import Image,ImageTk,ImageFont,ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 
 label_pos_show_text = ImageFont.truetype('./media/SourceHanSerifSC-Heavy.otf', 30)
 

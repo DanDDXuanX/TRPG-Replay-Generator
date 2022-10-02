@@ -1,21 +1,22 @@
-"""
-导出xml页面
-"""
-from .AppFrame import AppFrame
-
-import tkinter as tk
-from PIL import Image,ImageTk,ImageFont,ImageDraw
-import webbrowser
 import os
-import appFrames as af
+import tkinter as tk
+import webbrowser
 from tkinter import messagebox
 
+from PIL import Image, ImageTk
+
+from .AppFrame import AppFrame
+
+
 class XmlFrame(AppFrame):
+    """
+    导出xml的页面
+    """
     def __init__(self,master,app,*args, **kwargs):
         super().__init__(master,app,*args, **kwargs)
-        self.createWidgets()
+        self.create_widgets()
 
-    def createWidgets(self):
+    def create_widgets(self):
         # xml_frame
         filepath_x = tk.LabelFrame(self,text='文件路径')
         filepath_x.place(x=10,y=10,width=600,height=200)
@@ -59,6 +60,7 @@ class XmlFrame(AppFrame):
         tk.Button(self, command=self.run_command_xml,text="开始",font=self.app.big_text).place(x=260,y=435,width=100,height=50)
 
     def run_command_xml(self):
+        """执行导出xml的命令"""
         command = self.app.python3 + ' ./export_xml.py --TimeLine {tm} --MediaObjDefine {md} --OutputPath {of} --FramePerSecond {fps} --Width {wd} --Height {he} --Zorder {zd}'
         if '' in [self.app.timeline_file.get(),self.app.media_define.get(),self.app.output_path.get(),
                   self.app.project_W.get(),self.app.project_H.get(),self.app.project_F.get(),self.app.project_Z.get()]:

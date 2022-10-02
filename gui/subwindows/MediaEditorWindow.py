@@ -1,20 +1,19 @@
-"""
-媒体定义文件编辑器
-"""
-import tkinter as tk
-from tkinter import ttk
-from tkinter import filedialog
-from tkinter import messagebox
-from PIL import Image,ImageTk,ImageFont,ImageDraw
 import os
 import re
+import tkinter as tk
+from tkinter import filedialog, messagebox, ttk
 
+from PIL import Image, ImageTk
+
+from .Media import Animation, Background, Bubble, StrokeText, Text
+from .MediaDefWindow import MediaDefWindow, open_media_def_window
 from .SubWindow import SubWindow
-from .MediaDefWindow import MediaDefWindow,open_Media_def_window
-from .Media import Text,StrokeText,Background,Animation,Bubble
 
 
 class MediaEditorWindow(SubWindow):
+    """
+    媒体定义文件编辑器
+    """
     # 需要用到的正则表达式
     RE_mediadef_args = re.compile('(fontfile|fontsize|color|line_limit|filepath|Main_Text|Header_Text|pos|mt_pos|ht_pos|align|line_distance|tick|loop|volume|edge_color|label_color)?\ {0,4}=?\ {0,4}(Text\(\)|[^,()]+|\([-\d,\ ]+\))')
     RE_parse_mediadef = re.compile('(\w+)[=\ ]+(Text|StrokeText|Bubble|Animation|Background|BGM|Audio)(\(.+\))')
@@ -22,7 +21,7 @@ class MediaEditorWindow(SubWindow):
     
     def __init__(self,master,Edit_filepath='',fig_W=960,fig_H=540,*args, **kwargs):
         super().__init__(master,*args, **kwargs)
-        self.Edit_filepath = Edit_filepath
+        self.edit_filepath = Edit_filepath
         self.fig_W = fig_W
         self.fig_H = fig_H
         # 主框体
@@ -43,15 +42,15 @@ class MediaEditorWindow(SubWindow):
         self.selected_name,self.selected_type,self.selected_args = 'None','None','None'
         self.selected = 0
         self.edit_return_value = "" # 返回的文件路径
-        self.available_Text = ['None','Text()'] # 所有的可用文本名
+        self.available_text = ['None','Text()'] # 所有的可用文本名
         self.used_variable_name = [] # 已经被用户占用的命名
         self.media_lines = [] # 保存当前所有媒体行，用于筛选时避免丢失原有媒体。有used_variable_name的地方就有它
         self.occupied_variable_name = open('./media/occupied_variable_name.list','r',encoding='utf8').read().split('\n') # 已经被系统占用的变量名
         
-        self.createWidgets()
-        self.load_file()
+        self.create_widgets()
+        self.load_media_define_file()
         
-    def createWidgets(self):
+    def create_widgets(self):
         # 总框架
         frame_edit = tk.Frame(self)
         frame_edit.place(x=10,y=10,height=self.window_H-20,width=self.window_W-20)
@@ -65,7 +64,7 @@ class MediaEditorWindow(SubWindow):
         button_x = lambda x:10+(self.fig_W//2-20-button_w)//6*x # 这个数字6 应该等于按键的 数量-1
 
         # 导入媒体的按钮，宽
-        ttk.Button(mediainfo_frame,text='载入目录',command=self.importMedia).place(x=button_x(0),y=0,width=max(button_w,60),height=25)
+        ttk.Button(mediainfo_frame,text='载入目录',command=self.import_media).place(x=button_x(0),y=0,width=max(button_w,60),height=25)
         
         # 筛选媒体下拉框
         self.media_type = tk.StringVar(self)
@@ -73,14 +72,14 @@ class MediaEditorWindow(SubWindow):
         choose_type = ttk.Combobox(mediainfo_frame,textvariable=self.media_type,value=['All','Text','StrokeText','Bubble','Background','Animation','BGM','Audio'])
         choose_type.place(x=button_x(1)+40,y=0,width=button_w*2-40,height=25) # 我就随便找个位置先放着，等后来人调整布局（都是绝对坐标很难搞啊）
         choose_type.current(0)
-        choose_type.bind("<<ComboboxSelected>>",self.filterMedia)
+        choose_type.bind("<<ComboboxSelected>>",self.filter_media)
 
         # 搜索框
         self.search_text = tk.StringVar(self)
         ttk.Label(mediainfo_frame,text='搜索:').place(x=button_x(3),y=0,width=40,height=25)
         search_entry =  ttk.Entry(mediainfo_frame, textvariable=self.search_text)
         search_entry.place(x=button_x(3)+40,y=0,width=button_w*2-40,height=25) # 同上，位置暂时随便摆的
-        search_entry.bind('<Key-Return>',self.searchMedia) # 回车后搜索
+        search_entry.bind('<Key-Return>',self.search_media) # 回车后搜索
 
         # 缩放比例
         self.preview_fade = tk.DoubleVar(self)
@@ -115,15 +114,15 @@ class MediaEditorWindow(SubWindow):
         self.mediainfo.place(x=10,y=30,height=270,width=self.fig_W//2-35)
         self.mediainfo.tag_configure("evenColor",background="#e6e6e6") # 行标签，用于偶数行着色
 
-        self.mediainfo.bind('<ButtonRelease-1>', self.treeviewClick)
+        self.mediainfo.bind('<ButtonRelease-1>', self.treeview_click)
         self.mediainfo.bind('<Double-Button-1>',self.preview_obj) # 双击左键预览
         self.mediainfo.bind('<Button-3>',self.edit_obj) # 单击右键编辑
         self.mediainfo.bind('<Delete>',self.del_obj) # Delete键删除
-        self.mediainfo.bind('<Key>',self.keyHandler) # 按键处理
+        self.mediainfo.bind('<Key>',self.handle_key_event) # 按键处理
         
         # 底部按键
 
-        ttk.Button(mediainfo_frame,text='导入',command=self.importMedia).place(x=button_x(0),y=325,width=button_w,height=35)
+        ttk.Button(mediainfo_frame,text='导入',command=self.import_media).place(x=button_x(0),y=325,width=button_w,height=35)
         ttk.Button(mediainfo_frame,text='新建',command=self.new_obj).place(x=button_x(1),y=325,width=button_w,height=35)
         ttk.Button(mediainfo_frame,text='复制',command=self.copy_obj).place(x=button_x(2),y=325,width=button_w,height=35)    
         ttk.Button(mediainfo_frame,text='编辑',command=self.edit_obj).place(x=button_x(3),y=325,width=button_w,height=35)
@@ -140,13 +139,14 @@ class MediaEditorWindow(SubWindow):
         self.preview_canvas = tk.Label(frame_edit,bg='black')
         self.preview_canvas.config(image=self.show_canvas)
         self.preview_canvas.place(x=10,y=410,height=self.fig_H//2,width=self.fig_W//2)
-
-    
-    def load_file(self):
-        # 载入文件
-        if self.Edit_filepath!='': # 如果有指定输入文件
+ 
+    def load_media_define_file(self):
+        """
+        载入媒体定义文件
+        """
+        if self.edit_filepath!='': # 如果有指定输入文件
             try:
-                mediadef_text = open(self.Edit_filepath,'r',encoding='utf8').read().split('\n')
+                mediadef_text = open(self.edit_filepath,'r',encoding='utf8').read().split('\n')
                 if mediadef_text[-1] == '':
                     mediadef_text.pop() # 如果最后一行是空行，则无视掉最后一行
                 warning_line = []
@@ -169,12 +169,12 @@ class MediaEditorWindow(SubWindow):
                         self.media_lines.append(parseline[0])
 
                         if parseline[0][1] in ['Text','StrokeText']:
-                            self.available_Text.append(parseline[0][0])
+                            self.available_text.append(parseline[0][0])
                     else:
                         warning_line.append(i+1)
                 
                 # 载入完毕先排个序
-                self.sortMedia()
+                self.sort_media()
                 if warning_line == []:
                     messagebox.showinfo(title='完毕',message='载入完毕，共载入{i}条记录！'.format(i=i+1))
                 else:
@@ -184,28 +184,26 @@ class MediaEditorWindow(SubWindow):
         else:
             pass
     
-    def open(self):
+    def open_window(self):
         """
-        打开编辑器窗口
-        
-        返回关闭窗口时媒体定义文件的保存地址
-        TODO
+        打开编辑器窗口，返回关闭窗口时媒体定义文件的保存地址
         """
         
         self.mainloop()
         return self.edit_return_value
-
     # 关闭窗口
     def close_window(self):
+        """
+        关闭窗口时的处理函数，二次确认
+        """
         if messagebox.askyesno(title='确认退出？',message='未保存的改动将会丢失！') == True:
-            self.edit_return_value = self.Edit_filepath
+            self.edit_return_value = self.edit_filepath
             self.destroy()
             self.quit()
         else:
             pass
-
     # 选中列单击
-    def treeviewClick(self,event):
+    def treeview_click(self,event=None):
         try:
             self.selected = self.mediainfo.selection()
             self.selected_name,self.selected_type,self.selected_args = self.mediainfo.item(self.selected, "values")
@@ -213,12 +211,13 @@ class MediaEditorWindow(SubWindow):
             pass
     # 预览
     def preview_obj(self,event=None):
+        """预览媒体"""
         image_canvas = self.image_canvas
         last_fade = self.last_fade
         blank_canvas = self.blank_canvas
         preview_canvas = self.preview_canvas
         # 预览前先将当前选中项写入变量
-        self.treeviewClick(event) 
+        self.treeview_click(event) 
         if self.selected_type in ['Text','StrokeText','Bubble','Background','Animation']: # 执行
             try:
                 this_fade = round(self.preview_fade.get()*2.55)
@@ -250,7 +249,7 @@ class MediaEditorWindow(SubWindow):
         except Exception:
             pass
         # new_obj = MediaDefWindow(self).open()
-        new_obj = open_Media_def_window(father = self,image_canvas = self.image_canvas,available_Text= self.available_Text,used_variable_name=self.used_variable_name)
+        new_obj = open_media_def_window(father = self,image_canvas = self.image_canvas,available_Text= self.available_text,used_variable_name=self.used_variable_name)
         try:
             self.attributes('-disabled',False)
         except Exception:
@@ -263,9 +262,9 @@ class MediaEditorWindow(SubWindow):
             self.mediainfo.insert('','end',values =new_obj) # 否则插入在最后
 
             if new_obj[1] in ['Text','StrokeText']: # 如果新建了文本
-                self.available_Text.append(new_obj[0])
+                self.available_text.append(new_obj[0])
 
-        self.sortMedia()
+        self.sort_media()
     # 复制
     def copy_obj(self,event=None):
         if self.selected == 0:
@@ -283,9 +282,9 @@ class MediaEditorWindow(SubWindow):
             self.mediainfo.insert('','end',values =(new_name,self.selected_type,self.selected_args)) # 否则插入到最后面
 
             if self.selected_type in ['Text','StrokeText']: # 如果新建了文本
-                self.available_Text.append(new_name)
+                self.available_text.append(new_name)
 
-        self.sortMedia()
+        self.sort_media()
     # 编辑
     def edit_obj(self,event=None):
         selected = self.selected
@@ -299,7 +298,7 @@ class MediaEditorWindow(SubWindow):
                 self.attributes('-disabled',True)
             except Exception:
                 pass
-            new_obj = open_Media_def_window(self,i_name=selected_name,i_type=selected_type,i_args=selected_args,image_canvas = self.image_canvas,available_Text= self.available_Text,used_variable_name=self.used_variable_name)
+            new_obj = open_media_def_window(self,i_name=selected_name,i_type=selected_type,i_args=selected_args,image_canvas = self.image_canvas,available_Text= self.available_text,used_variable_name=self.used_variable_name)
             try:
                 self.attributes('-disabled',False)
             except Exception:
@@ -313,12 +312,12 @@ class MediaEditorWindow(SubWindow):
                 self.media_lines.append(new_obj)
 
                 if selected_type in ['Text','StrokeText']: # 如果编辑的对象是文本
-                    self.available_Text.remove(selected_name)
-                    self.available_Text.append(new_obj[0])
+                    self.available_text.remove(selected_name)
+                    self.available_text.append(new_obj[0])
 
                 self.mediainfo.item(selected,values=new_obj)
                 selected_name,selected_type,selected_args = new_obj
-        self.sortMedia()
+        self.sort_media()
     # 删除
     def del_obj(self,event=None):
         selected = self.selected
@@ -333,14 +332,14 @@ class MediaEditorWindow(SubWindow):
             self.media_lines.remove((selected_name,selected_type,selected_args))
 
             if selected_type in ['Text','StrokeText']: # 如果删除了文本
-                self.available_Text.remove(selected_name)
+                self.available_text.remove(selected_name)
             selected = 0
             selected_name,selected_type,selected_args = 'None','None','None'
     # 完成
     def finish(self,saveas=False):
-        if (self.Edit_filepath != '')&(saveas==False):
-            ofile = open(self.Edit_filepath,'w',encoding='utf8')
-            self.edit_return_value = self.Edit_filepath
+        if (self.edit_filepath != '')&(saveas==False):
+            ofile = open(self.edit_filepath,'w',encoding='utf8')
+            self.edit_return_value = self.edit_filepath
         else:
             outputformat = [('All Files', '*.*'), ('Text Document', '*.txt')] 
             Save_filepath = filedialog.asksaveasfilename(filetypes = outputformat, defaultextension = outputformat)
@@ -351,7 +350,7 @@ class MediaEditorWindow(SubWindow):
         
         # 保存前先将筛选器调回All
         self.media_type.set("All")
-        self.filterMedia(None)
+        self.filter_media(None)
 
         for lid in self.mediainfo.get_children(): # 输出表格内容
             #print(mediainfo.item(lid, "values"))
@@ -359,9 +358,8 @@ class MediaEditorWindow(SubWindow):
         ofile.close()
         self.destroy()
         self.quit()
-
     # 更新表格显示数据，注意并不会修改统计数据，只会更新表格显示的内容
-    def updateTreeView(self,new_list):
+    def update_treeview(self,new_list):
         i = 0
         self.mediainfo.delete(*self.mediainfo.get_children()) # 清空媒体
         for medium in new_list:
@@ -371,7 +369,7 @@ class MediaEditorWindow(SubWindow):
                 self.mediainfo.insert('','end',values=medium,tags=("evenColor"))
             i+=1
     # 过滤媒体
-    def filterMedia(self,event):
+    def filter_media(self,event):
         t = self.media_type.get()
         
         if t == 'All':
@@ -380,9 +378,9 @@ class MediaEditorWindow(SubWindow):
             filtered_list = [x for x in self.media_lines if x[1] == t]
         
         # 由于没有改动media_lines，所以不必在“All”选项时将文本媒体特地插到头部，按顺序遍历即可
-        self.updateTreeView(filtered_list)
+        self.update_treeview(filtered_list)
     # 给媒体分类排序
-    def sortMedia(self): 
+    def sort_media(self): 
         priority = {
             "Text":1,
             "StrokeText":2,
@@ -394,14 +392,14 @@ class MediaEditorWindow(SubWindow):
         }
 
         self.media_lines.sort(key=lambda elem:priority[elem[1]])
-        self.updateTreeView(self.media_lines)
+        self.update_treeview(self.media_lines)
     # 搜索框的回车事件处理函数
-    def searchMedia(self,event):
+    def search_media(self,event):
         text = self.search_text.get()
         result_list = [x for x in self.media_lines if x[0].find(text)!=-1 ]
-        self.updateTreeView(result_list)
+        self.update_treeview(result_list)
     # 批量载入媒体
-    def importMedia(self):
+    def import_media(self):
         path = filedialog.askdirectory()
         media_parameter_dict = {
             "Bubble":"(filepath='{}',Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),ht_pos=(0,0),align='left',line_distance=1.5)",
@@ -438,9 +436,9 @@ class MediaEditorWindow(SubWindow):
             messagebox.showwarning(title='完毕',message='载入完毕，共载入{i}条记录，\n无法解析而被舍弃的内容与原因如下：\n{warning}'.format(i=len(media),warning='\n'.join(map(str,warning_line))))
         self.media_lines.extend(media)
         self.media_type.set('All')
-        self.updateTreeView(self.media_lines)
+        self.update_treeview(self.media_lines)
     # 按键事件处理
-    def keyHandler(self,event):
+    def handle_key_event(self,event):
         if event.char == 'e' or event.char == 'E':# 编辑（Edit）
             self.edit_obj(event)
         elif event.char == 'a' or event.char == 'A':# 新建（Add）

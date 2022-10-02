@@ -1,21 +1,23 @@
-"""
-导出mp4页面
-"""
-from .AppFrame import AppFrame
-
-import tkinter as tk
-from PIL import Image,ImageTk,ImageFont,ImageDraw
-import webbrowser
 import os
-import appFrames as af
+import tkinter as tk
+import webbrowser
 from tkinter import messagebox
 
+from PIL import Image, ImageTk
+
+from .AppFrame import AppFrame
+
+
 class Mp4Frame(AppFrame):
+    """
+    导出mp4的页面
+    """
     def __init__(self,master,app,*args, **kwargs):
         super().__init__(master,app,*args, **kwargs)
-        self.createWidgets()
+        self.create_widgets()
 
-    def createWidgets(self):
+    def create_widgets(self):
+        """创建组件"""
         # mp4_frame
         filepath_v = tk.LabelFrame(self,text='文件路径')
         filepath_v.place(x=10,y=10,width=600,height=200)
@@ -60,6 +62,9 @@ class Mp4Frame(AppFrame):
         tk.Button(self, command=self.run_command_mp4,text="开始",font=self.app.big_text).place(x=260,y=435,width=100,height=50)
 
     def run_command_mp4(self):
+        """
+        执行导出mp4的命令
+        """
         command = self.app.python3 + ' ./export_video.py --TimeLine {tm} --MediaObjDefine {md} --OutputPath {of} --FramePerSecond {fps} --Width {wd} --Height {he} --Zorder {zd} --Quality {ql}'
         if '' in [self.app.timeline_file.get(),self.app.media_define.get(),self.app.output_path.get(),
                   self.app.project_W.get(),self.app.project_H.get(),self.app.project_F.get(),self.app.project_Z.get(),self.app.project_Q.get()]:
