@@ -6,6 +6,7 @@ from tkinter import filedialog, messagebox, ttk
 from PIL import Image, ImageTk
 
 from .Media import Animation, Background, Bubble, StrokeText, Text
+from .Media import Pos, FreePos, PosGrid
 from .MediaDefWindow import MediaDefWindow, open_media_def_window
 from .SubWindow import SubWindow
 
@@ -15,8 +16,8 @@ class MediaEditorWindow(SubWindow):
     媒体定义文件编辑器
     """
     # 需要用到的正则表达式
-    RE_mediadef_args = re.compile('(fontfile|fontsize|color|line_limit|filepath|Main_Text|Header_Text|pos|mt_pos|ht_pos|align|line_distance|tick|loop|volume|edge_color|label_color)?\ {0,4}=?\ {0,4}(Text\(\)|[^,()]+|\([-\d,\ ]+\))')
-    RE_parse_mediadef = re.compile('(\w+)[=\ ]+(Text|StrokeText|Bubble|Animation|Background|BGM|Audio)(\(.+\))')
+    # RE_mediadef_args = re.compile('(fontfile|fontsize|color|line_limit|filepath|Main_Text|Header_Text|pos|end|x_step|y_step|mt_pos|ht_pos|align|line_distance|tick|loop|volume|edge_color|label_color)?\ {0,4}=?\ {0,4}(Text\(\)|[^,()]+|\([-\d,\ ]+\))')
+    RE_parse_mediadef = re.compile('(\w+)[=\ ]+(Pos|FreePos|PosGrid|Text|StrokeText|Bubble|Animation|Background|BGM|Audio)(\(.*\))')
     RE_vaildname = re.compile('^\w+$')
     
     def __init__(self,master,Edit_filepath='',fig_W=960,fig_H=540,*args, **kwargs):
@@ -69,7 +70,7 @@ class MediaEditorWindow(SubWindow):
         # 筛选媒体下拉框
         self.media_type = tk.StringVar(self)
         ttk.Label(mediainfo_frame,text='筛选：').place(x=button_x(1),y=0,width=40,height=25)
-        choose_type = ttk.Combobox(mediainfo_frame,textvariable=self.media_type,value=['All','Text','StrokeText','Bubble','Background','Animation','BGM','Audio'])
+        choose_type = ttk.Combobox(mediainfo_frame,textvariable=self.media_type,value=['All','Pos','FreePos','PosGrid','Text','StrokeText','Bubble','Background','Animation','BGM','Audio'])
         choose_type.place(x=button_x(1)+40,y=0,width=button_w*2-40,height=25) # 我就随便找个位置先放着，等后来人调整布局（都是绝对坐标很难搞啊）
         choose_type.current(0)
         choose_type.bind("<<ComboboxSelected>>",self.filter_media)
@@ -253,7 +254,7 @@ class MediaEditorWindow(SubWindow):
         preview_canvas = self.preview_canvas
         # 预览前先将当前选中项写入变量
         self.treeview_click(event) 
-        if self.selected_type in ['Text','StrokeText','Bubble','Background','Animation']: # 执行
+        if self.selected_type in ['Pos','FreePos','PosGrid','Text','StrokeText','Bubble','Background','Animation']: # 执行
             try:
                 this_fade = round(self.preview_fade.get()*2.55)
                 if last_fade != this_fade:
@@ -347,7 +348,15 @@ class MediaEditorWindow(SubWindow):
             if new_obj:
                 self.used_variable_name.remove(selected_name) # 原来的媒体名
                 self.used_variable_name.append(new_obj[0]) # 新建的媒体名
-                self.media_lines.remove((selected_name,selected_type,selected_args))
+                # BUG
+                #有时编辑媒体之后，删除编辑前的媒体行会遭遇ValueError，导致编辑失效？有待继续深入观察，在调试模式无法复现这个错误！
+                try:
+                    self.media_lines.remove((selected_name,selected_type,selected_args))
+                except ValueError as E:
+                    import traceback
+                    traceback.print_exc()
+                    print(self.media_lines)
+                    print(E)
                 self.media_lines.append(new_obj)
 
                 if selected_type in ['Text','StrokeText']: # 如果编辑的对象是文本
@@ -421,13 +430,16 @@ class MediaEditorWindow(SubWindow):
     # 给媒体分类排序
     def sort_media(self): 
         priority = {
-            "Text":1,
-            "StrokeText":2,
-            "Animation":3, 
-            "Bubble":4, 
-            "Background":5,
-            "Audio":6, 
-            "BGM":7
+            "Pos":1,
+            "FreePos":2,
+            "PosGrid":3,
+            "Text":4,
+            "StrokeText":5,
+            "Animation":6, 
+            "Bubble":7, 
+            "Background":8,
+            "Audio":9, 
+            "BGM":10
         }
 
         self.media_lines.sort(key=lambda elem:priority[elem[1]])
