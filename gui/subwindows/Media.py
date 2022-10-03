@@ -47,11 +47,11 @@ class StrokeText(Text):
         p1,p2,p3,p4 = test_canvas.getbbox()
         return test_canvas.crop((0,0,p3,p4))
 class Bubble(Media):
-    def __init__(self,filepath=None,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),ht_pos=(0,0),align='left',line_distance=1.5,label_color='Lavender'):
+    def __init__(self,filepath=None,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),ht_pos=(0,0),ht_target='Name',align='left',line_distance=1.5,label_color='Lavender'):
         if filepath is None or filepath == 'None': # 支持气泡图缺省
             self.media  = Image.new(mode='RGBA',size=(1920,1080),color=(0,0,0,0))
         else:
-            self.media = Image.open(filepath)
+            self.media = Image.open(filepath).convert('RGBA')
         if type(pos) in [Pos,FreePos]:
             self.pos = pos
         else:
@@ -60,46 +60,223 @@ class Bubble(Media):
         self.mt_pos = mt_pos
         self.Header = Header_Text
         self.ht_pos = ht_pos
+        self.target = ht_target
         self.line_distance = line_distance
         if align in ('left','center'):
             self.align = align
         else:
             raise ValueError('align非法参数：',align)
-    def preview(self,image_canvas):
-        draw = ImageDraw.Draw(image_canvas)
-        p_x,p_y = self.pos.get()
-        h_x,h_y = (self.pos + self.ht_pos).get()
-        m_x,m_y = (self.pos + self.mt_pos).get()
-        if self.media.mode == 'RGBA':
-            image_canvas.paste(self.media,self.pos.get(),mask=self.media.split()[-1])
-        else:
-            image_canvas.paste(self.media,self.pos.get())
-        draw.line([p_x-100,p_y,p_x+100,p_y],fill='green',width=2)
-        draw.line([p_x,p_y-100,p_x,p_y+100],fill='green',width=2)
-        draw.text((p_x,p_y),'({0},{1})'.format(p_x,p_y),font=label_pos_show_text,fill='green')
+    def draw(self,lines=4,show_marker=True):
+        bubble_canvas = self.media.copy()
+        draw = ImageDraw.Draw(bubble_canvas)
         if self.Header != None:
             draw_text = self.Header.draw()
-            image_canvas.paste(draw_text,(self.pos+self.ht_pos).get(),draw_text.split()[-1])
-            draw.line([h_x-100,h_y,h_x+100,h_y],fill='blue',width=2)
-            draw.line([h_x,h_y-50,h_x,h_y+50],fill='blue',width=2)
-            draw.text((h_x,h_y-35),'({0},{1})'.format(h_x-p_x,h_y-p_y),font=label_pos_show_text,fill='blue')
+            bubble_canvas.paste(draw_text,self.ht_pos,mask=draw_text)
+            # 位置标记
+            if show_marker:
+                h_x,h_y = self.ht_pos
+                draw.line([h_x-100,h_y,h_x+100,h_y],fill='blue',width=2)
+                draw.line([h_x,h_y-50,h_x,h_y+50],fill='blue',width=2)
+                draw.text((h_x,h_y-40),'({0},{1})'.format(*self.ht_pos),font=label_pos_show_text,fill='blue')
         if self.MainText != None:
             tx_w = self.MainText.size*self.MainText.line_limit
             tx_h = self.line_distance*self.MainText.size
-            mx,my = self.mt_pos
-            for i,l in enumerate(range(self.MainText.line_limit,0,-self.MainText.line_limit//4)):
+            m_x,m_y = self.mt_pos
+            for i,l in enumerate(range(self.MainText.line_limit,0,-self.MainText.line_limit//lines)):
                 draw_text = self.MainText.draw(l)
-                image_canvas.paste(draw_text,(self.pos+(int(mx+(tx_w-draw_text.size[0])//2*(self.align=='center')),int(my+i*tx_h))).get(),draw_text.split()[-1])
+                bubble_canvas.paste(draw_text,(int(m_x+(tx_w-draw_text.size[0])//2*(self.align=='center')),int(m_y+i*tx_h)),mask=draw_text)
+            # 位置标记
+            if show_marker:
+                draw.line([m_x-100,m_y,m_x+100,m_y],fill='blue',width=2)
+                draw.line([m_x,m_y-50,m_x,m_y+50],fill='blue',width=2)
+                draw.text((m_x,m_y-40),'({0},{1})'.format(*self.mt_pos),font=label_pos_show_text,fill='blue')
+        return bubble_canvas
+    def preview(self,image_canvas):
+        bubble_canvas = self.draw(4)
+        image_canvas.paste(bubble_canvas,self.pos.get(),mask=bubble_canvas)
+        self.pos.preview(image_canvas)
+
+class Balloon(Bubble):
+    def __init__(self,filepath=None,Main_Text=Text(),Header_Text=[None],pos=(0,0),mt_pos=(0,0),ht_pos=[(0,0)],ht_target=['Name'],align='left',line_distance=1.5,label_color='Lavender'):
+        super().__init__(filepath=filepath,Main_Text=Main_Text,Header_Text=Header_Text,pos=pos,mt_pos=mt_pos,ht_pos=ht_pos,ht_target=ht_target,align=align,line_distance=line_distance,label_color=label_color)
+        if len(self.Header)!=len(self.ht_pos) or len(self.Header)!=len(self.target):
+            raise Exception('[31m[BubbleError]:[0m ' + 'length of header params does not match!')
+        else:
+            self.header_num = len(self.Header)
+    def draw(self,lines=4,show_marker=True):
+        bubble_canvas = self.media.copy()
+        draw = ImageDraw.Draw(bubble_canvas)
+        for i,HT in enumerate(self.Header):
+            if HT != None:
+                draw_text = HT.draw()
+                bubble_canvas.paste(draw_text,self.ht_pos[i],draw_text)
+                if show_marker:
+                    h_x,h_y = self.ht_pos[i]
+                    draw.line([h_x-100,h_y,h_x+100,h_y],fill='blue',width=2)
+                    draw.line([h_x,h_y-50,h_x,h_y+50],fill='blue',width=2)
+                    draw.text((h_x,h_y-40),'({0},{1})'.format(*self.ht_pos[i]),font=label_pos_show_text,fill='blue')
+        if self.MainText != None:
+            tx_w = self.MainText.size*self.MainText.line_limit
+            tx_h = self.line_distance*self.MainText.size
+            m_x,m_y = self.mt_pos
+            for i,l in enumerate(range(self.MainText.line_limit,0,-self.MainText.line_limit//lines)):
+                draw_text = self.MainText.draw(l)
+                bubble_canvas.paste(draw_text,(int(m_x+(tx_w-draw_text.size[0])//2*(self.align=='center')),int(m_y+i*tx_h)),mask=draw_text)
+            # 位置标记
+            if show_marker:
+                draw.line([m_x-100,m_y,m_x+100,m_y],fill='blue',width=2)
+                draw.line([m_x,m_y-50,m_x,m_y+50],fill='blue',width=2)
+                draw.text((m_x,m_y-40),'({0},{1})'.format(*self.mt_pos),font=label_pos_show_text,fill='blue')
+        return bubble_canvas
+
+class DynamicBubble(Bubble):
+    def __init__(self,filepath=None,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),mt_end=(0,0),ht_pos=(0,0),ht_target='Name',fill_mode='stretch',line_distance=1.5,label_color='Lavender'):
+        super().__init__(filepath=filepath,Main_Text=Main_Text,Header_Text=Header_Text,pos=pos,mt_pos=mt_pos,ht_pos=ht_pos,ht_target=ht_target,line_distance=line_distance,label_color=label_color)
+        if (mt_pos[0] >= mt_end[0]) | (mt_pos[1] >= mt_end[1]):
+            raise Exception('Invalid bubble separate params mt_end!')
+        else:
+            self.mt_end = mt_end
+        # fill_mode 只能是 stretch 或者 collage
+        if fill_mode in ['stretch','collage']:
+            self.fill_mode = fill_mode
+        else:
+            raise Exception('Invalid fill mode params ' + fill_mode)
+        # x,y轴上的四条分割线
+        self.size = self.media.size
+        self.x_tick = [0,self.mt_pos[0],self.mt_end[0],self.size[0]]
+        self.y_tick = [0,self.mt_pos[1],self.mt_end[1],self.size[1]]
+        self.bubble_clip = []
+        # 0 3 6
+        # 1 4 7
+        # 2 5 8
+        for i in range(0,3):
+            for j in range(0,3):
+                try:
+                    # crop(left, upper, right, lower)
+                    self.bubble_clip.append(self.media.crop((self.x_tick[i],self.y_tick[j],
+                                                             self.x_tick[i+1],self.y_tick[j+1]
+                                                            )))
+                except Exception:
+                    # 无效的clip
+                    self.bubble_clip.append(None)
+        self.bubble_clip_size = list(map(lambda x:(0,0) if x is None else x.size, self.bubble_clip))
+    def draw(self,lines=4,show_marker=True):
+        # 主文本
+        text_canvas = Image.new(mode='RGBA',size=(1920,1080),color=(0,0,0,0))
+        if self.MainText == None:
+            raise Exception('Main_Text of Bubble is None!')
+        else:
+            tx_h = self.line_distance*self.MainText.size
+            for i,l in enumerate(range(self.MainText.line_limit,0,-self.MainText.line_limit//lines)):
+                draw_text = self.MainText.draw(l)
+                text_canvas.paste(draw_text,(0,int(i*tx_h)),mask=draw_text)
+            try:
+                p1,p2,xlim,ylim = text_canvas.getbbox()
+            except ValueError:
+                xlim = int(self.MainText.size/2)
+                ylim = self.MainText.size
+        temp_size_x = xlim + self.x_tick[1] + self.x_tick[3] - self.x_tick[2]
+        temp_size_y = ylim + self.y_tick[1] + self.y_tick[3] - self.y_tick[2]
+        bubble_canvas = Image.new(mode='RGBA',size=(temp_size_x,temp_size_y),color=(0,0,0,0))
+        # 气泡碎片的渲染位置
+        bubble_clip_pos = {
+            0:(0,0),
+            1:(0,self.y_tick[1]),
+            2:(0,self.y_tick[1]+ylim),
+            3:(self.x_tick[1],0),
+            4:(self.x_tick[1],self.y_tick[1]),
+            5:(self.x_tick[1],self.y_tick[1]+ylim),
+            6:(self.x_tick[1]+xlim,0),
+            7:(self.x_tick[1]+xlim,self.y_tick[1]),
+            8:(self.x_tick[1]+xlim,self.y_tick[1]+ylim)
+        }
+        # 气泡碎片的目标大小
+        bubble_clip_scale = {
+            0:False,
+            1:(self.x_tick[1],ylim),
+            2:False,
+            3:(xlim,self.y_tick[1]),
+            4:(xlim,ylim),
+            5:(xlim,self.y_tick[3]-self.y_tick[2]),
+            6:False,
+            7:(self.x_tick[3]-self.x_tick[2],ylim),
+            8:False
+        }
+        for i in range(0,9):
+            if 0 in self.bubble_clip_size[i]:
+                continue
+            else:
+                if bubble_clip_scale[i] == False:
+                    bubble_canvas.paste(self.bubble_clip[i],bubble_clip_pos[i])
+                else:
+                    if self.fill_mode == 'stretch':
+                        bubble_canvas.paste(self.bubble_clip[i].resize(bubble_clip_scale[i]),bubble_clip_pos[i])
+                    elif self.fill_mode == 'collage':
+                        # 新建拼贴图层，尺寸为气泡碎片的目标大小
+                        collage_canvas = Image.new(mode='RGBA',size=bubble_clip_scale[i],color=(0,0,0,0))
+                        col_x,col_y = (0,0)
+                        while col_y < bubble_clip_scale[i][1]:
+                            col_x = 0
+                            while col_x < bubble_clip_scale[i][0]:
+                                collage_canvas.paste(self.bubble_clip[i],(col_x,col_y))
+                                col_x = col_x + self.bubble_clip_size[i][0]
+                            col_y = col_y + self.bubble_clip_size[i][1]
+                        bubble_canvas.paste(collage_canvas,bubble_clip_pos[i])
+        # 主文本
+        bubble_canvas.paste(text_canvas,self.mt_pos,mask=text_canvas)
+        # 头文本
+        if self.Header!=None:    # Header 有定义，且输入文本不为空
+            if self.ht_pos[0] > self.x_tick[2]:
+                ht_renderpos_x = self.ht_pos[0] - self.x_tick[2] + self.x_tick[1] + xlim
+            else:
+                ht_renderpos_x = self.ht_pos[0]
+            if self.ht_pos[1] > self.y_tick[2]:
+                ht_renderpos_y = self.ht_pos[1] - self.y_tick[2] + self.y_tick[1] + ylim
+            else:
+                ht_renderpos_y = self.ht_pos[1]
+            draw_text = self.Header.draw()
+            bubble_canvas.paste(draw_text,(ht_renderpos_x,ht_renderpos_y),mask=draw_text)
+            if show_marker:
+                # 头文本标记
+                h_x,h_y = self.ht_pos
+                draw.line([h_x-100,h_y,h_x+100,h_y],fill='blue',width=2)
+                draw.line([h_x,h_y-50,h_x,h_y+50],fill='blue',width=2)
+                draw.text((h_x,h_y-40),'({0},{1})'.format(*self.ht_pos),font=label_pos_show_text,fill='blue')
+            # 头文本标记
+        if show_marker:
+            # 可变气泡分割显示：
+            draw = ImageDraw.Draw(bubble_canvas)
+            size = bubble_canvas.size
+            # 起点，
+            draw.line([0,self.mt_pos[1],size[0],self.mt_pos[1]],fill='purple',width=2)
+            draw.line([self.mt_pos[0],0,self.mt_pos[0],size[1]],fill='purple',width=2)
+            draw.text(self.mt_pos,'({0},{1})'.format(*self.mt_pos),font=label_pos_show_text,fill='purple')
+            # 终点
+            end_x,end_y = bubble_clip_pos[8]
+            draw.line([0,end_y,size[0],end_y],fill='purple',width=2)
+            draw.line([end_x,0,end_x,size[1]],fill='purple',width=2)
+            text_to_show = '({0},{1})'.format(*self.mt_end)
+            draw.text((end_x-len(text_to_show)*16,end_y-40),text_to_show,font=label_pos_show_text,fill='purple')
+            # 主文本标记
+            m_x,m_y = self.mt_pos
             draw.line([m_x-100,m_y,m_x+100,m_y],fill='blue',width=2)
             draw.line([m_x,m_y-50,m_x,m_y+50],fill='blue',width=2)
-            draw.text((m_x,m_y-35),'({0},{1})'.format(m_x-p_x,m_y-p_y),font=label_pos_show_text,fill='blue')
+            draw.text((m_x,m_y-40),'({0},{1})'.format(*self.mt_pos),font=label_pos_show_text,fill='blue')
+        return bubble_canvas
+    def preview(self,image_canvas):
+        import random
+        # 自适应气泡预览时，行数随机
+        bubble_canvas = self.draw(random.randint(1,7))
+        image_canvas.paste(bubble_canvas,self.pos.get(),mask=bubble_canvas)
+        self.pos.preview(image_canvas)
+    
 class Background(Media):
     cmap = {'black':(0,0,0,255),'white':(255,255,255,255),'greenscreen':(0,177,64,255)}
     def __init__(self,filepath,pos = (0,0),label_color='Lavender'):
         if filepath in Background.cmap.keys(): #添加了，对纯色定义的背景的支持
             self.media = Image.new(mode='RGBA',size=(1920,1080),color=Background.cmap[filepath]) # GUI里面没有全局的screen_size，用1080p的参数替代
         else:
-            self.media = Image.open(filepath)
+            self.media = Image.open(filepath).convert('RGBA')
         if type(pos) in [Pos,FreePos]:
             self.pos = pos
         else:
@@ -119,7 +296,7 @@ class Animation(Media):
         if '*' in filepath:
             raise ValueError('动画对象不支持预览！')
         else:
-            self.media = Image.open(filepath)
+            self.media = Image.open(filepath).convert('RGBA')
         if type(pos) in [Pos,FreePos]:
             self.pos = pos
         else:
@@ -137,6 +314,9 @@ class Animation(Media):
         draw.line([p_x-100,p_y,p_x+100,p_y],fill='green',width=2)
         draw.line([p_x,p_y-100,p_x,p_y+100],fill='green',width=2)
         draw.text((p_x,p_y),'({0},{1})'.format(p_x,p_y),font=label_pos_show_text,fill='green')
+
+# class GroupedAnimation(Animation)
+# GroupedAnimation 更多的情况还是作为BIA在使用，还是不要开放给媒体定义文件用了。
 
 # FreePos 相关
 class Pos(Media):
@@ -254,7 +434,8 @@ class PosGrid:
         # 终点
         draw.line([0,self.end[1],size[0],self.end[1]],fill='purple',width=2)
         draw.line([self.end[0],0,self.end[0],size[1]],fill='purple',width=2)
-        draw.text(self.end,'({0},{1})'.format(*self.end),font=label_pos_show_text,fill='purple')
+        text_to_show = '({0},{1})'.format(*self.end)
+        draw.text((self.end[0]-len(text_to_show)*16,self.end[1]-40),text_to_show,font=label_pos_show_text,fill='purple')
         # 网点
         for i in range(self._size[0]): # x轴 
             for j in range(self._size[1]): # y轴

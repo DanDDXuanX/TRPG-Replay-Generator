@@ -9,7 +9,7 @@ text1 = Text('./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(100,100,10
 text2 = Text('./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(100,100,100,255),line_limit=10)
 text3 = StrokeText('./media/SourceHanSerifSC-Heavy.otf',fontsize=60,color=(32,160,205,220),line_limit=17,edge_color=(0,0,0,220),label_color='Rose')
 # 对话框头像
-dot_K = Animation('./toy/media/K.png')
+dot_K = Animation('./toy/media/K.png',pos=PG[5,5])
 dot_Z = Animation('./toy/media/Z.png')
 dot_N = Animation('./toy/media/N.png')
 dot_S = Animation('./toy/media/S.png')
