@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-EDITION = 'alpha 1.13.3'
+from Utils import EDITION
 
 # 在开源发布的版本中，隐去了各个key
 

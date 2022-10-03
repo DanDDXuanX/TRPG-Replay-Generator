@@ -154,12 +154,7 @@ class Bubble:
         self.fileindex = 'BBfile_' + '%d'% file_index
         self.label_color = label_color
         file_index = file_index+1
-    def display(self,begin,end,text,header='',center='NA'): # 这段代码是完全没有可读性的屎，但是确实可运行，非必要不要改
-        global outtext_index,clip_tplt,clip_index
-        if center == 'NA':
-            self.PRpos = PR_center_arg(np.array(self.size),np.array(self.pos.get()))
-        else:
-            self.PRpos = PR_center_arg(np.array(self.size),np.array(Pos(*eval(center)).get()))
+    def draw(self, text, header=''):
         # 生成文本图片
         ofile = output_path+'/auto_TX_%d'%outtext_index+'.png'
         canvas = Image.new(mode='RGBA',size=self.size,color=(0,0,0,0))
@@ -186,6 +181,15 @@ class Bubble:
                              )
                             )
         canvas.save(ofile)
+        return ofile
+    def display(self,begin,end,text,header='',center='NA'): # 这段代码是完全没有可读性的屎，但是确实可运行，非必要不要改
+        global outtext_index,clip_tplt,clip_index
+        if center == 'NA':
+            self.PRpos = PR_center_arg(np.array(self.size),np.array(self.pos.get()))
+        else:
+            self.PRpos = PR_center_arg(np.array(self.size),np.array(Pos(*eval(center)).get()))
+        
+        ofile = self.draw(text,header)
         
         # 生成序列
         width,height = self.size
@@ -240,13 +244,7 @@ class Balloon(Bubble):
             raise MediaError('[31m[BubbleError]:[0m', 'length of header params does not match!')
         else:
             self.header_num = len(self.Header)
-    def display(self,begin,end,text,header='',center='NA'):
-        global outtext_index,clip_tplt,clip_index
-        # 是否在timeline指定center？# 同Bubble类
-        if center == 'NA':
-            self.PRpos = PR_center_arg(np.array(self.size),np.array(self.pos.get()))
-        else:
-            self.PRpos = PR_center_arg(np.array(self.size),np.array(Pos(*eval(center)).get()))
+    def draw(self, text, header=''):
         # 生成文本图片 # 同Bubble类
         ofile = output_path+'/auto_TX_%d'%outtext_index+'.png'
         canvas = Image.new(mode='RGBA',size=self.size,color=(0,0,0,0))
@@ -280,24 +278,170 @@ class Balloon(Bubble):
                              )
                             )
         canvas.save(ofile)
-        # 生成序列 # 同Bubble类
-        width,height = self.size
+        return ofile
+
+class DynamicBubble(Bubble):
+    def __init__(self,filepath=None,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),mt_end=(0,0),ht_pos=(0,0),ht_target='Name',fill_mode='stretch',line_distance=1.5,label_color='Lavender'):
+        super().__init__(filepath=filepath,Main_Text=Main_Text,Header_Text=Header_Text,pos=pos,mt_pos=mt_pos,ht_pos=ht_pos,ht_target=ht_target,line_distance=line_distance,label_color=label_color)
+        if (mt_pos[0] >= mt_end[0]) | (mt_pos[1] >= mt_end[1]):
+            raise MediaError('[31m[BubbleError]:[0m', 'Invalid bubble separate params mt_end!')
+        else:
+            self.mt_end = mt_end
+        # fill_mode 只能是 stretch 或者 collage
+        if fill_mode in ['stretch','collage']:
+            self.fill_mode = fill_mode
+        else:
+            raise MediaError('[31m[BubbleError]:[0m', 'Invalid fill mode params ' + fill_mode)
+        # x,y轴上的四条分割线
+        self.x_tick = [0,self.mt_pos[0],self.mt_end[0],self.media.get_size()[0]]
+        self.y_tick = [0,self.mt_pos[1],self.mt_end[1],self.media.get_size()[1]]
+        self.bubble_clip = []
+        # 0 3 6
+        # 1 4 7
+        # 2 5 8
+        for i in range(0,3):
+            for j in range(0,3):
+                try:
+                    # crop(left, upper, right, lower)
+                    self.bubble_clip.append(self.media.crop((self.x_tick[i],self.y_tick[j],
+                                                             self.x_tick[i+1],self.y_tick[j+1]
+                                                            )))
+                except Exception:
+                    # 无效的clip
+                    self.bubble_clip.append(None)
+        self.bubble_clip = np.array(self.bubble_clip)
+        self.bubble_clip_size = np.frompyfunc(lambda x:(0,0) if x is None else x.size ,1,1)(self.bubble_clip)
+    def draw(self, text, header = ''):
+        text_ofile = output_path+'/auto_TX_%d'%outtext_index+'.png'
+        bubble_ofile = output_path+'/auto_BB_%d'%outtext_index+'.png'
+        # 首先，需要把主文本渲染出来
+        main_text_list = self.MainText.draw(text)
+        # 第一次循环：获取最大的x和最大的y
+        # 导出PR项目的特殊性：如果是一个空白文本，那么getbbox将不能得到理论尺寸。
+        # 因此xlim和ylim的初始值被设为半个字的大小。
+        xlim = int(self.MainText.size/2)
+        ylim = self.MainText.size
+        for i,mt_text in enumerate(main_text_list):
+            try:
+                p1,p2,p3,p4 = mt_text.getbbox() # 先按照bboxcrop，然后按照原位置放置
+            except TypeError: # 如果遇到了空图导致的TypeError，直接跳过这一循环，走到下一行
+                continue
+            # 因为考虑到有的字体的bbox不对劲，因此不减去p1,p2，以p3，p4为准
+            x_this = p3
+            y_this = p4
+            y_this = i*self.MainText.size*self.line_distance + y_this
+            if x_this > xlim:
+                xlim = int(x_this)
+            ylim = int(y_this)
+        # 建立变形后的气泡
+        temp_size_x = xlim + self.x_tick[1] + self.x_tick[3] - self.x_tick[2]
+        temp_size_y = ylim + self.y_tick[1] + self.y_tick[3] - self.y_tick[2]
+        bubble_canvas = Image.new(mode='RGBA',size=(temp_size_x,temp_size_y),color=(0,0,0,0))
+        text_canvas = Image.new(mode='RGBA',size=(temp_size_x,temp_size_y),color=(0,0,0,0))
+        # 生成文本图片
+        # 头文本
+        if (self.Header!=None) & (header!=''):    # Header 有定义，且输入文本不为空
+            if self.ht_pos[0] > self.x_tick[2]:
+                ht_renderpos_x = self.ht_pos[0] - self.x_tick[2] + self.x_tick[1] + xlim
+            else:
+                ht_renderpos_x = self.ht_pos[0]
+            if self.ht_pos[1] > self.y_tick[2]:
+                ht_renderpos_y = self.ht_pos[1] - self.y_tick[2] + self.y_tick[1] + ylim
+            else:
+                ht_renderpos_y = self.ht_pos[1]
+            ht_text = self.Header.draw(header)[0]
+            try:
+                p1,p2,p3,p4 = ht_text.getbbox() # 如果是空图的话，getbbox返回None，会发生TypeError
+                text_canvas.paste(ht_text.crop((p1,p2,p3,p4)),(ht_renderpos_x+p1,ht_renderpos_y+p2)) # 兼容微软雅黑这种，bbox到处飘的字体
+            except TypeError:
+                pass
+        # 主文本
+        for i,mt_text in enumerate(main_text_list):
+            try:
+                p1,p2,p3,p4 = mt_text.getbbox() # 先按照bboxcrop，然后按照原位置放置
+            except TypeError: # 如果遇到了空图导致的TypeError，直接跳过这一循环，走到下一行
+                continue
+            text_canvas.paste(mt_text.crop((p1,p2,p3,p4)),(self.x_tick[1]+p1,int(self.y_tick[1]+i*self.MainText.size*self.line_distance+p2)))
+        text_canvas.save(text_ofile)
+        # return ofile
+        # 气泡碎片的渲染位置
+        bubble_clip_pos = {
+            0:(0,0),
+            1:(0,self.y_tick[1]),
+            2:(0,self.y_tick[1]+ylim),
+            3:(self.x_tick[1],0),
+            4:(self.x_tick[1],self.y_tick[1]),
+            5:(self.x_tick[1],self.y_tick[1]+ylim),
+            6:(self.x_tick[1]+xlim,0),
+            7:(self.x_tick[1]+xlim,self.y_tick[1]),
+            8:(self.x_tick[1]+xlim,self.y_tick[1]+ylim)
+        }
+        # 气泡碎片的目标大小
+        bubble_clip_scale = {
+            0:False,
+            1:(self.x_tick[1],ylim),
+            2:False,
+            3:(xlim,self.y_tick[1]),
+            4:(xlim,ylim),
+            5:(xlim,self.y_tick[3]-self.y_tick[2]),
+            6:False,
+            7:(self.x_tick[3]-self.x_tick[2],ylim),
+            8:False
+        }
+        for i in range(0,9):
+            if 0 in self.bubble_clip_size[i]:
+                continue
+            else:
+                if bubble_clip_scale[i] == False:
+                    bubble_canvas.paste(self.bubble_clip[i],bubble_clip_pos[i])
+                else:
+                    if self.fill_mode == 'stretch':
+                        bubble_canvas.paste(self.bubble_clip[i].resize(bubble_clip_scale[i]),bubble_clip_pos[i])
+                    elif self.fill_mode == 'collage':
+                        # 新建拼贴图层，尺寸为气泡碎片的目标大小
+                        collage_canvas = Image.new(mode='RGBA',size=bubble_clip_scale[i],color=(0,0,0,0))
+                        col_x,col_y = (0,0)
+                        while col_y < bubble_clip_scale[i][1]:
+                            while col_x < bubble_clip_scale[i][0]:
+                                collage_canvas.paste(self.bubble_clip[i],(col_x,col_y))
+                                col_x = col_x + self.bubble_clip_size[i][0]
+                            col_y = col_y + self.bubble_clip_size[i][1]
+                        bubble_canvas.paste(collage_canvas,bubble_clip_pos[i])
+        # 如果气泡图是空的，则返回空
+        if bubble_canvas.getbbox() is None:
+            return text_ofile,None,(temp_size_x,temp_size_y)
+        # 无论文本图是不是空的，均正常保存为文件。
+        else:
+            bubble_canvas.save(bubble_ofile)
+            return text_ofile,bubble_ofile,(temp_size_x,temp_size_y)
+    def display(self,begin,end,text,header='',center='NA'): # 这段代码是完全没有可读性的屎，但是确实可运行，非必要不要改
+        global outtext_index,clip_tplt,clip_index
+        # 先生成文件
+        text_ofile,bubble_ofile,temp_size = self.draw(text,header)
+        # 获取动态气泡的参数
+        width,height = temp_size
+        # 获取PR位置参数
+        if center == 'NA':
+            self.PRpos = PR_center_arg(np.array(temp_size),np.array(self.pos.get()))
+        else:
+            self.PRpos = PR_center_arg(np.array(temp_size),np.array(Pos(*eval(center)).get()))
         pr_horiz,pr_vert = self.PRpos
-        if self.path is None:
+        # 生成序列
+        if bubble_ofile is None:
             clip_bubble = None
             # print('Render empty Bubble!')
         else:
             clip_bubble = clip_tplt.format(**{'clipid':'BB_clip_%d'%clip_index,
-                                              'clipname':self.filename,
+                                              'clipname':'auto_BB_%d.png'%outtext_index,
                                               'timebase':'%d'%frame_rate,
                                               'ntsc':Is_NTSC,
                                               'start':'%d'%begin,
                                               'end':'%d'%end,
                                               'in':'%d'%90000,
                                               'out':'%d'%(90000+end-begin),
-                                              'fileid':self.fileindex,
-                                              'filename':self.filename,
-                                              'filepath':self.path,
+                                              'fileid':'auto_BB_%d'%outtext_index,
+                                              'filename':'auto_BB_%d.png'%outtext_index,
+                                              'filepath':reformat_path(bubble_ofile),
                                               'filewidth':'%d'%width,
                                               'fileheight':'%d'%height,
                                               'horiz':'%.5f'%pr_horiz,
@@ -313,7 +457,7 @@ class Balloon(Bubble):
                                         'out':'%d'%(90000+end-begin),
                                         'fileid':'auto_TX_%d'%outtext_index,
                                         'filename':'auto_TX_%d.png'%outtext_index,
-                                        'filepath':reformat_path(ofile),
+                                        'filepath':reformat_path(text_ofile),
                                         'filewidth':'%d'%width,
                                         'fileheight':'%d'%height,
                                         'horiz':'%.5f'%pr_horiz,
@@ -322,7 +466,6 @@ class Balloon(Bubble):
         outtext_index = outtext_index + 1
         clip_index = clip_index+1
         return (clip_bubble,clip_text)
-
 # 背景图片
 class Background:
     def __init__(self,filepath,pos = (0,0),label_color='Lavender'):
