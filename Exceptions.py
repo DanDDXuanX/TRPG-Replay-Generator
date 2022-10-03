@@ -5,7 +5,7 @@
 # 解析器错误
 class ParserError(Exception):
     def __init__(self,*description):
-        self.description = ' '.join(map(str,description))
+        self.description = "[31m[ParserError]:[0m" + ' '.join(map(str,description))
     def __str__(self):
         return self.description
 
