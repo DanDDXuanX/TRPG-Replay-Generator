@@ -200,6 +200,7 @@ class DynamicBubble(Bubble):
                                                                )))
         # 以np array 的形式存储气泡碎片
         # 注意，这9个碎片有的尺寸有可能为0！这种情况是能够兼容的。
+
         self.bubble_clip = np.array(self.bubble_clip)
         self.bubble_clip_size = np.frompyfunc(lambda x:x.get_size(),1,1)(self.bubble_clip)
     # 重载draw
@@ -260,6 +261,7 @@ class DynamicBubble(Bubble):
                         collage.fill((0,0,0,0))
                         col_x,col_y = (0,0)
                         while col_y < bubble_clip_scale[i][1]:
+                            col_x = 0
                             while col_x < bubble_clip_scale[i][0]:
                                 collage.blit(self.bubble_clip[i],(col_x,col_y))
                                 col_x = col_x + self.bubble_clip_size[i][0]
@@ -377,7 +379,7 @@ class ChatWindow(Bubble):
         # 容纳子气泡的容器
         sub_surface = pygame.Surface(self.sub_size,pygame.SRCALPHA)
         sub_surface.fill((0,0,0,0))
-        # 容纳左侧立绘的容器，宽度=amright-amleft，高度等于子气泡
+        # 容纳立绘的容器，宽度=amright-amleft，高度等于子气泡
         sub_groupam = pygame.Surface((self.am_right-self.am_left,self.sub_size[1]),pygame.SRCALPHA)
         sub_groupam.fill((0,0,0,0))
         # 拆分主文本和头文本

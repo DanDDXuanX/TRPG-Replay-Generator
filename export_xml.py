@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
+from codecs import utf_16_be_decode
 from Utils import EDITION
 
 # 外部参数输入
@@ -72,6 +73,10 @@ import pickle
 
 from FreePos import Pos,FreePos,PosGrid
 
+# 异常定义
+
+from Exceptions import MediaError
+
 # 文字对象
 
 outtext_index = 0
@@ -134,7 +139,7 @@ class Bubble:
             self.filename = None
         else:
             self.path = reformat_path(filepath)
-            self.media = Image.open(filepath)
+            self.media = Image.open(filepath).convert('RGBA')
             self.size = self.media.size
             self.filename = self.path.split('/')[-1]
         # pos
@@ -154,9 +159,10 @@ class Bubble:
         self.fileindex = 'BBfile_' + '%d'% file_index
         self.label_color = label_color
         file_index = file_index+1
+    # return a canvas
     def draw(self, text, header=''):
         # 生成文本图片
-        ofile = output_path+'/auto_TX_%d'%outtext_index+'.png'
+        # ofile = output_path+'/auto_TX_%d'%outtext_index+'.png'
         canvas = Image.new(mode='RGBA',size=self.size,color=(0,0,0,0))
         if (self.Header!=None) & (header!=''):    # Header 有定义，且输入文本不为空
             ht_text = self.Header.draw(header)[0]
@@ -180,8 +186,8 @@ class Bubble:
                               int(y+i*self.MainText.size*self.line_distance+p2)
                              )
                             )
-        canvas.save(ofile)
-        return ofile
+        # canvas.save(ofile)
+        return canvas
     def display(self,begin,end,text,header='',center='NA'): # 这段代码是完全没有可读性的屎，但是确实可运行，非必要不要改
         global outtext_index,clip_tplt,clip_index
         if center == 'NA':
@@ -189,7 +195,9 @@ class Bubble:
         else:
             self.PRpos = PR_center_arg(np.array(self.size),np.array(Pos(*eval(center)).get()))
         
-        ofile = self.draw(text,header)
+        ofile = output_path+'/auto_TX_%d'%outtext_index+'.png'
+        canvas_draw = self.draw(text,header)
+        canvas_draw.save(ofile)
         
         # 生成序列
         width,height = self.size
@@ -246,7 +254,6 @@ class Balloon(Bubble):
             self.header_num = len(self.Header)
     def draw(self, text, header=''):
         # 生成文本图片 # 同Bubble类
-        ofile = output_path+'/auto_TX_%d'%outtext_index+'.png'
         canvas = Image.new(mode='RGBA',size=self.size,color=(0,0,0,0))
         # 生成头文本
         header_texts = header.split('|')
@@ -277,8 +284,7 @@ class Balloon(Bubble):
                               int(y+i*self.MainText.size*self.line_distance+p2)
                              )
                             )
-        canvas.save(ofile)
-        return ofile
+        return canvas
 
 class DynamicBubble(Bubble):
     def __init__(self,filepath=None,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),mt_end=(0,0),ht_pos=(0,0),ht_target='Name',fill_mode='stretch',line_distance=1.5,label_color='Lavender'):
@@ -293,8 +299,8 @@ class DynamicBubble(Bubble):
         else:
             raise MediaError('[31m[BubbleError]:[0m', 'Invalid fill mode params ' + fill_mode)
         # x,y轴上的四条分割线
-        self.x_tick = [0,self.mt_pos[0],self.mt_end[0],self.media.get_size()[0]]
-        self.y_tick = [0,self.mt_pos[1],self.mt_end[1],self.media.get_size()[1]]
+        self.x_tick = [0,self.mt_pos[0],self.mt_end[0],self.size[0]]
+        self.y_tick = [0,self.mt_pos[1],self.mt_end[1],self.size[1]]
         self.bubble_clip = []
         # 0 3 6
         # 1 4 7
@@ -309,11 +315,9 @@ class DynamicBubble(Bubble):
                 except Exception:
                     # 无效的clip
                     self.bubble_clip.append(None)
-        self.bubble_clip = np.array(self.bubble_clip)
-        self.bubble_clip_size = np.frompyfunc(lambda x:(0,0) if x is None else x.size ,1,1)(self.bubble_clip)
+        self.bubble_clip_size = list(map(lambda x:(0,0) if x is None else x.size, self.bubble_clip))
+
     def draw(self, text, header = ''):
-        text_ofile = output_path+'/auto_TX_%d'%outtext_index+'.png'
-        bubble_ofile = output_path+'/auto_BB_%d'%outtext_index+'.png'
         # 首先，需要把主文本渲染出来
         main_text_list = self.MainText.draw(text)
         # 第一次循环：获取最大的x和最大的y
@@ -362,7 +366,7 @@ class DynamicBubble(Bubble):
             except TypeError: # 如果遇到了空图导致的TypeError，直接跳过这一循环，走到下一行
                 continue
             text_canvas.paste(mt_text.crop((p1,p2,p3,p4)),(self.x_tick[1]+p1,int(self.y_tick[1]+i*self.MainText.size*self.line_distance+p2)))
-        text_canvas.save(text_ofile)
+
         # return ofile
         # 气泡碎片的渲染位置
         bubble_clip_pos = {
@@ -402,6 +406,7 @@ class DynamicBubble(Bubble):
                         collage_canvas = Image.new(mode='RGBA',size=bubble_clip_scale[i],color=(0,0,0,0))
                         col_x,col_y = (0,0)
                         while col_y < bubble_clip_scale[i][1]:
+                            col_x = 0
                             while col_x < bubble_clip_scale[i][0]:
                                 collage_canvas.paste(self.bubble_clip[i],(col_x,col_y))
                                 col_x = col_x + self.bubble_clip_size[i][0]
@@ -409,15 +414,22 @@ class DynamicBubble(Bubble):
                         bubble_canvas.paste(collage_canvas,bubble_clip_pos[i])
         # 如果气泡图是空的，则返回空
         if bubble_canvas.getbbox() is None:
-            return text_ofile,None,(temp_size_x,temp_size_y)
+            return None,text_canvas
         # 无论文本图是不是空的，均正常保存为文件。
         else:
-            bubble_canvas.save(bubble_ofile)
-            return text_ofile,bubble_ofile,(temp_size_x,temp_size_y)
+            return bubble_canvas,text_canvas
     def display(self,begin,end,text,header='',center='NA'): # 这段代码是完全没有可读性的屎，但是确实可运行，非必要不要改
         global outtext_index,clip_tplt,clip_index
         # 先生成文件
-        text_ofile,bubble_ofile,temp_size = self.draw(text,header)
+        bubble_ofile = output_path+'/auto_BB_%d'%outtext_index+'.png'
+        text_ofile = output_path+'/auto_TX_%d'%outtext_index+'.png'
+
+        bubble_canvas,text_canvas = self.draw(text,header)
+        temp_size = text_canvas.size
+
+        # 保存文件
+        text_canvas.save(text_ofile)
+
         # 获取动态气泡的参数
         width,height = temp_size
         # 获取PR位置参数
@@ -431,6 +443,8 @@ class DynamicBubble(Bubble):
             clip_bubble = None
             # print('Render empty Bubble!')
         else:
+            # 先保存气泡图片
+            bubble_canvas.save(bubble_ofile)
             clip_bubble = clip_tplt.format(**{'clipid':'BB_clip_%d'%clip_index,
                                               'clipname':'auto_BB_%d.png'%outtext_index,
                                               'timebase':'%d'%frame_rate,
@@ -447,6 +461,7 @@ class DynamicBubble(Bubble):
                                               'horiz':'%.5f'%pr_horiz,
                                               'vert':'%.5f'%pr_vert,
                                               'colorlabel':self.label_color})
+        # tx的clip
         clip_text = clip_tplt.format(**{'clipid':'TX_clip_%d'%clip_index,
                                         'clipname':'auto_TX_%d.png'%outtext_index,
                                         'timebase':'%d'%frame_rate,
@@ -466,6 +481,128 @@ class DynamicBubble(Bubble):
         outtext_index = outtext_index + 1
         clip_index = clip_index+1
         return (clip_bubble,clip_text)
+
+class ChatWindow(Bubble):
+    def __init__(self,filepath=None,sub_key=['Bubble()'],sub_Bubble=[Bubble()],sub_Anime=[],sub_align=[],pos=(0,0),sub_pos=(0,0),sub_end=(0,0),am_left=0,am_right=0,sub_distance=50,label_color='Lavender'):
+        global file_index
+        if len(sub_Bubble) != len(sub_key):
+            raise MediaError('[31m[BubbleError]:[0m', 'length of sub-key and sub-bubble does not match!')
+        # 空白底图
+        if filepath is None or filepath == 'None':
+            self.path = None
+            self.media = None
+            self.size = screen_size
+            self.filename = None
+        else:
+            self.path = reformat_path(filepath)
+            self.media = Image.open(filepath).convert('RGBA')
+            self.size = self.media.size
+            self.filename = self.path.split('/')[-1]
+        # 位置
+        if type(pos) in [Pos,FreePos]:
+            self.pos = pos
+        else:
+            self.pos = Pos(*pos)
+        # 子气泡和对齐
+        self.sub_Bubble = {}
+        self.sub_Anime = {}
+        self.sub_align = {}
+        for i,key in enumerate(sub_key):
+            # 检查气泡是否是 Ballon
+            if type(sub_Bubble[i]) is Balloon:
+                raise MediaError('[31m[BubbleError]:[0m','Ballon object "'+key+'" is not supported to be set as a sub-bubble of ChatWindow!')
+            self.sub_Bubble[key] = sub_Bubble[i]
+            # 载入对齐，默认是左对齐
+            try:
+                if sub_align[i] in ['left','right']:
+                    self.sub_align[key] = sub_align[i]
+                else:
+                    raise MediaError('[31m[BubbleError]:[0m', 'Unsupported align:',sub_align[i])
+            except IndexError:
+                self.sub_align[key] = 'left'
+            # 载入子立绘，默认是None
+            try:
+                self.sub_Anime[key] = sub_Anime[i]
+            except IndexError:
+                self.sub_Anime[key] = None
+        # 子气泡尺寸
+        if (sub_pos[0] >= sub_end[0]) | (sub_pos[1] >= sub_end[1]):
+            raise MediaError('[31m[BubbleError]:[0m', 'Invalid bubble separate params sub_end!')
+        else:
+            self.sub_size = (sub_end[0]-sub_pos[0],sub_end[1]-sub_pos[1])
+            self.sub_pos = sub_pos
+        # 立绘对齐位置
+        if am_left >= am_right:
+            raise MediaError('[31m[BubbleError]:[0m', 'Invalid bubble separate params am_right!')
+        else:
+            self.am_left = am_left
+            self.am_right = am_right
+        # 子气泡间隔
+        self.sub_distance = sub_distance
+        # 留存文本容器-这边应该用不到：
+        self.main_text = ''
+        self.header_text = ''
+        # 其他气泡类clip的必要参数
+        self.fileindex = 'BBfile_' + '%d'% file_index
+        self.label_color = label_color
+        # 这个MainText只是用来给labelcolor做参考用的。
+        self.MainText = self.sub_Bubble[sub_key[0]].MainText
+        file_index = file_index+1
+
+    # 渲染气泡中的文本，对于CW来说，包括子气泡的窗体和PC头像都在这里生成。
+    def draw(self, text, header=''):
+        # 生成文本图片
+        ofile = output_path+'/auto_TX_%d'%outtext_index+'.png'
+        # 主容器，容纳整个文本图
+        canvas = Image.new(mode='RGBA',size=self.size,color=(0,0,0,0))
+        # 子气泡容器，容纳若干个子气泡及其文本
+        sub_canvas = Image.new(mode='RGBA',size=self.sub_size,color=(0,0,0,0))
+        # 立绘容器，容纳若干个立绘
+        am_canvas = Image.new(mode='RGBA',size=(self.am_right-self.am_left,self.sub_size[1]),color=(0,0,0,0))
+        # 拆分主文本和头文本
+        main_text_list = text.split('|')
+        header_text_list = header.split('|')
+        header_main_pair = []
+        for i,main_text in enumerate(main_text_list):
+            header_main_pair.append((header_text_list[i],main_text))
+        # 将头主文本对列表倒序
+        header_main_pair = header_main_pair[::-1]
+        # 第二次循环：渲染子气泡
+        y_bottom = self.sub_size[1] # 当前句子的可用y底部
+        for header_main in header_main_pair:
+            # 解析(键#头文本,主文本)
+            bubble_header_this,main_this = header_main
+            key_this,header_this = bubble_header_this.split('#')
+            # 绘制子气泡
+            if type(self.sub_Bubble[key_this]) is DynamicBubble:
+                bubble_canvas,text_canvas = self.sub_Bubble[key_this].draw(main_this,header_this)
+            else:
+                text_canvas = self.sub_Bubble[key_this].draw(main_this,header_this)
+                bubble_canvas = self.sub_Bubble[key_this].media
+            if bubble_canvas is not None:
+                bubble_canvas.paste(text_canvas,(0,0),mask=text_canvas)
+                subbubble_canvas = bubble_canvas
+            else:
+                subbubble_canvas = text_canvas
+            subbubble_size = subbubble_canvas.size
+            if self.sub_align[key_this] == 'left':
+                sub_canvas.paste(subbubble_canvas,(0,y_bottom-subbubble_size[1]))
+                if self.sub_Anime[key_this] is not None:
+                    am_canvas.paste(self.sub_Anime[key_this].media,(0,y_bottom-subbubble_size[1]))
+            else:
+                sub_canvas.paste(subbubble_canvas,(self.sub_size[0]-subbubble_size[0],y_bottom-subbubble_size[1]))
+                if self.sub_Anime[key_this] is not None:
+                    am_canvas.paste(self.sub_Anime[key_this].media,(self.am_right-self.am_left-self.sub_Anime[key_this].size[0],y_bottom-subbubble_size[1]))
+            # 更新可用底部 = 前一次底部 - 子气泡高度 - 子气泡间距
+            y_bottom = y_bottom - subbubble_size[1] - self.sub_distance
+            # 如果可用底部已经达到顶部之外
+            if y_bottom < 0:
+                break            
+        # 将子气泡容器渲染到母气泡容器
+        canvas.paste(sub_canvas,self.sub_pos)
+        canvas.paste(am_canvas,(self.am_left,self.sub_pos[1]),mask=am_canvas)
+        return canvas
+
 # 背景图片
 class Background:
     def __init__(self,filepath,pos = (0,0),label_color='Lavender'):
@@ -481,7 +618,7 @@ class Background:
             self.size = screen_size
         else:
             self.path = reformat_path(filepath)
-            self.media = Image.open(filepath)
+            self.media = Image.open(filepath).convert('RGBA')
             self.size = self.media.size
         if type(pos) in [Pos,FreePos]:
             self.pos = pos
@@ -526,7 +663,7 @@ class Animation:
     def __init__(self,filepath,pos = (0,0),tick=1,loop=True,label_color='Lavender'):
         global file_index 
         self.path = reformat_path(glob.glob(filepath)[0]) # 兼容动画Animation，只使用第一帧！
-        self.media = Image.open(glob.glob(filepath)[0].replace('\\','/'))
+        self.media = Image.open(glob.glob(filepath)[0].replace('\\','/')).convert('RGBA')
         self.size = self.media.size
         self.filename = self.path.split('/')[-1]
         if type(pos) in [Pos,FreePos]:
@@ -845,10 +982,6 @@ class BGM:
     def convert(self):
         pass
 
-# 异常定义
-
-from Exceptions import MediaError
-
 # 函数定义
 
 # 获取音频长度
@@ -1007,6 +1140,8 @@ def main():
                     raise SyntaxError('Invalid Obj name')
                 media_list.append(obj_name) #记录新增对象名称
             except Exception as E:
+                import traceback
+                traceback.print_exc()
                 print('[31m[SyntaxError]:[0m "'+text+'" appeared in media define file line ' + str(i+1)+' is invalid syntax:',E)
                 sys.exit(1)
     black = Background('black')
