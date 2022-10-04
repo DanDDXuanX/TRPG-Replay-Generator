@@ -80,10 +80,16 @@ class FreePos(Pos):
         else: # 设置的不是一个合理的类型
             raise Exception('Unsuppoeted type to set!')
 class PosGrid:
-    def __init__(self,x1,x2,x_step,y1,y2,y_step):
-        X,Y = np.mgrid[x1:x2:x_step,y1:y2:y_step].astype(int)
+    def __init__(self,pos,end,x_step,y_step):
+        x1,y1 = pos
+        x2,y2 = end
+        if (x1>=x2) | (y1>=y2):
+            raise Exception('Invalid separate param end for posgrid!')
+        X,Y = np.mgrid[x1:x2:(x2-x1)/x_step,y1:y2:(y2-y1)/y_step].astype(int)
         self._grid = np.frompyfunc(lambda x,y:Pos(x,y),2,1)(X,Y)
     def __getitem__(self,key):
         return self._grid[key[0],key[1]]
+    def size(self):
+        return self._grid.shape
     def convert(self):
         pass

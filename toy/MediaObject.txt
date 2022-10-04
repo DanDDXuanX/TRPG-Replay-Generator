@@ -1,7 +1,7 @@
 # 位置
-pos_bubble_left = Pos(68,672)
+pos_bubble_left = Pos(*(68,672))
 pos_bubble_right = Pos(536,672)
-PG = PosGrid(0,1920,192,0,1080,108)
+PG = PosGrid(pos=(0,0),end=(1920,1080),x_step=10,y_step=10)
 pos_zhang = FreePos()
 pos_kp = FreePos()
 # 文本
@@ -9,7 +9,7 @@ text1 = Text('./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(100,100,10
 text2 = Text('./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(100,100,100,255),line_limit=10)
 text3 = StrokeText('./media/SourceHanSerifSC-Heavy.otf',fontsize=60,color=(32,160,205,220),line_limit=17,edge_color=(0,0,0,220),label_color='Rose')
 # 对话框头像
-dot_K = Animation('./toy/media/K.png')
+dot_K = Animation('./toy/media/K.png',pos=PG[5,5])
 dot_Z = Animation('./toy/media/Z.png')
 dot_N = Animation('./toy/media/N.png')
 dot_S = Animation('./toy/media/S.png')
@@ -17,7 +17,7 @@ dot_S = Animation('./toy/media/S.png')
 bubble1 = Balloon('./toy/media/bubble1.png',Main_Text=text1,Header_Text=[text2,text3],pos=pos_bubble_left,mt_pos=(57,115),ht_pos=[(652,10),(30,10)],line_distance=1.2,label_color='Lavender',ht_target=['Header','Pos'])
 bubble1_right = Balloon('./toy/media/bubble1.png',Main_Text=text1,Header_Text=[text2,text3],pos=pos_bubble_right,mt_pos=(57,115),ht_pos=[(652,10),(30,10)],line_distance=1.2,align='center',label_color='Cerulean',ht_target=['Header','Pos'])
 bubble2 = Bubble(filepath=None,Main_Text=text3,pos=(0,0),mt_pos=(436,458),line_distance=1.6,align='center',label_color='Blue')
-bubble3 = DynamicBubble('./toy/media/bubble4.png',Main_Text=text1,Header_Text=None,pos=(0,0),mt_pos=(0,0),mt_end=(138,138),fill_mode='collage',line_distance=1.2,label_color='Lavender')
+bubble3 = DynamicBubble('./toy/media/bubble4.png',Main_Text=text1,Header_Text=None,pos=(0,0),mt_pos=(50,50),mt_end=(88,88),fill_mode='collage',line_distance=1.2,label_color='Lavender')
 
 chatwindows1 = ChatWindow('./toy/media/bubble3.png',sub_Bubble=[bubble3,bubble3,bubble3,bubble3],sub_key=['Z','N','S','K'],sub_Anime=[dot_Z,dot_N,dot_S,dot_K],sub_align=['left','left','left','right'],pos=(241,122),sub_pos=(210,190),sub_end=(1212,772),am_left=60,am_right=1362,sub_distance=10,label_color='Lavender')
 # 背景
