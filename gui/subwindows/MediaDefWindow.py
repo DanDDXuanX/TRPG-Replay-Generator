@@ -14,7 +14,7 @@ from utils import browse_file, choose_color
 
 from .Media import Animation, Background, Bubble, StrokeText, Text
 from .Media import Pos, FreePos, PosGrid
-from .Media import Balloon, DynamicBubble
+from .Media import Balloon, DynamicBubble,ChatWindow
 
 from .SubWindow import SubWindow
 
@@ -23,7 +23,7 @@ from .SubWindow import SubWindow
 
 label_pos_show_text = ImageFont.truetype('./media/SourceHanSerifSC-Heavy.otf', 30)
 # RE_mediadef_args = re.compile('(fontfile|fontsize|color|line_limit|filepath|Main_Text|Header_Text|pos|end|x_step|y_step|mt_pos|mt_end|ht_pos|ht_target|fill_mode|align|line_distance|tick|loop|volume|edge_color|label_color)?\ {0,4}=?\ {0,4}(Text\(\)|[^,()]+|\([-\d,\ ]+\))')
-RE_mediadef_args = re.compile("(fontfile|fontsize|color|line_limit|filepath|Main_Text|Header_Text|pos|end|x_step|y_step|mt_pos|mt_end|ht_pos|ht_target|fill_mode|align|line_distance|tick|loop|volume|edge_color|label_color|sub_key|sub_Bubble|sub_Anime|sub_align)?\ {0,4}=?\ {0,4}(Text\(\)|\[[\w,'()]+\]|\w+\[[\d\,]+\]|[^,()]+|\([-\d,\ ]+\))")
+RE_mediadef_args = re.compile("(fontfile|fontsize|color|line_limit|filepath|Main_Text|Header_Text|pos|end|x_step|y_step|mt_pos|mt_end|ht_pos|ht_target|fill_mode|align|line_distance|tick|loop|volume|edge_color|sub_key|sub_Bubble|sub_Anime|sub_align|sub_pos|sub_end|am_left|am_right|sub_distance|label_color)?\ {0,4}=?\ {0,4}(Text\(\)|\[[\w,'()]+\]|\w+\[[\d\,]+\]|[^,()]+|\([-\d,\ ]+\))")
 # RE_parse_mediadef = re.compile('(\w+)[=\ ]+(Pos|FreePos|PosGrid|Text|StrokeText|Bubble|Animation|Background|BGM|Audio)(\(.+\))')
 RE_vaildname = re.compile('^\w+$')
 RE_pos_args = re.compile('(\d+),(\d+)|\*\((\d+),(\d+)\)')
@@ -167,7 +167,11 @@ def open_media_def_window(father,image_canvas,available_Text,used_variable_name,
                 'ht_pos':ht_pos.get(),'ht_target':ht_target.get(),
                 'align':align.get(),'fill_mode':fill_mode.get(),
                 'line_distance':line_distance.get(),'tick':tick.get(),'loop':loop.get(),
-                'volume':volume.get(),'edge_color':edge_color.get(),'label_color':label_color.get()
+                'volume':volume.get(),'edge_color':edge_color.get(),
+                'sub_key':sub_key.get(),'sub_Bubble':sub_Bubble.get(),'sub_Anime':sub_Anime.get(),
+                'sub_align':sub_align.get(),'sub_pos':sub_pos.get(),'sub_end':sub_end.get(),
+                'am_left':am_left.get(),'am_right':am_right.get(),'sub_distance':sub_distance.get(),
+                'label_color':label_color.get()
             }
             this_tplt = arg_tplt[o_type.get()]
             
@@ -217,6 +221,7 @@ def open_media_def_window(father,image_canvas,available_Text,used_variable_name,
         'Bubble':"(filepath='{filepath}',Main_Text={Main_Text},Header_Text={Header_Text},pos={pos},mt_pos={mt_pos},ht_pos={ht_pos},ht_target={ht_target},align='{align}',line_distance={line_distance},label_color='{label_color}')",
         'Balloon':"(filepath='{filepath}',Main_Text={Main_Text},Header_Text=[{Header_Text}],pos={pos},mt_pos={mt_pos},ht_pos=[{ht_pos}],ht_target=[{ht_target}],align={align},line_distance={line_distance},label_color='{label_color}')",
         'DynamicBubble':"(filepath='{filepath}',Main_Text={Main_Text},Header_Text={Header_Text},pos={pos},mt_pos={mt_pos},mt_end={mt_end},ht_pos={ht_pos},ht_target={ht_target},fill_mode={fill_mode},line_distance={line_distance},label_color='{label_color}')",
+        'ChatWindow':"(filepath='{filepath}',sub_key=[{sub_key}],sub_Bubble=[{sub_Bubble}],sub_Anime=[{sub_Anime}],sub_align=[{sub_align}],pos={pos},sub_pos={sub_pos},sub_end={sub_end},am_left={am_left},am_right={am_right},sub_distance={sub_distance},label_color='{label_color}')",
         'Background':"(filepath='{filepath}',pos={pos},label_color='{label_color}')",
         'Animation':"(filepath='{filepath}',pos={pos},tick={tick},loop={loop},label_color='{label_color}')",
         'Audio':"(filepath='{filepath}',label_color='{label_color}')",
@@ -248,14 +253,14 @@ def open_media_def_window(father,image_canvas,available_Text,used_variable_name,
     PosGrid_frame = tk.LabelFrame(objdef,text='PosGrid参数')
     Balloon_frame = tk.LabelFrame(objdef,text='Balloon参数')
     DynamicBubble_frame = tk.LabelFrame(objdef,text='DynamicBubble参数')
-    GroupedAnimation_frame = tk.LabelFrame(objdef,text='GroupedAnimation参数')
+    ChatWindow_frame = tk.LabelFrame(objdef,text='GroupedAnimation参数')
     # 新增：
     # typedi
     Mediatype = {'Pos':Pos_frame,'FreePos':FreePos_frame,'PosGrid':PosGrid_frame,
                  'Text':Text_frame,'StrokeText':StrokeText_frame,
-                 'Bubble':Bubble_frame,'Balloon':Balloon_frame,'DynamicBubble':DynamicBubble_frame,
+                 'Bubble':Bubble_frame,'Balloon':Balloon_frame,'DynamicBubble':DynamicBubble_frame,'ChatWindow':ChatWindow_frame,
                  'Background':Background_frame,
-                 'Animation':Animation_frame,'GroupedAnimation':GroupedAnimation_frame,
+                 'Animation':Animation_frame,
                  'BGM':BGM_frame,'Audio':Audio_frame}
 
     fontfile = tk.StringVar(Objdef_windows)
@@ -280,6 +285,15 @@ def open_media_def_window(father,image_canvas,available_Text,used_variable_name,
     loop = tk.BooleanVar(Objdef_windows)
     volume = tk.IntVar()
     edge_color = tk.StringVar(Objdef_windows)
+    sub_key = tk.StringVar(Objdef_windows)
+    sub_Bubble = tk.StringVar(Objdef_windows)
+    sub_Anime = tk.StringVar(Objdef_windows)
+    sub_align = tk.StringVar(Objdef_windows)
+    sub_pos = tk.StringVar(Objdef_windows)
+    sub_end = tk.StringVar(Objdef_windows)
+    am_left = tk.IntVar(Objdef_windows)
+    am_right = tk.IntVar(Objdef_windows)
+    sub_distance = tk.IntVar(Objdef_windows)
     label_color = tk.StringVar(Objdef_windows)
     # 默认参数
     fontfile.set('./media/SourceHanSansCN-Regular.otf')
@@ -301,10 +315,19 @@ def open_media_def_window(father,image_canvas,available_Text,used_variable_name,
     loop.set(True)
     volume.set(100)
     edge_color.set('(255,255,255,255)')
-    label_color.set('Lavender')
     mt_end.set('(0,0)')
     ht_target.set('Name')
     fill_mode.set('stretch')
+    sub_key.set('Key1')
+    sub_Bubble.set('Bubble()')
+    sub_Anime.set('')
+    sub_align.set('')
+    sub_pos.set('(0,0)')
+    sub_end.set('(0,0)')
+    am_left.set('0')
+    am_right.set('0')
+    sub_distance.set('50')
+    label_color.set('Lavender')
     # 可用标签颜色
     available_label_color = {'Violet':'#a690e0','Iris':'#729acc','Caribbean':'#29d698','Lavender':'#e384e3',
                              'Cerulean':'#2fbfde','Forest':'#51b858','Rose':'#f76fa4','Mango':'#eda63b',
@@ -317,6 +340,7 @@ def open_media_def_window(father,image_canvas,available_Text,used_variable_name,
                             'Bubble':['filepath','Main_Text','Header_Text','pos','mt_pos','ht_pos','ht_target','align','line_distance','label_color'],
                             'Balloon':['filepath','Main_Text','Header_Text','pos','mt_pos','ht_pos','ht_target','align','line_distance','label_color'],
                             'DynamicBubble':['filepath','Main_Text','Header_Text','pos','mt_pos','mt_end','ht_pos','ht_target','fill_mode','line_distance','label_color'],
+                            'ChatWindow':['filepath','sub_key','sub_Bubble','sub_Anime','sub_align','pos','sub_pos','sub_end','am_left','am_right','sub_distance','label_color'],
                             'Background':['filepath','pos','label_color'],
                             'Animation':['filepath','pos','tick','loop','label_color'],
                             'Audio':['filepath','label_color'],
@@ -432,6 +456,8 @@ def open_media_def_window(father,image_canvas,available_Text,used_variable_name,
     # Balloon_frame
 
     # DynamicBubble_frame
+
+    # ChatWindow_frame
 
     # Background
     ttk.Label(Background_frame,text='背景文件').place(x=10,y=10,width=65,height=25)

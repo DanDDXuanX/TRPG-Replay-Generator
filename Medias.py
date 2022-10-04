@@ -288,7 +288,7 @@ class DynamicBubble(Bubble):
 
 # 聊天窗
 class ChatWindow(Bubble):
-    def __init__(self,filepath=None,sub_key=['Bubble()'],sub_Bubble=[Bubble()],sub_Anime=[],sub_align=[],pos=(0,0),sub_pos=(0,0),sub_end=(0,0),am_left=0,am_right=0,sub_distance=50,label_color='Lavender'):
+    def __init__(self,filepath=None,sub_key=['Key1'],sub_Bubble=[Bubble()],sub_Anime=[],sub_align=[],pos=(0,0),sub_pos=(0,0),sub_end=(0,0),am_left=0,am_right=0,sub_distance=50,label_color='Lavender'):
         # 检查子气泡和key是否是能匹配
         if len(sub_Bubble) != len(sub_key):
             raise MediaError('[31m[BubbleError]:[0m', 'length of sub-key and sub-bubble does not match!')
