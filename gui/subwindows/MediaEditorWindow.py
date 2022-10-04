@@ -45,6 +45,9 @@ class MediaEditorWindow(SubWindow):
         self.selected = 0
         self.edit_return_value = "" # 返回的文件路径
         self.available_text = ['None','Text()'] # 所有的可用文本名
+        self.available_pos = ['Pos()']
+        self.available_bubble = []
+        self.available_anime = []
         self.used_variable_name = [] # 已经被用户占用的命名
         self.media_lines = [] # 保存当前所有媒体行，用于筛选时避免丢失原有媒体。有used_variable_name的地方就有它
         self.occupied_variable_name = open('./media/occupied_variable_name.list','r',encoding='utf8').read().split('\n') # 已经被系统占用的变量名
@@ -172,6 +175,12 @@ class MediaEditorWindow(SubWindow):
 
                         if parseline[0][1] in ['Text','StrokeText']:
                             self.available_text.append(parseline[0][0])
+                        elif parseline[0][1] in ['Pos','FreePos']:
+                            self.available_pos.append(parseline[0][0])
+                        elif parseline[0][1] in ['Bubble','Balloon','DynamicBubble','ChatWindow']:
+                            self.available_bubble.append(parseline[0][0])
+                        elif parseline[0][1] == 'Animation':
+                            self.available_anime.append(parseline[0][0])
                     else:
                         warning_line.append(i+1)
                 
@@ -237,6 +246,9 @@ class MediaEditorWindow(SubWindow):
                     except NameError as E:
                         # 如果存在尚未实例化，获取尚未定义的变量名
                         err_name = get_medianame(E)
+                        # 如果存在循环调用，会导致死递归，需要提前打断
+                        if err_name == media_name:
+                            return NameError("Media object name '" + media_name + "' is not defined!")
                         # 递归调用
                         instantiation_return = self.instantiate_media_fromname(err_name)
                         # 如果递归调用遭遇未定义变量名，返回NameError
@@ -292,7 +304,12 @@ class MediaEditorWindow(SubWindow):
         except Exception:
             pass
         # new_obj = MediaDefWindow(self).open()
-        new_obj = open_media_def_window(father = self,image_canvas = self.image_canvas,available_Text= self.available_text,used_variable_name=self.used_variable_name)
+        new_obj = open_media_def_window(father = self,image_canvas = self.image_canvas,
+                                        available_Text= self.available_text,
+                                        available_Pos=self.available_pos,
+                                        available_Bubble=self.available_bubble,
+                                        available_Anime=self.available_anime,
+                                        used_variable_name=self.used_variable_name)
         try:
             self.attributes('-disabled',False)
         except Exception:
@@ -304,8 +321,14 @@ class MediaEditorWindow(SubWindow):
             self.media_lines.append(new_obj)
             self.mediainfo.insert('','end',values =new_obj) # 否则插入在最后
 
-            if new_obj[1] in ['Text','StrokeText']: # 如果新建了文本
+            if new_obj[1] in ['Text','StrokeText']:
                 self.available_text.append(new_obj[0])
+            elif new_obj[1] in ['Pos','FreePos']:
+                self.available_pos.append(new_obj[0])
+            elif new_obj[1] in ['Bubble','Balloon','DynamicBubble','ChatWindow']:
+                self.available_bubble.append(new_obj[0])
+            elif new_obj[1] == 'Animation':
+                self.available_anime.append(new_obj[0])
 
         self.sort_media()
     # 复制
@@ -324,8 +347,14 @@ class MediaEditorWindow(SubWindow):
             self.media_lines.append((new_name,self.selected_type,self.selected_args))
             self.mediainfo.insert('','end',values =(new_name,self.selected_type,self.selected_args)) # 否则插入到最后面
 
-            if self.selected_type in ['Text','StrokeText']: # 如果新建了文本
+            if self.selected_type in ['Text','StrokeText']:
                 self.available_text.append(new_name)
+            elif self.selected_type in ['Pos','FreePos']:
+                self.available_pos.append(new_name)
+            elif self.selected_type in ['Bubble','Balloon','DynamicBubble','ChatWindow']:
+                self.available_bubble.append(new_name)
+            elif self.selected_type == 'Animation':
+                self.available_anime.append(new_name)
 
         self.sort_media()
     # 编辑
@@ -341,7 +370,12 @@ class MediaEditorWindow(SubWindow):
                 self.attributes('-disabled',True)
             except Exception:
                 pass
-            new_obj = open_media_def_window(self,i_name=selected_name,i_type=selected_type,i_args=selected_args,image_canvas = self.image_canvas,available_Text= self.available_text,used_variable_name=self.used_variable_name)
+            new_obj = open_media_def_window(self,i_name=selected_name,i_type=selected_type,i_args=selected_args,image_canvas = self.image_canvas,
+                                            available_Text= self.available_text,
+                                            available_Pos=self.available_pos,
+                                            available_Bubble=self.available_bubble,
+                                            available_Anime=self.available_anime,
+                                            used_variable_name=self.used_variable_name,)
             try:
                 self.attributes('-disabled',False)
             except Exception:
@@ -362,9 +396,18 @@ class MediaEditorWindow(SubWindow):
                     print(E)
                 self.media_lines.append(new_obj)
 
-                if selected_type in ['Text','StrokeText']: # 如果编辑的对象是文本
+                if selected_type in ['Text','StrokeText']:
                     self.available_text.remove(selected_name)
                     self.available_text.append(new_obj[0])
+                elif selected_type in ['Pos','FreePos']:
+                    self.available_pos.remove(selected_name)
+                    self.available_pos.append(new_obj[0])
+                elif selected_type in ['Bubble','Balloon','DynamicBubble','ChatWindow']:
+                    self.available_bubble.remove(selected_name)
+                    self.available_bubble.append(new_obj[0])
+                elif selected_type == 'Animation':
+                    self.available_anime.remove(selected_name)
+                    self.available_anime.append(new_obj[0])
 
                 self.mediainfo.item(selected,values=new_obj)
                 selected_name,selected_type,selected_args = new_obj
@@ -382,8 +425,14 @@ class MediaEditorWindow(SubWindow):
             self.used_variable_name.remove(selected_name)
             self.media_lines.remove((selected_name,selected_type,selected_args))
 
-            if selected_type in ['Text','StrokeText']: # 如果删除了文本
+            if selected_type in ['Text','StrokeText']:
                 self.available_text.remove(selected_name)
+            elif selected_type in ['Pos','FreePos']:
+                self.available_pos.remove(selected_name)
+            elif selected_type in ['Bubble','Balloon','DynamicBubble','ChatWindow']:
+                self.available_bubble.remove(selected_name)
+            elif selected_type == 'Animation':
+                self.available_anime.remove(selected_name)
             selected = 0
             selected_name,selected_type,selected_args = 'None','None','None'
     # 完成
