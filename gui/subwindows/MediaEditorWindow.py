@@ -7,7 +7,7 @@ from PIL import Image, ImageTk
 
 from .Media import Animation, Background, Bubble, StrokeText, Text
 from .Media import Pos, FreePos, PosGrid
-from .Media import Balloon, DynamicBubble
+from .Media import Balloon, DynamicBubble, ChatWindow
 from .MediaDefWindow import open_media_def_window
 from .SubWindow import SubWindow
 
@@ -18,7 +18,7 @@ class MediaEditorWindow(SubWindow):
     """
     # 需要用到的正则表达式
     # RE_mediadef_args = re.compile('(fontfile|fontsize|color|line_limit|filepath|Main_Text|Header_Text|pos|end|x_step|y_step|mt_pos|ht_pos|align|line_distance|tick|loop|volume|edge_color|label_color)?\ {0,4}=?\ {0,4}(Text\(\)|[^,()]+|\([-\d,\ ]+\))')
-    RE_parse_mediadef = re.compile('(\w+)[=\ ]+(Pos|FreePos|PosGrid|Text|StrokeText|Bubble|Balloon|DynamicBubble|Animation|Background|BGM|Audio)(\(.*\))')
+    RE_parse_mediadef = re.compile('(\w+)[=\ ]+(Pos|FreePos|PosGrid|Text|StrokeText|Bubble|Balloon|DynamicBubble|ChatWindow|Animation|Background|BGM|Audio)(\(.*\))')
     RE_vaildname = re.compile('^\w+$')
     
     def __init__(self,master,Edit_filepath='',fig_W=960,fig_H=540,*args, **kwargs):
@@ -71,7 +71,7 @@ class MediaEditorWindow(SubWindow):
         # 筛选媒体下拉框
         self.media_type = tk.StringVar(self)
         ttk.Label(mediainfo_frame,text='筛选：').place(x=button_x(1),y=0,width=40,height=25)
-        choose_type = ttk.Combobox(mediainfo_frame,textvariable=self.media_type,value=['All','Pos','FreePos','PosGrid','Text','StrokeText','Bubble','Balloon','DynamicBubble','Background','Animation','BGM','Audio'])
+        choose_type = ttk.Combobox(mediainfo_frame,textvariable=self.media_type,value=['All','Pos','FreePos','PosGrid','Text','StrokeText','Bubble','Balloon','DynamicBubble','ChatWindow','Background','Animation','BGM','Audio'])
         choose_type.place(x=button_x(1)+40,y=0,width=button_w*2-40,height=25) # 我就随便找个位置先放着，等后来人调整布局（都是绝对坐标很难搞啊）
         choose_type.current(0)
         choose_type.bind("<<ComboboxSelected>>",self.filter_media)
@@ -255,7 +255,7 @@ class MediaEditorWindow(SubWindow):
         preview_canvas = self.preview_canvas
         # 预览前先将当前选中项写入变量
         self.treeview_click(event) 
-        if self.selected_type in ['Pos','FreePos','PosGrid','Text','StrokeText','Bubble','Balloon','DynamicBubble','Background','Animation']: # 执行
+        if self.selected_type in ['Pos','FreePos','PosGrid','Text','StrokeText','Bubble','Balloon','DynamicBubble','ChatWindow','Background','Animation']: # 执行
             try:
                 this_fade = round(self.preview_fade.get()*2.55)
                 if last_fade != this_fade:
@@ -442,9 +442,10 @@ class MediaEditorWindow(SubWindow):
             "Bubble":7,
             "Balloon":8,
             "DynamicBubble":9,
-            "Background":10,
-            "Audio":11, 
-            "BGM":12
+            "ChatWindow":10,
+            "Background":11,
+            "Audio":12, 
+            "BGM":13
         }
 
         self.media_lines.sort(key=lambda elem:priority[elem[1]])

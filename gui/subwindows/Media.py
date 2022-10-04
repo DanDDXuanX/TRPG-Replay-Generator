@@ -10,6 +10,135 @@ class Media:
     def __init__(self):
         pass
 
+# FreePos 相关
+class Pos(Media):
+    # 初始化
+    # 这种初始化模式更优雅，但是并不和GUI的逻辑兼容，重新考虑一下？
+    def __init__(self,*argpos):
+        if len(argpos) == 0:
+            self.x = 0
+            self.y = 0
+        elif len(argpos) == 1:
+            self.x = int(argpos[0])
+            self.y = int(argpos[0])
+        else:
+            self.x = int(argpos[0])
+            self.y = int(argpos[1])
+    # 重载取负号
+    def __neg__(self):
+        return Pos(-self.x,-self.y)
+    # 重载加法
+    def __add__(self,others):
+        if type(others) is Pos:
+            x = self.x + others.x
+            y = self.y + others.y
+            return Pos(x,y)
+        elif type(others) in [list,tuple]:
+            try:
+                x = self.x + int(others[0])
+                y = self.y + int(others[1])
+                return Pos(x,y)
+            except IndexError: # 列表数组长度不足
+                raise Exception()
+            except ValueError: # 列表数组不能解释为整数
+                raise Exception()
+        else: # 用来加的不是一个合理的类型
+            raise Exception()
+    # 重载减法
+    def __sub__(self,others):
+        return -(-self + others)
+    # 重载相等判断
+    def __eq__(self,others):
+        if type(others) is Pos:
+            return (self.x == others.x) and (self.y == others.y)
+        elif type(others) in [list,tuple]:
+            try:
+                return (self.x == int(others[0])) and (self.y == int(others[1]))
+            except IndexError: # 列表数组长度不足
+                return False
+            except ValueError: # 列表数组不能解释为整数
+                return False
+        else: # 用来判断的不是一个合理的类型
+            return False
+    def __str__(self):
+        return "({x},{y})".format(x=self.x,y=self.y)
+    def get(self):
+        return (self.x,self.y)
+    def preview(self,image_canvas):
+        p_x = self.x
+        p_y = self.y
+        draw = ImageDraw.Draw(image_canvas)
+        draw.line([p_x-100,p_y,p_x+100,p_y],fill='green',width=2)
+        draw.line([p_x,p_y-100,p_x,p_y+100],fill='green',width=2)
+        draw.text((p_x,p_y),'({0},{1})'.format(p_x,p_y),font=label_pos_show_text,fill='green')
+    def convert(self):
+        pass
+class FreePos(Pos):
+    # 重设位置
+    def set(self,others):
+        if type(others) in [Pos,FreePos]:
+            self.x = others.x
+            self.y = others.y
+        elif type(others) in [list,tuple]:
+            try:
+                self.x = int(others[0])
+                self.y = int(others[1])
+            except IndexError: # 列表数组长度不足
+                raise Exception('The length of tuple to set is insufficient.')
+            except ValueError: # 列表数组不能解释为整数
+                raise Exception('Invalid value type.')
+        else: # 设置的不是一个合理的类型
+            raise Exception('Unsuppoeted type to set!')
+class PosGrid:
+    def __init__(self,pos,end,x_step,y_step):
+        x1,y1 = pos
+        x2,y2 = end
+        if (x1>=x2) | (y1>=y2):
+            raise Exception('Invalid separate param end for posgrid!')
+        else:
+            self.pos = pos
+            self.end = end
+        X = []
+        Y = []
+        i = 0
+        for i in range(0,x_step):
+            X.append(int(x1+i*(x2-x1)/x_step))
+        for i in range(0,y_step):
+            Y.append(int(y1+i*(y2-y1)/y_step))
+        self._grid=[]
+        for x in X:
+            col = []
+            for y in Y:
+                col.append(Pos(x,y))
+            self._grid.append(col)
+        self._size = (x_step,y_step)
+    def __getitem__(self,key):
+        return self._grid[key[0]][key[1]]
+    def size(self):
+        return self._size
+    def preview(self,image_canvas):
+        draw = ImageDraw.Draw(image_canvas)
+        size = image_canvas.size
+        # 起点，
+        draw.line([0,self.pos[1],size[0],self.pos[1]],fill='purple',width=2)
+        draw.line([self.pos[0],0,self.pos[0],size[1]],fill='purple',width=2)
+        draw.text(self.pos,'({0},{1})'.format(*self.pos),font=label_pos_show_text,fill='purple')
+        # 终点
+        draw.line([0,self.end[1],size[0],self.end[1]],fill='purple',width=2)
+        draw.line([self.end[0],0,self.end[0],size[1]],fill='purple',width=2)
+        text_to_show = '({0},{1})'.format(*self.end)
+        draw.text((self.end[0]-len(text_to_show)*16,self.end[1]-40),text_to_show,font=label_pos_show_text,fill='purple')
+        # 网点
+        for i in range(self._size[0]): # x轴 
+            for j in range(self._size[1]): # y轴
+                pos_this = self._grid[i][j]
+                p_x = pos_this.x
+                p_y = pos_this.y
+                draw.line([p_x-20,p_y,p_x+20,p_y],fill='green',width=2)
+                draw.line([p_x,p_y-20,p_x,p_y+20],fill='green',width=2)
+    def convert(self):
+        pass
+
 class Text(Media):
     def __init__(self,fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0,0,255),line_limit=20,label_color='Lavender'):
         self.text_render = ImageFont.truetype(fontfile, fontsize)
@@ -270,6 +399,109 @@ class DynamicBubble(Bubble):
         image_canvas.paste(bubble_canvas,self.pos.get(),mask=bubble_canvas)
         self.pos.preview(image_canvas)
     
+class ChatWindow(Bubble):
+    def __init__(self,filepath=None,sub_key=['Key1'],sub_Bubble=[Bubble()],sub_Anime=[],sub_align=[],pos=(0,0),sub_pos=(0,0),sub_end=(0,0),am_left=0,am_right=0,sub_distance=50,label_color='Lavender'):
+        if len(sub_Bubble) != len(sub_key):
+            raise Exception('length of sub-key and sub-bubble does not match!')
+        # 空白底图
+        if filepath is None or filepath == 'None':
+            self.media = None
+            self.size = (1920,1080)
+        else:
+            self.media = Image.open(filepath).convert('RGBA')
+            self.size = self.media.size
+        # 位置
+        if type(pos) in [Pos,FreePos]:
+            self.pos = pos
+        else:
+            self.pos = Pos(*pos)
+        # 子气泡和对齐
+        self.sub_Bubble = {}
+        self.sub_Anime = {}
+        self.sub_align = {}
+        for i,key in enumerate(sub_key):
+            # 检查气泡是否是 Ballon
+            if type(sub_Bubble[i]) is Balloon:
+                raise Exception('Ballon object "'+key+'" is not supported to be set as a sub-bubble of ChatWindow!')
+            self.sub_Bubble[key] = sub_Bubble[i]
+            # 载入对齐，默认是左对齐
+            try:
+                if sub_align[i] in ['left','right']:
+                    self.sub_align[key] = sub_align[i]
+                else:
+                    raise Exception('Unsupported align: '+sub_align[i])
+            except IndexError:
+                self.sub_align[key] = 'left'
+            # 载入子立绘，默认是None
+            try:
+                self.sub_Anime[key] = sub_Anime[i]
+            except IndexError:
+                self.sub_Anime[key] = None
+        # 子气泡尺寸
+        if (sub_pos[0] >= sub_end[0]) | (sub_pos[1] >= sub_end[1]):
+            raise Exception('Invalid bubble separate params sub_end!')
+        else:
+            self.sub_size = (sub_end[0]-sub_pos[0],sub_end[1]-sub_pos[1])
+            self.sub_pos = sub_pos
+        # 立绘对齐位置
+        if am_left >= am_right:
+            raise Exception('Invalid bubble separate params am_right!')
+        else:
+            self.am_left = am_left
+            self.am_right = am_right
+        # 子气泡间隔
+        self.sub_distance = sub_distance
+    def draw(self,show_marker=True):
+        # 主容器
+        bubble_canvas = self.media.copy()
+        draw = ImageDraw.Draw(bubble_canvas)
+        # 子气泡容器
+        sub_canvas = Image.new(mode='RGBA',size=self.sub_size,color=(0,0,0,0))
+        # 子立绘容器
+        am_canvas = Image.new(mode='RGBA',size=(self.am_right-self.am_left,self.sub_size[1]),color=(0,0,0,0))
+        # 渲染子气泡
+        y_bottom = self.sub_size[1] # 当前句子的可用y底部
+        for key_this in self.sub_Bubble.keys():
+            subbubble_canvas = self.sub_Bubble[key_this].draw(lines=1,show_marker=False)
+            subbubble_size = subbubble_canvas.size
+            if self.sub_align[key_this] == 'left':
+                sub_canvas.paste(subbubble_canvas,(0,y_bottom-subbubble_size[1]))
+                if self.sub_Anime[key_this] is not None:
+                    am_canvas.paste(self.sub_Anime[key_this].media,(0,y_bottom-subbubble_size[1]))
+            else:
+                sub_canvas.paste(subbubble_canvas,(self.sub_size[0]-subbubble_size[0],y_bottom-subbubble_size[1]))
+                if self.sub_Anime[key_this] is not None:
+                    am_canvas.paste(self.sub_Anime[key_this].media,(self.am_right-self.am_left-self.sub_Anime[key_this].size[0],y_bottom-subbubble_size[1]))
+            y_bottom = y_bottom - subbubble_size[1] - self.sub_distance
+            if y_bottom < 0:
+                break
+        bubble_canvas.paste(sub_canvas,self.sub_pos,mask=sub_canvas)
+        bubble_canvas.paste(am_canvas,(self.am_left,self.sub_pos[1]),mask=am_canvas)
+        # 显示标记
+        if show_marker:
+            # 可变气泡分割显示：
+            size = self.size
+            # 起点，
+            draw.line([0,self.sub_pos[1],size[0],self.sub_pos[1]],fill='purple',width=2)
+            draw.line([self.sub_pos[0],0,self.sub_pos[0],size[1]],fill='purple',width=2)
+            draw.text(self.sub_pos,'({0},{1})'.format(*self.sub_pos),font=label_pos_show_text,fill='purple')
+            # 终点
+            end_x = self.sub_pos[0] + self.sub_size[0]
+            end_y = self.sub_pos[1] + self.sub_size[1]
+            draw.line([0,end_y,size[0],end_y],fill='purple',width=2)
+            draw.line([end_x,0,end_x,size[1]],fill='purple',width=2)
+            text_to_show = '({0},{1})'.format(end_x,end_y)
+            draw.text((end_x-len(text_to_show)*16,end_y-40),text_to_show,font=label_pos_show_text,fill='purple')
+            # 立绘边界
+            draw.line([self.am_left,0,self.am_left,size[1]],fill='red',width=2)
+            draw.line([self.am_right,0,self.am_right,size[1]],fill='red',width=2)
+            # 左侧标记
+            draw.text((self.am_left,self.sub_pos[1]-40),'({0},{1})'.format(self.am_left,self.sub_pos[1]),font=label_pos_show_text,fill='red')
+            # 右侧标记
+            text_to_show = '({0},{1})'.format(self.am_right,end_y)
+            draw.text((self.am_right-len(text_to_show)*16,end_y),text_to_show,font=label_pos_show_text,fill='red')
+        return bubble_canvas
+
 class Background(Media):
     cmap = {'black':(0,0,0,255),'white':(255,255,255,255),'greenscreen':(0,177,64,255)}
     def __init__(self,filepath,pos = (0,0),label_color='Lavender'):
@@ -301,6 +533,7 @@ class Animation(Media):
             self.pos = pos
         else:
             self.pos = Pos(*pos)
+        self.size = self.media.size
         self.loop = loop
         self.this = 0
         self.tick = tick
@@ -317,132 +550,3 @@ class Animation(Media):
 
 # class GroupedAnimation(Animation)
 # GroupedAnimation 更多的情况还是作为BIA在使用，还是不要开放给媒体定义文件用了。
-
-# FreePos 相关
-class Pos(Media):
-    # 初始化
-    # 这种初始化模式更优雅，但是并不和GUI的逻辑兼容，重新考虑一下？
-    def __init__(self,*argpos):
-        if len(argpos) == 0:
-            self.x = 0
-            self.y = 0
-        elif len(argpos) == 1:
-            self.x = int(argpos[0])
-            self.y = int(argpos[0])
-        else:
-            self.x = int(argpos[0])
-            self.y = int(argpos[1])
-    # 重载取负号
-    def __neg__(self):
-        return Pos(-self.x,-self.y)
-    # 重载加法
-    def __add__(self,others):
-        if type(others) is Pos:
-            x = self.x + others.x
-            y = self.y + others.y
-            return Pos(x,y)
-        elif type(others) in [list,tuple]:
-            try:
-                x = self.x + int(others[0])
-                y = self.y + int(others[1])
-                return Pos(x,y)
-            except IndexError: # 列表数组长度不足
-                raise Exception()
-            except ValueError: # 列表数组不能解释为整数
-                raise Exception()
-        else: # 用来加的不是一个合理的类型
-            raise Exception()
-    # 重载减法
-    def __sub__(self,others):
-        return -(-self + others)
-    # 重载相等判断
-    def __eq__(self,others):
-        if type(others) is Pos:
-            return (self.x == others.x) and (self.y == others.y)
-        elif type(others) in [list,tuple]:
-            try:
-                return (self.x == int(others[0])) and (self.y == int(others[1]))
-            except IndexError: # 列表数组长度不足
-                return False
-            except ValueError: # 列表数组不能解释为整数
-                return False
-        else: # 用来判断的不是一个合理的类型
-            return False
-    def __str__(self):
-        return "({x},{y})".format(x=self.x,y=self.y)
-    def get(self):
-        return (self.x,self.y)
-    def preview(self,image_canvas):
-        p_x = self.x
-        p_y = self.y
-        draw = ImageDraw.Draw(image_canvas)
-        draw.line([p_x-100,p_y,p_x+100,p_y],fill='green',width=2)
-        draw.line([p_x,p_y-100,p_x,p_y+100],fill='green',width=2)
-        draw.text((p_x,p_y),'({0},{1})'.format(p_x,p_y),font=label_pos_show_text,fill='green')
-    def convert(self):
-        pass
-class FreePos(Pos):
-    # 重设位置
-    def set(self,others):
-        if type(others) in [Pos,FreePos]:
-            self.x = others.x
-            self.y = others.y
-        elif type(others) in [list,tuple]:
-            try:
-                self.x = int(others[0])
-                self.y = int(others[1])
-            except IndexError: # 列表数组长度不足
-                raise Exception('The length of tuple to set is insufficient.')
-            except ValueError: # 列表数组不能解释为整数
-                raise Exception('Invalid value type.')
-        else: # 设置的不是一个合理的类型
-            raise Exception('Unsuppoeted type to set!')
-class PosGrid:
-    def __init__(self,pos,end,x_step,y_step):
-        x1,y1 = pos
-        x2,y2 = end
-        if (x1>=x2) | (y1>=y2):
-            raise Exception('Invalid separate param end for posgrid!')
-        else:
-            self.pos = pos
-            self.end = end
-        X = []
-        Y = []
-        i = 0
-        for i in range(0,x_step):
-            X.append(int(x1+i*(x2-x1)/x_step))
-        for i in range(0,y_step):
-            Y.append(int(y1+i*(y2-y1)/y_step))
-        self._grid=[]
-        for x in X:
-            col = []
-            for y in Y:
-                col.append(Pos(x,y))
-            self._grid.append(col)
-        self._size = (x_step,y_step)
-    def __getitem__(self,key):
-        return self._grid[key[0]][key[1]]
-    def size(self):
-        return self._size
-    def preview(self,image_canvas):
-        draw = ImageDraw.Draw(image_canvas)
-        size = image_canvas.size
-        # 起点，
-        draw.line([0,self.pos[1],size[0],self.pos[1]],fill='purple',width=2)
-        draw.line([self.pos[0],0,self.pos[0],size[1]],fill='purple',width=2)
-        draw.text(self.pos,'({0},{1})'.format(*self.pos),font=label_pos_show_text,fill='purple')
-        # 终点
-        draw.line([0,self.end[1],size[0],self.end[1]],fill='purple',width=2)
-        draw.line([self.end[0],0,self.end[0],size[1]],fill='purple',width=2)
-        text_to_show = '({0},{1})'.format(*self.end)
-        draw.text((self.end[0]-len(text_to_show)*16,self.end[1]-40),text_to_show,font=label_pos_show_text,fill='purple')
-        # 网点
-        for i in range(self._size[0]): # x轴 
-            for j in range(self._size[1]): # y轴
-                pos_this = self._grid[i][j]
-                p_x = pos_this.x
-                p_y = pos_this.y
-                draw.line([p_x-20,p_y,p_x+20,p_y],fill='green',width=2)
-                draw.line([p_x,p_y-20,p_x,p_y+20],fill='green',width=2)
-    def convert(self):
-        pass
