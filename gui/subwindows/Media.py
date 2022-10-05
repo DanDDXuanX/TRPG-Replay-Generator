@@ -353,6 +353,7 @@ class DynamicBubble(Bubble):
                         bubble_canvas.paste(collage_canvas,bubble_clip_pos[i])
         # 主文本
         bubble_canvas.paste(text_canvas,self.mt_pos,mask=text_canvas)
+        draw = ImageDraw.Draw(bubble_canvas)
         # 头文本
         if self.Header!=None:    # Header 有定义，且输入文本不为空
             if self.ht_pos[0] > self.x_tick[2]:
@@ -374,7 +375,6 @@ class DynamicBubble(Bubble):
             # 头文本标记
         if show_marker:
             # 可变气泡分割显示：
-            draw = ImageDraw.Draw(bubble_canvas)
             size = bubble_canvas.size
             # 起点，
             draw.line([0,self.mt_pos[1],size[0],self.mt_pos[1]],fill='purple',width=2)
@@ -405,7 +405,7 @@ class ChatWindow(Bubble):
             raise Exception('length of sub-key and sub-bubble does not match!')
         # 空白底图
         if filepath is None or filepath == 'None':
-            self.media = None
+            self.media = Image.new('RGBA',(1920,1080),(0,0,0,0))
             self.size = (1920,1080)
         else:
             self.media = Image.open(filepath).convert('RGBA')
