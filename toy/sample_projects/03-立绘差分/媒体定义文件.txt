@@ -1,0 +1,7 @@
+PC1 = Animation(filepath='F:/Project/TRPG/TRPG-Replay-Generator/toy/media/am1.png',pos=(1386,480),tick=1,loop=True,label_color='Lavender')
+PC1_scared = Animation(filepath='F:/Project/TRPG/TRPG-Replay-Generator/toy/media/am2.png',pos=(1386,480),tick=1,loop=True,label_color='Lavender')
+PC2 = Animation(filepath='F:/Project/TRPG/TRPG-Replay-Generator/toy/media/am3.png',pos=(4,514),tick=1,loop=True,label_color='Lavender')
+气泡 = Bubble(filepath='./toy/media/bubble1.png',Main_Text=Text(),Header_Text=None,pos=(300,330),mt_pos=(180,100),ht_pos=(0,0),ht_target='Name',align='left',line_distance=1.5,label_color='Lavender')
+气泡2 = Bubble(filepath='./toy/media/bubble1.png',Main_Text=Text(),Header_Text=Text(),pos=(300,330),mt_pos=(180,100),ht_pos=(500,14),ht_target='Name',align='left',line_distance=1.5,label_color='Lavender')
+背景1 = Background(filepath='F:/Project/TRPG/TRPG-Replay-Generator/toy/media/bg1.jpg',pos=(0,0),label_color='Lavender')
+背景2 = Background(filepath='F:/Project/TRPG/TRPG-Replay-Generator/toy/media/bg2.jpg',pos=(0,0),label_color='Lavender')
