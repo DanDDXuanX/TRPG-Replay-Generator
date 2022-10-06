@@ -1,5 +1,5 @@
 # 位置
-pos_bubble_left = Pos(*(68,672))
+pos_bubble_left = Pos(68,672)
 pos_bubble_right = Pos(536,672)
 PG = PosGrid(pos=(0,0),end=(1920,1080),x_step=10,y_step=10)
 pos_zhang = FreePos()

@@ -17,6 +17,15 @@ class MainFrame(AppFrame):
         self.place(x=10,y=50)
         self.create_widgets()
 
+    def call_browse_file(self, text_obj, method='file', filetype=None):
+        # 这个是部件是仅限 MainFrame 的
+        getname =  super().call_browse_file(text_obj, method, filetype)
+        if text_obj == self.app.media_define:
+            if os.path.isfile(getname):
+                self.new_or_edit.config(text='编辑')
+            else:
+                self.new_or_edit.config(text='新建')
+
     def create_widgets(self):
         """创建组件"""
         # main_frame
@@ -34,9 +43,9 @@ class MainFrame(AppFrame):
         tk.Entry(filepath, textvariable=self.app.output_path).place(x=80,y=140+3,width=430,height=25)
         self.new_or_edit = tk.Button(filepath, command=self.app.call_media_editor_window,text="新建")
         self.new_or_edit.place(x=555,y=5,width=35,height=30)
-        tk.Button(filepath, command=lambda:self.call_browse_file(self.app.media_define),text="浏览").place(x=520,y=5,width=35,height=30)
-        tk.Button(filepath, command=lambda:self.call_browse_file(self.app.characor_table),text="浏览").place(x=520,y=50,width=70,height=30)
-        tk.Button(filepath, command=lambda:self.call_browse_file(self.app.stdin_logfile),text="浏览").place(x=520,y=95,width=70,height=30)
+        tk.Button(filepath, command=lambda:self.call_browse_file(self.app.media_define,'file',filetype='mediadef'),text="浏览").place(x=520,y=5,width=35,height=30)
+        tk.Button(filepath, command=lambda:self.call_browse_file(self.app.characor_table,'file',filetype='chartab'),text="浏览").place(x=520,y=50,width=70,height=30)
+        tk.Button(filepath, command=lambda:self.call_browse_file(self.app.stdin_logfile,'file',filetype='logfile'),text="浏览").place(x=520,y=95,width=70,height=30)
         tk.Button(filepath, command=lambda:self.call_browse_file(self.app.output_path,'path'),text="浏览").place(x=520,y=140,width=70,height=30)
 
 

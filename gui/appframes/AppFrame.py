@@ -13,16 +13,12 @@ class AppFrame(tk.Frame):
         super().__init__(master,*args, **kwargs)
         self.app = app
         
-    def call_browse_file(self,text_obj,method='file'):
+    def call_browse_file(self,text_obj,method='file',filetype=None):
         """
         浏览文件，并根据媒体文件路径确定媒体定义文件路径框旁边的按钮显示“编辑”还是“新建”
         """
-        getname = browse_file(text_obj,method)
-        if text_obj == self.app.media_define:
-            if os.path.isfile(getname):
-                self.new_or_edit.config(text='编辑')
-            else:
-                self.new_or_edit.config(text='新建')
+        getname = browse_file(text_obj,method,filetype)
+        return getname
 
     def highlight(self,target):
         """

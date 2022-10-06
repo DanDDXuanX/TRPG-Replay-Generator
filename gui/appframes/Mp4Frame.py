@@ -30,9 +30,9 @@ class Mp4Frame(AppFrame):
         tk.Entry(filepath_v, textvariable=self.app.characor_table,state=tk.DISABLED).place(x=80,y=50+3,width=430,height=25)
         tk.Entry(filepath_v, textvariable=self.app.timeline_file).place(x=80,y=95+3,width=430,height=25)
         tk.Entry(filepath_v, textvariable=self.app.output_path).place(x=80,y=140+3,width=430,height=25)
-        tk.Button(filepath_v, command=lambda:self.call_browse_file(self.app.media_define),text="浏览").place(x=520,y=5,width=70,height=30)
-        tk.Button(filepath_v, command=lambda:self.call_browse_file(self.app.characor_table),text="浏览",state=tk.DISABLED).place(x=520,y=50,width=70,height=30)
-        tk.Button(filepath_v, command=lambda:self.call_browse_file(self.app.timeline_file),text="浏览").place(x=520,y=95,width=70,height=30)
+        tk.Button(filepath_v, command=lambda:self.call_browse_file(self.app.media_define,'file','mediadef'),text="浏览").place(x=520,y=5,width=70,height=30)
+        tk.Button(filepath_v, command=lambda:self.call_browse_file(self.app.characor_table,'file','chartab'),text="浏览",state=tk.DISABLED).place(x=520,y=50,width=70,height=30)
+        tk.Button(filepath_v, command=lambda:self.call_browse_file(self.app.timeline_file,'file','timeline'),text="浏览").place(x=520,y=95,width=70,height=30)
         tk.Button(filepath_v, command=lambda:self.call_browse_file(self.app.output_path,'path'),text="浏览").place(x=520,y=140,width=70,height=30)
 
         optional_v = tk.LabelFrame(self,text='选项')

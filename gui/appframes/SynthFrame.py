@@ -30,9 +30,9 @@ class SynthFrame(AppFrame):
         tk.Entry(filepath_s, textvariable=self.app.characor_table).place(x=80,y=50+3,width=430,height=25)
         tk.Entry(filepath_s, textvariable=self.app.stdin_logfile).place(x=80,y=95+3,width=430,height=25)
         tk.Entry(filepath_s, textvariable=self.app.output_path).place(x=80,y=140+3,width=430,height=25)
-        tk.Button(filepath_s, command=lambda:self.call_browse_file(self.app.media_define),text="浏览").place(x=520,y=5,width=70,height=30)
-        tk.Button(filepath_s, command=lambda:self.call_browse_file(self.app.characor_table),text="浏览").place(x=520,y=50,width=70,height=30)
-        tk.Button(filepath_s, command=lambda:self.call_browse_file(self.app.stdin_logfile),text="浏览").place(x=520,y=95,width=70,height=30)
+        tk.Button(filepath_s, command=lambda:self.call_browse_file(self.app.media_define,'file',filetype='mediadef'),text="浏览").place(x=520,y=5,width=70,height=30)
+        tk.Button(filepath_s, command=lambda:self.call_browse_file(self.app.characor_table,'file',filetype='chartab'),text="浏览").place(x=520,y=50,width=70,height=30)
+        tk.Button(filepath_s, command=lambda:self.call_browse_file(self.app.stdin_logfile,'file',filetype='logfile'),text="浏览").place(x=520,y=95,width=70,height=30)
         tk.Button(filepath_s, command=lambda:self.call_browse_file(self.app.output_path,'path'),text="浏览").place(x=520,y=140,width=70,height=30)
 
         # 选项
