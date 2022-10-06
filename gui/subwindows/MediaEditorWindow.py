@@ -507,7 +507,9 @@ class MediaEditorWindow(SubWindow):
         self.update_treeview(result_list)
     # 批量载入媒体
     def import_media(self):
+        self.disable(True)
         path = filedialog.askdirectory()
+        self.disable(False)
         media_parameter_dict = {
             "Bubble":"(filepath='{}',Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),ht_pos=(0,0),align='left',line_distance=1.5)",
             "Background":"(filepath='{}',pos=(0,0))",
