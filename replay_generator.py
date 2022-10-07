@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
+from ast import In
 from Utils import EDITION
 
 # 外部参数输入
@@ -462,10 +463,17 @@ def parser(stdin_text):
                                 this_bb = this_bb.split(':')[0]
                                 # 聊天窗类的target采用子气泡的target
                                 bubble_obj = eval(this_bb)
-                                targets = bubble_obj.sub_Bubble[chatwindow_key].target
+                                try:
+                                    targets = bubble_obj.sub_Bubble[chatwindow_key].target
+                                except KeyError as E: # 指定的Key不存在！
+                                    raise ParserError('[31m[ParserError]:[0m','Key \''+chatwindow_key+'\' specified to ChatWindow object \''+this_bb+'\' is not exist!')
                             else:
                                 bubble_obj = eval(this_bb)
-                                targets = bubble_obj.target
+                                if type(bubble_obj) is ChatWindow:
+                                    # targets = bubble_obj.target ; AttributeError: 'ChatWindow' object has no attribute 'target'
+                                    raise ParserError('[31m[ParserError]:[0m','ChatWindow object \''+this_bb+'\' can not be used independently without a specified key!')
+                                else:
+                                    targets = bubble_obj.target
                             # Bubble,DynamicBubble类：只有一个头文本
                             if type(bubble_obj) in [Bubble,DynamicBubble]:
                                 target_text = this_char_series[targets]

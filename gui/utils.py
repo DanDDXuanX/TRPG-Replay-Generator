@@ -3,6 +3,7 @@
 """
 from tkinter import colorchooser, filedialog, messagebox
 
+EDITION = '1.15.10'
 
 def browse_file(text_obj, method='file',filetype=None):
     """
@@ -10,7 +11,7 @@ def browse_file(text_obj, method='file',filetype=None):
     """
     filetype_dic = {
         'logfile':[('log文件',('*.rgl','*.txt')),('全部文件','*.*')],
-        'chartab':[('角色配置表',('*.tsv','*.xlsx','*.txt')),('全部文件','*.*')],
+        'chartab':[('角色配置表',('*.tsv','*.csv','*.xlsx','*.txt')),('全部文件','*.*')],
         'mediadef':[('媒体定义文件',('*.txt','*.py')),('全部文件','*.*')],
         'picture':[('图片文件',('*.png','*.jpg','*.jpeg','*.bmp')),('全部文件','*.*')],
         'soundeff':[('音效文件','*.wav'),('全部文件','*.*')],

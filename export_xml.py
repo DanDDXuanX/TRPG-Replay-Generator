@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # coding: utf-8
-from codecs import utf_16_be_decode
 from Utils import EDITION
 
 # 外部参数输入
@@ -289,8 +288,10 @@ class Balloon(Bubble):
 class DynamicBubble(Bubble):
     def __init__(self,filepath=None,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),mt_end=(0,0),ht_pos=(0,0),ht_target='Name',fill_mode='stretch',line_distance=1.5,label_color='Lavender'):
         super().__init__(filepath=filepath,Main_Text=Main_Text,Header_Text=Header_Text,pos=pos,mt_pos=mt_pos,ht_pos=ht_pos,ht_target=ht_target,line_distance=line_distance,label_color=label_color)
-        if (mt_pos[0] >= mt_end[0]) | (mt_pos[1] >= mt_end[1]):
+        if (mt_pos[0] >= mt_end[0]) | (mt_pos[1] >= mt_end[1]) | (mt_end[0] > self.size[0]) | (mt_end[1] > self.size[1]):
             raise MediaError('[31m[BubbleError]:[0m', 'Invalid bubble separate params mt_end!')
+        elif (mt_pos[0] < 0) | (mt_pos[1] < 0):
+            raise MediaError('[31m[BubbleError]:[0m', 'Invalid bubble separate params mt_pos!')
         else:
             self.mt_end = mt_end
         # fill_mode 只能是 stretch 或者 collage
@@ -439,7 +440,7 @@ class DynamicBubble(Bubble):
             self.PRpos = PR_center_arg(np.array(temp_size),np.array(Pos(*eval(center)).get()))
         pr_horiz,pr_vert = self.PRpos
         # 生成序列
-        if bubble_ofile is None:
+        if bubble_canvas is None:
             clip_bubble = None
             # print('Render empty Bubble!')
         else:

@@ -176,8 +176,10 @@ class DynamicBubble(Bubble):
     def __init__(self,filepath=None,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),mt_end=(0,0),ht_pos=(0,0),ht_target='Name',fill_mode='stretch',line_distance=1.5,label_color='Lavender'):
         # align 只能为left
         super().__init__(filepath=filepath,Main_Text=Main_Text,Header_Text=Header_Text,pos=pos,mt_pos=mt_pos,ht_pos=ht_pos,ht_target=ht_target,line_distance=line_distance,label_color=label_color)
-        if (mt_pos[0] >= mt_end[0]) | (mt_pos[1] >= mt_end[1]):
+        if (mt_pos[0] >= mt_end[0]) | (mt_pos[1] >= mt_end[1]) | (mt_end[0] > self.media.get_size()[0]) | (mt_end[1] > self.media.get_size()[1]):
             raise MediaError('[31m[BubbleError]:[0m', 'Invalid bubble separate params mt_end!')
+        elif (mt_pos[0] < 0) | (mt_pos[1] < 0):
+            raise MediaError('[31m[BubbleError]:[0m', 'Invalid bubble separate params mt_pos!')
         else:
             self.mt_end = mt_end
         # fill_mode 只能是 stretch 或者 collage
@@ -327,8 +329,11 @@ class ChatWindow(Bubble):
                     self.sub_Anime[key] = sub_Anime[i]
                 else:
                     raise MediaError('[31m[BubbleError]:[0m', 'Dynamic Animations is not supported as sub-animations for ChatWindow!')
-            except IndexError:
+            except (IndexError,AttributeError):
+                # IndexError: sub_Anime[i] list index out of range\
+                # AttributeError: 'NoneType' object (sub_Anime[i]) has no attribute 'length'
                 self.sub_Anime[key] = None
+
         # 子气泡尺寸
         if (sub_pos[0] >= sub_end[0]) | (sub_pos[1] >= sub_end[1]):
             raise MediaError('[31m[BubbleError]:[0m', 'Invalid bubble separate params sub_end!')
