@@ -71,7 +71,7 @@ python ./replay_generator.py -l ./toy/LogFile.rgl -d ./toy/MediaObject.txt -t ./
 ```
 4. 进入程序后，按空格键（SPACE）开始播放；播放的过程中，按A键或左方向键跳转到前一小节，D键或右方向键跳转到后一小节，按空格暂停播放，按F5键或I键展示详细信息，按F11键或P键将画面缩放至50%，按ESC键终止播放并退出。
 
-# 参考文档（文档版本 alpha 1.12.6）
+# 参考文档（文档版本 alpha 1.15.11）
 
 ## 输入文件格式
 
@@ -84,7 +84,41 @@ python ./replay_generator.py -l ./toy/LogFile.rgl -d ./toy/MediaObject.txt -t ./
 
 ![媒体定义的示意图](./doc/media_def.png)
 
-1.	**文本、描边文本 Text、StrokeText**
+1.	**位置、自由位置 Pos、FreePos**
+```python 
+Pos(0,0)
+FreePos(0,0)
+```
+
+- 位置和自由位置类指各个媒体对象在整个画面上的位置，可以作为其他媒体的 `pos` 参数使用。
+- 需要2个整数来定义一个Pos类。
+- Pos对象定义之后，位置将固定不变。
+- FreePos类可以在log文件中使用 `<set>` 命令重新调整位置。
+
+> 注意：当FreePos对象的位置被调整后，所有引用了FreePos对象的其他媒体的位置也将一同变动。
+
+2.	**位置网格 PosGrid**
+```python
+PosGrid(pos,end,x_step,y_step)
+```
+
+- 网格位置是？？？（我也不知道怎么描述网格位置比较好）
+- `pos`	必要参数，设置网格在屏幕上的起始位置，是一个2整数元素的元组，对应 (X,Y)；
+- `end`	必要参数，设置网格在屏幕上的终止位置，是一个2整数元素的元组，对应 (X,Y)；终止位置必须位于起始位置的右下方；
+- `x_step`	必要参数，设置网格在x轴方向的格数，合理的参数是大于0的整数；
+- `y_step`	必要参数，设置网格在y轴方向的格数，合理的参数是大于0的整数；
+- 使用 `位置网格对象[x序号,y序号]` 的格式来访问位置网格中的各个位置。
+
+例子：
+```python
+位置网格对象[0,0]
+位置网格对象[3,5]
+位置网格对象[-1,-2]
+```
+
+> 注意：由于其他媒体对象可能需要引用位置对象，因此，位置类对象在媒体定义文件中的位置必须在其他媒体对象的定义之前！。
+
+3.	**文本、描边文本 Text、StrokeText**
 ```python 
 Text(fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0,0,255),line_limit=20,label_color='Lavender')
 StrokeText(fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0,0,255),line_limit=20,edge_color=(255,255,255,255),label_color='Lavender')
@@ -100,42 +134,113 @@ StrokeText(fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0
 
 > 注意：由于气泡对象需要引用文本对象，因此，文本对象在媒体定义文件中的位置必须在气泡对象的定义之前！。
 
-2.	**气泡 Bubble**
+4.	**气泡 Bubble**
 ```python
-Bubble(filepath=None,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),ht_pos=(0,0),align='left',line_distance=1.5,label_color='Lavender')
+Bubble(filepath=None,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),ht_pos=(0,0),ht_target='Name',align='left',line_distance=1.5,label_color='Lavender')
 ```
 
 - 气泡是一个文本框，在角色发言时显示，包含了主文本、头文本、底图三个组成部分。
 - `filepath`	可选参数，指定一个图片文件的路径；或者指定为None，表示不需要底图；默认值为None；
 - `Main_Text`	可选参数，为主文本指定一个 `Text`或者`StrokeText` 类的变量；主文本对应 *log文件* 中的 *发言文本*；默认值是默认参数的Text对象，不可以设置为None；
-- `Header_Text`	可选参数，为头文本指定一个 `Text`或者`StrokeText` 类的变量；头文本对应发言者的角色名；默认为None，既无头文本；
-- `pos`	可选参数，设置气泡在屏幕上的位置，是一个2元素的元组，对应 (X,Y)；默认为 (0,0)，即左上角；
-- `mt_pos`	可选参数，设置主文本相对于气泡底图的位置，是一个2元素的元组，对应 (X,Y)；默认为 (0,0)，即左上角；
-- `ht_pos`	可选参数，设置头文本相对于气泡底图的位置，是一个2元素的元组，对应 (X,Y)；默认为 (0,0)，即左上角；
+- `Header_Text`	可选参数，为头文本指定一个 `Text`或者`StrokeText` 类的变量；头文本显示角色表中指定的一列；默认为None，既无头文本；
+- `pos`	可选参数，设置气泡在屏幕上的位置，是一个2整数元素的元组，对应 (X,Y)，或者一个`Pos`或`FreePos`对象；默认为 `(0,0)`，即左上角；
+- `mt_pos`	可选参数，设置主文本相对于气泡底图的位置，是一个2整数元素的元组，对应 (X,Y)；默认为 `(0,0)`，即左上角；
+- `ht_pos`	可选参数，设置头文本相对于气泡底图的位置，是一个2整数元素的元组，对应 (X,Y)；默认为 `(0,0)`，即左上角；
+- `ht_target`	可选参数，设置头文本将从角色表中的哪一列获取显示的文本；合理的参数应为角色表的列名之一；默认值为 `"Name"`，即角色名；
 - `align`	可选参数，设置主文本的对齐模式，可选项有`"left"`、`"center"`，分别对应左侧对齐和居中对齐；默认为左侧对齐；
 - `line_distance`	可选参数，设置了多行显示时的行距，默认值为1.5倍行距。
 - `label_color`	可选参数，设置气泡底图在PR中显示的标签颜色，参考[可用颜色列表](./doc/XML_available_label_color.md)；默认值是淡紫色。
 
-3.	**背景 Background**
+5.	**气球 Balloon**
+```python
+Balloon(filepath=None,Main_Text=Text(),Header_Text=[None],pos=(0,0),mt_pos=(0,0),ht_pos=[(0,0)],ht_target=['Name'],align='left',line_distance=1.5,label_color='Lavender')
+```
+
+- 气球是一个气泡的子类，意为更大更强的气泡；和气泡相比，气球允许指定多个头文本并显示不同的内容。
+- `filepath`	可选参数，指定一个图片文件的路径；或者指定为None，表示不需要底图；默认值为None；
+- `Main_Text`	可选参数，为主文本指定一个 `Text`或者`StrokeText` 类的变量；主文本对应 *log文件* 中的 *发言文本*；默认值是默认参数的Text对象，不可以设置为None；
+- `Header_Text`	可选参数，使用一个包含 **若干个 `Text`或者`StrokeText` 类的变量的列表** ，配置若干个头文本；默认为`[None]`，既无头文本；
+- `pos`	可选参数，设置气泡在屏幕上的位置，是一个2整数元素的元组，对应 (X,Y)，或者一个`Pos`或`FreePos`对象；默认为 `(0,0)`，即左上角；
+- `mt_pos`	可选参数，设置主文本相对于气泡底图的位置，是一个2整数元素的元组，对应 (X,Y)；默认为 `(0,0)`，即左上角；
+- `ht_pos`	可选参数，设置 **各个头文本** 相对于气泡底图的位置，是一个包含若干2整数元素的元组的列表；默认为 `[(0,0)]`，即左上角；
+- `ht_target`	可选参数，设置 **各个头文本** 将从角色表中的哪一列获取显示的文本；是一个包含若干角色表的列名的列表；默认值为 `["Name"]`，即角色名；
+- `align`	可选参数，设置主文本的对齐模式，可选项有`"left"`、`"center"`，分别对应左侧对齐和居中对齐；默认为左侧对齐；
+- `line_distance`	可选参数，设置了多行显示时的行距，默认值为1.5倍行距。
+- `label_color`	可选参数，设置气泡底图在PR中显示的标签颜色，参考[可用颜色列表](./doc/XML_available_label_color.md)；默认值是淡紫色。
+
+> 注意：设置的 头文本、头文本位置、头文本目标列名 按照顺序一一对应。三个列表的长度必须一致。
+
+6.	**自适应气泡 DynamicBubble**
+```python
+DynamicBubble(filepath=None,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),mt_end=(0,0),ht_pos=(0,0),ht_target='Name',fill_mode='stretch',line_distance=1.5,label_color='Lavender')
+```
+
+- 自适应是一个气泡的子类，意为尺寸能适应文本内容的气泡；和气泡相比，自适应气泡的长宽将跟随显示的文本内容的长宽而变化。
+- `filepath`	可选参数，指定一个图片文件的路径；或者指定为None，表示不需要底图；默认值为None；
+- `Main_Text`	可选参数，为主文本指定一个 `Text`或者`StrokeText` 类的变量；主文本对应 *log文件* 中的 *发言文本*；默认值是默认参数的Text对象，不可以设置为None；
+- `Header_Text`	可选参数，为头文本指定一个 `Text`或者`StrokeText` 类的变量；头文本显示角色表中指定的一列；默认为None，既无头文本；
+- `pos`	可选参数，设置气泡在屏幕上的位置，是一个2整数元素的元组，对应 (X,Y)，或者一个`Pos`或`FreePos`对象；默认为 `(0,0)`，即左上角；
+- `mt_pos`	可选参数，设置主文本区域在气泡底图上的起始位置，是一个2整数元素的元组，对应 (X,Y)；默认为 `(0,0)`，即左上角；
+- `mt_end`	可选参数，设置主文本区域在气泡底图上的终止位置，是一个2整数元素的元组，对应 (X,Y)；默认为 `(0,0)`，即左上角；头文本区域的终止位置必须位于起始位置的右下方。
+- `ht_pos`	可选参数，设置头文本相对于气泡底图的位置，是一个2整数元素的元组，对应 (X,Y)；默认为 `(0,0)`，即左上角；
+- `ht_target`	可选参数，设置头文本将从角色表中的哪一列获取显示的文本；合理的参数应为角色表的列名之一；默认值为 `"Name"`，即角色名；
+- `fill_mode`	可选参数，气泡在自适应变形时的填充模式，可选项有`"stretch"`、`"collage"`，分别对应变形填充和拼贴填充；默认为变形填充；
+- `line_distance`	可选参数，设置了多行显示时的行距，默认值为1.5倍行距。
+- `label_color`	可选参数，设置气泡底图在PR中显示的标签颜色，参考[可用颜色列表](./doc/XML_available_label_color.md)；默认值是淡紫色。
+
+> 注意：依照主文本区域的 起始位置 和 终止位置，可以将自适应气泡的底图分隔为9个区域，以下表为例进行编号。<p>
+> S 区域的图形不会跟随主文本的变化而变形。<p>
+> W 区域的图形的宽度将跟随主文本的长度变化。<p>
+> H 区域的图形的高度将跟随主文本的高度变化。<p>
+> D 区域是主文本显示的区域，长宽将跟随主文本的长宽而变化。<p>
+
+|S1|W1|S2|
+|:---:|:---:|:---:|
+|H1|D|H2|
+|S3|W1|S4|
+
+7.	**聊天窗 ChatWindow**
+```python
+ChatWindow(filepath=None,sub_key=['Key1'],sub_Bubble=[Bubble()],sub_Anime=[],sub_align=['left'],pos=(0,0),sub_pos=(0,0),sub_end=(0,0),am_left=0,am_right=0,sub_distance=50,label_color='Lavender')
+```
+
+- 聊天窗是一类特殊的气泡，可以实现类似聊天软件的演出效果。
+- `filepath`	可选参数，指定一个图片文件的路径；或者指定为None，表示不需要底图；默认值为None；
+- `sub_key`	可选参数，指定一个包含了若干个字符串的列表作为**关键字**；关键字用于对应聊天窗的各个子元件；默认为`['Key1']`；
+- `sub_Bubble`	可选参数，指定一个包含了若干个`Bubble`或者`DynamicBubble`类媒体的列表，作为聊天窗中显示的发言气泡；气球类不可以在聊天窗中使用；默认为一个初始参数的气泡；
+- `sub_Anime`	可选参数，指定一个包含了若干个`Animation`类媒体的列表，作为聊天窗显示的发言头像；动态立绘不可以在聊天窗中使用；默认为`[]`，即无头像。
+- `sub_align`	可选参数，指定一个包含了若干个对齐模式的列表，可选项有`"left"`、`"right"`，分别左对齐和右对齐，默认为`['left']`，即左对齐；
+- `pos`	可选参数，设置气泡在屏幕上的位置，是一个2整数元素的元组，对应 (X,Y)，或者一个`Pos`或`FreePos`对象；默认为 `(0,0)`，即左上角；
+- `sub_pos`	可选参数，设置聊天气泡在底图上滚动区域的起始位置，是一个2整数元素的元组，对应 (X,Y)；默认为 `(0,0)`，即左上角；
+- `sub_end`	可选参数，设置聊天气泡在底图上滚动区域的终止位置，是一个2整数元素的元组，对应 (X,Y)；默认为 `(0,0)`，即左上角；滚动区域的终止位置必须位于起始位置的右下方。
+- `am_left`	可选参数，设置聊天窗头像在底图中左一侧的对齐位置，合理的参数应为一个整数；默认值为0，即最左侧；
+- `am_right`	可选参数，设置聊天窗头像在底图中右一侧的对齐位置，合理的参数应为一个整数；默认值为0，即最左侧；
+- `sub_distance`	可选参数，设置聊天窗中各个子发言气泡间，y轴方向的间隔距离，合理的参数应为一个整数；默认值是50，单位是像素。
+- `label_color`	可选参数，设置气泡底图在PR中显示的标签颜色，参考[可用颜色列表](./doc/XML_available_label_color.md)；默认值是淡紫色。
+
+> 注意：设置的 关键字、发言气泡、发言头像、对齐模式 按照顺序一一对应。关键字和发言气泡列表的长度必须一致。<p>
+> 发言气泡和对齐模式列表若和关键字长度不一致：多余的将被舍弃；不足的立绘默认为缺省，对齐模式默认为左对齐。
+
+8.	**背景 Background**
 ```python
 Background(filepath,pos=(0,0),label_color='Lavender')
 ```
 
 - 背景指整个屏幕的背景，通常位于最下的图层，可以在 *log文件* 中的 *背景行* 中设置背景及其切换效果；
 - `filepath`	必要参数，指定一个图片文件的路径；或者指定为 `{'black','white','greenscreen'}` 中的一个，以建立纯色背景；
-- `pos`	可选参数，指定了背景在屏幕上的位置，是一个2元素的元组，对应(X,Y)，默认为(0,0)，即左上角。
+- `pos`	可选参数，指定了背景在屏幕上的位置，是一个2整数元素的元组，对应(X,Y)，或者一个`Pos`或`FreePos`对象；默认为(0,0)，即左上角。
 - `label_color`	可选参数，设置背景图在PR中显示的标签颜色，参考[可用颜色列表](./doc/XML_available_label_color.md)；默认值是淡紫色。
 
 > 注意：由于背景图通常都是全屏的图片，因此不建议修改 `Background` 的pos的默认值。
 
-4.	**立绘 Animation**
+9.	**立绘 Animation**
 ```python
 Animation(filepath,pos=(0,0),tick=1,loop=True,label_color='Lavender')
 ```
 
 - 立绘指和角色绑定的个人形象图片或动画，通常位于背景的上层，气泡的下层。
 - `filepath`	必要参数，指定一个图片文件的路径；或通过通配符指定一系列顺序命名的图片文件的路径，以设置为动态立绘。
-- `pos`	可选参数，指定了立绘在屏幕上的位置，是一个2元素的元组，对应(X,Y)，默认为(0,0)，即左上角。
+- `pos`	可选参数，指定了立绘在屏幕上的位置，是一个2整数元素的元组，对应(X,Y)，或者一个`Pos`或`FreePos`对象；默认为(0,0)，即左上角。
 - `tick`	可选参数，仅在动态立绘中生效，设置立绘动画的拍率，单位为 帧/拍；默认为1，即一拍一。
 - `loop`	可选参数，仅在动态立绘中生效，设置立绘动画是否循环播放，可以是`True`或者`False`，设置为否时，当动态立绘的完整播放了一次之后，会停留在最后帧；默认是`True`，即循环播放。
 - `label_color`	可选参数，设置立绘图在PR中显示的标签颜色，参考[可用颜色列表](./doc/XML_available_label_color.md)；默认值是淡紫色。
@@ -144,7 +249,7 @@ Animation(filepath,pos=(0,0),tick=1,loop=True,label_color='Lavender')
 > 注意：如果希望实现多人同框效果，建议为同框时的立绘另外建立 `Animation` 对象，并在定义时指定合适的位置。<p>
 > 注意：在路径中使用符号`*`代表匹配任意字符；建议以位数相同的数字命名动态立绘。例如test_000.png、test_001.png。
 
-5.	**背景音乐 BGM**
+10.	**背景音乐 BGM**
 ```python
 BGM(filepath,volume=100,loop=True,label_color='Caribbean')
 ```
@@ -158,7 +263,7 @@ BGM(filepath,volume=100,loop=True,label_color='Caribbean')
 > 注意：BGM建议使用.ogg格式的音频，否则有可能出现程序的不稳定。另外，建议在后期制作软件中手动加入BGM。<p>
 > 注意：BGM和audio的逻辑不同，不可混用！
 
-6.	**音效 Audio**
+11.	**音效 Audio**
 ```python
 Audio(filepath,label_color='Caribbean')
 ```
@@ -187,6 +292,7 @@ Audio(filepath,label_color='Caribbean')
 - Voice列，角色配音的音源名；所有可选的Voice详见[阿里云可用语音](./doc/aliyun_available_voice.md)和[Azure可用语音](./doc/azure_available_voice.md)；不需要语音的角色使用 NA 表示缺省。
 - SpeechRate列，角色配音的语速；取值范围是(-500,500)，对应0.5倍速至2倍速。
 - PitchRate列，角色配音的语调；取值范围是(-500,500)，对应低八度至高八度。详见[接口说明](https://help.aliyun.com/document_detail/84435.html)
+- 除了上述列以外，用户可以在角色配置表中添加额外的列，并通过气泡类媒体的 `ht_target` 参数，将列的内容指定给气泡的头文本用于显示。
 
 角色配置文件例子：
 
@@ -203,7 +309,7 @@ Audio(filepath,label_color='Caribbean')
 
 ### 3. Log文件（RplGenLog）
 log文件是整个演示的剧本文件，决定了演示的内容和效果；<p>
-log文件有4类有效行，对话行，背景行，设置行和内建动画行，分别有其对应的格式。<p>
+log文件有4类有效行，对话行，背景行，设置行，立绘行，气泡行，清除行和内建动画行，分别有其对应的格式。<p>
 log文件中每个行是均是一个独立的单元，文本内容不能跨行。<p>
 RplGenLog格式的相关辅助工具见[Log文件格式辅助工具](./README.md#log文件格式辅助工具)
 
@@ -261,7 +367,7 @@ RplGenLog格式的相关辅助工具见[Log文件格式辅助工具](./README.md
 
 #### B. 背景行
 ```
-<background><replace=0>:Background
+<background><replace=0>:BackgroundObj
 ```
 
 在背景行中指定一个 `Background` 类的媒体对象，以切换播放的背景图片。
@@ -290,9 +396,10 @@ RplGenLog格式的相关辅助工具见[Log文件格式辅助工具](./README.md
 <set:am_method_default>:<replace=0>
 ```
 
-通过设置行，动态地修改全局变量；
-set:后跟需要设置的全局变量名；
-可以通过set动态修改的全局变量有：
+通过设置行，动态地修改全局变量、`FreePos` 类媒体的位置，或角色表中自定义列的内容；
+set:后跟需要设置的目标名；
+
+**可以通过set动态修改的全局变量有：**
 1.	`am_method_default`：立绘的默认切换方法，初始值是：`<replace=0>`。
 	- 当对话行中缺省 *切换效果修饰符* 时，则使用该默认值；
 	- 可用的选项参考 [动态切换效果](./README.md#4-动态切换效果)。
@@ -324,12 +431,14 @@ set:后跟需要设置的全局变量名；
 	- asterisk_pause 仅能通过 *设置行* 进行设置，会应用于之后所有的星标音频。
 11. `secondary_alpha`：次要立绘的透明度，初始值是：60，单位是百分之。
 	- 当对话行的角色框里未给角色指定透明度，则除了第一立绘以外，剩余角色立绘使用该默认值作为透明度。
-12.	`BGM`：背景音乐
+12.	`inline_method_apply`：对话行内指定的切换效果的应用范围，初始值为 `both`。
+	- 可用的选项有 `both、animation、bubble、none`，分别表示：立绘和气泡、仅立绘、仅气泡、无视行内指定的切换效果
+13.	`BGM`：背景音乐
 	- 使用`<set:BGM>`设置或切换背景音乐，需要指定一个BGM对象，或一个`.ogg`格式的音频文件的路径；
 	- `<set:BGM>:stop` 可以终止背景音乐的播放。
 	- 设置了背景音乐后，将在下一个 *对话行* 或 *内建动画行* 的第一帧生效。
 	- 连续指定了多个BGM时，在后续的每个句子，将依照指定顺序逐个生效，直到清空队列为止。
-13.	`formula`：切换效果的曲线函数，初始值是：linear，即线性。
+14.	`formula`：切换效果的曲线函数，初始值是：linear，即线性。
 	- 目前可用的formula包括 `linear(线性)、quadratic(二次)、quadraticR(二次反向)、sigmoid(S型)、sincurve(正弦)、left(左锋)和right(右峰)`；
 	- formula可以接受 lambda函数 形式定义的自定义函数；自定义函数需要以 `(begin,end,duration)` 为参数，且值域在`[0,1]`之间；
 	- formula仅能通过 *设置行* 进行设置，会应用于之后所有的切换效果。
@@ -337,6 +446,16 @@ set:后跟需要设置的全局变量名；
 ![formula](./doc/formula.png)
 
 > 注意：使用非.ogg文件作为背景音乐，可能导致程序的不稳定，或者卡死！
+
+**通过设置行移动 `FreePos` 对象的位置：**
+1.	可以设置一个2元素的整数元组，分别代表(X,Y)，例如：`<set:FreePosObj>:(100,100)`
+2.	可以移动至其他的 `Pos` 或者 `FreePos` 类的位置，例如：`<set:FreePosObj>:OtherPosObj`
+3.	可以移动至一个位置网格中的一个网点，例如：`<set:FreePosObj>:PosGridObj[0,2]`
+4.	`Pos`和`FreePos`类可以通过加减法方式进行运算，例如：`<set:FreePosObj>:FreePosObj+(100,100)`
+
+**通过设置行修改角色表中自定义列的内容：**
+1.	指定修改某个角色差分的对应列的内容，例如：`<set:张安翔.default.Show>:张安翔的默认差分`
+2.	指定修改某个角色的所有差分的对应列的内容，例如：`<set:张安翔.Show>:张安翔的所有差分`
 
 **设置行例子：**
 ```
@@ -346,6 +465,30 @@ set:后跟需要设置的全局变量名；
 <set:BGM>:BGM1
 <set:formula>:sigmoid
 <set:formula>:lambda begin,end,duration:np.linspace(end,begin,duration)
+<set:FreePosObj>:FreePosObj+(100,100)
+<set:FreePosObj>:PosGridObj[0,2]
+<set:张安翔.default.Show>:张安翔的默认差分
+```
+
+#### D. 立绘行
+```
+<animation><replace=0>:AnimationObj
+```
+
+#### E. 气泡行
+```
+<bubble><replace=0>:BubbleObj("头文本1|头文本2","主文本"<all=0>)
+```
+
+#### F. 清除行
+```
+<clear>:ChatWindowObj
+```
+用于清空一个 `ChatWindow` 类的聊天窗气泡媒体所记录先前的发言行。
+
+**背景行例子：**
+```
+<clear>:ChatWindowObj
 ```
 
 #### D. 内建动画行

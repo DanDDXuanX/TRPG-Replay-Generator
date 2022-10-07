@@ -52,11 +52,11 @@ class Aliyun_TTS_engine:
         if os.path.getsize(ofile) <= 128:
             # 删除文件
             # os.remove(ofile)
-            raise Exception('[33m[AliyunError]:[0m Synthesis failed, an empty wav file is created!')
+            raise Exception('\x1B[33m[AliyunError]:\x1B[0m Synthesis failed, an empty wav file is created!')
         # 检查合成返回值是否成功
         elif success == False:
             # os.remove(ofile)
-            raise Exception('[33m[AliyunError]:[0m Other exception occurred!')
+            raise Exception('\x1B[33m[AliyunError]:\x1B[0m Other exception occurred!')
         else:
             if len(text) >= 5:
                 print_text = text[0:5]+'...'
@@ -68,13 +68,13 @@ class Aliyun_TTS_engine:
         try:
             self.ofile.close()
         except Exception as E:
-            print("[33m[AliyunError]:[0m Close file failed since:", E)
+            print("\x1B[33m[AliyunError]:\x1B[0m Close file failed since:", E)
     def on_data(self, data, *args):
         try:
             self.ofile.write(data)
         except Exception as E:
             # [AliyunError]: Write data failed: write to closed file 如果出现这个问题，会重复很多次，然后合成一个错误的文件
-            print("[33m[AliyunError]:[0m Write data failed:", E)
+            print("\x1B[33m[AliyunError]:\x1B[0m Write data failed:", E)
 
 # Azure 语音合成 alpha 1.10.3
 class Azure_TTS_engine:
@@ -123,7 +123,7 @@ class Azure_TTS_engine:
                 sliced.export(ifile,format='wav')
                 return sliced.frame_count()
             except Exception as E:
-                print('[33m[warning]:[0m Unable to clip the silence part from \"'+ ifile +'\", due to:',E)
+                print('\x1B[33m[warning]:\x1B[0m Unable to clip the silence part from \"'+ ifile +'\", due to:',E)
                 return -1
     def clean_ts_azure(text): # SSML的转义字符
         return text.replace('&','&amp;').replace('<','&lt;').replace('>','&gt;').replace("'",'&apos;')
@@ -143,7 +143,7 @@ class Azure_TTS_engine:
             try:
                 self.voice,self.style,self.degree,self.role = voice.split(':')
             except Exception:
-                raise ValueError('[31m[AzureError]:[0m Invalid Voice argument: '+voice)
+                raise ValueError('\x1B[31m[AzureError]:\x1B[0m Invalid Voice argument: '+voice)
         else:
             self.voice = voice
             self.style = 'general'
@@ -178,7 +178,7 @@ class Azure_TTS_engine:
             cancellation_details = speech_synthesis_result.cancellation_details
             if cancellation_details.reason == speechsdk.CancellationReason.Error:
                 if cancellation_details.error_details:
-                    print("[33m[AzureError]:[0m {}".format(cancellation_details.error_details))
+                    print("\x1B[33m[AzureError]:\x1B[0m {}".format(cancellation_details.error_details))
             # 删除文件
             # os.remove(ofile)
-            raise Exception("[33m[AzureError]:[0m {}".format(cancellation_details.reason))
+            raise Exception("\x1B[33m[AzureError]:\x1B[0m {}".format(cancellation_details.reason))

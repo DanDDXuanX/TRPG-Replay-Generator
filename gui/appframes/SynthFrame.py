@@ -102,7 +102,7 @@ class SynthFrame(AppFrame):
         command = self.app.python3 +' ./speech_synthesizer.py --PreviewOnly --Init {IN} --AccessKey {AK} --AccessKeySecret {AS} --Appkey {AP} --Azurekey {AZ} --ServRegion {SR}'
         command = command.format(IN=init_type, AK=self.app.AccessKey.get(), AS=self.app.AccessKeySecret.get(),AP=self.app.Appkey.get(),AZ=self.app.AzureKey.get(),SR=self.app.ServiceRegion.get()).replace('\n','').replace('\r','')
         try:
-            print('[32m'+command+'[0m')
+            print('\x1B[32m'+command+'\x1B[0m')
             exit_status = os.system(command)
             if exit_status != 0:
                 raise OSError('Major error occurred in speech_synthesizer!')
@@ -123,7 +123,7 @@ class SynthFrame(AppFrame):
                                      of = self.app.output_path.get().replace('\\','/'), ct = self.app.characor_table.get().replace('\\','/'),
                                      AK=self.app.AccessKey.get(), AS=self.app.AccessKeySecret.get(),AP=self.app.Appkey.get(),AZ=self.app.AzureKey.get(),SR=self.app.ServiceRegion.get()).replace('\n','').replace('\r','') # a 1.10.7 处理由于key复制导致的异常换行
             try:
-                print('[32m'+command+'[0m')
+                print('\x1B[32m'+command+'\x1B[0m')
                 exit_status = os.system(command)
                 # 0. 有Alog生成，合成正常，可以继续执行主程序
                 if exit_status == 0:

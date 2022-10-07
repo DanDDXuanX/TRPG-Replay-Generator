@@ -31,9 +31,9 @@ try:
     for path in [args.TimeLine,args.MediaObjDefine]:
         if path is None:
             print(path)
-            raise OSError("[31m[ArgumentError]:[0m Missing principal input argument!")
+            raise OSError("\x1B[31m[ArgumentError]:\x1B[0m Missing principal input argument!")
         if os.path.isfile(path) == False:
-            raise OSError("[31m[ArgumentError]:[0m Cannot find file "+path)
+            raise OSError("\x1B[31m[ArgumentError]:\x1B[0m Cannot find file "+path)
 
     if args.OutputPath is None:
         pass 
@@ -41,19 +41,19 @@ try:
         try:
             os.makedirs(args.OutputPath)
         except Exception:
-            raise OSError("[31m[SystemError]:[0m Cannot make directory "+args.OutputPath)
+            raise OSError("\x1B[31m[SystemError]:\x1B[0m Cannot make directory "+args.OutputPath)
     args.OutputPath = args.OutputPath.replace('\\','/')
 
     # FPS
     if frame_rate <= 0:
-        raise ValueError("[31m[ArgumentError]:[0m "+str(frame_rate))
+        raise ValueError("\x1B[31m[ArgumentError]:\x1B[0m "+str(frame_rate))
     elif frame_rate>30:
-        print("[33m[warning]:[0m",'FPS is set to '+str(frame_rate)+', which may cause lag in the display!')
+        print("\x1B[33m[warning]:\x1B[0m",'FPS is set to '+str(frame_rate)+', which may cause lag in the display!')
 
     if (Width<=0) | (Height<=0):
-        raise ValueError("[31m[ArgumentError]:[0m "+str((Width,Height)))
+        raise ValueError("\x1B[31m[ArgumentError]:\x1B[0m "+str((Width,Height)))
     if Width*Height > 3e6:
-        print("[33m[warning]:[0m",'Resolution is set to more than 3M, which may cause lag in the display!')
+        print("\x1B[33m[warning]:\x1B[0m",'Resolution is set to more than 3M, which may cause lag in the display!')
 except Exception as E:
     print(E)
     sys.exit(1)
@@ -125,7 +125,7 @@ def render(this_frame):
         elif this_frame[layer+'_a']<=0: #或者图层的透明度小于等于0(由于fillna("NA"),出现的异常)
             continue
         elif this_frame[layer] not in media_list:
-            raise RuntimeError('[31m[RenderError]:[0m Undefined media object : "'+this_frame[layer]+'".')
+            raise RuntimeError('\x1B[31m[RenderError]:\x1B[0m Undefined media object : "'+this_frame[layer]+'".')
         elif layer[0:2] == 'BG':
             try:
                 exec('{0}.display(surface=screen,alpha={1},adjust={2},center={3})'.format(this_frame[layer],
@@ -133,7 +133,7 @@ def render(this_frame):
                                                                                           '\"'+this_frame[layer+'_p']+'\"',
                                                                                           '\"'+this_frame[layer+'_c']+'\"'))
             except Exception:
-                raise RuntimeError('[31m[RenderError]:[0m Failed to render "'+this_frame[layer]+'" as Background.')
+                raise RuntimeError('\x1B[31m[RenderError]:\x1B[0m Failed to render "'+this_frame[layer]+'" as Background.')
         elif layer[0:2] == 'Am': # 兼容H_LG1(1)这种动画形式 alpha1.6.3
             try:
                 exec('{0}.display(surface=screen,alpha={1},adjust={2},frame={3},center={4})'.format(
@@ -143,7 +143,7 @@ def render(this_frame):
                                                                                          this_frame[layer+'_t'],
                                                                                          '\"'+this_frame[layer+'_c']+'\"'))
             except Exception:
-                raise RuntimeError('[31m[RenderError]:[0m Failed to render "'+this_frame[layer]+'" as Animation.')
+                raise RuntimeError('\x1B[31m[RenderError]:\x1B[0m Failed to render "'+this_frame[layer]+'" as Animation.')
         elif layer[0:2] == 'Bb':
             try:
                 exec('{0}.display(surface=screen,text={2},header={3},alpha={1},adjust={4},center={5})'.format(this_frame[layer],
@@ -153,7 +153,7 @@ def render(this_frame):
                                                                                                    '\"'+this_frame[layer+'_p']+'\"',
                                                                                                    '\"'+this_frame[layer+'_c']+'\"'))
             except Exception:
-                raise RuntimeError('[31m[RenderError]:[0m Failed to render "'+this_frame[layer]+'" as Bubble.')
+                raise RuntimeError('\x1B[31m[RenderError]:\x1B[0m Failed to render "'+this_frame[layer]+'" as Bubble.')
     return 1
 
 # 被占用的变量名 # 1.7.7
@@ -176,10 +176,10 @@ cmap = {'black':(0,0,0,255),'white':(255,255,255,255),'greenscreen':(0,177,64,25
 try:
     object_define_text = open(args.MediaObjDefine,'r',encoding='utf-8').read()#.split('\n')
 except UnicodeDecodeError as E:
-    print('[31m[DecodeError]:[0m',E)
+    print('\x1B[31m[DecodeError]:\x1B[0m',E)
     sys.exit(1)
 if object_define_text[0] == '\ufeff': # 139 debug
-    print('[33m[warning]:[0m','UTF8 BOM recognized in MediaDef, it will be drop from the begin of file!')
+    print('\x1B[33m[warning]:\x1B[0m','UTF8 BOM recognized in MediaDef, it will be drop from the begin of file!')
     object_define_text = object_define_text[1:]
 object_define_text = object_define_text.split('\n')
 
@@ -200,7 +200,7 @@ for i,text in enumerate(object_define_text):
                 raise SyntaxError('Invalid Obj name')
             media_list.append(obj_name) #记录新增对象名称
         except Exception as E:
-            print('[31m[SyntaxError]:[0m "'+text+'" appeared in media define file line ' + str(i+1)+' is invalid syntax:',E)
+            print('\x1B[31m[SyntaxError]:\x1B[0m "'+text+'" appeared in media define file line ' + str(i+1)+' is invalid syntax:',E)
             sys.exit(1)
 black = Background('black')
 white = Background('white')
@@ -265,7 +265,7 @@ for media in media_list:
     try:
         exec(media+'.convert()')
     except Exception as E:
-        print('[31m[MediaError]:[0m Exception during converting',media,':',E)
+        print('\x1B[31m[MediaError]:\x1B[0m Exception during converting',media,':',E)
         sys.exit(1)
 
 # ffmpeg输出
@@ -295,7 +295,7 @@ while n < break_point.max():
         n = n + 1 #下一帧
     except Exception as E:
         print(E)
-        print('[31m[RenderError]:[0m','Render exception at frame:',n)
+        print('\x1B[31m[RenderError]:\x1B[0m','Render exception at frame:',n)
         output_engine.stdin.close()
         pygame.quit()
         sys.exit(1)

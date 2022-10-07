@@ -228,7 +228,7 @@ class Balloon(Bubble):
     def __init__(self,filepath=None,Main_Text=Text(),Header_Text=[None],pos=(0,0),mt_pos=(0,0),ht_pos=[(0,0)],ht_target=['Name'],align='left',line_distance=1.5,label_color='Lavender'):
         super().__init__(filepath=filepath,Main_Text=Main_Text,Header_Text=Header_Text,pos=pos,mt_pos=mt_pos,ht_pos=ht_pos,ht_target=ht_target,align=align,line_distance=line_distance,label_color=label_color)
         if len(self.Header)!=len(self.ht_pos) or len(self.Header)!=len(self.target):
-            raise Exception('[31m[BubbleError]:[0m ' + 'length of header params does not match!')
+            raise Exception('\x1B[31m[BubbleError]:\x1B[0m ' + 'length of header params does not match!')
         else:
             self.header_num = len(self.Header)
     def draw(self,lines=4,show_marker=True):
@@ -401,7 +401,7 @@ class DynamicBubble(Bubble):
         self.pos.preview(image_canvas)
     
 class ChatWindow(Bubble):
-    def __init__(self,filepath=None,sub_key=['Key1'],sub_Bubble=[Bubble()],sub_Anime=[],sub_align=[],pos=(0,0),sub_pos=(0,0),sub_end=(0,0),am_left=0,am_right=0,sub_distance=50,label_color='Lavender'):
+    def __init__(self,filepath=None,sub_key=['Key1'],sub_Bubble=[Bubble()],sub_Anime=[],sub_align=['left'],pos=(0,0),sub_pos=(0,0),sub_end=(0,0),am_left=0,am_right=0,sub_distance=50,label_color='Lavender'):
         if len(sub_Bubble) != len(sub_key):
             raise Exception('length of sub-key and sub-bubble does not match!')
         # 空白底图
