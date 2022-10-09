@@ -138,7 +138,6 @@ class PosGrid:
                 draw.line([p_x,p_y-20,p_x,p_y+20],fill='green',width=2)
     def convert(self):
         pass
-
 class Text(Media):
     def __init__(self,fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0,0,255),line_limit=20,label_color='Lavender'):
         self.text_render = ImageFont.truetype(fontfile, fontsize)
@@ -229,7 +228,7 @@ class Balloon(Bubble):
     def __init__(self,filepath=None,Main_Text=Text(),Header_Text=[None],pos=(0,0),mt_pos=(0,0),ht_pos=[(0,0)],ht_target=['Name'],align='left',line_distance=1.5,label_color='Lavender'):
         super().__init__(filepath=filepath,Main_Text=Main_Text,Header_Text=Header_Text,pos=pos,mt_pos=mt_pos,ht_pos=ht_pos,ht_target=ht_target,align=align,line_distance=line_distance,label_color=label_color)
         if len(self.Header)!=len(self.ht_pos) or len(self.Header)!=len(self.target):
-            raise Exception('[31m[BubbleError]:[0m ' + 'length of header params does not match!')
+            raise Exception('\x1B[31m[BubbleError]:\x1B[0m ' + 'length of header params does not match!')
         else:
             self.header_num = len(self.Header)
     def draw(self,lines=4,show_marker=True):
@@ -261,8 +260,10 @@ class Balloon(Bubble):
 class DynamicBubble(Bubble):
     def __init__(self,filepath=None,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),mt_end=(0,0),ht_pos=(0,0),ht_target='Name',fill_mode='stretch',line_distance=1.5,label_color='Lavender'):
         super().__init__(filepath=filepath,Main_Text=Main_Text,Header_Text=Header_Text,pos=pos,mt_pos=mt_pos,ht_pos=ht_pos,ht_target=ht_target,line_distance=line_distance,label_color=label_color)
-        if (mt_pos[0] >= mt_end[0]) | (mt_pos[1] >= mt_end[1]):
+        if (mt_pos[0] >= mt_end[0]) | (mt_pos[1] >= mt_end[1]) | (mt_end[0] > self.media.size[0]) | (mt_end[1] > self.media.size[1]):
             raise Exception('Invalid bubble separate params mt_end!')
+        elif (mt_pos[0] < 0) | (mt_pos[1] < 0):
+            raise Exception('Invalid bubble separate params mt_pos!')
         else:
             self.mt_end = mt_end
         # fill_mode 只能是 stretch 或者 collage
@@ -400,7 +401,7 @@ class DynamicBubble(Bubble):
         self.pos.preview(image_canvas)
     
 class ChatWindow(Bubble):
-    def __init__(self,filepath=None,sub_key=['Key1'],sub_Bubble=[Bubble()],sub_Anime=[],sub_align=[],pos=(0,0),sub_pos=(0,0),sub_end=(0,0),am_left=0,am_right=0,sub_distance=50,label_color='Lavender'):
+    def __init__(self,filepath=None,sub_key=['Key1'],sub_Bubble=[Bubble()],sub_Anime=[],sub_align=['left'],pos=(0,0),sub_pos=(0,0),sub_end=(0,0),am_left=0,am_right=0,sub_distance=50,label_color='Lavender'):
         if len(sub_Bubble) != len(sub_key):
             raise Exception('length of sub-key and sub-bubble does not match!')
         # 空白底图

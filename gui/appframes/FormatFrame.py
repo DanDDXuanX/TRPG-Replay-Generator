@@ -101,7 +101,7 @@ class FormatFrame(AppFrame):
             command_this = command.format(ifile = filepath, ofile = '"'+opath+filename+target+'"')
             # 执行命令
             try:
-                print('[32m'+command_this+'[0m')
+                print('\x1B[32m'+command_this+'\x1B[0m')
                 exit_status = os.system(command_this)
                 if exit_status != 0:
                     raise OSError('Major error occurred in ffmpeg!')

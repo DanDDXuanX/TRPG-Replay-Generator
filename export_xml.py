@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # coding: utf-8
-from codecs import utf_16_be_decode
 from Utils import EDITION
 
 # 外部参数输入
@@ -34,9 +33,9 @@ zorder = args.Zorder.split(',') #渲染图层顺序
 try:
     for path in [stdin_log,media_obj]:
         if path is None:
-            raise OSError("[31m[ArgumentError]:[0m Missing principal input argument!")
+            raise OSError("\x1B[31m[ArgumentError]:\x1B[0m Missing principal input argument!")
         if os.path.isfile(path) == False:
-            raise OSError("[31m[ArgumentError]:[0m Cannot find file "+path)
+            raise OSError("\x1B[31m[ArgumentError]:\x1B[0m Cannot find file "+path)
 
     if output_path is None:
         pass 
@@ -44,19 +43,19 @@ try:
         try:
             os.makedirs(output_path)
         except Exception:
-            raise OSError("[31m[SystemError]:[0m Cannot make directory "+output_path)
+            raise OSError("\x1B[31m[SystemError]:\x1B[0m Cannot make directory "+output_path)
     output_path = output_path.replace('\\','/')
 
     # FPS
     if frame_rate <= 0:
-        raise ValueError("[31m[ArgumentError]:[0m "+str(frame_rate))
+        raise ValueError("\x1B[31m[ArgumentError]:\x1B[0m "+str(frame_rate))
     elif frame_rate>30:
-        print("[33m[warning]:[0m",'FPS is set to '+str(frame_rate)+', which may cause lag in the display!')
+        print("\x1B[33m[warning]:\x1B[0m",'FPS is set to '+str(frame_rate)+', which may cause lag in the display!')
 
     if (screen_size[0]<=0) | (screen_size[1]<=0):
-        raise ValueError("[31m[ArgumentError]:[0m "+str(screen_size))
+        raise ValueError("\x1B[31m[ArgumentError]:\x1B[0m "+str(screen_size))
     if screen_size[0]*screen_size[1] > 3e6:
-        print("[33m[warning]:[0m",'Resolution is set to more than 3M, which may cause lag in the display!')
+        print("\x1B[33m[warning]:\x1B[0m",'Resolution is set to more than 3M, which may cause lag in the display!')
 except Exception as E:
     print(E)
     sys.exit(1)
@@ -249,7 +248,7 @@ class Balloon(Bubble):
     def __init__(self,filepath=None,Main_Text=Text(),Header_Text=[None],pos=(0,0),mt_pos=(0,0),ht_pos=[(0,0)],ht_target=['Name'],align='left',line_distance=1.5,label_color='Lavender'):
         super().__init__(filepath=filepath,Main_Text=Main_Text,Header_Text=Header_Text,pos=pos,mt_pos=mt_pos,ht_pos=ht_pos,ht_target=ht_target,align=align,line_distance=line_distance,label_color=label_color)
         if len(self.Header)!=len(self.ht_pos) or len(self.Header)!=len(self.target):
-            raise MediaError('[31m[BubbleError]:[0m', 'length of header params does not match!')
+            raise MediaError('\x1B[31m[BubbleError]:\x1B[0m', 'length of header params does not match!')
         else:
             self.header_num = len(self.Header)
     def draw(self, text, header=''):
@@ -289,15 +288,17 @@ class Balloon(Bubble):
 class DynamicBubble(Bubble):
     def __init__(self,filepath=None,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),mt_end=(0,0),ht_pos=(0,0),ht_target='Name',fill_mode='stretch',line_distance=1.5,label_color='Lavender'):
         super().__init__(filepath=filepath,Main_Text=Main_Text,Header_Text=Header_Text,pos=pos,mt_pos=mt_pos,ht_pos=ht_pos,ht_target=ht_target,line_distance=line_distance,label_color=label_color)
-        if (mt_pos[0] >= mt_end[0]) | (mt_pos[1] >= mt_end[1]):
-            raise MediaError('[31m[BubbleError]:[0m', 'Invalid bubble separate params mt_end!')
+        if (mt_pos[0] >= mt_end[0]) | (mt_pos[1] >= mt_end[1]) | (mt_end[0] > self.size[0]) | (mt_end[1] > self.size[1]):
+            raise MediaError('\x1B[31m[BubbleError]:\x1B[0m', 'Invalid bubble separate params mt_end!')
+        elif (mt_pos[0] < 0) | (mt_pos[1] < 0):
+            raise MediaError('\x1B[31m[BubbleError]:\x1B[0m', 'Invalid bubble separate params mt_pos!')
         else:
             self.mt_end = mt_end
         # fill_mode 只能是 stretch 或者 collage
         if fill_mode in ['stretch','collage']:
             self.fill_mode = fill_mode
         else:
-            raise MediaError('[31m[BubbleError]:[0m', 'Invalid fill mode params ' + fill_mode)
+            raise MediaError('\x1B[31m[BubbleError]:\x1B[0m', 'Invalid fill mode params ' + fill_mode)
         # x,y轴上的四条分割线
         self.x_tick = [0,self.mt_pos[0],self.mt_end[0],self.size[0]]
         self.y_tick = [0,self.mt_pos[1],self.mt_end[1],self.size[1]]
@@ -439,7 +440,7 @@ class DynamicBubble(Bubble):
             self.PRpos = PR_center_arg(np.array(temp_size),np.array(Pos(*eval(center)).get()))
         pr_horiz,pr_vert = self.PRpos
         # 生成序列
-        if bubble_ofile is None:
+        if bubble_canvas is None:
             clip_bubble = None
             # print('Render empty Bubble!')
         else:
@@ -483,10 +484,10 @@ class DynamicBubble(Bubble):
         return (clip_bubble,clip_text)
 
 class ChatWindow(Bubble):
-    def __init__(self,filepath=None,sub_key=['Key1'],sub_Bubble=[Bubble()],sub_Anime=[],sub_align=[],pos=(0,0),sub_pos=(0,0),sub_end=(0,0),am_left=0,am_right=0,sub_distance=50,label_color='Lavender'):
+    def __init__(self,filepath=None,sub_key=['Key1'],sub_Bubble=[Bubble()],sub_Anime=[],sub_align=['left'],pos=(0,0),sub_pos=(0,0),sub_end=(0,0),am_left=0,am_right=0,sub_distance=50,label_color='Lavender'):
         global file_index
         if len(sub_Bubble) != len(sub_key):
-            raise MediaError('[31m[BubbleError]:[0m', 'length of sub-key and sub-bubble does not match!')
+            raise MediaError('\x1B[31m[BubbleError]:\x1B[0m', 'length of sub-key and sub-bubble does not match!')
         # 空白底图
         if filepath is None or filepath == 'None':
             self.path = None
@@ -510,14 +511,14 @@ class ChatWindow(Bubble):
         for i,key in enumerate(sub_key):
             # 检查气泡是否是 Ballon
             if type(sub_Bubble[i]) is Balloon:
-                raise MediaError('[31m[BubbleError]:[0m','Ballon object "'+key+'" is not supported to be set as a sub-bubble of ChatWindow!')
+                raise MediaError('\x1B[31m[BubbleError]:\x1B[0m','Ballon object "'+key+'" is not supported to be set as a sub-bubble of ChatWindow!')
             self.sub_Bubble[key] = sub_Bubble[i]
             # 载入对齐，默认是左对齐
             try:
                 if sub_align[i] in ['left','right']:
                     self.sub_align[key] = sub_align[i]
                 else:
-                    raise MediaError('[31m[BubbleError]:[0m', 'Unsupported align:',sub_align[i])
+                    raise MediaError('\x1B[31m[BubbleError]:\x1B[0m', 'Unsupported align:',sub_align[i])
             except IndexError:
                 self.sub_align[key] = 'left'
             # 载入子立绘，默认是None
@@ -527,13 +528,13 @@ class ChatWindow(Bubble):
                 self.sub_Anime[key] = None
         # 子气泡尺寸
         if (sub_pos[0] >= sub_end[0]) | (sub_pos[1] >= sub_end[1]):
-            raise MediaError('[31m[BubbleError]:[0m', 'Invalid bubble separate params sub_end!')
+            raise MediaError('\x1B[31m[BubbleError]:\x1B[0m', 'Invalid bubble separate params sub_end!')
         else:
             self.sub_size = (sub_end[0]-sub_pos[0],sub_end[1]-sub_pos[1])
             self.sub_pos = sub_pos
         # 立绘对齐位置
         if am_left >= am_right:
-            raise MediaError('[31m[BubbleError]:[0m', 'Invalid bubble separate params am_right!')
+            raise MediaError('\x1B[31m[BubbleError]:\x1B[0m', 'Invalid bubble separate params am_right!')
         else:
             self.am_left = am_left
             self.am_right = am_right
@@ -714,7 +715,7 @@ class GroupedAnimation(Animation):
             subanimation_current_pos = [None]*len(subanimation_list)
         # 如果指定的位置参数和子Animation的数量不一致，报出报错
         elif len(subanimation_current_pos) != len(subanimation_list):
-            raise MediaError('[31m[AnimationError]:[0m','length of subanimation params does not match!')
+            raise MediaError('\x1B[31m[AnimationError]:\x1B[0m','length of subanimation params does not match!')
         # 开始在画板上绘制立绘
         else:
             # 越后面的位于越上层的图层
@@ -727,7 +728,7 @@ class GroupedAnimation(Animation):
                     else: # type(am_name) is str
                         subanimation = eval(am_name)
                 except NameError as E:
-                    raise MediaError('[31m[AnimationError]:[0m','The Animation "'+ am_name +'" is not defined, which was tried to group into GroupedAnimation!')
+                    raise MediaError('\x1B[31m[AnimationError]:\x1B[0m','The Animation "'+ am_name +'" is not defined, which was tried to group into GroupedAnimation!')
                 if am_pos is None:
                     # 打开 subanimation 的图片对象，将其按照self.pos, paste到canvas
                     canvas.paste(subanimation.media,subanimation.pos.get(),mask=subanimation.media)
@@ -978,7 +979,7 @@ class Audio:
 # 背景音乐
 class BGM:
     def __init__(self,filepath,volume=100,loop=True,label_color='Forest'):
-        print('[33m[warning]:[0m BGM '+filepath+' is automatically ignored, you should add BGM manually in Premiere Pro later.')
+        print('\x1B[33m[warning]:\x1B[0m BGM '+filepath+' is automatically ignored, you should add BGM manually in Premiere Pro later.')
     def convert(self):
         pass
 
@@ -990,7 +991,7 @@ def get_audio_length(filepath):
     try:
         this_audio = mixer.Sound(filepath)
     except Exception as E:
-        print('[33m[warning]:[0m Unable to get audio length of '+str(filepath)+', due to:',E)
+        print('\x1B[33m[warning]:\x1B[0m Unable to get audio length of '+str(filepath)+', due to:',E)
         return np.nan
     return this_audio.get_length()
 
@@ -1116,10 +1117,10 @@ def main():
     try:
         object_define_text = open(media_obj,'r',encoding='utf-8').read()#.split('\n')
     except UnicodeDecodeError as E:
-        print('[31m[DecodeError]:[0m',E)
+        print('\x1B[31m[DecodeError]:\x1B[0m',E)
         sys.exit(1)
     if object_define_text[0] == '\ufeff': # 139 debug
-        print('[33m[warning]:[0m','UTF8 BOM recognized in MediaDef, it will be drop from the begin of file!')
+        print('\x1B[33m[warning]:\x1B[0m','UTF8 BOM recognized in MediaDef, it will be drop from the begin of file!')
         object_define_text = object_define_text[1:]
     object_define_text = object_define_text.split('\n')
 
@@ -1142,7 +1143,7 @@ def main():
             except Exception as E:
                 import traceback
                 traceback.print_exc()
-                print('[31m[SyntaxError]:[0m "'+text+'" appeared in media define file line ' + str(i+1)+' is invalid syntax:',E)
+                print('\x1B[31m[SyntaxError]:\x1B[0m "'+text+'" appeared in media define file line ' + str(i+1)+' is invalid syntax:',E)
                 sys.exit(1)
     black = Background('black')
     white = Background('white')
@@ -1185,7 +1186,7 @@ def main():
                     temp = Audio(item[0][1:-1])
                     clip_list.append(temp.display(begin=item[1]))
                 else:
-                    print("[33m[warning]:[0m",'Audio file',item[0],'is not exist.')
+                    print("\x1B[33m[warning]:\x1B[0m",'Audio file',item[0],'is not exist.')
             audio_tracks.append(audio_track_tplt.format(**{'type':Audio_type,'clips':'\n'.join(clip_list)}))
         # 立绘或者背景图层
         else:

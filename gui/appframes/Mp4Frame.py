@@ -75,7 +75,7 @@ class Mp4Frame(AppFrame):
                                      fps = self.app.project_F.get(), wd = self.app.project_W.get(),
                                      he = self.app.project_H.get(), zd = self.app.project_Z.get(), ql = self.app.project_Q.get())
             try:
-                print('[32m'+command+'[0m')
+                print('\x1B[32m'+command+'\x1B[0m')
                 exit_status = os.system(command)
                 if exit_status != 0:
                     raise OSError('Major error occurred in export_video!')
