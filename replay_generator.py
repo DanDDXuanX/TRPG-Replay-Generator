@@ -19,7 +19,7 @@ ap.add_argument("-F", "--FramePerSecond", help='Set the FPS of display, default 
 ap.add_argument("-W", "--Width", help='Set the resolution of display, default is 1920, larger than this may cause lag.',type=int,default=1920)
 ap.add_argument("-H", "--Height", help='Set the resolution of display, default is 1080, larger than this may cause lag.',type=int,default=1080)
 ap.add_argument("-Z", "--Zorder", help='Set the display order of layers, not recommended to change the values unless necessary!',type=str,
-                default='BG3,BG2,BG1,Am3,Am2,Am1,AmS,Bb,BbS')
+                default='BG2,BG1,Am3,Am2,Am1,AmS,Bb,BbS')
 # 用于语音合成的key
 ap.add_argument("-K", "--AccessKey", help='Your AccessKey, to use with --SynthsisAnyway',type=str,default="Your_AccessKey")
 ap.add_argument("-S", "--AccessKeySecret", help='Your AccessKeySecret, to use with --SynthsisAnyway',type=str,default="Your_AccessKey_Secret")
@@ -344,7 +344,7 @@ def parser(stdin_text):
     # section:小节号, BG: 背景，Am：立绘，Bb：气泡，BGM：背景音乐，Voice：语音，SE：音效
     render_arg = [
     'section',
-    'BG1','BG1_a','BG1_c','BG1_p','BG2','BG2_a','BG2_c','BG2_p','BG3','BG3_a','BG3_c','BG3_p',
+    'BG1','BG1_a','BG1_c','BG1_p','BG2','BG2_a','BG2_c','BG2_p',
     'Am1','Am1_t','Am1_a','Am1_c','Am1_p','Am2','Am2_t','Am2_a','Am2_c','Am2_p','Am3','Am3_t','Am3_a','Am3_c','Am3_p',
     'AmS','AmS_t','AmS_a','AmS_c','AmS_p',
     'Bb','Bb_main','Bb_header','Bb_a','Bb_c','Bb_p',
@@ -399,8 +399,8 @@ def parser(stdin_text):
 
                 # 建立本小节的timeline文件
                 this_timeline=pd.DataFrame(index=range(0,this_duration),dtype=str,columns=render_arg)
-                this_timeline['BG1'] = this_background
-                this_timeline['BG1_a'] = 100
+                this_timeline['BG2'] = this_background
+                this_timeline['BG2_a'] = 100
                 # 载入切换效果
                 alpha_timeline_A,pos_timeline_A = ambb_methods(am_method,am_dur,this_duration,i)
                 alpha_timeline_B,pos_timeline_B = ambb_methods(bb_method,bb_dur,this_duration,i)
@@ -590,29 +590,35 @@ def parser(stdin_text):
                     raise ParserError('[31m[ParserError]:[0m The background "'+bgc+'" specified in background line ' + str(i+1)+' is not defined!')
                 if method=='replace': #replace 改为立刻替换 并持续n秒
                     this_timeline=pd.DataFrame(index=range(0,method_dur),dtype=str,columns=render_arg)
-                    this_timeline['BG1']=next_background
-                    this_timeline['BG1_a']=100
-                    this_timeline['BG1_c']=str(eval(next_background+'.pos'))
+                    this_timeline['BG2']=next_background
+                    this_timeline['BG2_a']=100
+                    this_timeline['BG2_c']=str(eval(next_background+'.pos'))
                 elif method=='delay': # delay 等价于原来的replace，延后n秒，然后替换
                     this_timeline=pd.DataFrame(index=range(0,method_dur),dtype=str,columns=render_arg)
-                    this_timeline['BG1']=this_background
-                    this_timeline['BG1_a']=100
-                    this_timeline['BG1_c']=str(eval(this_background+'.pos'))
-                elif method in ['cross','black','white','push','cover']: # 交叉溶解，黑场，白场，推，覆盖
+                    this_timeline['BG2']=this_background
+                    this_timeline['BG2_a']=100
+                    this_timeline['BG2_c']=str(eval(this_background+'.pos'))
+                # 'black','white'
+                elif method in ['black','white']:
+                    this_timeline=pd.DataFrame(index=range(0,method_dur),dtype=str,columns=render_arg)
+                    # 下图层BG2，前半程是旧图层，后半程是新图层，透明度均为100
+                    this_timeline.loc[:(method_dur//2),'BG2'] = this_background
+                    this_timeline.loc[(method_dur//2):,'BG2'] = next_background
+                    this_timeline.loc[:(method_dur//2),'BG2_c']=str(eval(this_background+'.pos'))
+                    this_timeline.loc[(method_dur//2):,'BG2_c']=str(eval(next_background+'.pos'))
+                    this_timeline['BG2_a'] = 100
+                    # 上图层BG1，是指定的颜色，透明度是100-abs(formula(100,-100,dur))
+                    this_timeline['BG1'] = method
+                    this_timeline['BG1_c']='(0,0)'
+                    this_timeline['BG1_a']=100-np.abs(dynamic_globals['formula'](-100,100,method_dur))
+                    pass
+                elif method in ['cross','push','cover']: # 交叉溶解，黑场，白场，推，覆盖
                     this_timeline=pd.DataFrame(index=range(0,method_dur),dtype=str,columns=render_arg)
                     this_timeline['BG1']=next_background
                     this_timeline['BG1_c']=str(eval(next_background+'.pos'))
                     this_timeline['BG2']=this_background
                     this_timeline['BG2_c']=str(eval(this_background+'.pos'))
-                    if method in ['black','white']:
-                        this_timeline['BG3']=method
-                        this_timeline['BG3_c']='(0,0)'
-                        this_timeline['BG1_a']=dynamic_globals['formula'](-100,100,method_dur)
-                        this_timeline['BG1_a']=this_timeline['BG1_a'].map(alpha_range)
-                        this_timeline['BG2_a']=dynamic_globals['formula'](100,-100,method_dur)
-                        this_timeline['BG2_a']=this_timeline['BG2_a'].map(alpha_range)
-                        this_timeline['BG3_a']=100
-                    elif method == 'cross':
+                    if method == 'cross':
                         this_timeline['BG1_a']=dynamic_globals['formula'](0,100,method_dur)
                         this_timeline['BG2_a']=100
                     elif method in ['push','cover']:
@@ -1398,7 +1404,7 @@ detail_info = {0:"Project: Resolution: {0}x{1} ; FrameRate: {2} fps;".format(Wid
                2:"Frame: {0}/"+str(break_point.max())+" ; Section: {1}/"+str(len(break_point)),
                3:"Command: {0}",
                4:"Zorder: {0}".format('>>>'+'>'.join(zorder)+'>>>'),
-               5:"Layer: BG1:{0}; BG2:{1}; BG3:{2}",
+               5:"Layer: BG1:{0}; BG2:{1};",
                6:"Layer: Am1:{0}; Am2:{1}; Am3:{2}; AmS:{3}",
                7:"Layer: Bb:{0}; HD:{1}; TX:{2}",
                8:"Layer: BbS:{0}; HDS:{1}; TXS:{2}"
@@ -1459,7 +1465,7 @@ while n < break_point.max():
                 screen.blit(note_text.render(detail_info[2].format(n,this_frame['section']+1),fgcolor=cmap['notetext'],size=0.0185*Height)[0],(10,10+0.0666*Height))
                 screen.blit(note_text.render(detail_info[3].format(stdin_text[this_frame['section']]),fgcolor=cmap['notetext'],size=0.0185*Height)[0],(10,10+0.1*Height))
                 screen.blit(note_text.render(detail_info[4],fgcolor=cmap['notetext'],size=0.0185*Height)[0],(10,10+0.1333*Height))
-                screen.blit(note_text.render(detail_info[5].format(this_frame['BG1'],this_frame['BG2'],this_frame['BG3']),fgcolor=cmap['notetext'],size=0.0185*Height)[0],(10,10+0.1666*Height))
+                screen.blit(note_text.render(detail_info[5].format(this_frame['BG1'],this_frame['BG2']),fgcolor=cmap['notetext'],size=0.0185*Height)[0],(10,10+0.1666*Height))
                 screen.blit(note_text.render(detail_info[6].format(this_frame['Am1'],this_frame['Am2'],this_frame['Am3'],this_frame['AmS']),fgcolor=cmap['notetext'],size=0.0185*Height)[0],(10,10+0.2*Height))
                 screen.blit(note_text.render(detail_info[7].format(this_frame['Bb'],this_frame['Bb_header'],this_frame['Bb_main']),fgcolor=cmap['notetext'],size=0.0185*Height)[0],(10,10+0.2333*Height))
                 screen.blit(note_text.render(detail_info[8].format(this_frame['BbS'],this_frame['BbS_header'],this_frame['BbS_main']),fgcolor=cmap['notetext'],size=0.0185*Height)[0],(10,10+0.2666*Height))

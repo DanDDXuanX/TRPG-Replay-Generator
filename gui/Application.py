@@ -108,7 +108,7 @@ class Application():
             self.project_W.set(1920)
             self.project_H.set(1080)
             self.project_F.set(30)
-            self.project_Z.set('BG3,BG2,BG1,Am3,Am2,Am1,Bb')
+            self.project_Z.set('BG2,BG1,Am3,Am2,Am1,AmS,Bb,BbS')
             self.project_Q.set(24)
             self.AccessKey.set('Your_AccessKey')
             self.AccessKeySecret.set('Your_AccessKey_Secret')
