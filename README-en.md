@@ -28,9 +28,9 @@ TRPG-Replay-Generator is an automatic TRPG replay video producting tool based on
 
 ## Download
 
-[**Executable** 93.8MB](https://github.com/DanDDXuanX/TRPG-Replay-Generator/releases/download/v1.0.1/TRPG-Replay-Generator-v1.0.1-win64.7z)
+[**Executable** 93.8MB](https://github.com/DanDDXuanX/TRPG-Replay-Generator/releases/download/v1.0.4/TRPG-Replay-Generator-v1.0.4-win64.7z)
 
-[**Source Code** 25.1MB](https://github.com/DanDDXuanX/TRPG-Replay-Generator/releases/download/v1.0.1/TRPG-Replay-Generator-v1.0.1-SourceCode.7z)
+[**Source Code** 25.1MB](https://github.com/DanDDXuanX/TRPG-Replay-Generator/releases/download/v1.0.4/TRPG-Replay-Generator-v1.0.4-SourceCode.7z)
 
 ## Quickstart
 
