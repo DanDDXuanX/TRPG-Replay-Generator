@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # coding: utf-8
-from ast import In
 from Utils import EDITION
 
 # 外部参数输入
@@ -8,6 +7,8 @@ from Utils import EDITION
 import argparse
 import sys
 import os
+
+from Exceptions import *
 
 # 参数处理
 ap = argparse.ArgumentParser(description="Generating your TRPG replay video from logfile.")
@@ -42,13 +43,13 @@ Width,Height = args.Width,args.Height #显示的分辨率
 frame_rate = args.FramePerSecond #帧率 单位fps
 zorder = args.Zorder.split(',') #渲染图层顺序
 
+# 初始化日志打印
+Print.lang = 0 # 英文
+RplGenError.lang = 0 # 英文
+
 # 退出程序
 def system_terminated(exit_type='Error'):
-    exit_print = {'Error':'A major error occurred. Execution terminated!',
-                  'User':'Display terminated, due to user commands.',
-                  'Video':'Video exported. Execution terminated!',
-                  'End':'Display finished!'}
-    print('[replay generator]: '+exit_print[exit_type])
+    print(MainPrint(exit_type))
     if exit_type == 'Error':
         import traceback
         traceback.print_exc()
@@ -59,28 +60,28 @@ def system_terminated(exit_type='Error'):
 try:
     for path in [args.LogFile,args.MediaObjDefine,args.CharacterTable]:
         if path is None:
-            raise OSError("\x1B[31m[ArgumentError]:\x1B[0m Missing principal input argument!")
+            raise ArgumentError('MissInput')
         if os.path.isfile(path) == False:
-            raise OSError("\x1B[31m[ArgumentError]:\x1B[0m Cannot find file "+path)
+            raise ArgumentError('FileNotFound',path)
 
     if args.OutputPath is None:
         if (args.SynthesisAnyway == True) | (args.ExportXML == True) | (args.ExportVideo == True):
-            raise OSError("\x1B[31m[ArgumentError]:\x1B[0m Some flags requires output path, but no output path is specified!")
+            raise ArgumentError('NeedOutput')
     elif os.path.isdir(args.OutputPath) == False:
-        raise OSError("\x1B[31m[ArgumentError]:\x1B[0m Cannot find directory "+args.OutputPath)
+        raise ArgumentError('DirNotFound',args.OutputPath)
     else:
         args.OutputPath = args.OutputPath.replace('\\','/')
 
     # FPS
     if frame_rate <= 0:
-        raise ValueError("\x1B[31m[ArgumentError]:\x1B[0m Invalid frame rate:"+str(frame_rate))
+        raise ArgumentError('FrameRate',str(frame_rate))
     elif frame_rate>30:
-        print("\x1B[33m[warning]:\x1B[0m",'FPS is set to '+str(frame_rate)+', which may cause lag in the display!')
+        print(Warning('HighFPS',str(frame_rate)))
 
     if (Width<=0) | (Height<=0):
-        raise ValueError("\x1B[31m[ArgumentError]:\x1B[0m Invalid resolution:"+str((Width,Height)))
+        raise ArgumentError('Resolution',str((Width,Height)))
     if Width*Height > 3e6:
-        print("\x1B[33m[warning]:\x1B[0m",'Resolution is set to more than 3M, which may cause lag in the display!')
+        print(Warning('HighRes'))
 except Exception as E:
     print(E)
     system_terminated('Error')
@@ -117,9 +118,6 @@ screen_config['screen_size'] = (Width,Height)
 screen_config['frame_rate'] = frame_rate
 # 色图
 from Medias import cmap
-
-# 异常定义 
-from Exceptions import ParserError
 
 # 正则表达式
 from Regexs import *
@@ -173,7 +171,7 @@ def get_dialogue_arg(text):
     try:
         cr,cre,ts,tse,se = RE_dialogue.findall(text)[0]
     except IndexError:
-        raise ParserError("\x1B[31m[ParserError]:\x1B[0m","Unable to parse as dialogue line, due to invalid syntax!")
+        raise ParserError('UnableDial')
     this_duration = int(len(ts)/(dynamic_globals['speech_speed']/60/frame_rate))
     this_charactor = RE_characor.findall(cr)
     # 切换 method
@@ -220,7 +218,7 @@ def get_placeobj_arg(text):
     try:
         obj_type,obje,objc = RE_placeobj.findall(text)[0]
     except IndexError:
-        raise ParserError("\x1B[31m[ParserError]:\x1B[0m","Unable to parse as " + obj_type + " line, due to invalid syntax!")
+        raise ParserError('UnablePlace',obj_type)
     if obje=='':
         if obj_type == 'background':
             obje = dynamic_globals['bg_method_default']
@@ -245,7 +243,7 @@ def get_seting_arg(text):
     try:
         target,args = RE_setting.findall(text)[0]
     except IndexError:
-        raise ParserError("\x1B[31m[ParserError]:\x1B[0m","Unable to parse as setting line, due to invalid syntax!")
+        raise ParserError('UnableSet')
     return (target,args)
 
 # 处理am和bb类的动态切换效果
@@ -280,12 +278,12 @@ def ambb_methods(method_name,method_dur,this_duration,i):
             try:
                 method_args['direction'] = float(key[2:])
             except Exception:
-                raise ParserError('\x1B[31m[ParserError]:\x1B[0m Unrecognized switch method: "'+method_name+'" appeared in dialogue line ' + str(i+1)+'.')
+                raise ParserError('SwitchDial',method_name,str(i+1))
         else:
             try:
                 method_args['scale'] = int(key)
             except Exception:
-                raise ParserError('\x1B[31m[ParserError]:\x1B[0m Unrecognized switch method: "'+method_name+'" appeared in dialogue line ' + str(i+1)+'.')
+                raise ParserError('SwitchDial',method_name,str(i+1))
     # 切入，切出，或者双端
     cutin,cutout ={'in':(1,0),'out':(0,1),'both':(1,1)}[method_args['cut']]
     # alpha
@@ -390,9 +388,9 @@ def parser(stdin_text):
                         asterisk_time = float(asterisk_timeset[0][-1]) #取第二个，转化为浮点数
                         this_duration = dynamic_globals['asterisk_pause'] + np.ceil((asterisk_time)*frame_rate).astype(int) # a1.4.3 添加了句间停顿
                     except Exception:
-                        print('\x1B[33m[warning]:\x1B[0m','Failed to load asterisk time in dialogue line ' + str(i+1)+'.')
+                        print(Warning('FailAster',str(i+1)))
                 else: #检测到复数个星标
-                    raise ParserError('\x1B[31m[ParserError]:\x1B[0m Too much asterisk time labels are set in dialogue line ' + str(i+1)+'.')
+                    raise ParserError('2muchAster',str(i+1))
 
                 # 确保时长不短于切换特效时长
                 if this_duration<(2*max(am_dur,bb_dur)+1):
@@ -407,7 +405,7 @@ def parser(stdin_text):
                 alpha_timeline_B,pos_timeline_B = ambb_methods(bb_method,bb_dur,this_duration,i)
                 #各个角色：
                 if len(this_charactor) > 3:
-                    raise ParserError('\x1B[31m[ParserError]:\x1B[0m Too much charactor is specified in dialogue line ' + str(i+1)+'.')
+                    raise ParserError('2muchChara',str(i+1))
                 for k,charactor in enumerate(this_charactor[0:3]):
                     name,alpha,subtype= charactor
                     # 处理空缺参数
@@ -421,10 +419,10 @@ def parser(stdin_text):
                     try:
                         this_char_series = charactor_table.loc[name+subtype]
                     except KeyError as E: # 在角色表里面找不到name，raise在这里！
-                        raise ParserError('\x1B[31m[ParserError]:\x1B[0m Undefined Name '+ name+subtype +' in dialogue line ' + str(i+1)+'. due to:',E)
+                        raise ParserError('UndefName',name+subtype,str(i+1),E)
                     # 如果index存在重复值，则this_char_series不是一个 Series # 在这里处理的角色表index重复值，之后不再考虑这个异常
                     if type(this_char_series) is not pd.Series:
-                        raise ParserError('\x1B[31m[ParserError]:\x1B[0m'+' Duplicate subtype '+name+subtype+' is set in charactor table!')
+                        raise ParserError('DupSubtype',name+subtype)
                     
                     # 立绘的参数
                     this_am = this_char_series['Animation']
@@ -438,7 +436,7 @@ def parser(stdin_text):
                             this_timeline['Am'+str(k+1)+'_t'] = eval('{am}.get_tick({dur})'.format(am=this_am,dur=this_duration))
                             this_timeline['Am'+str(k+1)+'_c'] = str(eval(this_am+'.pos'))
                         except NameError as E: # 指定的am没有定义！
-                            raise ParserError('\x1B[31m[ParserError]:\x1B[0m',E,', which is specified to',name+subtype,'as Animation!')
+                            raise ParserError('UndefAnime', this_am, name+subtype)
                     # 透明度参数（alpha）
                     if (alpha >= 0)&(alpha <= 100): # alpha 1.8.8 如果有指定合法的透明度，则使用指定透明度
                         this_timeline['Am'+str(k+1)+'_a']=alpha_timeline_A*alpha
@@ -454,7 +452,7 @@ def parser(stdin_text):
                         this_bb = this_char_series['Bubble']
                         # 主要角色一定要有bubble！，次要的可用没有
                         if (this_bb!=this_bb) | (this_bb=='NA'):
-                            raise ParserError('\x1B[31m[ParserError]:\x1B[0m','No bubble is specified to major charactor',name+subtype,'of dialogue line '+str(i+1)+'.')
+                            raise ParserError('CharaNoBb',name+subtype,str(i+1))
                         # 获取目标的头文本
                         try:
                             # 存在:分隔，说明是聊天窗类，始终取:前面的内容识别为气泡
@@ -466,12 +464,12 @@ def parser(stdin_text):
                                 try:
                                     targets = bubble_obj.sub_Bubble[chatwindow_key].target
                                 except KeyError as E: # 指定的Key不存在！
-                                    raise ParserError('\x1B[31m[ParserError]:\x1B[0m','Key \''+chatwindow_key+'\' specified to ChatWindow object \''+this_bb+'\' is not exist!')
+                                    raise ParserError('InvalidKey', chatwindow_key, this_bb)
                             else:
                                 bubble_obj = eval(this_bb)
                                 if type(bubble_obj) is ChatWindow:
                                     # targets = bubble_obj.target ; AttributeError: 'ChatWindow' object has no attribute 'target'
-                                    raise ParserError('\x1B[31m[ParserError]:\x1B[0m','ChatWindow object \''+this_bb+'\' can not be used independently without a specified key!')
+                                    raise ParserError('CWUndepend', this_bb)
                                 else:
                                     targets = bubble_obj.target
                             # Bubble,DynamicBubble类：只有一个头文本
@@ -483,15 +481,16 @@ def parser(stdin_text):
                             # ChatWindow 类：只有一个头文本，头文本不能包含|和#，还需要附上key
                             elif type(bubble_obj) is ChatWindow:
                                 if ('|' in this_char_series[targets]) | ('#' in this_char_series[targets]):
-                                    raise ParserError('\x1B[31m[ParserError]:\x1B[0m','Invalid symbol (pound mark or vertical bar) appeared in header text of charactor ' + name+subtype+'.')
+                                    raise ParserError('InvSymbpd',name+subtype)
                                 else:
                                     target_text = chatwindow_key+'#'+this_char_series[targets]
                             else:
-                                raise NameError('Media object "' + this_bb + '" is not a Bubble!')
+                                # raise NameError('Media object "' + this_bb + '" is not a Bubble!')
+                                raise ParserError('NotBubble', this_bb, name+subtype)
                         except NameError as E: # 指定的bb没有定义！
-                            raise ParserError('\x1B[31m[ParserError]:\x1B[0m',E,', which is specified to',name+subtype,'as Bubble!')
+                            raise ParserError('UndefBubble', this_bb, name+subtype)
                         except KeyError as E: # 指定的target不存在！
-                            raise ParserError('\x1B[31m[ParserError]:\x1B[0m','Target columns',E,'specified to Bubble object \''+this_bb+'\' is not exist!')
+                            raise ParserError('TgNotExist', E, this_bb)
                         # 针对文本内容的警告和报错
                         try:
                             this_line_limit = bubble_obj.MainText.line_limit
@@ -499,20 +498,20 @@ def parser(stdin_text):
                             if type(bubble_obj) is ChatWindow:
                                 this_line_limit = bubble_obj.sub_Bubble[chatwindow_key].MainText.line_limit
                             else:
-                                raise ParserError('\x1B[31m[ParserError]:\x1B[0m','Main_Text of "{0}" is None!'.format(this_bb))
+                                raise ParserError('MissMainTx',this_bb)
                         # ts或者target_text里面有非法字符，双引号，反斜杠
                         if ('"' in target_text) | ('\\' in target_text) | ('"' in ts) | ('\\' in ts):
-                            raise ParserError('\x1B[31m[ParserError]:\x1B[0m','Invalid symbol (double quote or backslash) appeared in speech text in dialogue line ' + str(i+1)+'.')
+                            raise ParserError('InvSymbqu',str(i+1))
                         # 未声明手动换行
                         if ('#' in ts)&(ts[0]!='^'):
                             ts = '^' + ts # 补齐申明符号
-                            print('\x1B[33m[warning]:\x1B[0m','Undeclared manual break dialogue line ' + str(i+1)+'.')
+                            print(Warning('UndeclMB',str(i+1)))
                         #行数过多的警告
                         if (len(ts)>this_line_limit*4) | (len(ts.split('#'))>4):
-                            print('\x1B[33m[warning]:\x1B[0m','More than 4 lines will be displayed in dialogue line ' + str(i+1)+'.')
+                            print(Warning('More4line',str(i+1)))
                         # 手动换行的字数超限的警告
                         if ((ts[0]=='^')|('#' in ts))&(np.frompyfunc(len,1,1)(ts.replace('^','').split('#')).max()>this_line_limit):
-                            print('\x1B[33m[warning]:\x1B[0m','Manual break line length exceed the Bubble line_limit in dialogue line ' + str(i+1)+'.') #alpha1.6.3
+                            print(Warning('MBExceed',str(i+1)))
                         # 赋值给当前时间轴的Bb轨道
                         this_timeline['Bb'] = this_bb
                         this_timeline['Bb_main'] = ts
@@ -538,7 +537,7 @@ def parser(stdin_text):
                         word_count_timeline = (np.arange(0,this_duration,1)//(text_dur*line_limit)+1)*line_limit
                     this_timeline['Bb_main'] = UF_cut_str(this_timeline['Bb_main'],word_count_timeline)
                 else:
-                    raise ParserError('\x1B[31m[ParserError]:\x1B[0m Unrecognized text display method: "'+text_method+'" appeared in dialogue line ' + str(i+1)+'.')
+                    raise ParserError('UnrecTxMet', text_method, str(i+1))
                 # 如果是ChatWindow
                 if type(bubble_obj) is ChatWindow:
                     # 记录本次需要添加的文本（最后一帧）
@@ -567,7 +566,7 @@ def parser(stdin_text):
                     else:
                         delay = int(delay)
                     if '*' in se_obj:
-                        raise ParserError('\x1B[31m[ParserError]:\x1B[0m Unprocessed asterisk time label appeared in dialogue line ' + str(i+1) + '. Add --SynthesisAnyway may help.')
+                        raise ParserError('UnpreAster', str(i+1))
                     if se_obj in media_list: # 如果delay在媒体里已经定义，则视为SE
                         this_timeline.loc[delay,'SE'] = se_obj
                     elif os.path.isfile(se_obj[1:-1]) == True: #或者指向一个确定的文件，则视为语音
@@ -575,7 +574,7 @@ def parser(stdin_text):
                     elif se_obj in ['NA','']: # 如果se_obj是空值或NA，则什么都不做 alpha1.8.5
                         pass
                     else:
-                        raise ParserError('\x1B[31m[ParserError]:\x1B[0m The sound effect "'+se_obj+'" specified in dialogue line ' + str(i+1)+' is not exist!')
+                        raise ParserError('SEnotExist', se_obj, str(i+1))
                 # BGM
                 if BGM_queue != []:
                     this_timeline.loc[0,'BGM'] = BGM_queue.pop(0) #从BGM_queue里取第一个出来 alpha 1.13.5
@@ -587,7 +586,7 @@ def parser(stdin_text):
                 continue
             except Exception as E:
                 print(E)
-                raise ParserError('\x1B[31m[ParserError]:\x1B[0m Parse exception occurred in dialogue line ' + str(i+1)+'.')
+                raise ParserError('ParErrDial', str(i+1))
         # 背景设置行，格式： <background><black=30>:BG_obj
         elif text[0:12] == '<background>':
             try:
@@ -595,7 +594,7 @@ def parser(stdin_text):
                 if bgc in media_list: # 检查是否是已定义的对象
                     next_background=bgc
                 else:
-                    raise ParserError('\x1B[31m[ParserError]:\x1B[0m The background "'+bgc+'" specified in background line ' + str(i+1)+' is not defined!')
+                    raise ParserError('UndefBackGd',bgc,str(i+1))
                 if method=='replace': #replace 改为立刻替换 并持续n秒
                     this_timeline=pd.DataFrame(index=range(0,method_dur),dtype=str,columns=render_arg)
                     this_timeline['BG2']=next_background
@@ -639,7 +638,7 @@ def parser(stdin_text):
                             this_timeline['BG1_p'] = concat_xy(dynamic_globals['formula'](Width,0,method_dur),np.zeros(method_dur))
                             this_timeline['BG2_p'] = 'NA'
                 else:
-                    raise ParserError('\x1B[31m[ParserError]:\x1B[0m Unrecognized switch method: "'+method+'" appeared in background line ' + str(i+1)+'.')
+                    raise ParserError('SwitchBkGd',method,str(i+1))
                 this_background = next_background #正式切换背景
                 # BGM
                 if BGM_queue != []:
@@ -652,7 +651,7 @@ def parser(stdin_text):
                 continue
             except Exception as E:
                 print(E)
-                raise ParserError('\x1B[31m[ParserError]:\x1B[0m Parse exception occurred in background line ' + str(i+1)+'.')
+                raise ParserError('ParErrBkGd',str(i+1))
         # 常驻立绘设置行，格式：<animation><black=30>:(Am_obj,Am_obj2)
         elif text[0:11] == '<animation>':
             # 处理上一次的
@@ -661,7 +660,7 @@ def parser(stdin_text):
             this_am,am_method,am_dur,am_center = this_placed_animation
             # 如果place的this_duration小于切换时间，则清除动态切换效果
             if this_duration<(2*am_dur+1):
-                print('\x1B[33m[warning]:\x1B[0m','The switch method of placed animation is dropped, due to short duration!')
+                print(Warning('PAmMetDrop'))
                 am_dur = 0
                 am_method = 'replace'
             render_timeline.loc[last_placed_index,'AmS'] = this_am
@@ -687,7 +686,7 @@ def parser(stdin_text):
                     for amo in amc_list:
                         # 检验指定的名称是否是Animation
                         if amo not in media_list:
-                            raise ParserError('\x1B[31m[ParserError]:\x1B[0m The Animation "'+amo+'" specified in animation line ' + str(i+1)+' is not defined!')
+                            raise ParserError('UndefPAnime',amo,str(i+1))
                         else:
                             grouped_ampos.append(str(eval(amo).pos))
                     # 新建GA
@@ -712,10 +711,10 @@ def parser(stdin_text):
                     this_placed_animation = ('NA','replace',0,'(0,0)')
                     last_placed_animation_section = i
                 else:
-                    raise ParserError('\x1B[31m[ParserError]:\x1B[0m The Animation "'+amc+'" specified in animation line ' + str(i+1)+' is not defined!')
+                    raise ParserError('UndefPAnime',amc,str(i+1))
             except Exception as E:
                 print(E)
-                raise ParserError('\x1B[31m[ParserError]:\x1B[0m Parse exception occurred in animation line ' + str(i+1)+'.')
+                raise ParserError('ParErrAnime',str(i+1))
         # 常驻气泡设置行，格式：<bubble><black=30>:Bubble_obj("Header_text","Main_text",<text_method>)
         elif text[0:8] == '<bubble>':
             # 处理上一次的
@@ -725,7 +724,7 @@ def parser(stdin_text):
             this_bb,bb_method,bb_dur,this_hd,this_tx,text_method,text_dur,bb_center = this_placed_bubble
             # 如果place的this_duration小于切换时间，则清除动态切换效果
             if this_duration<(2*bb_dur+1):
-                print('\x1B[33m[warning]:\x1B[0m','The switch method of placed bubble is dropped, due to short duration!')
+                print(Warning('PBbMetDrop'))
                 bb_dur = 0
                 bb_method = 'replace'
             # 'BbS','BbS_main','BbS_header','BbS_a','BbS_c','BbS_p',
@@ -763,7 +762,7 @@ def parser(stdin_text):
                         word_count_timeline = (np.arange(0,this_duration,1)//(text_dur*line_limit)+1)*line_limit
                     render_timeline.loc[last_placed_index,'BbS_main'] = UF_cut_str(render_timeline.loc[last_placed_index,'BbS_main'],word_count_timeline)
                 else:
-                    raise ParserError('\x1B[31m[ParserError]:\x1B[0m However impossible!')
+                    pass
             # 获取本次的
             try:
                 # type: str,str,int
@@ -787,14 +786,14 @@ def parser(stdin_text):
                             this_placed_bubble = (this_bb,method,method_dur,this_hd,this_tx,this_tx_method,int(this_tx_dur),str(eval(this_bb).pos))
                             last_placed_bubble_section = i
                     except IndexError:
-                        raise ParserError('\x1B[31m[ParserError]:\x1B[0m The Bubble expression "'+bbc+'" specified in bubble line ' + str(i+1)+' is invalid syntax!')
+                        raise ParserError('InvaPBbExp',bbc,str(i+1))
                     except ValueError: # ValueError: invalid literal for int() with base 10: 'asd'
-                        raise ParserError('\x1B[31m[ParserError]:\x1B[0m Unrecognized text display method: "'+this_method_label+'" appeared in bubble line ' + str(i+1)+'.')
+                        raise ParserError('UnrecPBbTxM',this_method_label,str(i+1))
                     except NameError as E:
-                        raise ParserError('\x1B[31m[ParserError]:\x1B[0m The Bubble "'+E+'" specified in bubble line ' + str(i+1)+' is not defined!')
+                        raise ParserError('UndefPBb',this_bb,str(i+1))
             except Exception as E:
                 print(E)
-                raise ParserError('\x1B[31m[ParserError]:\x1B[0m Parse exception occurred in bubble line ' + str(i+1)+'.')
+                raise ParserError('ParErrBb',str(i+1))
         # 参数设置行，格式：<set:speech_speed>:220
         elif (text[0:5] == '<set:') & ('>:' in text):
             try:
@@ -808,7 +807,7 @@ def parser(stdin_text):
                         else:
                             dynamic_globals[target] = args
                     except Exception:
-                        print('\x1B[33m[warning]:\x1B[0m','Setting',target,'to invalid value',args,',the argument will not changed.')
+                        print(Warning('Set2Invalid',target,args))
                 # <method>类型的变量
                 elif target in ['am_method_default','bb_method_default','bg_method_default','tx_method_default']:
                     # exec("global {0} ; {0} = {1}".format(target,'\"'+args+'\"')) # 当作文本型，无论是啥都接受
@@ -822,7 +821,7 @@ def parser(stdin_text):
                     elif args == 'stop':
                         BGM_queue.append(args)
                     else:
-                        raise ParserError('\x1B[31m[ParserError]:\x1B[0m The BGM "'+args+'" specified in setting line ' + str(i+1)+' is not exist!')
+                        raise ParserError('UndefBGM',args,str(i+1))
                 # formula类型的变量
                 elif target == 'formula':
                     if args in formula_available.keys():
@@ -830,28 +829,27 @@ def parser(stdin_text):
                     elif args[0:6] == 'lambda':
                         try:
                             dynamic_globals['formula'] = eval(args)
-                            print('\x1B[33m[warning]:\x1B[0m','Using lambda formula range ',dynamic_globals['formula'](0,1,2),
-                                  ' in line',str(i+1),', which may cause unstableness during displaying!')                            
+                            print(Warning('UseLambda',str(dynamic_globals['formula'](0,1,2)),str(i+1)))                          
                         except Exception:
-                            raise ParserError('\x1B[31m[ParserError]:\x1B[0m Unsupported formula "'+args+'" is specified in setting line ' + str(i+1)+'.')
+                            raise ParserError('UnspFormula',args,str(i+1))
                     else:
-                        raise ParserError('\x1B[31m[ParserError]:\x1B[0m Unsupported formula "'+args+'" is specified in setting line ' + str(i+1)+'.')
+                        raise ParserError('UnspFormula',args,str(i+1))
                 # 枚举类型的变量
                 elif target == 'inline_method_apply':
                     if args in ['animation','bubble','both','none']:
                         dynamic_globals['inline_method_apply'] = args
                     else:
-                        print('\x1B[33m[warning]:\x1B[0m','Setting',target,'to invalid value',args,',the argument will not changed.')
+                        print(Warning('Set2Invalid',target,args))
                 # 角色表中的自定义列
                 elif '.' in target:
                     target_split = target.split('.')
                     target_column = target_split[-1]
                     # 如果目标列不存在于角色表
                     if target_column not in charactor_table.columns:
-                        raise ParserError('\x1B[31m[ParserError]:\x1B[0m Try to modify a undefined column \''+target_column+'\' in charactor table!')
+                        raise ParserError('ModUndefCol',target_column)
                     # 如果尝试修改受保护的列
                     elif target_column in ['Name','Subtype','Animation','Bubble','Voice','SpeechRate','PitchRate']:
-                        raise ParserError('\x1B[31m[ParserError]:\x1B[0m Try to modify a protected column \''+target_column+'\' in charactor table!')
+                        raise ParserError('ModProtcCol',target_column)
                     # 如果只指定了一个角色名和列名，则变更应用于角色名下所有的subtype
                     if len(target_split) == 2:
                         name = target_split[0]
@@ -859,9 +857,9 @@ def parser(stdin_text):
                             try:
                                 charactor_table.loc[charactor_table['Name']==name,target_column] = args
                             except Exception as E:
-                                raise ParserError('\x1B[31m[ParserError]:\x1B[0m Error occurred while modifying charactor table: ' + target + ', due to:',E)
+                                raise ParserError('ModCTError',target,E)
                         else:
-                            raise ParserError('\x1B[31m[ParserError]:\x1B[0m Target name \''+ name +'\' in setting line '+str(i+1)+' is not undefined!')
+                            raise ParserError('UndefTgName',name,str(i+1))
                     # 如果只指定了角色名、差分名和列名，则变更仅应用于该subtype
                     elif len(target_split) == 3:
                         name,subtype = target_split[0:2]
@@ -869,35 +867,35 @@ def parser(stdin_text):
                             try:
                                 charactor_table.loc[name+'.'+subtype, target_column] = args
                             except Exception as E:
-                                raise ParserError('\x1B[31m[ParserError]:\x1B[0m Error occurred while modifying charactor table: ' + target + ', due to:',E)
+                                raise ParserError('ModCTError',target,E)
                         else:
-                            raise ParserError('\x1B[31m[ParserError]:\x1B Target subtype '+ name+'.'+subtype +' in setting line '+str(i+1)+' is not undefined!')
+                            raise ParserError('UndefTgSubt',name+'.'+subtype,str(i+1))
                     # 如果超过4个指定项目，无法解析，抛出ParserError(不被支持的参数)
                     else:
-                        raise ParserError('\x1B[31m[ParserError]:\x1B[0m Unsupported setting "'+target+'" is specified in setting line ' + str(i+1)+'.')
+                        raise ParserError('UnsuppSet',target,str(i+1))
                 # 重定位FreePos
                 elif type(eval(target)) is FreePos:
                     try:
                         eval(target).set(eval(args))
                     except Exception as E:
-                        raise ParserError('\x1B[31m[ParserError]:\x1B[0m Invalid Syntax \''+args+'\' appeared  while repositioning FreePos object \''+target+'\', due to:',E)
+                        raise ParserError('IvSyFrPos',args,target,E)
                 # 不被支持的参数
                 else:
-                    raise ParserError('\x1B[31m[ParserError]:\x1B[0m Unsupported setting "'+target+'" is specified in setting line ' + str(i+1)+'.')
+                    raise ParserError('UnsuppSet',target,str(i+1))
             except Exception as E:
                 print(E)
-                raise ParserError('\x1B[31m[ParserError]:\x1B[0m Parse exception occurred in setting line ' + str(i+1)+'.')
+                raise ParserError('ParErrSet',str(i+1))
         # 清除行，仅适用于ChatWindow
         elif (text[0:8] == '<clear>:'):
             clear_target_name = text[8:]
             if clear_target_name not in media_list:
-                print('\x1B[33m[warning]:\x1B[0m','Trying to clear an undefined object',clear_target_name)
+                print(Warning('ClearUndef',clear_target_name))
             else:
                 clear_target_obj = eval(clear_target_name)
                 if type(clear_target_obj) is ChatWindow:
                     clear_target_obj.clear()
                 else:
-                    print('\x1B[33m[warning]:\x1B[0m','Trying to clear object',clear_target_name,',which is not a ChatWindow.')
+                    print(Warning('ClearNotCW',clear_target_name))
         # 预设动画，损失生命
         elif text[0:11] == '<hitpoint>:':
             try:
@@ -968,14 +966,14 @@ def parser(stdin_text):
                 continue
             except Exception as E:
                 print(E)
-                raise ParserError('\x1B[31m[ParserError]:\x1B[0m Parse exception occurred in hitpoint line ' + str(i+1)+'.')
+                raise ParserError('ParErrHit',str(i+1))
         # 预设动画，骰子
         elif text[0:7] == '<dice>:':
             try:
                 # 获取参数
                 dice_args = RE_dice.findall(text[7:])
                 if len(dice_args) == 0:
-                    raise ParserError('\x1B[31m[ParserError]:\x1B[0m','Invalid syntax, no dice args is specified!')
+                    raise ParserError('NoDice')
                 # 建立小节
                 this_timeline=pd.DataFrame(index=range(0,frame_rate*5),dtype=str,columns=render_arg) # 5s
                 # 背景
@@ -1033,10 +1031,10 @@ def parser(stdin_text):
                 continue
             except Exception as E:
                 print(E)
-                raise ParserError('\x1B[31m[ParserError]:\x1B[0m Parse exception occurred in dice line ' + str(i+1)+'.')
+                raise ParserError('ParErrDice',str(i+1))
         # 异常行，报出异常
         else:
-            raise ParserError('\x1B[31m[ParserError]:\x1B[0m Unrecognized line: '+ str(i+1)+'.')
+            raise ParserError('UnrecLine',str(i+1))
         break_point[i+1]=break_point[i]
     
     # 处理上一次的place最终一次
@@ -1066,7 +1064,7 @@ def parser(stdin_text):
         this_bb,bb_method,bb_dur,this_hd,this_tx,text_method,text_dur,bb_center = this_placed_bubble
         # 如果place的this_duration小于切换时间，则清除动态切换效果
         if this_duration<(2*bb_dur+1):
-            print('\x1B[33m[warning]:\x1B[0m','The switch method of placed bubble is dropped, due to short duration!')
+            print(Warning('PBbMetDrop'))
             bb_dur = 0
             bb_method = 'replace'
         # 'BbS','BbS_main','BbS_header','BbS_a','BbS_c','BbS_p',
@@ -1104,9 +1102,9 @@ def parser(stdin_text):
                     word_count_timeline = (np.arange(0,this_duration,1)//(text_dur*line_limit)+1)*line_limit
                 render_timeline.loc[last_placed_index,'BbS_main'] = UF_cut_str(render_timeline.loc[last_placed_index,'BbS_main'],word_count_timeline)
             else:
-                raise ParserError('\x1B[31m[ParserError]:\x1B[0m However impossible!')
+                pass
     except Exception as E:
-        raise ParserError('\x1B[31m[ParserError]:\x1B[0m Exception occurred while completing the placed medias.')
+        raise ParserError('ParErrCompl')
 
     # 去掉和前一帧相同的帧，节约了性能
     render_timeline = render_timeline.fillna('NA') #假设一共10帧
@@ -1130,7 +1128,7 @@ def render(this_frame):
         elif this_frame[layer+'_a']<=0: #或者图层的透明度小于等于0(由于fillna("NA"),出现的异常)
             continue
         elif this_frame[layer] not in media_list:
-            raise RuntimeError('\x1B[31m[RenderError]:\x1B[0m Undefined media object : "'+this_frame[layer]+'".')
+            raise RenderError('UndefMedia',this_frame[layer])
         elif layer[0:2] == 'BG':
             try:
                 exec('{0}.display(surface=screen,alpha={1},adjust={2},center={3})'.format(this_frame[layer],
@@ -1138,7 +1136,7 @@ def render(this_frame):
                                                                                           '\"'+this_frame[layer+'_p']+'\"',
                                                                                           '\"'+this_frame[layer+'_c']+'\"'))
             except Exception:
-                raise RuntimeError('\x1B[31m[RenderError]:\x1B[0m Failed to render "'+this_frame[layer]+'" as Background.')
+                raise RenderError('FailRender',this_frame[layer],'Background')
         elif layer[0:2] == 'Am': # 兼容H_LG1(1)这种动画形式 alpha1.6.3
             try:
                 exec('{0}.display(surface=screen,alpha={1},adjust={2},frame={3},center={4})'.format(
@@ -1148,7 +1146,7 @@ def render(this_frame):
                                                                                          this_frame[layer+'_t'],
                                                                                          '\"'+this_frame[layer+'_c']+'\"'))
             except Exception:
-                raise RuntimeError('\x1B[31m[RenderError]:\x1B[0m Failed to render "'+this_frame[layer]+'" as Animation.')
+                raise RenderError('FailRender',this_frame[layer],'Animation')
         elif layer[0:2] == 'Bb':
             try:
                 exec('{0}.display(surface=screen,text={2},header={3},alpha={1},adjust={4},center={5})'.format(this_frame[layer],
@@ -1158,7 +1156,7 @@ def render(this_frame):
                                                                                                    '\"'+this_frame[layer+'_p']+'\"',
                                                                                                    '\"'+this_frame[layer+'_c']+'\"'))
             except Exception:
-                raise RuntimeError('\x1B[31m[RenderError]:\x1B[0m Failed to render "'+this_frame[layer]+'" as Bubble.')
+                raise RenderError('FailRender',this_frame[layer],'Bubble')
     for key in ['BGM','Voice','SE']:
         if (this_frame[key]=='NA')|(this_frame[key]!=this_frame[key]): #如果是空的
             continue
@@ -1179,7 +1177,7 @@ def render(this_frame):
                 else:
                     exec('{0}.display(channel={1})'.format(this_frame[key],channel_list[key])) #否则就直接播放对象
             except Exception:
-                raise RuntimeError('\x1B[31m[RenderError]:\x1B[0m Failed to play audio "'+this_frame[key]+'"') # v 1.10.7 debug
+                raise ParserError('FailPlay',this_frame[key])
     return 1
 # 手动换行的l2l
 def get_l2l(ts,text_dur,this_duration): #如果是手动换行的列
@@ -1221,7 +1219,7 @@ def pause_SE(stats):
 
 # Main():
 
-print('[replay generator]: Welcome to use TRPG-replay-generator '+EDITION)
+print(MainPrint('Welcome',EDITION))
 
 # 检查是否需要先做语音合成
 
@@ -1230,38 +1228,39 @@ if args.SynthesisAnyway == True:
     command = command + '--Azurekey {AZ} --ServRegion {SR}'
     command = command.format(lg = args.LogFile.replace('\\','/'),md = args.MediaObjDefine.replace('\\','/'), of = args.OutputPath, ct = args.CharacterTable.replace('\\','/'),
                              AK = args.AccessKey,AS = args.AccessKeySecret,AP = args.Appkey,AZ = args.Azurekey, SR =args.ServRegion)
-    print('[replay generator]: Flag --SynthesisAnyway detected, running command:\n'+'\x1B[32m'+command+'\x1B[0m')
+    print(MainPrint('SythAnyway'))
+    print(CMDPrint('Command',command))
     try:
         exit_status = os.system(command)
-        print('\x1B[32m------------------------------------------------------------\x1B[0m')
+        print(CMDPrint('BreakLine'))
         # 0. 有覆盖原log，合成正常，可以继续执行主程序
         if exit_status == 0:
             pass
         # 1. 无覆盖原log，无需合成，可以继续执行主程序
         elif exit_status == 1:
-            print('\x1B[33m[warning]:\x1B[0m','No valid asterisk label synthesised!')
+            print(Warning('NoValidSyth'))
         # 2. 无覆盖原log，合成未完成，不能继续执行主程序
         elif exit_status == 2:
-            raise RuntimeError('Speech synthesis cannot begin.')
+            raise SynthesisError('CantBegin')
         # 3. 有覆盖原log，合成未完成，不能继续执行主程序
         elif exit_status == 3:
-            raise RuntimeError('Speech synthesis breaked, due to unresolvable error.')
+            raise SynthesisError('SynBreak')
         else:
-            raise RuntimeError('Unknown Exception.')
+            raise SynthesisError('Unknown')
     except Exception as E:
-        print('\x1B[31m[SynthesisError]:\x1B[0m',E)
+        print(E)
         system_terminated('Error')
 
 # 载入媒体文件
-print('[replay generator]: Loading media definition file.')
+print(MainPrint('LoadMedef'))
 
 try:
     object_define_text = open(args.MediaObjDefine,'r',encoding='utf-8').read()#.split('\n') # 修改后的逻辑
 except UnicodeDecodeError as E:
-    print('\x1B[31m[DecodeError]:\x1B[0m',E)
+    print(DecodeError('DecodeErr',E))
     system_terminated('Error')
 if object_define_text[0] == '\ufeff': # UTF-8 BOM
-    print('\x1B[33m[warning]:\x1B[0m','UTF8 BOM recognized in MediaDef, it will be drop from the begin of file!')
+    print(Warning('UFT8BOM'))
     object_define_text = object_define_text[1:] # 去掉首位
 object_define_text = object_define_text.split('\n')
 
@@ -1277,13 +1276,13 @@ for i,text in enumerate(object_define_text):
             obj_name = text.split('=')[0]
             obj_name = obj_name.replace(' ','')
             if obj_name in occupied_variable_name:
-                raise SyntaxError('Obj name occupied')
+                raise SyntaxError('OccName')
             elif (len(re.findall('\w+',obj_name))==0)|(obj_name[0].isdigit()):
-                raise SyntaxError('Invalid Obj name')
+                raise SyntaxError('InvaName')
             media_list.append(obj_name) #记录新增对象名称
         except Exception as E:
             print(E)
-            print('\x1B[31m[SyntaxError]:\x1B[0m "'+text+'" appeared in media define file line ' + str(i+1)+' is invalid syntax:')
+            print(SyntaxError('MediaDef',text,str(i+1)))
             system_terminated('Error')
 black = Background('black')
 white = Background('white')
@@ -1291,7 +1290,7 @@ media_list.append('black')
 media_list.append('white')
 
 # 载入角色配置文件
-print('[replay generator]: Loading charactor table.')
+print(MainPrint('LoadChrtab'))
 
 try:
     if args.CharacterTable.split('.')[-1] in ['xlsx','xls']:
@@ -1300,21 +1299,24 @@ try:
         charactor_table = pd.read_csv(args.CharacterTable,sep='\t',dtype = str).fillna('NA')
     charactor_table.index = charactor_table['Name']+'.'+charactor_table['Subtype']
     if ('Animation' not in charactor_table.columns) | ('Bubble' not in charactor_table.columns): # 139debug
-        raise SyntaxError('missing necessary columns.')
+        raise SyntaxError('MissCol')
+except SyntaxError as E:
+    print(E)
+    system_terminated('Error')
 except Exception as E:
-    print('\x1B[31m[SyntaxError]:\x1B[0m Unable to load charactor table:',E)
+    print(SyntaxError('CharTab',E))
     system_terminated('Error')
 
 # 载入log文件 parser()
-print('[replay generator]: Parsing Log file.')
+print(MainPrint('LoadRGL'))
 
 try:
     stdin_text = open(args.LogFile,'r',encoding='utf8').read()#.split('\n')
 except UnicodeDecodeError as E:
-    print('\x1B[31m[DecodeError]:\x1B[0m',E)
+    print(DecodeError('DecodeErr',E))
     system_terminated('Error')
 if stdin_text[0] == '\ufeff': # 139 debug # 除非是完全空白的文件
-    print('\x1B[33m[warning]:\x1B[0m','UTF8 BOM recognized in Logfile, it will be drop from the begin of file!')
+    print(Warning('UFT8BOM'))
     stdin_text = stdin_text[1:]
 stdin_text = stdin_text.split('\n')
 try:
@@ -1325,7 +1327,7 @@ except ParserError as E:
 
 # 判断是否指定输出路径，准备各种输出选项
 if args.OutputPath != None:
-    print('[replay generator]: The timeline and breakpoint file will be save at '+args.OutputPath)
+    print(MainPrint('OutTime',args.OutputPath))
     # 如果有输出路径，导出时间轴文件
     timenow = '%d'%time.time()
     timeline_ofile = open(args.OutputPath+'/'+timenow+'.timeline','wb')
@@ -1337,28 +1339,30 @@ if args.OutputPath != None:
         command = command.format(tm = args.OutputPath+'/'+timenow+'.timeline',
                                  md = args.MediaObjDefine.replace('\\','/'), of = args.OutputPath.replace('\\','/'), 
                                  fps = frame_rate, wd = Width, he = Height, zd = args.Zorder)
-        print('[replay generator]: Flag --ExportXML detected, running command:\n'+'\x1B[32m'+command+'\x1B[0m')
+        print(MainPrint('ExportXML'))
+        print(CMDPrint('Command',command))
         try:
             exit_status = os.system(command)
-            print('\x1B[32m------------------------------------------------------------\x1B[0m')
+            print(CMDPrint('BreakLine'))
             if exit_status != 0:
                 raise OSError('Major error occurred in export_xml!')
         except Exception as E:
-            print('\x1B[33m[warning]:\x1B[0m Failed to export XML, due to:',E)
+            print(Warning('XMLFail',E))
     # 如果导出视频文件
     if args.ExportVideo == True:
         command = python3 + ' ./export_video.py --TimeLine {tm} --MediaObjDefine {md} --OutputPath {of} --FramePerSecond {fps} --Width {wd} --Height {he} --Zorder {zd} --Quality {ql}'
         command = command.format(tm = args.OutputPath+'/'+timenow+'.timeline',
                                  md = args.MediaObjDefine.replace('\\','/'), of = args.OutputPath.replace('\\','/'), 
                                  fps = frame_rate, wd = Width, he = Height, zd = args.Zorder,ql = args.Quality)
-        print('[replay generator]: Flag --ExportVideo detected, running command:\n'+'\x1B[32m'+command+'\x1B[0m')
+        print(MainPrint('ExportMp4'))
+        print(CMDPrint('Command',command))
         try:
             exit_status = os.system(command)
-            print('\x1B[32m------------------------------------------------------------\x1B[0m')
+            print(CMDPrint('BreakLine'))
             if exit_status != 0:
                 raise OSError('Major error occurred in export_video!')
         except Exception as E:
-            print('\x1B[33m[warning]:\x1B[0m Failed to export Video, due to:',E)
+            print(Warning('Mp4Fail',E))
         # 如果导出为视频，则提前终止程序
         system_terminated('Video')
 
@@ -1368,7 +1372,7 @@ if args.FixScreenZoom == True:
         import ctypes
         ctypes.windll.user32.SetProcessDPIAware() #修复错误的缩放，尤其是在移动设备。
     except Exception:
-        print('\x1B[33m[warning]:\x1B[0m OS exception, --FixScreenZoom is only avaliable on windows system!')
+        print(Warning('FixScrZoom'))
 
 pygame.init()
 pygame.display.set_caption('TRPG Replay Generator '+EDITION)
@@ -1387,7 +1391,7 @@ for media in media_list:
     try:
         exec(media+'.convert()')
     except Exception as E:
-        print('\x1B[31m[MediaError]:\x1B[0m Exception during converting',media,':',E)
+        print(MediaError('ErrCovert',media,E))
         system_terminated('Error')
 
 # 预备画面
@@ -1500,9 +1504,9 @@ while n < break_point.max():
         pygame.display.update()
         n = n + forward #下一帧
         fps_clock.tick(frame_rate)
-    except RuntimeError as E:
+    except RenderError as E:
         print(E)
-        print('\x1B[31m[RenderError]:\x1B[0m','Render exception at frame:',n)
+        print(RenderError('BreakFrame',n))
         pygame.quit()
         system_terminated('Error')
 pygame.quit()
