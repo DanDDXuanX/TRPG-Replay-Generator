@@ -8,7 +8,11 @@ import argparse
 import sys
 import os
 
-from Exceptions import *
+# 异常和运行日志
+
+from Exceptions import RplGenError, Print
+from Exceptions import ParserError, RenderError, ArgumentError, MediaError, SyntaxsError, SynthesisError, DecodeError
+from Exceptions import MainPrint, WarningPrint, CMDPrint
 
 # 参数处理
 ap = argparse.ArgumentParser(description="Generating your TRPG replay video from logfile.")
@@ -1276,13 +1280,13 @@ for i,text in enumerate(object_define_text):
             obj_name = text.split('=')[0]
             obj_name = obj_name.replace(' ','')
             if obj_name in occupied_variable_name:
-                raise SyntaxError('OccName')
+                raise SyntaxsError('OccName')
             elif (len(re.findall('\w+',obj_name))==0)|(obj_name[0].isdigit()):
-                raise SyntaxError('InvaName')
+                raise SyntaxsError('InvaName')
             media_list.append(obj_name) #记录新增对象名称
         except Exception as E:
             print(E)
-            print(SyntaxError('MediaDef',text,str(i+1)))
+            print(SyntaxsError('MediaDef',text,str(i+1)))
             system_terminated('Error')
 black = Background('black')
 white = Background('white')
@@ -1299,12 +1303,12 @@ try:
         charactor_table = pd.read_csv(args.CharacterTable,sep='\t',dtype = str).fillna('NA')
     charactor_table.index = charactor_table['Name']+'.'+charactor_table['Subtype']
     if ('Animation' not in charactor_table.columns) | ('Bubble' not in charactor_table.columns): # 139debug
-        raise SyntaxError('MissCol')
-except SyntaxError as E:
+        raise SyntaxsError('MissCol')
+except SyntaxsError as E:
     print(E)
     system_terminated('Error')
 except Exception as E:
-    print(SyntaxError('CharTab',E))
+    print(SyntaxsError('CharTab',E))
     system_terminated('Error')
 
 # 载入log文件 parser()

@@ -10,12 +10,14 @@ from Utils import EDITION
 # 2. 无覆盖原log，合成未完成，不能继续执行主程序
 # 3. 有覆盖原log，合成未完成，不能继续执行主程序
 
+from Exceptions import RplGenError, Print
+from Exceptions import DecodeError, IgnoreInput, MediaError, ArgumentError, ParserError, SyntaxsError, SynthesisError
+from Exceptions import SynthPrint, WarningPrint
 # 外部参数输入
 
 import argparse
 import sys
 import os
-from Exceptions import DecodeError, IgnoreInput, MediaError, ArgumentError, ParserError, RplGenError, SyntaxError, SynthPrint, SynthesisError, WarningPrint
 
 ap = argparse.ArgumentParser(description="Speech synthesis and preprocessing from you logfile.")
 ap.add_argument("-l", "--LogFile", help='The standerd input of this programme, which is mainly composed of TRPG log.',type=str)
@@ -32,6 +34,10 @@ ap.add_argument("-R", "--ServRegion", help='Service region of Azure.', type=str,
 ap.add_argument('--PreviewOnly',help='Ignore the input files, and open a speech preview gui windows.',action='store_true')
 ap.add_argument('--Init',help='The initial speech service in preview.',type=str,default='Aliyun')
 args = ap.parse_args()
+
+# 初始化日志打印
+Print.lang = 0 # 英文
+RplGenError.lang = 0 # 英文
 
 try:
     if args.PreviewOnly == 1:
@@ -397,7 +403,7 @@ def main():
         if 'Voice' not in charactor_table.columns:
             print(WarningPrint('MissVoice'))
     except Exception as E:
-        print(SyntaxError('CharTab',E))
+        print(SyntaxsError('CharTab',E))
         sys.exit(2) # 无法载入角色表，异常退出
 
     # 填补缺省值
@@ -459,13 +465,13 @@ def main():
                 obj_name = text.split('=')[0]
                 obj_name = obj_name.replace(' ','')
                 if obj_name in occupied_variable_name:
-                    raise SyntaxError('Obj name occupied')
+                    raise SyntaxsError('OccName')
                 elif (len(re.findall('\w+',obj_name))==0)|(obj_name[0].isdigit()):
-                    raise SyntaxError('Invalid Obj name')
+                    raise SyntaxsError('InvaName')
                 media_list.append(obj_name) #记录新增对象名称
             except Exception as E:
                 print(E)
-                print(SyntaxError('MediaDef',text,str(i+1)))
+                print(SyntaxsError('MediaDef',text,str(i+1)))
                 sys.exit(2) # 媒体定义文件格式错误，异常退出
 
     # 载入log文件

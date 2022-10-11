@@ -31,7 +31,6 @@ class ArgumentError(RplGenError):
         'BadInit'     :["Invalid initial status: {}"],
         'MustOutput'  :["No output path is specified!"],
         'MkdirErr'    :["Cannot make directory {}."],
-        '':[""],
     }
     error_type = ["\x1B[31m[ArgumentError]:\x1B[0m "]
 # 解析错误，解析log错误
@@ -85,9 +84,6 @@ class ParserError(RplGenError):
         'ParErrCompl':["Exception occurred while completing the placed medias."],
         'BadAsterSE' :["Asterisk SE file '{}' is not exist."],
         'InvAster'   :["Invalid asterisk lable appeared in dialogue line."],
-        '':[""],
-        '':[""],
-        '':[""],
     }
     error_type = ["\x1B[31m[ParserError]:\x1B[0m "]
 # 渲染错误，渲染画面出现错误
@@ -105,7 +101,13 @@ class SynthesisError(RplGenError):
         'CantBegin'  :['Speech synthesis cannot begin.'],
         'SynBreak'   :['Speech synthesis breaked, due to unresolvable error.'],
         'Unknown'    :['Unknown Exception.'],
-        'FatalError' :['An unresolvable error occurred during speech synthesis!']
+        'FatalError' :['An unresolvable error occurred during speech synthesis!'],
+        'AliEmpty'   :["AliyunError: Synthesis failed, an empty wav file is created!"],
+        'AliOther'   :["AliyunError: Other exception occurred!"],
+        'AliClose'   :["AliyunError: Close file failed since: {}"],
+        'AliWrite'   :["AliyunError: Write data failed: {}"],
+        'AzuInvArg'  :["AzureError: Invalid Voice argument: {}"],
+        'AzuErrRetu' :["AzureError: {}"],
     }
     error_type = ["\x1B[31m[SynthesisError]:\x1B[0m "]
 # 编码错误，输入文件的编码不支持
@@ -113,9 +115,9 @@ class DecodeError(RplGenError):
     error_scripts = {
         'DecodeErr':["{}"]
     }
-    error_type = ["\x1B[31m[DecodeError]:\x1B[0m"]
+    error_type = ["\x1B[31m[DecodeError]:\x1B[0m "]
 # 语法错误，输入文件的语法错误
-class SyntaxError(RplGenError):
+class SyntaxsError(RplGenError):
     error_scripts = {
         'OccName'  :['Obj name occupied!'],
         'InvaName' :['Invalid Obj name!'],
@@ -123,7 +125,7 @@ class SyntaxError(RplGenError):
         'CharTab'  :["Unable to load charactor table: {}"],
         'MissCol'  :["missing necessary columns."],
     }
-    error_type = ["\x1B[31m[SyntaxError]:\x1B[0m"]
+    error_type = ["\x1B[31m[SyntaxError]:\x1B[0m "]
 # 媒体错误，媒体定义的参数错误
 class MediaError(RplGenError):
     error_scripts = {
@@ -144,9 +146,8 @@ class MediaError(RplGenError):
         'InvDCSytx' :["Invalid syntax:{}, {}"],
         'InvDCArg'  :["Invalid argument ({}) for BIAnime dice!"],
         'BadAudio'  :["Unsupported audio files {}"],
-        '':[""],
     }
-    error_type = ["\x1B[31m[MediaError]:\x1B[0m"]
+    error_type = ["\x1B[31m[MediaError]:\x1B[0m "]
 # 忽略输入文件
 class IgnoreInput(RplGenError):
     error_scripts = {'None':['[speech synthesizer]: Preview Only!','']}
@@ -172,7 +173,7 @@ class MainPrint(Print):
         'LoadMedef' :["Loading media definition file."],
         'LoadChrtab':["Loading charactor table."],
         'LoadRGL'   :["Parsing Log file."],
-        'OutTime'   :["The timeline and breakpoint file will be save at '{}' ."],
+        'OutTime'   :["The timeline and breakpoint file will be save at '{}'."],
         'ExportXML' :["Flag --ExportXML detected, running command:"],
         'ExportMp4' :["Flag --ExportVideo detected, running command:"],
         # exit
@@ -194,10 +195,25 @@ class SynthPrint(Print):
     }
     info_type = ["[speech synthesizer]: "]
 class PrxmlPrint(Print):
+    info_scripts = {
+        'Welcome' :["Welcome to use exportXML for TRPG-replay-generator {}"],
+        'SaveAt'  :["The output xml file and refered png files will be saved at '{}'"],
+        'ExpBegin':["Begin to export."],
+        'Done'    :["Done! XML path : '{}'"],
+    }
     info_type = ["[export XML]: "]
 class VideoPrint(Print):
     info_scripts = {
-        '':[""],
+        'Welcome'   :["Welcome to use exportVideo for TRPG-replay-generator {}"],
+        'SaveAt'    :["The output mp4 file will be saved at '{}'."],
+        'VideoBegin':["Start mixing audio tracks."],
+        'TrackDone' :["Track {} finished."],
+        'AudioDone' :["Audio mixing done!"],
+        'EncoStart' :["Start encoding video, using ffmpeg."],
+        'Progress'  :["[{0}] {1},\t{2}/{3}"],
+        'CostTime'  :["Export time elapsed : {}"],
+        'RendSpeed' :["Mean frames rendered per second : {} FPS"],
+        'Done'      :["Encoding finished! Video path : {}"],
     }
     info_type = ["[export Video]: "]
 class CMDPrint(Print):
@@ -241,8 +257,9 @@ class WarningPrint(Print):
         'No2Synth'   :["No valid asterisk label synthesised, execution terminated!"],
         'SynthNBegin':["Speech synthesis cannot begin, execution terminated!"],
         'BadAuLen'   :["Unable to get audio length of '{}', due to: {}"],
-        '':[""],
-        '':[""],
+        'BadClip'    :["Unable to clip the silence part from '{}', due to: {}"],
+        'BGMIgnore'  :["BGM '{}' is automatically ignored, you should add BGM manually in Premiere Pro later."],
+        'BadAuFile'  :["Audio file '{}' is not exist."]
     }
     # 类型：警告
     info_type = ["\x1B[33m[warning]:\x1B[0m "]

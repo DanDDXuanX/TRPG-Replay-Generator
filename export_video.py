@@ -2,6 +2,9 @@
 # coding: utf-8
 from Utils import EDITION
 
+from Exceptions import RplGenError, Print
+from Exceptions import ArgumentError, DecodeError, MediaError, RenderError, SyntaxsError
+from Exceptions import VideoPrint, WarningPrint
 # 外部参数输入
 
 import argparse
@@ -31,9 +34,9 @@ try:
     for path in [args.TimeLine,args.MediaObjDefine]:
         if path is None:
             print(path)
-            raise OSError("\x1B[31m[ArgumentError]:\x1B[0m Missing principal input argument!")
+            raise ArgumentError('MissInput')
         if os.path.isfile(path) == False:
-            raise OSError("\x1B[31m[ArgumentError]:\x1B[0m Cannot find file "+path)
+            raise ArgumentError('FileNotFound',path)
 
     if args.OutputPath is None:
         pass 
@@ -41,19 +44,19 @@ try:
         try:
             os.makedirs(args.OutputPath)
         except Exception:
-            raise OSError("\x1B[31m[SystemError]:\x1B[0m Cannot make directory "+args.OutputPath)
+            raise ArgumentError('MkdirErr',args.OutputPath)
     args.OutputPath = args.OutputPath.replace('\\','/')
 
     # FPS
     if frame_rate <= 0:
-        raise ValueError("\x1B[31m[ArgumentError]:\x1B[0m "+str(frame_rate))
+        raise ArgumentError('FrameRate',str(frame_rate))
     elif frame_rate>30:
-        print("\x1B[33m[warning]:\x1B[0m",'FPS is set to '+str(frame_rate)+', which may cause lag in the display!')
+        print(WarningPrint('HighFPS', str(frame_rate)))
 
     if (Width<=0) | (Height<=0):
-        raise ValueError("\x1B[31m[ArgumentError]:\x1B[0m "+str((Width,Height)))
+        raise ArgumentError('Resolution',str((Width,Height)))
     if Width*Height > 3e6:
-        print("\x1B[33m[warning]:\x1B[0m",'Resolution is set to more than 3M, which may cause lag in the display!')
+        print(WarningPrint('HighRes'))
 except Exception as E:
     print(E)
     sys.exit(1)
@@ -125,7 +128,7 @@ def render(this_frame):
         elif this_frame[layer+'_a']<=0: #或者图层的透明度小于等于0(由于fillna("NA"),出现的异常)
             continue
         elif this_frame[layer] not in media_list:
-            raise RuntimeError('\x1B[31m[RenderError]:\x1B[0m Undefined media object : "'+this_frame[layer]+'".')
+            raise RenderError('UndefMedia',this_frame[layer])
         elif layer[0:2] == 'BG':
             try:
                 exec('{0}.display(surface=screen,alpha={1},adjust={2},center={3})'.format(this_frame[layer],
@@ -133,7 +136,7 @@ def render(this_frame):
                                                                                           '\"'+this_frame[layer+'_p']+'\"',
                                                                                           '\"'+this_frame[layer+'_c']+'\"'))
             except Exception:
-                raise RuntimeError('\x1B[31m[RenderError]:\x1B[0m Failed to render "'+this_frame[layer]+'" as Background.')
+                raise RenderError('FailRender',this_frame[layer],'Background')
         elif layer[0:2] == 'Am': # 兼容H_LG1(1)这种动画形式 alpha1.6.3
             try:
                 exec('{0}.display(surface=screen,alpha={1},adjust={2},frame={3},center={4})'.format(
@@ -143,7 +146,7 @@ def render(this_frame):
                                                                                          this_frame[layer+'_t'],
                                                                                          '\"'+this_frame[layer+'_c']+'\"'))
             except Exception:
-                raise RuntimeError('\x1B[31m[RenderError]:\x1B[0m Failed to render "'+this_frame[layer]+'" as Animation.')
+                raise RenderError('FailRender',this_frame[layer],'Animation')
         elif layer[0:2] == 'Bb':
             try:
                 exec('{0}.display(surface=screen,text={2},header={3},alpha={1},adjust={4},center={5})'.format(this_frame[layer],
@@ -153,16 +156,15 @@ def render(this_frame):
                                                                                                    '\"'+this_frame[layer+'_p']+'\"',
                                                                                                    '\"'+this_frame[layer+'_c']+'\"'))
             except Exception:
-                raise RuntimeError('\x1B[31m[RenderError]:\x1B[0m Failed to render "'+this_frame[layer]+'" as Bubble.')
+                raise RenderError('FailRender',this_frame[layer],'Bubble')
     return 1
 
 # 被占用的变量名 # 1.7.7
 occupied_variable_name = open('./media/occupied_variable_name.list','r',encoding='utf8').read().split('\n')
 
 # Main():
-
-print('[export Video]: Welcome to use exportVideo for TRPG-replay-generator '+EDITION)
-print('[export Video]: The output mp4 file will be saved at "'+args.OutputPath+'"')
+print(VideoPrint('Welcome',EDITION))
+print(VideoPrint('SaveAt',args.OutputPath))
 
 # 载入timeline 和 breakpoint
 timeline_ifile = open(args.TimeLine,'rb')
@@ -176,10 +178,10 @@ cmap = {'black':(0,0,0,255),'white':(255,255,255,255),'greenscreen':(0,177,64,25
 try:
     object_define_text = open(args.MediaObjDefine,'r',encoding='utf-8').read()#.split('\n')
 except UnicodeDecodeError as E:
-    print('\x1B[31m[DecodeError]:\x1B[0m',E)
+    print(DecodeError('DecodeErr',E))
     sys.exit(1)
 if object_define_text[0] == '\ufeff': # 139 debug
-    print('\x1B[33m[warning]:\x1B[0m','UTF8 BOM recognized in MediaDef, it will be drop from the begin of file!')
+    print(WarningPrint('UFT8BOM'))
     object_define_text = object_define_text[1:]
 object_define_text = object_define_text.split('\n')
 
@@ -195,12 +197,13 @@ for i,text in enumerate(object_define_text):
             obj_name = text.split('=')[0]
             obj_name = obj_name.replace(' ','')
             if obj_name in occupied_variable_name:
-                raise SyntaxError('Obj name occupied')
+                raise SyntaxsError('OccName')
             elif (len(re.findall('\w+',obj_name))==0)|(obj_name[0].isdigit()):
-                raise SyntaxError('Invalid Obj name')
+                raise SyntaxsError('InvaName')
             media_list.append(obj_name) #记录新增对象名称
         except Exception as E:
-            print('\x1B[31m[SyntaxError]:\x1B[0m "'+text+'" appeared in media define file line ' + str(i+1)+' is invalid syntax:',E)
+            print(E)
+            print(SyntaxsError('MediaDef',text,str(i+1)))
             sys.exit(1)
 black = Background('black')
 white = Background('white')
@@ -213,7 +216,7 @@ for key,values in bulitin_media.iteritems():
 
 # 合成音轨
 
-print('[export Video]: Start mixing audio tracks')
+print(VideoPrint('VideoBegin'))
 
 tracks = ['SE','Voice','BGM']
 main_Track = pydub.AudioSegment.silent(duration=int(break_point.values.max()/frame_rate*1000),frame_rate=48000) # 主轨道
@@ -247,15 +250,16 @@ for tr in tracks:
                 voice = 'temp_AU'
             this_Track = this_Track.overlay(eval(voice+'.media'),position = int(begin/frame_rate*1000))
     main_Track = main_Track.overlay(this_Track) #合成到主音轨
-    print('[export Video]: Track {0} finished.'.format(tr))
+    print(VideoPrint('TrackDone',tr))
 
 main_Track.export(args.OutputPath+'/'+stdin_name+'.mp3',format='mp3',codec='mp3',bitrate='256k')
 
-print('[export Video]: Audio mixing done!')
+print(VideoPrint('AudioDone'))
+
 
 # 初始化
 
-print('[export Video]: Start encoding video, using ffmpeg.')
+print(VideoPrint('EncoStart'))
 
 pygame.init()
 screen = pygame.display.set_mode((Width,Height),pygame.HIDDEN)
@@ -265,7 +269,7 @@ for media in media_list:
     try:
         exec(media+'.convert()')
     except Exception as E:
-        print('\x1B[31m[MediaError]:\x1B[0m Exception during converting',media,':',E)
+        print(MediaError('ErrCovert', media, E))
         sys.exit(1)
 
 # ffmpeg输出
@@ -295,26 +299,22 @@ while n < break_point.max():
         n = n + 1 #下一帧
     except Exception as E:
         print(E)
-        print('\x1B[31m[RenderError]:\x1B[0m','Render exception at frame:',n)
+        print(RenderError('BreakFrame',n))
         output_engine.stdin.close()
         pygame.quit()
         sys.exit(1)
     if n%frame_rate == 1:
         finish_rate = n/break_point.values.max()
-        print('[export Video]:','[{0}] {1},\t{2}'.format(int(finish_rate*50)*'#'+(50-int(50*finish_rate))*' ',
-                                                        '%.1f'%(finish_rate*100)+'%','{0}/{1}'.format(n,'%d'%break_point.values.max())),
-        end = "\r"
-        )
+        print(VideoPrint('Progress', int(finish_rate*50)*'#'+(50-int(50*finish_rate))*' ', '%.1f'%(finish_rate*100)+'%', n, '%d'%break_point.values.max()), end = "\r")
     elif n == break_point.values.max():
-        print('[export Video]:','[{0}] {1},\t{2}'.format(50*'#',
-                                                        '%.1f'%100+'%','{0}/{1}'.format(n,n)))
+        print(VideoPrint('Progress', 50*'#', '%.1f'%100+'%', n, n))
 output_engine.stdin.close()
 pygame.quit()
 
 used_time = time.time()-begin_time
 
-print('[export Video]: Export time elapsed : '+time.strftime("%H:%M:%S", time.gmtime(used_time)))
-print('[export Video]: Mean frames rendered per second : '+'%.2f'%(break_point.max()/used_time)+' FPS')
-print('[export Video]: Encoding finished! Video path :',args.OutputPath+'/'+stdin_name+'.mp4')
+print(VideoPrint('CostTime', time.strftime("%H:%M:%S", time.gmtime(used_time))))
+print(VideoPrint('RendSpeed', '%.2f'%(break_point.max()/used_time)))
+print(VideoPrint('Done',args.OutputPath+'/'+stdin_name+'.mp4'))
 
 sys.exit(0)

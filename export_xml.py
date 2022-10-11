@@ -2,6 +2,12 @@
 # coding: utf-8
 from Utils import EDITION
 
+# 异常定义
+
+from Exceptions import RplGenError, Print
+from Exceptions import ArgumentError, DecodeError, MediaError, SyntaxsError
+from Exceptions import PrxmlPrint, WarningPrint
+
 # 外部参数输入
 
 import argparse
@@ -30,12 +36,16 @@ screen_size = (args.Width,args.Height) #显示的分辨率
 frame_rate = args.FramePerSecond #帧率 单位fps
 zorder = args.Zorder.split(',') #渲染图层顺序
 
+# 初始化日志打印
+Print.lang = 0 # 英文
+RplGenError.lang = 0 # 英文
+
 try:
     for path in [stdin_log,media_obj]:
         if path is None:
-            raise OSError("\x1B[31m[ArgumentError]:\x1B[0m Missing principal input argument!")
+            raise ArgumentError('MissInput')
         if os.path.isfile(path) == False:
-            raise OSError("\x1B[31m[ArgumentError]:\x1B[0m Cannot find file "+path)
+            raise ArgumentError('FileNotFound',path)
 
     if output_path is None:
         pass 
@@ -43,19 +53,19 @@ try:
         try:
             os.makedirs(output_path)
         except Exception:
-            raise OSError("\x1B[31m[SystemError]:\x1B[0m Cannot make directory "+output_path)
+            raise ArgumentError('MkdirErr',output_path)
     output_path = output_path.replace('\\','/')
 
     # FPS
     if frame_rate <= 0:
-        raise ValueError("\x1B[31m[ArgumentError]:\x1B[0m "+str(frame_rate))
+        raise ArgumentError('FrameRate',str(frame_rate))
     elif frame_rate>30:
-        print("\x1B[33m[warning]:\x1B[0m",'FPS is set to '+str(frame_rate)+', which may cause lag in the display!')
+        print(WarningPrint('HighFPS',str(frame_rate))) 
 
     if (screen_size[0]<=0) | (screen_size[1]<=0):
-        raise ValueError("\x1B[31m[ArgumentError]:\x1B[0m "+str(screen_size))
+        raise ArgumentError('Resolution',str(screen_size))
     if screen_size[0]*screen_size[1] > 3e6:
-        print("\x1B[33m[warning]:\x1B[0m",'Resolution is set to more than 3M, which may cause lag in the display!')
+        print(WarningPrint('HighRes')) 
 except Exception as E:
     print(E)
     sys.exit(1)
@@ -71,10 +81,6 @@ import glob # 匹配路径
 import pickle
 
 from FreePos import Pos,FreePos,PosGrid
-
-# 异常定义
-
-from Exceptions import MediaError
 
 # 文字对象
 
@@ -248,7 +254,7 @@ class Balloon(Bubble):
     def __init__(self,filepath=None,Main_Text=Text(),Header_Text=[None],pos=(0,0),mt_pos=(0,0),ht_pos=[(0,0)],ht_target=['Name'],align='left',line_distance=1.5,label_color='Lavender'):
         super().__init__(filepath=filepath,Main_Text=Main_Text,Header_Text=Header_Text,pos=pos,mt_pos=mt_pos,ht_pos=ht_pos,ht_target=ht_target,align=align,line_distance=line_distance,label_color=label_color)
         if len(self.Header)!=len(self.ht_pos) or len(self.Header)!=len(self.target):
-            raise MediaError('\x1B[31m[BubbleError]:\x1B[0m', 'length of header params does not match!')
+            raise MediaError('BnHead')
         else:
             self.header_num = len(self.Header)
     def draw(self, text, header=''):
@@ -289,16 +295,16 @@ class DynamicBubble(Bubble):
     def __init__(self,filepath=None,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),mt_end=(0,0),ht_pos=(0,0),ht_target='Name',fill_mode='stretch',line_distance=1.5,label_color='Lavender'):
         super().__init__(filepath=filepath,Main_Text=Main_Text,Header_Text=Header_Text,pos=pos,mt_pos=mt_pos,ht_pos=ht_pos,ht_target=ht_target,line_distance=line_distance,label_color=label_color)
         if (mt_pos[0] >= mt_end[0]) | (mt_pos[1] >= mt_end[1]) | (mt_end[0] > self.size[0]) | (mt_end[1] > self.size[1]):
-            raise MediaError('\x1B[31m[BubbleError]:\x1B[0m', 'Invalid bubble separate params mt_end!')
+            raise MediaError('InvSep','mt_end')
         elif (mt_pos[0] < 0) | (mt_pos[1] < 0):
-            raise MediaError('\x1B[31m[BubbleError]:\x1B[0m', 'Invalid bubble separate params mt_pos!')
+            raise MediaError('InvSep','mt_pos')
         else:
             self.mt_end = mt_end
         # fill_mode 只能是 stretch 或者 collage
         if fill_mode in ['stretch','collage']:
             self.fill_mode = fill_mode
         else:
-            raise MediaError('\x1B[31m[BubbleError]:\x1B[0m', 'Invalid fill mode params ' + fill_mode)
+            raise MediaError('InvFill', fill_mode)
         # x,y轴上的四条分割线
         self.x_tick = [0,self.mt_pos[0],self.mt_end[0],self.size[0]]
         self.y_tick = [0,self.mt_pos[1],self.mt_end[1],self.size[1]]
@@ -487,7 +493,7 @@ class ChatWindow(Bubble):
     def __init__(self,filepath=None,sub_key=['Key1'],sub_Bubble=[Bubble()],sub_Anime=[],sub_align=['left'],pos=(0,0),sub_pos=(0,0),sub_end=(0,0),am_left=0,am_right=0,sub_distance=50,label_color='Lavender'):
         global file_index
         if len(sub_Bubble) != len(sub_key):
-            raise MediaError('\x1B[31m[BubbleError]:\x1B[0m', 'length of sub-key and sub-bubble does not match!')
+            raise MediaError('CWKeyLen')
         # 空白底图
         if filepath is None or filepath == 'None':
             self.path = None
@@ -511,14 +517,14 @@ class ChatWindow(Bubble):
         for i,key in enumerate(sub_key):
             # 检查气泡是否是 Ballon
             if type(sub_Bubble[i]) is Balloon:
-                raise MediaError('\x1B[31m[BubbleError]:\x1B[0m','Ballon object "'+key+'" is not supported to be set as a sub-bubble of ChatWindow!')
+                raise MediaError('Bn2CW', key)
             self.sub_Bubble[key] = sub_Bubble[i]
             # 载入对齐，默认是左对齐
             try:
                 if sub_align[i] in ['left','right']:
                     self.sub_align[key] = sub_align[i]
                 else:
-                    raise MediaError('\x1B[31m[BubbleError]:\x1B[0m', 'Unsupported align:',sub_align[i])
+                    raise MediaError('BadAlign',sub_align[i])
             except IndexError:
                 self.sub_align[key] = 'left'
             # 载入子立绘，默认是None
@@ -528,13 +534,13 @@ class ChatWindow(Bubble):
                 self.sub_Anime[key] = None
         # 子气泡尺寸
         if (sub_pos[0] >= sub_end[0]) | (sub_pos[1] >= sub_end[1]):
-            raise MediaError('\x1B[31m[BubbleError]:\x1B[0m', 'Invalid bubble separate params sub_end!')
+            raise MediaError('InvSep','sub_end')
         else:
             self.sub_size = (sub_end[0]-sub_pos[0],sub_end[1]-sub_pos[1])
             self.sub_pos = sub_pos
         # 立绘对齐位置
         if am_left >= am_right:
-            raise MediaError('\x1B[31m[BubbleError]:\x1B[0m', 'Invalid bubble separate params am_right!')
+            raise MediaError('InvSep', 'am_right')
         else:
             self.am_left = am_left
             self.am_right = am_right
@@ -715,7 +721,7 @@ class GroupedAnimation(Animation):
             subanimation_current_pos = [None]*len(subanimation_list)
         # 如果指定的位置参数和子Animation的数量不一致，报出报错
         elif len(subanimation_current_pos) != len(subanimation_list):
-            raise MediaError('\x1B[31m[AnimationError]:\x1B[0m','length of subanimation params does not match!')
+            raise MediaError('GAPrame')
         # 开始在画板上绘制立绘
         else:
             # 越后面的位于越上层的图层
@@ -728,7 +734,7 @@ class GroupedAnimation(Animation):
                     else: # type(am_name) is str
                         subanimation = eval(am_name)
                 except NameError as E:
-                    raise MediaError('\x1B[31m[AnimationError]:\x1B[0m','The Animation "'+ am_name +'" is not defined, which was tried to group into GroupedAnimation!')
+                    raise MediaError('Undef2GA', am_name )
                 if am_pos is None:
                     # 打开 subanimation 的图片对象，将其按照self.pos, paste到canvas
                     canvas.paste(subanimation.media,subanimation.pos.get(),mask=subanimation.media)
@@ -948,10 +954,14 @@ class Audio:
     def __init__(self,filepath,label_color='Caribbean'):
         global file_index 
         self.path = reformat_path(filepath)
-        self.length = get_audio_length(filepath)*frame_rate
         self.filename = self.path.split('/')[-1]
         self.fileindex = 'AUfile_%d'% file_index
         self.label_color = label_color
+        try:
+            self.length = self.get_length(filepath)*frame_rate
+        except Exception as E:
+            print(WarningPrint('BadAuLen',filepath,E))
+            self.length = 0
         file_index = file_index+1
         
     def display(self,begin):
@@ -972,28 +982,21 @@ class Audio:
                                               'colorlabel':self.label_color})
         clip_index = clip_index+1
         return clip_this
-    
+    def get_length(self,filepath):
+        mixer.init()
+        this_audio = mixer.Sound(filepath)
+        return this_audio.get_length()
     def convert(self):
         pass
 
 # 背景音乐
 class BGM:
     def __init__(self,filepath,volume=100,loop=True,label_color='Forest'):
-        print('\x1B[33m[warning]:\x1B[0m BGM '+filepath+' is automatically ignored, you should add BGM manually in Premiere Pro later.')
+        print(WarningPrint('BGMIgnore',filepath))
     def convert(self):
         pass
 
 # 函数定义
-
-# 获取音频长度
-def get_audio_length(filepath):
-    mixer.init()
-    try:
-        this_audio = mixer.Sound(filepath)
-    except Exception as E:
-        print('\x1B[33m[warning]:\x1B[0m Unable to get audio length of '+str(filepath)+', due to:',E)
-        return np.nan
-    return this_audio.get_length()
 
 # 重格式化路径
 def reformat_path(path): # alpha 1.9.5 支持unix文件系统路径
@@ -1110,17 +1113,17 @@ timeline_ifile.close()
 
 def main():
     global media_list
-    print('[export XML]: Welcome to use exportXML for TRPG-replay-generator '+EDITION)
-    print('[export XML]: The output xml file and refered png files will be saved at "'+output_path+'"')
+    print(PrxmlPrint('Welcome',EDITION))
+    print(PrxmlPrint('SaveAt',output_path))
 
     # 载入od文件
     try:
         object_define_text = open(media_obj,'r',encoding='utf-8').read()#.split('\n')
     except UnicodeDecodeError as E:
-        print('\x1B[31m[DecodeError]:\x1B[0m',E)
+        print(DecodeError('DecodeErr', E))
         sys.exit(1)
     if object_define_text[0] == '\ufeff': # 139 debug
-        print('\x1B[33m[warning]:\x1B[0m','UTF8 BOM recognized in MediaDef, it will be drop from the begin of file!')
+        print(WarningPrint('UFT8BOM'))
         object_define_text = object_define_text[1:]
     object_define_text = object_define_text.split('\n')
 
@@ -1136,14 +1139,13 @@ def main():
                 obj_name = text.split('=')[0]
                 obj_name = obj_name.replace(' ','')
                 if obj_name in occupied_variable_name:
-                    raise SyntaxError('Obj name occupied')
+                    raise SyntaxsError('OccName')
                 elif (len(re.findall('\w+',obj_name))==0)|(obj_name[0].isdigit()):
-                    raise SyntaxError('Invalid Obj name')
+                    raise SyntaxsError('InvaName')
                 media_list.append(obj_name) #记录新增对象名称
             except Exception as E:
-                import traceback
-                traceback.print_exc()
-                print('\x1B[31m[SyntaxError]:\x1B[0m "'+text+'" appeared in media define file line ' + str(i+1)+' is invalid syntax:',E)
+                print(E)
+                print(SyntaxsError('MediaDef',text,str(i+1)))
                 sys.exit(1)
     black = Background('black')
     white = Background('white')
@@ -1156,7 +1158,7 @@ def main():
 
     # 开始生成
 
-    print('[export XML]: Begin to export.')
+    print(PrxmlPrint('ExpBegin'))
     video_tracks = []
     audio_tracks = []
     for layer in zorder + ['SE','Voice']:
@@ -1186,7 +1188,7 @@ def main():
                     temp = Audio(item[0][1:-1])
                     clip_list.append(temp.display(begin=item[1]))
                 else:
-                    print("\x1B[33m[warning]:\x1B[0m",'Audio file',item[0],'is not exist.')
+                    print(WarningPrint('BadAuFile',item[0]))
             audio_tracks.append(audio_track_tplt.format(**{'type':Audio_type,'clips':'\n'.join(clip_list)}))
         # 立绘或者背景图层
         else:
@@ -1207,6 +1209,6 @@ def main():
     ofile = open(output_path+'/'+stdin_name+'.xml','w',encoding='utf-8')
     ofile.write(main_output)
     ofile.close()
-    print('[export XML]: Done! XML path : '+output_path+'/'+stdin_name+'.xml')
+    print(PrxmlPrint('Done',output_path+'/'+stdin_name+'.xml'))
 if __name__ == '__main__':
     main()
