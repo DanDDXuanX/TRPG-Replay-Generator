@@ -8,7 +8,10 @@
 class RplGenError(Exception):
     # lang: 0:en,1:zh
     lang = 0
-    error_scripts = {'None':['','']}
+    error_scripts = {
+        'None'     :['',''],
+        'ImportErr':['{}. Execution terminated!']
+        }
     error_type = ["\x1B[31m[RplGenError]:\x1B[0m "]
     # init
     def __init__(self,key='None',*arguments):
@@ -25,6 +28,10 @@ class ArgumentError(RplGenError):
         'DirNotFound' :["Cannot find directory {}"],
         'FrameRate'   :["Invalid frame rate:{}"],
         'Resolution'  :["Invalid resolution:{}"],
+        'BadInit'     :["Invalid initial status: {}"],
+        'MustOutput'  :["No output path is specified!"],
+        'MkdirErr'    :["Cannot make directory {}."],
+        '':[""],
     }
     error_type = ["\x1B[31m[ArgumentError]:\x1B[0m "]
 # 解析错误，解析log错误
@@ -76,6 +83,11 @@ class ParserError(RplGenError):
         'ParErrDice' :["Parse exception occurred in dice line {}."],
         'UnrecLine'  :["Unrecognized line: {}."],
         'ParErrCompl':["Exception occurred while completing the placed medias."],
+        'BadAsterSE' :["Asterisk SE file '{}' is not exist."],
+        'InvAster'   :["Invalid asterisk lable appeared in dialogue line."],
+        '':[""],
+        '':[""],
+        '':[""],
     }
     error_type = ["\x1B[31m[ParserError]:\x1B[0m "]
 # 渲染错误，渲染画面出现错误
@@ -93,6 +105,7 @@ class SynthesisError(RplGenError):
         'CantBegin'  :['Speech synthesis cannot begin.'],
         'SynBreak'   :['Speech synthesis breaked, due to unresolvable error.'],
         'Unknown'    :['Unknown Exception.'],
+        'FatalError' :['An unresolvable error occurred during speech synthesis!']
     }
     error_type = ["\x1B[31m[SynthesisError]:\x1B[0m "]
 # 编码错误，输入文件的编码不支持
@@ -114,11 +127,30 @@ class SyntaxError(RplGenError):
 # 媒体错误，媒体定义的参数错误
 class MediaError(RplGenError):
     error_scripts = {
-        'ErrCovert' :["Exception during converting {} : {}"]
+        'ErrCovert' :["Exception during converting {} : {}"],
+        'ILineDist' :["Invalid line distance: {}."],
+        'BadAlign'  :["Unsupported align: {}."],
+        'BnHead'    :["length of header params does not match!"],
+        'InvSep'    :["Invalid bubble separate params: {}!"],
+        'InvFill'   :["Invalid fill mode params: {}."],
+        'CWKeyLen'  :["length of sub-key and sub-bubble does not match!"],
+        'Bn2CW'     :["Ballon object '{}' is not supported to be set as a sub-bubble of ChatWindow!"],
+        'DA2CW'     :["Dynamic Animations is not supported as sub-animations for ChatWindow!"],
+        'FileNFound':["Cannot find file match {}"],
+        'GAPrame'   :["length of subanimation params does not match!"],
+        'Undef2GA'  :["The Animation '{}' is not defined, which was tried to group into GroupedAnimation!"],
+        'DA2GA'     :["Trying to group a dynamic Animation '{}' into GroupedAnimation!"],
+        'InvHPArg'  :["Invalid argument ({}) for BIAnime hitpoint!"],
+        'InvDCSytx' :["Invalid syntax:{}, {}"],
+        'InvDCArg'  :["Invalid argument ({}) for BIAnime dice!"],
+        'BadAudio'  :["Unsupported audio files {}"],
+        '':[""],
     }
     error_type = ["\x1B[31m[MediaError]:\x1B[0m"]
 # 忽略输入文件
 class IgnoreInput(RplGenError):
+    error_scripts = {'None':['[speech synthesizer]: Preview Only!','']}
+    error_type = ['']
     pass
 
 class Print:
@@ -152,8 +184,13 @@ class MainPrint(Print):
     info_type = ["[replay generator]: "]
 class SynthPrint(Print):
     info_scripts = {
-        '':[""],
-        
+        'Welcome' :["Welcome to use speech_synthesizer for TRPG-replay-generator {}"],
+        'SaveAt'  :["The processed Logfile and audio file will be saved at '{}'"],
+        'SthBegin':["Begin to speech synthesis!"],
+        'OriBack' :["Original LogFile backup path: '{}'"],
+        'Refresh' :["Logfile refresh Done!"],
+        'Breaked' :["Synthesis Breaked, due to FatalError!"],
+        'Done'    :["Synthesis Done!"],
     }
     info_type = ["[speech synthesizer]: "]
 class PrxmlPrint(Print):
@@ -169,7 +206,7 @@ class CMDPrint(Print):
         'BreakLine':["\x1B[32m------------------------------------------------------------\x1B[0m"],
     }
     info_type = ['']
-class Warning(Print):
+class WarningPrint(Print):
     # 警告文本
     info_scripts = {
         'HighFPS'    :["FPS is set to {}, which may cause lag in the display!"],
@@ -189,6 +226,23 @@ class Warning(Print):
         'XMLFail'    :["Failed to export XML, due to: {}"],
         'Mp4Fail'    :["Failed to export Video, due to: {}"],
         'FixScrZoom' :["OS exception, --FixScreenZoom is only avaliable on windows system!"],
+        'AlphaText'  :["The transparency of text and edge may not be displayed normally, due to the limit of pygame!"],
+        'LineDist'   :["Line distance is set to less than 1!"],
+        'BadBGMFmt'  :["A not recommend music format '{}' is specified, which may cause unstableness during displaying!"],
+        'DefAsterSE' :["A defined object '{}' is specified, which will not be processed."],
+        'UndefChar'  :["Undefine charactor!"],
+        'CharNoVoice':["No voice is specified for '{}'."],
+        'SynthFail'  :["Synthesis failed in line {}({}), due to: {}"],
+        'BadSpeaker' :["Unsupported speaker name '{}'."],
+        'PrevFail'   :["Synthesis failed in preview, due to: {}"],
+        'AuPlayFail' :["Failed to play the audio, due to: {}"],
+        'SaveFail'   :["Failed to save the file, due to: {}"],
+        'MissVoice'  :["Missing 'Voice' columns."],
+        'No2Synth'   :["No valid asterisk label synthesised, execution terminated!"],
+        'SynthNBegin':["Speech synthesis cannot begin, execution terminated!"],
+        'BadAuLen'   :["Unable to get audio length of '{}', due to: {}"],
+        '':[""],
+        '':[""],
     }
     # 类型：警告
     info_type = ["\x1B[33m[warning]:\x1B[0m "]

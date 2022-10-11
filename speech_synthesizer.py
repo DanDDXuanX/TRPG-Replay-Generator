@@ -15,7 +15,7 @@ from Utils import EDITION
 import argparse
 import sys
 import os
-from Exceptions import IgnoreInput, MediaError
+from Exceptions import DecodeError, IgnoreInput, MediaError, ArgumentError, ParserError, RplGenError, SyntaxError, SynthPrint, SynthesisError, WarningPrint
 
 ap = argparse.ArgumentParser(description="Speech synthesis and preprocessing from you logfile.")
 ap.add_argument("-l", "--LogFile", help='The standerd input of this programme, which is mainly composed of TRPG log.',type=str)
@@ -37,22 +37,22 @@ try:
     if args.PreviewOnly == 1:
         # 如果选择仅预览，则忽略输入文件！
         if args.Init in ['Aliyun','Azure']:
-            raise IgnoreInput('[speech synthesizer]: Preview Only!')
+            raise IgnoreInput()
         else:
-            raise ValueError("\x1B[31m[ArgumentError]:\x1B[0m Invalid initial status: "+args.Init)
+            raise ArgumentError('BadInit',args.Init)
     for path in [args.LogFile,args.CharacterTable,args.MediaObjDefine]:
         if path is None:
-            raise OSError("\x1B[31m[ArgumentError]:\x1B[0m Missing principal input argument!")
+            raise ArgumentError('MissInput')
         if os.path.isfile(path) == False:
-            raise OSError("\x1B[31m[ArgumentError]:\x1B[0m Cannot find file "+path)
+            raise ArgumentError('FileNotFound',path)
 
     if args.OutputPath is None:
-        raise OSError("\x1B[31m[ArgumentError]:\x1B[0m No output path is specified!")
+        raise ArgumentError('MustOutput')
     elif os.path.isdir(args.OutputPath) == False:
         try:
             os.makedirs(args.OutputPath)
         except Exception:
-            raise OSError("\x1B[31m[SystemError]:\x1B[0m Cannot make directory "+args.OutputPath)
+            raise ArgumentError('MkdirErr',args.OutputPath)
     else:
         pass
     args.OutputPath = args.OutputPath.replace('\\','/')
@@ -153,21 +153,21 @@ def parser(stdin_text):
                         asterisk_line.loc[i,'category'] = 4
                         asterisk_line.loc[i,'speech_text'] = 'None'
                         asterisk_line.loc[i,'filepath'] = K1[0:-1]
-                        print('\x1B[33m[warning]:\x1B[0m A defined object',K1[0:-1],'is specified, which will not be processed.')
+                        print(WarningPrint('DefAsterSE',K1[0:-1]))
                     elif (os.path.isfile(K1[1:-2])==False): #3&4.指定了不存在的文件路径
-                        raise OSError('\x1B[31m[ParserError]:\x1B[0m Asterisk SE file '+K1[0:-1]+' is not exist.')
+                        raise ParserError('BadAsterSE',K1[0:-1])
                     else: # 其他的不合规的星标文本
-                        raise ValueError('\x1B[31m[ParserError]:\x1B[0m Invalid asterisk lable appeared in dialogue line.')
+                        raise ParserError('InvAster')
                     
                 else:
-                    raise ValueError('\x1B[31m[ParserError]:\x1B[0m Too much asterisk time labels are set in dialogue line.')
+                    raise ParserError('2muchAster',str(i+1))
                 name,alpha,subtype= this_charactor[0]
                 if subtype == '':
                     subtype = '.default'
                 asterisk_line.loc[i,'character'] = name+subtype
             except Exception as E:
                 print(E)
-                raise ValueError('\x1B[31m[ParserError]:\x1B[0m Parse exception occurred in dialogue line ' + str(i+1)+'.')
+                raise ParserError('ParErrDial', str(i+1))
         else:
             pass
     return asterisk_line.dropna()
@@ -178,13 +178,13 @@ def synthesizer(key,asterisk):
     if asterisk['category'] > 2: #如果解析结果为3&4，不执行语音合成
         return 'Keep',False
     elif asterisk['character'] not in charactor_table.index: #指定了未定义的发言角色
-        print('\x1B[33m[warning]:\x1B[0m Undefine charactor!')
+        print(WarningPrint('UndefChar'))
         return 'None',False
     else:
         charactor_info = charactor_table.loc[asterisk['character']]
     #如果这个角色本身就不带有发言
     if charactor_info['TTS'] == 'None':
-        print('\x1B[33m[warning]:\x1B[0m No voice is specified for ',asterisk['character'])
+        print(WarningPrint('CharNoVoice',asterisk['character']))
         return 'None',False
     else:
         # alpha 1.12.4 在输出路径里加上timestamp，和序号和行号统一
@@ -197,7 +197,7 @@ def synthesizer(key,asterisk):
                 return ofile,True  # 如果能不出异常的结束，则退出循环
             except Exception as E:
                 # 如果出现了异常
-                print('\x1B[33m[warning]:\x1B[0m Synthesis failed in line %d'%(key+1), '(%d),'%time_retry, 'due to:',E)
+                print(WarningPrint('SynthFail', str(key+1), str(time_retry), E))
         # 如果超出了5次尝试，返回Fatal
         return 'Fatal',False
 
@@ -257,14 +257,14 @@ def open_Tuning_windows(init_type='Aliyun'):
                                          pitch_rate=pitch_rate.get(),
                                          aformat='wav')
         except KeyError as E: # 非法的音源名
-            print('\x1B[33m[warning]:\x1B[0m Unsupported speaker name',E)
+            print(WarningPrint('BadSpeaker',E))
             messagebox.showerror(title='合成失败',message="[错误]：不支持的音源名！")
             return 0
         # 执行合成
         try:
             this_tts_engine.start(text_to_synth.get("0.0","end"),'./media/preview_tempfile.wav')
         except Exception as E:
-            print('\x1B[33m[warning]:\x1B[0m Synthesis failed in preview,','due to:',E)
+            print(WarningPrint('PrevFail',E))
             messagebox.showerror(title='合成失败',message="[错误]：语音合成失败！")
             return 0
         if command == 'play':
@@ -273,7 +273,7 @@ def open_Tuning_windows(init_type='Aliyun'):
                 Audio('./media/preview_tempfile.wav').display(preview_channel)
                 return 1
             except Exception as E:
-                print('\x1B[33m[warning]:\x1B[0m Failed to play the audio,','due to:',E)
+                print(WarningPrint('AuPlayFail',E))
                 messagebox.showerror(title='播放失败',message="[错误]：无法播放语音！")
                 return 0
         elif command == 'save':
@@ -283,7 +283,7 @@ def open_Tuning_windows(init_type='Aliyun'):
                 if save_filepath != '':
                     copy('./media/preview_tempfile.wav',save_filepath)
             except Exception as E:
-                print('\x1B[33m[warning]:\x1B[0m Failed to save the file,','due to:',E)
+                print(WarningPrint('SaveFail',E))
                 messagebox.showerror(title='保存失败',message="[错误]：无法保存文件！")
                 return 0
 
@@ -385,8 +385,8 @@ def main():
     global charactor_table
     global media_list
 
-    print('[speech synthesizer]: Welcome to use speech_synthesizer for TRPG-replay-generator '+EDITION)
-    print('[speech synthesizer]: The processed Logfile and audio file will be saved at "'+args.OutputPath+'"')
+    print(SynthPrint('Welcome',EDITION))
+    print(SynthPrint('SaveAt'),args.OutputPath)
     # 载入ct文件
     try:
         if args.CharacterTable.split('.')[-1] in ['xlsx','xls']:
@@ -395,9 +395,9 @@ def main():
             charactor_table = pd.read_csv(args.CharacterTable,sep='\t',dtype = str)
         charactor_table.index = charactor_table['Name']+'.'+charactor_table['Subtype']
         if 'Voice' not in charactor_table.columns:
-            print('\x1B[33m[warning]:\x1B[0m','Missing \'Voice\' columns.')
+            print(WarningPrint('MissVoice'))
     except Exception as E:
-        print('\x1B[31m[SyntaxError]:\x1B[0m Unable to load charactor table:',E)
+        print(SyntaxError('CharTab',E))
         sys.exit(2) # 无法载入角色表，异常退出
 
     # 填补缺省值
@@ -426,13 +426,13 @@ def main():
         elif value.Voice[0:7] == 'Azure::': # Azure 模式 alpha 1.10.3
             TTS[key] = AZU_define_tplt.format(key,value.Voice[7:],value.SpeechRate,value.PitchRate)
         else:
-            print('\x1B[33m[warning]:\x1B[0m Unsupported speaker name "{0}".'.format(value.Voice))
+            print(WarningPrint('BadSpeaker',value.Voice))
             TTS[key] = '"None"'
     # 应用并保存在charactor_table内
     try:
         charactor_table['TTS'] = TTS.map(lambda x:eval(x))
     except ModuleNotFoundError as E:
-        print('\x1B[31m[ImportError]:\x1B[0m ',E,' .Execution terminated!')
+        print(RplGenError('ImportErr',E))
         sys.exit(2) # 缺乏依赖包，异常退出
     except ValueError as E: # 非法音源名
         print(E)
@@ -442,10 +442,10 @@ def main():
     try:
         object_define_text = open(args.MediaObjDefine,'r',encoding='utf-8').read()#.split('\n')
     except UnicodeDecodeError as E:
-        print('\x1B[31m[DecodeError]:\x1B[0m',E)
+        print(DecodeError('DecodeErr',E))
         sys.exit(2) # 解码角色配置表错误，异常退出
     if object_define_text[0] == '\ufeff': # UTF-8 BOM
-        print('\x1B[33m[warning]:\x1B[0m','UTF8 BOM recognized in MediaDef, it will be drop from the begin of file!')
+        print(WarningPrint('UFT8BOM'))
         object_define_text = object_define_text[1:]
     object_define_text = object_define_text.split('\n')
     
@@ -464,17 +464,18 @@ def main():
                     raise SyntaxError('Invalid Obj name')
                 media_list.append(obj_name) #记录新增对象名称
             except Exception as E:
-                print('\x1B[31m[SyntaxError]:\x1B[0m "'+text+'" appeared in media define file line ' + str(i+1)+':',E)
+                print(E)
+                print(SyntaxError('MediaDef',text,str(i+1)))
                 sys.exit(2) # 媒体定义文件格式错误，异常退出
 
     # 载入log文件
     try:
         stdin_text = open(args.LogFile,'r',encoding='utf-8').read()#.split('\n')
     except UnicodeDecodeError as E:
-        print('\x1B[31m[DecodeError]:\x1B[0m',E)
+        print(DecodeError('DecodeErr',E))
         sys.exit(2) # 解码log文件错误，异常退出！
     if stdin_text[0] == '\ufeff': # 139 debug
-        print('\x1B[33m[warning]:\x1B[0m','UTF8 BOM recognized in Logfile, it will be drop from the begin of file!')
+        print(WarningPrint('UFT8BOM'))
         stdin_text = stdin_text[1:]
     stdin_text = stdin_text.split('\n')
     try:
@@ -486,7 +487,7 @@ def main():
     asterisk_line['synth_status'] = False # v1.6.1 初始值，以免生成refresh的时候报错！
     fatal_break = False # 是否发生中断？
     # 开始合成
-    print('[speech synthesizer]: Begin to speech synthesis!')
+    print(SynthPrint('SthBegin'))
     for key,value in asterisk_line.iterrows():
         # 进行合成
         ofile_path,synth_status = synthesizer(key,value)
@@ -497,7 +498,7 @@ def main():
         elif ofile_path == 'Fatal':
             asterisk_line.loc[key,'filepath'] = synth_status
             fatal_break = True
-            print("\x1B[31m[FatalError]:\x1B[0m", "An unresolvable error occurred during speech synthesis!")
+            print(SynthesisError('FatalError'))
             break
         elif os.path.isfile(ofile_path)==False:
             asterisk_line.loc[key,'filepath'] = 'None'
@@ -510,10 +511,10 @@ def main():
 
     if len(refresh.index) == 0: #如果未合成任何语音
         if fatal_break == True:
-            print('\x1B[33m[warning]:\x1B[0m','Speech synthesis cannot begin, execution terminated!')
+            print(WarningPrint('SynthNBegin'))
             sys.exit(2) # 在第一行就终止
         else:
-            print('\x1B[33m[warning]:\x1B[0m','No valid asterisk label synthesised, execution terminated!')
+            print(WarningPrint('No2Synth'))
             sys.exit(1) # 未有合成，警告退出
 
     # 原始log文件备份到输出路径
@@ -521,14 +522,14 @@ def main():
     backup_logfile = open(backup_log,'w',encoding='utf-8')
     backup_logfile.write('\n'.join(stdin_text))
     backup_logfile.close()
-    print('[speech synthesizer]: Original LogFile backup path: '+backup_log)
+    print(SynthPrint('OriBack',backup_log))
 
     # 读取音频时长
     for key,value in refresh.iterrows():
         try:
             refresh.loc[key,'audio_lenth'] = Audio(value.filepath).get_length()
         except MediaError as E:
-            print('\x1B[33m[warning]:\x1B[0m Unable to get audio length of '+str(value.filepath)+', due to:',E)
+            print(WarningPrint('BadAuLen', str(value.filepath), E))
             refresh.loc[key,'audio_lenth'] = np.nan
 
     # 生成新的标签
@@ -543,13 +544,13 @@ def main():
     stdout_logfile = open(args.LogFile,'w',encoding='utf-8')
     stdout_logfile.write('\n'.join(stdin_text))
     stdout_logfile.close()
-    print('[speech synthesizer]: Logfile refresh Done!')
+    print(SynthPrint('Refresh'))
 
     if fatal_break == True:
-        print('[speech synthesizer]: Synthesis Breaked, due to FatalError!')
+        print(SynthPrint('Breaked'))
         sys.exit(3)
     else:
-        print('[speech synthesizer]: Synthesis Done!')
+        print(SynthPrint('Done'))
 
 if __name__ == '__main__':
     if args.PreviewOnly == True:

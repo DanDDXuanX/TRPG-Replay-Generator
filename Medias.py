@@ -9,7 +9,7 @@ import glob # 匹配路径
 import pydub
 
 from FreePos import Pos,FreePos
-from Exceptions import MediaError
+from Exceptions import MediaError, WarningPrint
 from Formulas import sigmoid
 
 screen_config = {
@@ -61,7 +61,7 @@ class StrokeText(Text):
         self.edge_color=edge_color
         # bug：受限于pygame的性能，无法正确的表现透明度不同的描边和字体，但在导出PR项目时是正常的
         if (self.color[3] < 255) | (self.edge_color[3] < 255):
-            print("\x1B[33m[warning]:\x1B[0m",'The transparency of text and edge may not be displayed normally, due to the limit of pygame!')
+            print(Warning('AlphaText'))
     def render(self,tx):
         edge = self.text_render.render(tx,True,self.edge_color[0:3])
         face = self.text_render.render(tx,True,self.color[0:3])
@@ -100,13 +100,13 @@ class Bubble:
             self.line_distance = line_distance
         elif line_distance > 0:
             self.line_distance = line_distance # alpha 1.9.2 debug 当linedistance低于1时，忘记初始化line_distance这个参数了
-            print("\x1B[33m[warning]:\x1B[0m",'Line distance is set to less than 1!')
+            print(WarningPrint('LineDist'))
         else:
-            raise MediaError('\x1B[31m[BubbleError]:\x1B[0m', 'Invalid line distance:',line_distance)
+            raise MediaError('ILineDist',line_distance)
         if align in ('left','center'):
             self.align = align
         else:
-            raise MediaError('\x1B[31m[BubbleError]:\x1B[0m', 'Unsupported align:',align)
+            raise MediaError('BadAlign',align)
     # 渲染一个添加文字的Bubble Surface
     def draw(self, text, header=''):
         temp = self.media.copy()
@@ -147,7 +147,7 @@ class Balloon(Bubble):
     def __init__(self,filepath=None,Main_Text=Text(),Header_Text=[None],pos=(0,0),mt_pos=(0,0),ht_pos=[(0,0)],ht_target=['Name'],align='left',line_distance=1.5,label_color='Lavender'):
         super().__init__(filepath=filepath,Main_Text=Main_Text,Header_Text=Header_Text,pos=pos,mt_pos=mt_pos,ht_pos=ht_pos,ht_target=ht_target,align=align,line_distance=line_distance,label_color=label_color)
         if len(self.Header)!=len(self.ht_pos) or len(self.Header)!=len(self.target):
-            raise MediaError('\x1B[31m[BubbleError]:\x1B[0m', 'length of header params does not match!')
+            raise MediaError('BnHead')
         else:
             self.header_num = len(self.Header)
     # 重载draw
@@ -177,16 +177,16 @@ class DynamicBubble(Bubble):
         # align 只能为left
         super().__init__(filepath=filepath,Main_Text=Main_Text,Header_Text=Header_Text,pos=pos,mt_pos=mt_pos,ht_pos=ht_pos,ht_target=ht_target,line_distance=line_distance,label_color=label_color)
         if (mt_pos[0] >= mt_end[0]) | (mt_pos[1] >= mt_end[1]) | (mt_end[0] > self.media.get_size()[0]) | (mt_end[1] > self.media.get_size()[1]):
-            raise MediaError('\x1B[31m[BubbleError]:\x1B[0m', 'Invalid bubble separate params mt_end!')
+            raise MediaError('InvSep','mt_end')
         elif (mt_pos[0] < 0) | (mt_pos[1] < 0):
-            raise MediaError('\x1B[31m[BubbleError]:\x1B[0m', 'Invalid bubble separate params mt_pos!')
+            raise MediaError('InvSep','mt_pos')
         else:
             self.mt_end = mt_end
         # fill_mode 只能是 stretch 或者 collage
         if fill_mode in ['stretch','collage']:
             self.fill_mode = fill_mode
         else:
-            raise MediaError('\x1B[31m[BubbleError]:\x1B[0m', 'Invalid fill mode params ' + fill_mode)
+            raise MediaError('InvFill',fill_mode)
         # x,y轴上的四条分割线
         self.x_tick = [0,self.mt_pos[0],self.mt_end[0],self.media.get_size()[0]]
         self.y_tick = [0,self.mt_pos[1],self.mt_end[1],self.media.get_size()[1]]
@@ -293,7 +293,7 @@ class ChatWindow(Bubble):
     def __init__(self,filepath=None,sub_key=['Key1'],sub_Bubble=[Bubble()],sub_Anime=[],sub_align=['left'],pos=(0,0),sub_pos=(0,0),sub_end=(0,0),am_left=0,am_right=0,sub_distance=50,label_color='Lavender'):
         # 检查子气泡和key是否是能匹配
         if len(sub_Bubble) != len(sub_key):
-            raise MediaError('\x1B[31m[BubbleError]:\x1B[0m', 'length of sub-key and sub-bubble does not match!')
+            raise MediaError('CWKeyLen')
         # 空白底图
         if filepath is None or filepath == 'None': # 支持气泡图缺省
             # 媒体设为空图
@@ -313,14 +313,14 @@ class ChatWindow(Bubble):
         for i,key in enumerate(sub_key):
             # 检查气泡是否是 Ballon
             if type(sub_Bubble[i]) is Balloon:
-                raise MediaError('\x1B[31m[BubbleError]:\x1B[0m','Ballon object "'+key+'" is not supported to be set as a sub-bubble of ChatWindow!')
+                raise MediaError('Bn2CW',key)
             self.sub_Bubble[key] = sub_Bubble[i]
             # 载入对齐，默认是左对齐
             try:
                 if sub_align[i] in ['left','right']:
                     self.sub_align[key] = sub_align[i]
                 else:
-                    raise MediaError('\x1B[31m[BubbleError]:\x1B[0m', 'Unsupported align:',sub_align[i])
+                    raise MediaError('BadAlign',sub_align[i])
             except IndexError:
                 self.sub_align[key] = 'left'
             # 载入子立绘，默认是None
@@ -328,7 +328,7 @@ class ChatWindow(Bubble):
                 if sub_Anime[i].length == 1:
                     self.sub_Anime[key] = sub_Anime[i]
                 else:
-                    raise MediaError('\x1B[31m[BubbleError]:\x1B[0m', 'Dynamic Animations is not supported as sub-animations for ChatWindow!')
+                    raise MediaError('DA2CW')
             except (IndexError,AttributeError):
                 # IndexError: sub_Anime[i] list index out of range\
                 # AttributeError: 'NoneType' object (sub_Anime[i]) has no attribute 'length'
@@ -336,13 +336,13 @@ class ChatWindow(Bubble):
 
         # 子气泡尺寸
         if (sub_pos[0] >= sub_end[0]) | (sub_pos[1] >= sub_end[1]):
-            raise MediaError('\x1B[31m[BubbleError]:\x1B[0m', 'Invalid bubble separate params sub_end!')
+            raise MediaError('InvSep','sub_end')
         else:
             self.sub_size = (sub_end[0]-sub_pos[0],sub_end[1]-sub_pos[1])
             self.sub_pos = sub_pos
         # 立绘对齐位置
         if am_left >= am_right:
-            raise MediaError('\x1B[31m[BubbleError]:\x1B[0m', 'Invalid bubble separate params am_right!')
+            raise MediaError('InvSep','am_right')
         else:
             self.am_left = am_left
             self.am_right = am_right
@@ -465,7 +465,7 @@ class Animation:
         file_list = np.frompyfunc(lambda x:x.replace('\\','/'),1,1)(glob.glob(filepath))
         self.length = len(file_list)
         if self.length == 0:
-            raise MediaError('\x1B[31m[AnimationError]:\x1B[0m','Cannot find file match',filepath)
+            raise MediaError('FileNFound',filepath)
         self.media = np.frompyfunc(pygame.image.load,1,1)(file_list)
         if type(pos) in [Pos,FreePos]:
             self.pos = pos
@@ -512,7 +512,7 @@ class GroupedAnimation(Animation):
             subanimation_current_pos = [None]*len(subanimation_list)
         # 如果指定的位置参数和子Animation的数量不一致，报出报错
         elif len(subanimation_current_pos) != len(subanimation_list):
-            raise MediaError('\x1B[31m[AnimationError]:\x1B[0m','length of subanimation params does not match!')
+            raise MediaError('GAPrame')
         # 开始在画板上绘制立绘
         else:
             # 越后面的位于越上层的图层
@@ -524,9 +524,9 @@ class GroupedAnimation(Animation):
                     else: # type(am_name) is str
                         subanimation = eval(am_name)
                 except NameError as E:
-                    raise MediaError('\x1B[31m[AnimationError]:\x1B[0m','The Animation "'+ am_name +'" is not defined, which was tried to group into GroupedAnimation!')
+                    raise MediaError('Undef2GA',am_name)
                 if subanimation.length > 1:
-                    raise MediaError('\x1B[31m[AnimationError]:\x1B[0m','Trying to group a dynamic Animation "'+ am_name +'" into GroupedAnimation!')
+                    raise MediaError('DA2GA',am_name)
                 else:
                     if am_pos is None:
                         subanimation.display(canvas_surface)
@@ -566,7 +566,7 @@ class BuiltInAnimation(Animation):
             name_tx,heart_max,heart_begin,heart_end = anime_args
 
             if (heart_end==heart_begin)|(heart_max<max(heart_begin,heart_end)):
-                raise MediaError('\x1B[31m[BIAnimeError]:\x1B[0m','Invalid argument',name_tx,heart_max,heart_begin,heart_end,'for BIAnime hitpoint!')
+                raise MediaError('InvHPArg',','.join([name_tx,heart_max,heart_begin,heart_end]))
             elif heart_end > heart_begin: # 如果是生命恢复
                 temp = heart_end
                 heart_end = heart_begin
@@ -679,9 +679,9 @@ class BuiltInAnimation(Animation):
                     name_tx,dice_max,dice_check,dice_face = die
                     dice_max,dice_face,dice_check = map(lambda x:-1 if x=='NA' else int(x),(dice_max,dice_face,dice_check))
                 except ValueError as E: #too many values to unpack,not enough values to unpack
-                    raise MediaError('\x1B[31m[BIAnimeError]:\x1B[0m','Invalid syntax:',str(die),E)
+                    raise MediaError('InvHPSytx',str(die),E)
                 if (dice_face>dice_max)|(dice_check<-1)|(dice_check>dice_max)|(dice_face<0)|(dice_max<=0):
-                    raise MediaError('\x1B[31m[BIAnimeError]:\x1B[0m','Invalid argument',name_tx,dice_max,dice_check,dice_face,'for BIAnime dice!')
+                    raise MediaError('InvDCArg', ','.join([name_tx,dice_max,dice_check,dice_face]))
             # 最多4个
             N_dice = len(anime_args)
             if N_dice > 4:
@@ -779,7 +779,7 @@ class Audio:
         try:
             self.media = pygame.mixer.Sound(filepath)
         except Exception as E:
-            raise MediaError('\x1B[31m[AudioError]:\x1B[0m','Unsupported audio files',filepath)
+            raise MediaError('BadAudio',filepath)
     def display(self,channel,volume=100):
         channel.set_volume(volume/100)
         channel.play(self.media)
@@ -798,7 +798,7 @@ class BGM:
         else:
             self.loop = 0
         if filepath.split('.')[-1] not in ['ogg']: #建议的格式
-            print("\x1B[33m[warning]:\x1B[0m",'A not recommend music format "'+filepath.split('.')[-1]+'" is specified, which may cause unstableness during displaying!')
+            print(WarningPrint('BadBGMFmt',filepath.split('.')[-1]))
     def display(self):
         if pygame.mixer.music.get_busy() == True: #如果已经在播了
             pygame.mixer.music.stop() #停止

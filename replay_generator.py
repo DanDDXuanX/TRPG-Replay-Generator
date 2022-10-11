@@ -76,12 +76,12 @@ try:
     if frame_rate <= 0:
         raise ArgumentError('FrameRate',str(frame_rate))
     elif frame_rate>30:
-        print(Warning('HighFPS',str(frame_rate)))
+        print(WarningPrint('HighFPS',str(frame_rate)))
 
     if (Width<=0) | (Height<=0):
         raise ArgumentError('Resolution',str((Width,Height)))
     if Width*Height > 3e6:
-        print(Warning('HighRes'))
+        print(WarningPrint('HighRes'))
 except Exception as E:
     print(E)
     system_terminated('Error')
@@ -388,7 +388,7 @@ def parser(stdin_text):
                         asterisk_time = float(asterisk_timeset[0][-1]) #取第二个，转化为浮点数
                         this_duration = dynamic_globals['asterisk_pause'] + np.ceil((asterisk_time)*frame_rate).astype(int) # a1.4.3 添加了句间停顿
                     except Exception:
-                        print(Warning('FailAster',str(i+1)))
+                        print(WarningPrint('FailAster',str(i+1)))
                 else: #检测到复数个星标
                     raise ParserError('2muchAster',str(i+1))
 
@@ -505,13 +505,13 @@ def parser(stdin_text):
                         # 未声明手动换行
                         if ('#' in ts)&(ts[0]!='^'):
                             ts = '^' + ts # 补齐申明符号
-                            print(Warning('UndeclMB',str(i+1)))
+                            print(WarningPrint('UndeclMB',str(i+1)))
                         #行数过多的警告
                         if (len(ts)>this_line_limit*4) | (len(ts.split('#'))>4):
-                            print(Warning('More4line',str(i+1)))
+                            print(WarningPrint('More4line',str(i+1)))
                         # 手动换行的字数超限的警告
                         if ((ts[0]=='^')|('#' in ts))&(np.frompyfunc(len,1,1)(ts.replace('^','').split('#')).max()>this_line_limit):
-                            print(Warning('MBExceed',str(i+1)))
+                            print(WarningPrint('MBExceed',str(i+1)))
                         # 赋值给当前时间轴的Bb轨道
                         this_timeline['Bb'] = this_bb
                         this_timeline['Bb_main'] = ts
@@ -660,7 +660,7 @@ def parser(stdin_text):
             this_am,am_method,am_dur,am_center = this_placed_animation
             # 如果place的this_duration小于切换时间，则清除动态切换效果
             if this_duration<(2*am_dur+1):
-                print(Warning('PAmMetDrop'))
+                print(WarningPrint('PAmMetDrop'))
                 am_dur = 0
                 am_method = 'replace'
             render_timeline.loc[last_placed_index,'AmS'] = this_am
@@ -724,7 +724,7 @@ def parser(stdin_text):
             this_bb,bb_method,bb_dur,this_hd,this_tx,text_method,text_dur,bb_center = this_placed_bubble
             # 如果place的this_duration小于切换时间，则清除动态切换效果
             if this_duration<(2*bb_dur+1):
-                print(Warning('PBbMetDrop'))
+                print(WarningPrint('PBbMetDrop'))
                 bb_dur = 0
                 bb_method = 'replace'
             # 'BbS','BbS_main','BbS_header','BbS_a','BbS_c','BbS_p',
@@ -807,7 +807,7 @@ def parser(stdin_text):
                         else:
                             dynamic_globals[target] = args
                     except Exception:
-                        print(Warning('Set2Invalid',target,args))
+                        print(WarningPrint('Set2Invalid',target,args))
                 # <method>类型的变量
                 elif target in ['am_method_default','bb_method_default','bg_method_default','tx_method_default']:
                     # exec("global {0} ; {0} = {1}".format(target,'\"'+args+'\"')) # 当作文本型，无论是啥都接受
@@ -829,7 +829,7 @@ def parser(stdin_text):
                     elif args[0:6] == 'lambda':
                         try:
                             dynamic_globals['formula'] = eval(args)
-                            print(Warning('UseLambda',str(dynamic_globals['formula'](0,1,2)),str(i+1)))                          
+                            print(WarningPrint('UseLambda',str(dynamic_globals['formula'](0,1,2)),str(i+1)))                          
                         except Exception:
                             raise ParserError('UnspFormula',args,str(i+1))
                     else:
@@ -839,7 +839,7 @@ def parser(stdin_text):
                     if args in ['animation','bubble','both','none']:
                         dynamic_globals['inline_method_apply'] = args
                     else:
-                        print(Warning('Set2Invalid',target,args))
+                        print(WarningPrint('Set2Invalid',target,args))
                 # 角色表中的自定义列
                 elif '.' in target:
                     target_split = target.split('.')
@@ -889,13 +889,13 @@ def parser(stdin_text):
         elif (text[0:8] == '<clear>:'):
             clear_target_name = text[8:]
             if clear_target_name not in media_list:
-                print(Warning('ClearUndef',clear_target_name))
+                print(WarningPrint('ClearUndef',clear_target_name))
             else:
                 clear_target_obj = eval(clear_target_name)
                 if type(clear_target_obj) is ChatWindow:
                     clear_target_obj.clear()
                 else:
-                    print(Warning('ClearNotCW',clear_target_name))
+                    print(WarningPrint('ClearNotCW',clear_target_name))
         # 预设动画，损失生命
         elif text[0:11] == '<hitpoint>:':
             try:
@@ -1064,7 +1064,7 @@ def parser(stdin_text):
         this_bb,bb_method,bb_dur,this_hd,this_tx,text_method,text_dur,bb_center = this_placed_bubble
         # 如果place的this_duration小于切换时间，则清除动态切换效果
         if this_duration<(2*bb_dur+1):
-            print(Warning('PBbMetDrop'))
+            print(WarningPrint('PBbMetDrop'))
             bb_dur = 0
             bb_method = 'replace'
         # 'BbS','BbS_main','BbS_header','BbS_a','BbS_c','BbS_p',
@@ -1238,7 +1238,7 @@ if args.SynthesisAnyway == True:
             pass
         # 1. 无覆盖原log，无需合成，可以继续执行主程序
         elif exit_status == 1:
-            print(Warning('NoValidSyth'))
+            print(WarningPrint('NoValidSyth'))
         # 2. 无覆盖原log，合成未完成，不能继续执行主程序
         elif exit_status == 2:
             raise SynthesisError('CantBegin')
@@ -1260,7 +1260,7 @@ except UnicodeDecodeError as E:
     print(DecodeError('DecodeErr',E))
     system_terminated('Error')
 if object_define_text[0] == '\ufeff': # UTF-8 BOM
-    print(Warning('UFT8BOM'))
+    print(WarningPrint('UFT8BOM'))
     object_define_text = object_define_text[1:] # 去掉首位
 object_define_text = object_define_text.split('\n')
 
@@ -1316,7 +1316,7 @@ except UnicodeDecodeError as E:
     print(DecodeError('DecodeErr',E))
     system_terminated('Error')
 if stdin_text[0] == '\ufeff': # 139 debug # 除非是完全空白的文件
-    print(Warning('UFT8BOM'))
+    print(WarningPrint('UFT8BOM'))
     stdin_text = stdin_text[1:]
 stdin_text = stdin_text.split('\n')
 try:
@@ -1347,7 +1347,7 @@ if args.OutputPath != None:
             if exit_status != 0:
                 raise OSError('Major error occurred in export_xml!')
         except Exception as E:
-            print(Warning('XMLFail',E))
+            print(WarningPrint('XMLFail',E))
     # 如果导出视频文件
     if args.ExportVideo == True:
         command = python3 + ' ./export_video.py --TimeLine {tm} --MediaObjDefine {md} --OutputPath {of} --FramePerSecond {fps} --Width {wd} --Height {he} --Zorder {zd} --Quality {ql}'
@@ -1362,7 +1362,7 @@ if args.OutputPath != None:
             if exit_status != 0:
                 raise OSError('Major error occurred in export_video!')
         except Exception as E:
-            print(Warning('Mp4Fail',E))
+            print(WarningPrint('Mp4Fail',E))
         # 如果导出为视频，则提前终止程序
         system_terminated('Video')
 
@@ -1372,7 +1372,7 @@ if args.FixScreenZoom == True:
         import ctypes
         ctypes.windll.user32.SetProcessDPIAware() #修复错误的缩放，尤其是在移动设备。
     except Exception:
-        print(Warning('FixScrZoom'))
+        print(WarningPrint('FixScrZoom'))
 
 pygame.init()
 pygame.display.set_caption('TRPG Replay Generator '+EDITION)
