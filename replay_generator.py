@@ -40,6 +40,8 @@ ap.add_argument('--ExportXML',help='Export a xml file to load in Premiere Pro, s
 ap.add_argument('--ExportVideo',help='Export MP4 video file, this will disables interface display',action='store_true')
 ap.add_argument('--SynthesisAnyway',help='Execute speech_synthezier first, and process all unprocessed asterisk time label.',action='store_true')
 ap.add_argument('--FixScreenZoom',help='Windows system only, use this flag to fix incorrect windows zoom.',action='store_true')
+# 语言
+ap.add_argument("--Language",help='Choose the language of running log',default='en',type=str)
 
 args = ap.parse_args()
 
@@ -48,9 +50,14 @@ frame_rate = args.FramePerSecond #帧率 单位fps
 zorder = args.Zorder.split(',') #渲染图层顺序
 
 # 初始化日志打印
-Print.lang = 0 # 英文
-RplGenError.lang = 0 # 英文
-
+if args.Language == 'zh':
+    # 中文
+    Print.lang = 1 
+    RplGenError.lang = 1
+else:
+    # 英文
+    Print.lang == 0
+    RplGenError.lang = 0
 # 退出程序
 def system_terminated(exit_type='Error'):
     print(MainPrint(exit_type))
@@ -1229,9 +1236,9 @@ print(MainPrint('Welcome',EDITION))
 
 if args.SynthesisAnyway == True:
     command = python3 +' ./speech_synthesizer.py --LogFile {lg} --MediaObjDefine {md} --CharacterTable {ct} --OutputPath {of} --AccessKey {AK} --AccessKeySecret {AS} --Appkey {AP} '
-    command = command + '--Azurekey {AZ} --ServRegion {SR}'
+    command = command + '--Azurekey {AZ} --ServRegion {SR} --Language {la}'
     command = command.format(lg = args.LogFile.replace('\\','/'),md = args.MediaObjDefine.replace('\\','/'), of = args.OutputPath, ct = args.CharacterTable.replace('\\','/'),
-                             AK = args.AccessKey,AS = args.AccessKeySecret,AP = args.Appkey,AZ = args.Azurekey, SR =args.ServRegion)
+                             AK = args.AccessKey,AS = args.AccessKeySecret,AP = args.Appkey,AZ = args.Azurekey, SR =args.ServRegion, la = args.Language)
     print(MainPrint('SythAnyway'))
     print(CMDPrint('Command',command))
     try:
@@ -1339,10 +1346,10 @@ if args.OutputPath != None:
     timeline_ofile.close()
     # 如果导出PR项目
     if args.ExportXML == True:
-        command = python3 + ' ./export_xml.py --TimeLine {tm} --MediaObjDefine {md} --OutputPath {of} --FramePerSecond {fps} --Width {wd} --Height {he} --Zorder {zd}'
+        command = python3 + ' ./export_xml.py --TimeLine {tm} --MediaObjDefine {md} --OutputPath {of} --FramePerSecond {fps} --Width {wd} --Height {he} --Zorder {zd} --Language {la}'
         command = command.format(tm = args.OutputPath+'/'+timenow+'.timeline',
                                  md = args.MediaObjDefine.replace('\\','/'), of = args.OutputPath.replace('\\','/'), 
-                                 fps = frame_rate, wd = Width, he = Height, zd = args.Zorder)
+                                 fps = frame_rate, wd = Width, he = Height, zd = args.Zorder, la=args.Language)
         print(MainPrint('ExportXML'))
         print(CMDPrint('Command',command))
         try:
@@ -1354,10 +1361,10 @@ if args.OutputPath != None:
             print(WarningPrint('XMLFail',E))
     # 如果导出视频文件
     if args.ExportVideo == True:
-        command = python3 + ' ./export_video.py --TimeLine {tm} --MediaObjDefine {md} --OutputPath {of} --FramePerSecond {fps} --Width {wd} --Height {he} --Zorder {zd} --Quality {ql}'
+        command = python3 + ' ./export_video.py --TimeLine {tm} --MediaObjDefine {md} --OutputPath {of} --FramePerSecond {fps} --Width {wd} --Height {he} --Zorder {zd} --Quality {ql} --Language {la}'
         command = command.format(tm = args.OutputPath+'/'+timenow+'.timeline',
                                  md = args.MediaObjDefine.replace('\\','/'), of = args.OutputPath.replace('\\','/'), 
-                                 fps = frame_rate, wd = Width, he = Height, zd = args.Zorder,ql = args.Quality)
+                                 fps = frame_rate, wd = Width, he = Height, zd = args.Zorder,ql = args.Quality, la=args.Language)
         print(MainPrint('ExportMp4'))
         print(CMDPrint('Command',command))
         try:

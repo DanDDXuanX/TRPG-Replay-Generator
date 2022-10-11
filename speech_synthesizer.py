@@ -33,11 +33,19 @@ ap.add_argument("-R", "--ServRegion", help='Service region of Azure.', type=str,
 
 ap.add_argument('--PreviewOnly',help='Ignore the input files, and open a speech preview gui windows.',action='store_true')
 ap.add_argument('--Init',help='The initial speech service in preview.',type=str,default='Aliyun')
+# 语言
+ap.add_argument("--Language",help='Choose the language of running log',default='en',type=str)
 args = ap.parse_args()
 
 # 初始化日志打印
-Print.lang = 0 # 英文
-RplGenError.lang = 0 # 英文
+if args.Language == 'zh':
+    # 中文
+    Print.lang = 1 
+    RplGenError.lang = 1
+else:
+    # 英文
+    Print.lang == 0
+    RplGenError.lang = 0
 
 try:
     if args.PreviewOnly == 1:
@@ -184,7 +192,7 @@ def synthesizer(key,asterisk):
     if asterisk['category'] > 2: #如果解析结果为3&4，不执行语音合成
         return 'Keep',False
     elif asterisk['character'] not in charactor_table.index: #指定了未定义的发言角色
-        print(WarningPrint('UndefChar'))
+        print(WarningPrint('UndefChar'),asterisk['character'])
         return 'None',False
     else:
         charactor_info = charactor_table.loc[asterisk['character']]

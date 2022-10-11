@@ -96,7 +96,7 @@ class MainFrame(AppFrame):
         """
         optional = {1:'--OutputPath {of} ',2:'--ExportXML ',3:'--ExportVideo --Quality {ql} ',4:'--SynthesisAnyway --AccessKey {AK} --AccessKeySecret {AS} --Appkey {AP} --Azurekey {AZ} --ServRegion {SR} ',5:'--FixScreenZoom '}
         command = self.app.python3 + ' ./replay_generator.py --LogFile {lg} --MediaObjDefine {md} --CharacterTable {ct} '
-        command = command + '--FramePerSecond {fps} --Width {wd} --Height {he} --Zorder {zd} '
+        command = command + '--FramePerSecond {fps} --Width {wd} --Height {he} --Zorder {zd} --Language zh '
         if self.app.output_path.get()!='':
             command = command + optional[1].format(of=self.app.output_path.get().replace('\\','/'))
         if self.app.synthanyway.get()==1:

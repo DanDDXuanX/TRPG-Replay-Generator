@@ -23,12 +23,24 @@ ap.add_argument("-H", "--Height", help='Set the resolution of display, default i
 ap.add_argument("-Z", "--Zorder", help='Set the display order of layers, not recommended to change the values unless necessary!',type=str,
                 default='BG2,BG1,Am3,Am2,Am1,AmS,Bb,BbS')
 ap.add_argument("-Q", "--Quality", help='Choose the quality (ffmpeg crf) of output video.',type=int,default=24)
+# 语言
+ap.add_argument("--Language",help='Choose the language of running log',default='en',type=str)
 args = ap.parse_args()
 
 Width = args.Width #显示的分辨率
 Height = args.Height
 frame_rate = args.FramePerSecond #帧率 单位fps
 zorder = args.Zorder.split(',') #渲染图层顺序
+
+# 初始化日志打印
+if args.Language == 'zh':
+    # 中文
+    Print.lang = 1 
+    RplGenError.lang = 1
+else:
+    # 英文
+    Print.lang == 0
+    RplGenError.lang = 0
 
 try:
     for path in [args.TimeLine,args.MediaObjDefine]:

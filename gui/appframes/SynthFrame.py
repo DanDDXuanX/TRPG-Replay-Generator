@@ -115,7 +115,7 @@ class SynthFrame(AppFrame):
         """
         执行语音合成命令
         """
-        command = self.app.python3 +' ./speech_synthesizer.py --LogFile {lg} --MediaObjDefine {md} --CharacterTable {ct} --OutputPath {of} --AccessKey {AK} --AccessKeySecret {AS} --Appkey {AP} --Azurekey {AZ} --ServRegion {SR}'
+        command = self.app.python3 +' ./speech_synthesizer.py --LogFile {lg} --MediaObjDefine {md} --CharacterTable {ct} --OutputPath {of} --AccessKey {AK} --AccessKeySecret {AS} --Appkey {AP} --Azurekey {AZ} --ServRegion {SR} --Language zh '
         if '' in [self.app.stdin_logfile.get(),self.app.characor_table.get(),self.app.media_define.get(),self.app.output_path.get(),self.app.AccessKey.get(),self.app.AccessKeySecret.get(),self.app.Appkey.get(),self.app.AzureKey.get(),self.app.ServiceRegion.get()]:
             messagebox.showerror(title='错误',message='缺少必要的参数！')
         else:

@@ -65,7 +65,7 @@ class Mp4Frame(AppFrame):
         """
         执行导出mp4的命令
         """
-        command = self.app.python3 + ' ./export_video.py --TimeLine {tm} --MediaObjDefine {md} --OutputPath {of} --FramePerSecond {fps} --Width {wd} --Height {he} --Zorder {zd} --Quality {ql}'
+        command = self.app.python3 + ' ./export_video.py --TimeLine {tm} --MediaObjDefine {md} --OutputPath {of} --FramePerSecond {fps} --Width {wd} --Height {he} --Zorder {zd} --Quality {ql} --Language zh '
         if '' in [self.app.timeline_file.get(),self.app.media_define.get(),self.app.output_path.get(),
                   self.app.project_W.get(),self.app.project_H.get(),self.app.project_F.get(),self.app.project_Z.get(),self.app.project_Q.get()]:
             messagebox.showerror(title='错误',message='缺少必要的参数！')
