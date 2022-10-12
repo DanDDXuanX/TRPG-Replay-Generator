@@ -255,7 +255,7 @@ class MediaError(RplGenError):
 class IgnoreInput(RplGenError):
     error_scripts = {'None':['[speech synthesizer]: Preview Only!',
                              '[语音合成]:仅试听！']}
-    error_type = ['']
+    error_type = ['','']
     pass
 
 class Print:
@@ -346,8 +346,8 @@ class VideoPrint(Print):
                         "音频混合完毕！"],
         'EncoStart'   :["Start encoding video, using ffmpeg.",
                         "开始编码视频流，使用ffmpeg。"],
-        'Progress'    :["[{0}] {1}, {2}/{3}",
-                        "[{0}] {1}, {2}/{3}"],
+        'Progress'    :["{0} {1}, {2}/{3} {4}",
+                        "{0} {1}, {2}/{3} {4}"],
         'CostTime'    :["Export time elapsed : {}",
                         "导出耗时：{}"],
         'RendSpeed'   :["Mean frames rendered per second : {} FPS",

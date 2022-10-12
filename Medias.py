@@ -61,7 +61,7 @@ class StrokeText(Text):
         self.edge_color=edge_color
         # bug：受限于pygame的性能，无法正确的表现透明度不同的描边和字体，但在导出PR项目时是正常的
         if (self.color[3] < 255) | (self.edge_color[3] < 255):
-            print(Warning('AlphaText'))
+            print(WarningPrint('AlphaText'))
     def render(self,tx):
         edge = self.text_render.render(tx,True,self.edge_color[0:3])
         face = self.text_render.render(tx,True,self.color[0:3])
