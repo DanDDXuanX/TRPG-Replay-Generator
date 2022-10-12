@@ -62,8 +62,8 @@ else:
 def system_terminated(exit_type='Error'):
     print(MainPrint(exit_type))
     if exit_type == 'Error':
-        import traceback
-        traceback.print_exc()
+        # import traceback
+        # traceback.print_exc()
         sys.exit(1) # 错误退出的代码
     else:
         sys.exit(0) # 正常退出的代码
@@ -229,7 +229,7 @@ def get_placeobj_arg(text):
     try:
         obj_type,obje,objc = RE_placeobj.findall(text)[0]
     except IndexError:
-        raise ParserError('UnablePlace',obj_type)
+        raise ParserError('UnablePlace')
     if obje=='':
         if obj_type == 'background':
             obje = dynamic_globals['bg_method_default']
@@ -481,8 +481,10 @@ def parser(stdin_text):
                                 if type(bubble_obj) is ChatWindow:
                                     # targets = bubble_obj.target ; AttributeError: 'ChatWindow' object has no attribute 'target'
                                     raise ParserError('CWUndepend', this_bb)
-                                else:
+                                elif type(bubble_obj) in [Bubble,Balloon,DynamicBubble]:
                                     targets = bubble_obj.target
+                                else:
+                                    raise ParserError('NotBubble', this_bb, name+subtype)
                             # Bubble,DynamicBubble类：只有一个头文本
                             if type(bubble_obj) in [Bubble,DynamicBubble]:
                                 target_text = this_char_series[targets]
@@ -670,7 +672,7 @@ def parser(stdin_text):
             this_duration = len(last_placed_index)
             this_am,am_method,am_dur,am_center = this_placed_animation
             # 如果place的this_duration小于切换时间，则清除动态切换效果
-            if this_duration<(2*am_dur+1):
+            if this_duration<(2*am_dur+1) & (this_am != 'NA'):
                 print(WarningPrint('PAmMetDrop'))
                 am_dur = 0
                 am_method = 'replace'
@@ -734,7 +736,7 @@ def parser(stdin_text):
             # bb,method,method_dur,HT,MT,text_method,tx_dur,center
             this_bb,bb_method,bb_dur,this_hd,this_tx,text_method,text_dur,bb_center = this_placed_bubble
             # 如果place的this_duration小于切换时间，则清除动态切换效果
-            if this_duration<(2*bb_dur+1):
+            if this_duration<(2*bb_dur+1) & (this_bb != 'NA'):
                 print(WarningPrint('PBbMetDrop'))
                 bb_dur = 0
                 bb_method = 'replace'
@@ -791,6 +793,15 @@ def parser(stdin_text):
                         if this_bb not in media_list:
                             raise NameError(this_bb)
                         # 检查，tx_method 的合法性
+                        # 缺省文字效果
+                        if this_method_label == '':
+                            this_method_label = dynamic_globals['tx_method_default']
+                            this_tx_method,this_tx_dur = RE_modify.findall(this_method_label)[0] #<black=\d+> 
+                            # 直接获取下来的的 <all=0> all =0
+                            this_tx_dur = this_tx_dur[1:]
+                        elif this_tx_dur == '':
+                            this_tx_dur = dynamic_globals['tx_dur_default']
+                        # 如果是非法的
                         if this_tx_method not in ['all','w2w','l2l']:
                             raise ValueError(this_method_label)
                         else:
@@ -1054,6 +1065,11 @@ def parser(stdin_text):
         last_placed_index = range(break_point[last_placed_animation_section],break_point[i])
         this_duration = len(last_placed_index)
         this_am,am_method,am_dur,am_center = this_placed_animation
+        # 如果place的this_duration小于切换时间，则清除动态切换效果
+        if this_duration<(2*am_dur+1) & (this_am != 'NA'):
+            print(WarningPrint('PAmMetDrop'))
+            am_dur = 0
+            am_method = 'replace'
         render_timeline.loc[last_placed_index,'AmS'] = this_am
         # this_am 可能为空的，需要先处理这种情况！
         if (this_am!=this_am) | (this_am=='NA'):
@@ -1074,7 +1090,7 @@ def parser(stdin_text):
         # bb,method,method_dur,HT,MT,text_method,tx_dur,center
         this_bb,bb_method,bb_dur,this_hd,this_tx,text_method,text_dur,bb_center = this_placed_bubble
         # 如果place的this_duration小于切换时间，则清除动态切换效果
-        if this_duration<(2*bb_dur+1):
+        if this_duration<(2*bb_dur+1) & (this_bb != 'NA'):
             print(WarningPrint('PBbMetDrop'))
             bb_dur = 0
             bb_method = 'replace'

@@ -99,7 +99,7 @@ class SynthFrame(AppFrame):
         """
         执行试听命令
         """
-        command = self.app.python3 +' ./speech_synthesizer.py --PreviewOnly --Init {IN} --AccessKey {AK} --AccessKeySecret {AS} --Appkey {AP} --Azurekey {AZ} --ServRegion {SR}'
+        command = self.app.python3 +' ./speech_synthesizer.py --PreviewOnly --Init {IN} --AccessKey {AK} --AccessKeySecret {AS} --Appkey {AP} --Azurekey {AZ} --ServRegion {SR} --Language zh '
         command = command.format(IN=init_type, AK=self.app.AccessKey.get(), AS=self.app.AccessKeySecret.get(),AP=self.app.Appkey.get(),AZ=self.app.AzureKey.get(),SR=self.app.ServiceRegion.get()).replace('\n','').replace('\r','')
         try:
             print('\x1B[32m'+command+'\x1B[0m')

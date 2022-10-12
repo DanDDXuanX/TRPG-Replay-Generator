@@ -3,6 +3,10 @@
 
 <background>:背景1
 
+<set:speech_speed>:100
+
+<bubble>:测试气球("aaa","bbb")
+
 [张安翔]:测试文本
 [伊可]:测试文本
 [斯托克]:测试文本

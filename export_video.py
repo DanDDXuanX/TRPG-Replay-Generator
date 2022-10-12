@@ -319,9 +319,13 @@ while n < break_point.max():
         finish_rate = n/break_point.values.max()
         used_time = time.time()-begin_time
         est_time = np.int(used_time/finish_rate * (1-finish_rate))
-        print(VideoPrint('Progress', '\x1B[33m' + int(finish_rate*50)*'━' + '\x1B[30m' + (50-int(50*finish_rate))*'━' + '\x1B[0m', '%.1f'%(finish_rate*100)+'%', n, '%d'%break_point.values.max(), 'eta:'+time.strftime("%H:%M:%S", time.gmtime(est_time))), end = "\r")
-    elif n == break_point.values.max():
-        print(VideoPrint('Progress', '\x1B[32m' + 50*'━' + '\x1B[0m', '%.1f'%100+'%', n, n ,''))
+        print(VideoPrint('Progress',
+                         '\x1B[33m' + int(finish_rate*50)*'━' + '\x1B[30m' + (50-int(50*finish_rate))*'━' + '\x1B[0m',
+                         '%.1f'%(finish_rate*100)+'%', n, '%d'%break_point.values.max(), 
+                         'eta: '+time.strftime("%H:%M:%S", time.gmtime(est_time))), end = "\r")
+
+# 改一个bug，如果最后一帧正好是显示帧，那么100% 不会正常显示
+print(VideoPrint('Progress', '\x1B[32m' + 50*'━' + '\x1B[0m', '%.1f'%100+'%', n, n ,' '*15))
 output_engine.stdin.close()
 pygame.quit()
 

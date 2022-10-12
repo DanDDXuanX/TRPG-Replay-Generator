@@ -45,14 +45,14 @@ class ArgumentError(RplGenError):
                         "无法创建文件夹：'{}'"],
     }
     error_type = ["\x1B[31m[ArgumentError]:\x1B[0m ",
-                  "\x1B[31m[参数错误]：\x1B[0m "]
+                  "\x1B[31m[参数错误]:\x1B[0m "]
 # 解析错误，解析log错误
 class ParserError(RplGenError):
     error_scripts = {
         'UnableDial'  :["Unable to parse as dialogue line, due to invalid syntax!",
                         "无法解析为对话行，由于错误的语法！"],
-        'UnablePlace' :["Unable to parse as {} line, due to invalid syntax!",
-                        "无法解析第{}行，由于错误的语法！"],
+        'UnablePlace' :["Unable to parse this line, due to invalid syntax!",
+                        "无法解析本行，由于错误的语法！"],
         'UnableSet'   :["Unable to parse as setting line, due to invalid syntax!",
                         "无法解析为设置行，由于错误的语法！"],
         'SwitchDial'  :["Unrecognized switch method: '{}' appeared in dialogue line {}.",
@@ -106,7 +106,7 @@ class ParserError(RplGenError):
         'InvaPBbExp'  :["The Bubble expression '{0}' specified in bubble line {1} is invalid syntax!",
                         "在第{1}行（气泡行）使用的气泡表达式“{0}”存在语法错误！"],
         'UnrecPBbTxM' :["Unrecognized text display method: '{}' appeared in bubble line {}.",
-                        "无法识别的文字演示效果“{}”，出现在第{}行（气泡行）中！"],
+                        "无法识别的文字演示效果“{}”，出现在第{}行（气泡行）中！"],# 测试进行到了这一步
         'UndefPBb'    :["The Bubble '{0}' specified in bubble line {1} is not defined!",
                         "在第{1}行（气泡行）指定的气泡对象“{0}”尚未在媒体定义文件中定义！"],
         'ParErrBb'    :["Parse exception occurred in bubble line {}.",
@@ -127,8 +127,8 @@ class ParserError(RplGenError):
                         "在第{1}行（设置行）尝试修改角色表中角色差分“{0}”的某一列，然而这个角色差分并未出现在角色表中！"],
         'UnsuppSet'   :["Unsupported setting '{0}' is specified in setting line {1}.",
                         "在第{1}行设置中尝试设置一个不被支持的项目“{0}”"],
-        'IvSyFrPos'   :["Invalid Syntax '{0}' appeared while repositioning FreePos object '{1}', due to: {2}"],
-                        "在重新定位自由位置对象“{1}”是，出现了无效语法“{0}”，由于：{2}"
+        'IvSyFrPos'   :["Invalid Syntax '{0}' appeared while repositioning FreePos object '{1}', due to: {2}",
+                        "在重新定位自由位置对象“{1}”是，出现了无效语法“{0}”，由于：{2}"],
         'ParErrSet'   :["Parse exception occurred in setting line {}.",
                         "解析异常发生在第{}行（设置行）。"],
         'ParErrHit'   :["Parse exception occurred in hitpoint line {}.",
@@ -346,8 +346,8 @@ class VideoPrint(Print):
                         "音频混合完毕！"],
         'EncoStart'   :["Start encoding video, using ffmpeg.",
                         "开始编码视频流，使用ffmpeg。"],
-        'Progress'    :["{0} {1}, {2}/{3} {4}",
-                        "{0} {1}, {2}/{3} {4}"],
+        'Progress'    :["{0} {1} {2}/{3} {4}",
+                        "{0} {1} {2}/{3} {4}"],
         'CostTime'    :["Export time elapsed : {}",
                         "导出耗时：{}"],
         'RendSpeed'   :["Mean frames rendered per second : {} FPS",
