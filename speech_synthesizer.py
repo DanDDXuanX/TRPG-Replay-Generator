@@ -192,7 +192,7 @@ def synthesizer(key,asterisk):
     if asterisk['category'] > 2: #如果解析结果为3&4，不执行语音合成
         return 'Keep',False
     elif asterisk['character'] not in charactor_table.index: #指定了未定义的发言角色
-        print(WarningPrint('UndefChar'),asterisk['character'])
+        print(WarningPrint('UndefChar',asterisk['character']))
         return 'None',False
     else:
         charactor_info = charactor_table.loc[asterisk['character']]
@@ -400,7 +400,7 @@ def main():
     global media_list
 
     print(SynthPrint('Welcome',EDITION))
-    print(SynthPrint('SaveAt'),args.OutputPath)
+    print(SynthPrint('SaveAt',args.OutputPath))
     # 载入ct文件
     try:
         if args.CharacterTable.split('.')[-1] in ['xlsx','xls']:

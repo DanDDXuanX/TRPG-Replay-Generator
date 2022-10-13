@@ -566,7 +566,7 @@ class BuiltInAnimation(Animation):
             name_tx,heart_max,heart_begin,heart_end = anime_args
 
             if (heart_end==heart_begin)|(heart_max<max(heart_begin,heart_end)):
-                raise MediaError('InvHPArg',','.join([name_tx,heart_max,heart_begin,heart_end]))
+                raise MediaError('InvHPArg',','.join([str(name_tx),str(heart_max),str(heart_begin),str(heart_end)]))
             elif heart_end > heart_begin: # 如果是生命恢复
                 temp = heart_end
                 heart_end = heart_begin
@@ -681,7 +681,7 @@ class BuiltInAnimation(Animation):
                 except ValueError as E: #too many values to unpack,not enough values to unpack
                     raise MediaError('InvDCSytx',str(die),E)
                 if (dice_face>dice_max)|(dice_check<-1)|(dice_check>dice_max)|(dice_face<0)|(dice_max<=0):
-                    raise MediaError('InvDCArg', ','.join([name_tx,dice_max,dice_check,dice_face]))
+                    raise MediaError('InvDCArg', ','.join([str(name_tx),str(dice_max),str(dice_check),str(dice_face)]))
             # 最多4个
             N_dice = len(anime_args)
             if N_dice > 4:

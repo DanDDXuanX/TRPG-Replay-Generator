@@ -36,11 +36,11 @@ class Pos:
                 y = self.y + int(others[1])
                 return Pos(x,y)
             except IndexError: # 列表数组长度不足
-                raise Exception()
+                raise Exception('The length of tuple to add is insufficient.')
             except ValueError: # 列表数组不能解释为整数
-                raise Exception()
+                raise Exception('Invalid value type to add.')
         else: # 用来加的不是一个合理的类型
-            raise Exception()
+            raise Exception('Unsuppoeted type to add!')
     # 重载减法
     def __sub__(self,others):
         return -(-self + others)
@@ -76,7 +76,7 @@ class FreePos(Pos):
             except IndexError: # 列表数组长度不足
                 raise Exception('The length of tuple to set is insufficient.')
             except ValueError: # 列表数组不能解释为整数
-                raise Exception('Invalid value type.')
+                raise Exception('Invalid value type to set.')
         else: # 设置的不是一个合理的类型
             raise Exception('Unsuppoeted type to set!')
 class PosGrid:

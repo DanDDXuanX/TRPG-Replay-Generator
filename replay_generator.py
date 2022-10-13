@@ -896,11 +896,14 @@ def parser(stdin_text):
                     else:
                         raise ParserError('UnsuppSet',target,str(i+1))
                 # 重定位FreePos
-                elif type(eval(target)) is FreePos:
-                    try:
-                        eval(target).set(eval(args))
-                    except Exception as E:
-                        raise ParserError('IvSyFrPos',args,target,E)
+                elif target in media_list:
+                    if type(eval(target)) is FreePos:
+                        try:
+                            eval(target).set(eval(args))
+                        except Exception as E:
+                            raise ParserError('IvSyFrPos',args,target,E)
+                    else:
+                        raise ParserError('UnsuppSet',target,str(i+1))
                 # 不被支持的参数
                 else:
                     raise ParserError('UnsuppSet',target,str(i+1))
