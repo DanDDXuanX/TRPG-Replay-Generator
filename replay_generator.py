@@ -717,8 +717,11 @@ def parser(stdin_text):
                     last_placed_animation_section = i
                 # 只有一个立绘
                 elif amc in media_list:
-                    this_placed_animation = (amc,method,method_dur,str(eval(amc).pos))
-                    last_placed_animation_section = i
+                    if type(eval(amc)) in [Animation,BuiltInAnimation,GroupedAnimation]:
+                        this_placed_animation = (amc,method,method_dur,str(eval(amc).pos))
+                        last_placed_animation_section = i
+                    else: # 如果type 不是 Animation 类，也 UndefPAnime
+                        raise ParserError('UndefPAnime',amc,str(i+1))
                 # 取消place立绘
                 elif amc == 'NA':
                     this_placed_animation = ('NA','replace',0,'(0,0)')
@@ -792,6 +795,10 @@ def parser(stdin_text):
                         # 检查Bubble类媒体的可用性
                         if this_bb not in media_list:
                             raise NameError(this_bb)
+                        elif type(eval(this_bb)) not in [Bubble,Balloon,DynamicBubble,ChatWindow]:
+                            raise NameError(this_bb)
+                        else:
+                            pass
                         # 检查，tx_method 的合法性
                         # 缺省文字效果
                         if this_method_label == '':

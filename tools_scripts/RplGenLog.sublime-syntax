@@ -22,7 +22,7 @@ contexts:
     - match: '^[\t\ ]+$'
       scope: invalid.illegal.rgl # invaild
   command:
-    - match: '^<(set:[^>]+|background|dice|hitpoint)>'
+    - match: '^<(set:[^>]+|background|animation|bubble|clear|dice|hitpoint)>'
       scope: entity.name.class.rgl # green
       push: target
   dialog:
@@ -35,12 +35,14 @@ contexts:
     - match: '\b(-)?\d+$\b'
       scope: constant.numeric.value.rgl
       pop: true
-    - match: (linear|quadraticR|quadratic|sigmoid|right|left|sincurve)
+    - match: \b(linear|quadraticR|quadratic|sigmoid|right|left|sincurve)\b
       scope: keyword.declaration.function.rgl
       pop: true
     - match: '<\w+(\=\d+)?>'
       scope: variable.parameter.rgl # orange
       pop: true
+    - match: '".+?"'
+      scope: string.rgl
     - match: '\((.+?),(\d+),([\d]+|NA),(\d+)\)'
       scope: string.rgl
     - match: ','
