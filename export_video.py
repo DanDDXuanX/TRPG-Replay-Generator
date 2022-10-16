@@ -184,8 +184,6 @@ render_timeline,break_point,bulitin_media = pickle.load(timeline_ifile)
 timeline_ifile.close()
 stdin_name = args.TimeLine.replace('\\','/').split('/')[-1]
 
-cmap = {'black':(0,0,0,255),'white':(255,255,255,255),'greenscreen':(0,177,64,255)}
-
 # 载入od文件
 try:
     object_define_text = open(args.MediaObjDefine,'r',encoding='utf-8').read()#.split('\n')
