@@ -1331,7 +1331,10 @@ print(MainPrint('LoadChrtab'))
 
 try:
     if args.CharacterTable.split('.')[-1] in ['xlsx','xls']:
-        charactor_table = pd.read_excel(args.CharacterTable,dtype = str).fillna('NA') # 支持excel格式的角色配置表
+        import warnings
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore') # 禁用读取excel时报出的：UserWarning: Data Validation extension is not supported and will be removed
+            charactor_table = pd.read_excel(args.CharacterTable,dtype = str,sheet_name='角色配置').fillna('NA') # 支持excel格式的角色配置表
     else:
         charactor_table = pd.read_csv(args.CharacterTable,sep='\t',dtype = str).fillna('NA')
     charactor_table.index = charactor_table['Name']+'.'+charactor_table['Subtype']

@@ -228,11 +228,16 @@ def open_Tuning_windows(init_type='Aliyun'):
             select = Servicetype['阿里云']
         select.place(x=10,y=40,width=360,height=190)
         servframe_display = select
+    # 根据选中的Azure音源，更新描述
+    def update_selected_voice_aliyun(event):
+        aliyun_voice_selected  = aliyun_voice.get()
+        aliyun_voice_description.config(text='('+voice_lib.loc[aliyun_voice_selected,'description']+')')
     # 根据选中的Azure音源，更新可用的role和style
-    def update_selected_voice(event):
+    def update_selected_voice_azure(event):
         azure_voice_selected = azure_voice.get()
         azure_style_available = voice_lib.loc[azure_voice_selected,'style'].split(',')
         azure_role_available = voice_lib.loc[azure_voice_selected,'role'].split(',')
+        azure_voice_description.config(text='('+voice_lib.loc[azure_voice_selected,'description']+')')
         azure_style_combobox.config(values=azure_style_available)
         azure_role_combobox.config(values=azure_role_available)
         azure_style.set('general')
@@ -350,7 +355,13 @@ def open_Tuning_windows(init_type='Aliyun'):
     ttk.Label(Aliyun_frame,text='音源名:').place(x=10,y=10,width=65,height=25)
     ttk.Label(Aliyun_frame,text='语速:').place(x=10,y=40,width=65,height=25)
     ttk.Label(Aliyun_frame,text='语调:').place(x=10,y=70,width=65,height=25)
-    ttk.Combobox(Aliyun_frame,textvariable=aliyun_voice,values=list(voice_lib[voice_lib.service=='Aliyun'].index)).place(x=75,y=10,width=225,height=25)
+    # 选择音源
+    aliyun_voice_combobox = ttk.Combobox(Aliyun_frame,textvariable=aliyun_voice,values=list(voice_lib[voice_lib.service=='Aliyun'].index))
+    aliyun_voice_combobox.place(x=75,y=10,width=100,height=25)
+    aliyun_voice_combobox.bind("<<ComboboxSelected>>",update_selected_voice_aliyun)
+    aliyun_voice_description = ttk.Label(Aliyun_frame,text='初始化',anchor='w')
+    aliyun_voice_description.place(x=180,y=10,width=130,height=25)
+    # 选择音源参数
     ttk.Spinbox(Aliyun_frame,from_=-500,to=500,textvariable=speech_rate,increment=10).place(x=75,y=40,width=50,height=25)
     ttk.Spinbox(Aliyun_frame,from_=-500,to=500,textvariable=pitch_rate,increment=10).place(x=75,y=70,width=50,height=25)
     ttk.Scale(Aliyun_frame,from_=-500,to=500,variable=speech_rate,command=lambda x:get_scale_to_intvar(speech_rate)).place(x=135,y=40,width=200,height=25)
@@ -371,8 +382,10 @@ def open_Tuning_windows(init_type='Aliyun'):
     ttk.Label(Azure_frame,text='语调:').place(x=10,y=130,width=65,height=25)
     ## 选择音源名
     azure_voice_combobox = ttk.Combobox(Azure_frame,textvariable=azure_voice,values=list(voice_lib[voice_lib.service=='Azure'].index))
-    azure_voice_combobox.place(x=75,y=10,width=225,height=25)
-    azure_voice_combobox.bind("<<ComboboxSelected>>",update_selected_voice)
+    azure_voice_combobox.place(x=75,y=10,width=170,height=25)
+    azure_voice_combobox.bind("<<ComboboxSelected>>",update_selected_voice_azure)
+    azure_voice_description = ttk.Label(Azure_frame,text='初始化',anchor='w')
+    azure_voice_description.place(x=250,y=10,width=60,height=25)
     ## 选择style就role
     azure_style_combobox = ttk.Combobox(Azure_frame,textvariable=azure_style,values=['general'])
     azure_style_combobox.place(x=75,y=40,width=130,height=25)
@@ -404,7 +417,10 @@ def main():
     # 载入ct文件
     try:
         if args.CharacterTable.split('.')[-1] in ['xlsx','xls']:
-            charactor_table = pd.read_excel(args.CharacterTable,dtype = str) # 支持excel格式的角色配置表
+            import warnings
+            with warnings.catch_warnings():
+                warnings.simplefilter('ignore') # 禁用读取excel时报出的：UserWarning: Data Validation extension is not supported and will be removed
+                charactor_table = pd.read_excel(args.CharacterTable,dtype = str,sheet_name='角色配置').fillna('NA') # 支持excel格式的角色配置表
         else:
             charactor_table = pd.read_csv(args.CharacterTable,sep='\t',dtype = str)
         charactor_table.index = charactor_table['Name']+'.'+charactor_table['Subtype']
