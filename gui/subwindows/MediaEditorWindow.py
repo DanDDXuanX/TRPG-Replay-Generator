@@ -368,15 +368,11 @@ class MediaEditorWindow(SubWindow):
         self.sort_media()
     # 编辑
     def edit_obj(self,event=None):
-        selected = self.selected
-        selected_name = self.selected_name
-        selected_type = self.selected_type
-        selected_args = self.selected_args
-        if selected == 0:
+        if self.selected == 0:
             pass
         else:
             self.disable(True)
-            new_obj = open_media_def_window(self,i_name=selected_name,i_type=selected_type,i_args=selected_args,image_canvas = self.image_canvas,
+            new_obj = open_media_def_window(self,i_name=self.selected_name,i_type=self.selected_type,i_args=self.selected_args,image_canvas = self.image_canvas,
                                             available_Text= self.available_text,
                                             available_Pos=self.available_pos,
                                             available_Bubble=self.available_bubble,
@@ -384,58 +380,51 @@ class MediaEditorWindow(SubWindow):
                                             used_variable_name=self.used_variable_name,)
             self.disable(False)
             if new_obj:
-                self.used_variable_name.remove(selected_name) # 原来的媒体名
-                self.used_variable_name.append(new_obj[0]) # 新建的媒体名
                 # BUG
                 #有时编辑媒体之后，删除编辑前的媒体行会遭遇ValueError，导致编辑失效？有待继续深入观察，在调试模式无法复现这个错误！
                 try:
-                    self.media_lines.remove((selected_name,selected_type,selected_args))
+                    self.used_variable_name.remove(self.selected_name) # 原来的媒体名
+                    self.used_variable_name.append(new_obj[0]) # 新建的媒体名
+                    self.media_lines.remove((self.selected_name,self.selected_type,self.selected_args))
                 except ValueError as E:
-                    import traceback
-                    traceback.print_exc()
-                    print(self.media_lines)
                     print(E)
                 self.media_lines.append(new_obj)
 
-                if selected_type in ['Text','StrokeText']:
-                    self.available_text.remove(selected_name)
+                if self.selected_type in ['Text','StrokeText']:
+                    self.available_text.remove(self.selected_name)
                     self.available_text.append(new_obj[0])
-                elif selected_type in ['Pos','FreePos']:
-                    self.available_pos.remove(selected_name)
+                elif self.selected_type in ['Pos','FreePos']:
+                    self.available_pos.remove(self.selected_name)
                     self.available_pos.append(new_obj[0])
-                elif selected_type in ['Bubble','Balloon','DynamicBubble','ChatWindow']:
-                    self.available_bubble.remove(selected_name)
+                elif self.selected_type in ['Bubble','Balloon','DynamicBubble','ChatWindow']:
+                    self.available_bubble.remove(self.selected_name)
                     self.available_bubble.append(new_obj[0])
-                elif selected_type == 'Animation':
-                    self.available_anime.remove(selected_name)
+                elif self.selected_type == 'Animation':
+                    self.available_anime.remove(self.selected_name)
                     self.available_anime.append(new_obj[0])
 
-                self.mediainfo.item(selected,values=new_obj)
-                selected_name,selected_type,selected_args = new_obj
+                self.mediainfo.item(self.selected,values=new_obj)
+                self.selected_name,self.selected_type,self.selected_args = new_obj
         self.sort_media()
     # 删除
     def del_obj(self,event=None):
-        selected = self.selected
-        selected_name = self.selected_name
-        selected_type = self.selected_type
-        selected_args = self.selected_args
-        if selected == 0:
+        if self.selected == 0:
             pass
         else:
-            self.mediainfo.delete(selected)
-            self.used_variable_name.remove(selected_name)
-            self.media_lines.remove((selected_name,selected_type,selected_args))
+            self.mediainfo.delete(self.selected)
+            self.used_variable_name.remove(self.selected_name)
+            self.media_lines.remove((self.selected_name,self.selected_type,self.selected_args))
 
-            if selected_type in ['Text','StrokeText']:
-                self.available_text.remove(selected_name)
-            elif selected_type in ['Pos','FreePos']:
-                self.available_pos.remove(selected_name)
-            elif selected_type in ['Bubble','Balloon','DynamicBubble','ChatWindow']:
-                self.available_bubble.remove(selected_name)
-            elif selected_type == 'Animation':
-                self.available_anime.remove(selected_name)
-            selected = 0
-            selected_name,selected_type,selected_args = 'None','None','None'
+            if self.selected_type in ['Text','StrokeText']:
+                self.available_text.remove(self.selected_name)
+            elif self.selected_type in ['Pos','FreePos']:
+                self.available_pos.remove(self.selected_name)
+            elif self.selected_type in ['Bubble','Balloon','DynamicBubble','ChatWindow']:
+                self.available_bubble.remove(self.selected_name)
+            elif self.selected_type == 'Animation':
+                self.available_anime.remove(self.selected_name)
+            self.selected = 0
+            self.selected_name,self.selected_type,self.selected_args = 'None','None','None'
     # 完成
     def finish(self,saveas=False):
         if (self.edit_filepath != '')&(saveas==False):
