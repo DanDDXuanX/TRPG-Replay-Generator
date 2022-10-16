@@ -1,28 +1,170 @@
-#ct D:/GitHub/TRPG-Replay-Generator/toy/toy/CharactorTable.tsv
+#ct D:/GitHub/TRPG-Replay-Generator/toy/CharactorTable.tsv
 #md D:/GitHub/TRPG-Replay-Generator/toy/MediaObject.txt
 
 # 综合演示
 # 序
+
+<set:bg_method_default>:<cross=30>
+<set:formula>:sincurve
+<set:BGM>:背景音乐
+
+<background>:black
+[大字]<black=30>:序：基本介绍
+<background>:背景1
+
 <set:speech_speed>:500
 
+[KP]:本项目是回声工坊的基本示例视频，用于对本软件的基本功能进行展示。<w2w=2>{音效;5}
+[张安翔]:^项目链接：#https://github.com/DanDDXuanX/TRPG-Replay-Generator<w2w=2>{音效;5}
+
+#s 第一
 <background>:black
-[大字]:序：基本介绍
+[大字]<black=30>:一：角色、立绘和气泡<all=0>
 <background>:背景1
 
-[KP]:本项目是回声工坊的基本示例视频，用于对本软件的基本功能进行展示。<w2w=2>{SE1;5}
-[张安翔]:^项目链接：#https://github.com/DanDDXuanX/TRPG-Replay-Generator<w2w=2>{SE1;5}
+<set:speech_speed>:300
 
-# 第一
+[KP]:在本软件中，角色是立绘和气泡媒体的主要承载体。{音效;5}
+[张安翔]:我是一个基本的发言角色，播放基本音效{音效;5}
+[KP]<black>:指定切换效果为渐隐{音效;5}
+[张安翔]<black=30>:指定切换时间为30{音效;5}
+[KP,张安翔]:同时显示2个角色的立绘，次要角色是半透明的{音效;5}
+[张安翔(60),KP(30)]:指定角色透明度{音效;5}
+[KP]:文字显示效果为逐字显示<w2w>{音效;5}
+[张安翔]:加快逐字显示速度<w2w=1>{音效;5}
+[KP]:^指定#文字显示效果#为逐行显示#使用井号作为换行符<l2l>{音效;5}
 
+[张安翔.害怕]:在角色框中指定差分名，可用使用差分立绘{音效;5}
+#e
+
+#s 第二
 <background>:black
-[大字]:一：角色、立绘和气泡
+[大字]<black=30>:二：媒体切换与放置<all=0>
+<background>:背景2
+
+[KP]:使用背景命令切换背景{音效;5}
+<background><push=30>:背景1
+[张安翔]:在背景行中可用指定切换效果{音效;5}
+
+<animation><black_pass_up_major=30>:伊可头像
+[张安翔]:使用立绘命令，在画面上放置一个立绘。{音效;5}
+[KP]:放置的立绘可以脱离角色，跨越小节存在。{音效;5}
+[张安翔]:重新指定为NA，取消放置的立绘。{音效;5}
+<animation>:NA
+
+<animation><black_leap_down_minor=30>:回放标记
+[张安翔]:同样可以放置一个动态立绘。{音效;5}
+[KP]:动态立绘的帧顺序同样会跨越小节。{音效;5}
+
+<bubble><black_leap_down_major=30>:气泡左("放置的气泡","通过气泡行，放置一个气泡，并指定文字显示效果为逐字显示"<w2w=3>)
+[伊可]:自适应气泡是一种特殊的气泡，和一般的气泡相比，自适应气泡的尺寸会跟随文本变化。<w2w=2>{音效;5}
+[伊可]:重新指定为NA，取消放置的气泡。{音效;5}
+<bubble>:NA
+
+<animation><black_leap_up_major=30>:(张安翔,果汁,伊可,KP头像)
+[伊可]:可以同时放置多个立绘，用括号括起来。{音效;5}
+<animation>:NA
+#e
+
+#s 第三，设置项目
+<background>:black
+[大字]<black=30>:三：动态全局设置<all=0>
+<background>:背景2
+
+<set:bg_method_default>:<replace=0>
+<set:formula>:linear
+
+[KP]:动态全局变量可以通过设置行，在Log文件中动态调整{音效;5}
+<set:am_method_default>:<black_pass_up=30>
+[张安翔]:设置了全局的立绘切换效果{音效;5}
+<set:tx_method_default>:<w2w=2>
+[KP]:设置了全局的文字显示效果{音效;5}
+<set:formula>:sigmoid
+[张安翔]:将动画函数曲线从线性修改为S型{音效;5}
+<set:bb_method_default>:<black_pass_left=30>
+[KP]:设置了全局的气泡切换效果{音效;5}
+<set:bg_method_default>:<push=30>
+<background>:背景1
+[张安翔]:设置了全局的背景切换效果{音效;5}
+<set:secondary_alpha>:100
+[KP,张安翔,伊可]:修改次要立绘透明度为100{音效;5}
+<set:speech_speed>:220
+<set:BGM>:stop
+[伊可]:设置背景音乐停止。{音效;5}
+<set:BGM>:背景音乐
+[张安翔]:播放背景音乐{音效;5}
+
+<set:bg_method_default>:<black=30>
+
+<set:张安翔.Header>:张安翔
+[张安翔.血条]:气球类气泡是一个特殊的气泡类，可以拥有多个头文本{音效;5}
+<set:张安翔.Header>:张安翔的自定义头文本
+[张安翔.血条]:通过设置行，可以修改角色自定义列的文本内容{音效;5}
+[伊可]:我要对张安翔使用斗殴{音效;5}
+[KP]:斗殴检定{音效;5}
+
+<dice>:(伊可-斗殴,100,30,21),(张安翔-闪避,100,75,88),(拳击伤害1d3,3,NA,3)
+<hitpoint>:(张安翔,10,10,7)
+<set:张安翔.HitPoint>:━━━━━━━    7
+[张安翔.血条]:头文本甚至可以作为血条显示使用，发挥想象力来设计吧{音效;5}
+
+[KP]<replace=0>:句中指定的切换效果是默认应用给所有角色的{音效;5}
+<set:inline_method_apply>:animation
+[张安翔]<replace=0>:设置为仅应用于立绘{音效;5}
+<set:inline_method_apply>:bubble
+[KP]<replace=0>:设置为仅应用于气泡{音效;5}
+<set:inline_method_apply>:none
+[张安翔]<replace=0>:禁用行内指定的切换效果{音效;5}
+<set:inline_method_apply>:both
+[KP]<replace=0>:恢复默认{音效;5}
+#e
+
+# 第四，重新定位
+<background>:black
+[大字]<black=30>:四：重新定位<all=0>
+<background>:背景1
+<set:speech_speed>:300
+<set:am_method_default>:<black=30>
+
+[张安翔]:如果希望角色的立绘或者气泡，位置是可变的，则将位置参数设置为一个自由位置对象{音效;5}
+[KP.运动]:在设置行中重新定位一个自由位置，变动会应用于所有使用这个自由位置的对象{音效;5}
+<set:KP立绘位置>:位置网格[0,0]
+[KP.运动]:现在的位置是：位置网格[0,0]{音效;5}
+<set:KP立绘位置>:位置网格[0,5]
+[KP.运动]:现在的位置是：位置网格[0,5]{音效;5}
+<set:KP立绘位置>:位置网格[7,3]
+[KP.运动]:现在的位置是：位置网格[7,3]{音效;5}
+<set:KP立绘位置>:(0,480)
+[KP.运动]:恢复到初始位置{音效;5}
+#e
+
+#s 第五，音效
+<background>:black
+[大字]<black=30>:五：音效控制<all=0>
+<background>:背景2
+
+[KP]:通过花括号给一个句子设置音效{音效}
+[张安翔]:指定一个音效的延迟时间，使用分号分隔{音效;60}
+[KP]:使用星标音频，控制小节持续时间{音效;*5}
+[张安翔]:一个小节可以有多个音效框{音效;30}{NA;*5}
+#e
+
+#s 第六，聊天窗
+<background>:black
+[大字]<black=30>:六：聊天窗<all=0>
 <background>:背景1
 
-[KP]:在本软件中，角色是立绘和气泡媒体的主要承载体。
-[张安翔]:我是一个基本的发言角色，播放基本音效
-[KP]<black>:指定切换效果为渐隐
-[张安翔]<black=30>:指定切换时间为30
-[KP,张安翔]:同时显示2个角色的立绘，次要角色是半透明的
-[张安翔(60),KP(30)]:指定角色透明度
-[KP]:文字显示效果为逐字显示<w2w>
-[张安翔]:加快逐字显示速度<w2w=1>
+<set:bb_method_default>:<replace=0>
+<set:inline_method_apply>:bubble
+
+[伊可.聊天]<black_pass_right_1000_in=30>:如果给角色指定的气泡是聊天窗对象，那么会以这种样式显示{音效;5}
+[KP.聊天]:前一个角色说过的话，不会因为小节的结束而消失{音效;5}
+[伊可.聊天]:在显示聊天窗头像的同时，立绘可以另外指定{音效;5}
+[KP(50).聊天]:同样可以手动指定立绘透明度。{音效;5}
+[伊可.聊天,KP(50).聊天,张安翔]:也可也多人同框{音效;5}
+<clear>:聊天窗
+[KP.聊天]<black_pass_right_1000_out=30>:使用清空指令，清空聊天窗的显示。{音效;5}
+
+<background>:black
+[大字]<black=30>:演示结束<all=0>
+#e

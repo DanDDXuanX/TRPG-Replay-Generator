@@ -1099,7 +1099,7 @@ def PR_center_arg(obj_size,pygame_pos):
 
 # 全局变量
 
-from Utils import cmap
+from Medias import cmap
 # cmap = {'black':(0,0,0,255),'white':(255,255,255,255),'greenscreen':(0,177,64,255)}
 Is_NTSC = str(frame_rate % 30 == 0)
 Audio_type = 'Stereo'
