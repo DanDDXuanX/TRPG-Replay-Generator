@@ -316,7 +316,7 @@ while n < break_point.max():
     if n%frame_rate == 1:
         finish_rate = n/break_point.values.max()
         used_time = time.time()-begin_time
-        est_time = np.int(used_time/finish_rate * (1-finish_rate))
+        est_time = int(used_time/finish_rate * (1-finish_rate))
         print(VideoPrint('Progress',
                          '\x1B[33m' + int(finish_rate*50)*'━' + '\x1B[30m' + (50-int(50*finish_rate))*'━' + '\x1B[0m',
                          '%.1f'%(finish_rate*100)+'%', n, '%d'%break_point.values.max(), 
