@@ -6,11 +6,11 @@
 
 ## 程序下载
 
-### [免安装版 95.4MB](https://github.com/DanDDXuanX/TRPG-Replay-Generator/releases/download/v1.0.4/TRPG-Replay-Generator-v1.0.4-win64.7z)
+### [免安装版](https://github.com/DanDDXuanX/TRPG-Replay-Generator/releases/download/v1.1.0/TRPG-Replay-Generator-v1.1.0-win64.7z)
 - 免安装版是二进制可执行文件（.exe），仅适用于windows 64位系统。<p>
 - **解压即可使用**，无需另外安装python环境及其依赖项目。<p>
 
-### [源代码 25.3MB](https://github.com/DanDDXuanX/TRPG-Replay-Generator/releases/download/v1.0.4/TRPG-Replay-Generator-v1.0.4-SourceCode.7z)
+### [源代码](https://github.com/DanDDXuanX/TRPG-Replay-Generator/releases/download/v1.1.0/TRPG-Replay-Generator-v1.1.0-SourceCode.7z)
 - 源代码是程序的源文件（.py），适用于 windows，linux和 macOS系统。<p>
 - **必须安装**[**环境要求**](./README.md#环境要求)中指定的项目后才能运行。<p>
 
@@ -71,7 +71,7 @@ python ./replay_generator.py -l ./toy/LogFile.rgl -d ./toy/MediaObject.txt -t ./
 ```
 4. 进入程序后，按空格键（SPACE）开始播放；播放的过程中，按A键或左方向键跳转到前一小节，D键或右方向键跳转到后一小节，按空格暂停播放，按F5键或I键展示详细信息，按F11键或P键将画面缩放至50%，按ESC键终止播放并退出。
 
-# 参考文档（文档版本 alpha 1.15.11）
+# 参考文档（文档版本 alpha 1.16.0）
 
 ## 输入文件格式
 
@@ -593,7 +593,7 @@ set:后跟需要设置的目标名；
 
 **主程序的参数：**
 
-1. ***--LogFile, -l*** ：必要参数，log文件的路径，文件格式要求详见 [输入文件格式.log文件](./README.md#3-log文件)；
+1. ***--LogFile, -l*** ：必要参数，log文件的路径，文件格式要求详见 [输入文件格式.log文件](./README.md#3-log文件（rplgenlog）)；
 2. ***--MediaObjDefine, -d*** ：必要参数，媒体定义文件的路径，文件格式要求参考 [输入文件格式.媒体定义文件](./README.md#1-媒体定义文件)；
 3. ***--CharacterTable, -t*** ：必要参数，角色表文件的路径，格式为制表符分隔的数据表，或者Excel电子表格，包含至少 `Name、Subtype、Animation、Bubble` 4列；
 4. ***--OutputPath, -o*** ：可选参数，输出文件的目录；如果输入了该标志，则项目的时间轴、断点文件、内建对象文件将输出到指定的目录，格式分别为timeline、breakpoint、bulitinmedia。如果指定了其他输出标志，相应的文件也将输出到指定的目录。
@@ -640,7 +640,7 @@ python replay_generator.py \
 
 **语音合成模块的参数**
 
-1. ***--LogFile, -l*** ：必要参数，log文件的路径，文件格式要求详见 [输入文件格式.log文件](./README.md#3-log文件)；
+1. ***--LogFile, -l*** ：必要参数，log文件的路径，文件格式要求详见 [输入文件格式.log文件](./README.md#3-log文件（rplgenlog）)；
 2. ***--MediaObjDefine, -d*** ：必要参数，媒体定义文件的路径，文件格式要求参考 [输入文件格式.媒体定义文件](./README.md#1-媒体定义文件)；
 3. ***--CharacterTable, -t*** ：必要参数，角色表文件的路径，格式为制表符分隔的数据表，或者Excel电子表格，包含至少 `Name、Subtype、Voice` 3列；
 4. ***--OutputPath, -o*** ：必要参数，输出目录，合成的音频和处理后的log文件将会输出到这个路径。

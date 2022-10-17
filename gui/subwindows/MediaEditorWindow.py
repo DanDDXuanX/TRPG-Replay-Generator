@@ -74,7 +74,7 @@ class MediaEditorWindow(SubWindow):
         # 筛选媒体下拉框
         self.media_type = tk.StringVar(self)
         ttk.Label(mediainfo_frame,text='筛选：').place(x=button_x(1),y=0,width=40,height=25)
-        choose_type = ttk.Combobox(mediainfo_frame,textvariable=self.media_type,value=['All','Pos','FreePos','PosGrid','Text','StrokeText','Animation','Bubble','Balloon','DynamicBubble','ChatWindow','Background','BGM','Audio'])
+        choose_type = ttk.Combobox(mediainfo_frame,textvariable=self.media_type,value=['All','Pos','FreePos','PosGrid','Text','StrokeText','Animation','Background','Bubble','Balloon','DynamicBubble','ChatWindow','BGM','Audio'])
         choose_type.place(x=button_x(1)+40,y=0,width=button_w*2-40,height=25) # 我就随便找个位置先放着，等后来人调整布局（都是绝对坐标很难搞啊）
         choose_type.current(0)
         choose_type.bind("<<ComboboxSelected>>",self.filter_media)

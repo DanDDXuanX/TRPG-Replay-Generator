@@ -493,11 +493,11 @@ def open_media_def_window(father,image_canvas,available_Text,available_Pos,avail
         'Text':"(fontfile='{fontfile}',fontsize={fontsize},color={color},line_limit={line_limit},label_color='{label_color}')",
         'StrokeText':"(fontfile='{fontfile}',fontsize={fontsize},color={color},line_limit={line_limit},edge_color={edge_color},label_color='{label_color}')",
         'Animation':"(filepath='{filepath}',pos={pos},tick={tick},loop={loop},label_color='{label_color}')",
+        'Background':"(filepath='{filepath}',pos={pos},label_color='{label_color}')",
         'Bubble':"(filepath='{filepath}',Main_Text={Main_Text},Header_Text={Header_Text},pos={pos},mt_pos={mt_pos},ht_pos={ht_pos},ht_target={ht_target},align='{align}',line_distance={line_distance},label_color='{label_color}')",
         'Balloon':"(filepath='{filepath}',Main_Text={Main_Text},Header_Text=[{Header_Text}],pos={pos},mt_pos={mt_pos},ht_pos=[{ht_pos}],ht_target=[{ht_target}],align='{align}',line_distance={line_distance},label_color='{label_color}')",
         'DynamicBubble':"(filepath='{filepath}',Main_Text={Main_Text},Header_Text={Header_Text},pos={pos},mt_pos={mt_pos},mt_end={mt_end},ht_pos={ht_pos},ht_target={ht_target},fill_mode='{fill_mode}',line_distance={line_distance},label_color='{label_color}')",
         'ChatWindow':"(filepath='{filepath}',sub_key=[{sub_key}],sub_Bubble=[{sub_Bubble}],sub_Anime=[{sub_Anime}],sub_align=[{sub_align}],pos={pos},sub_pos={sub_pos},sub_end={sub_end},am_left={am_left},am_right={am_right},sub_distance={sub_distance},label_color='{label_color}')",
-        'Background':"(filepath='{filepath}',pos={pos},label_color='{label_color}')",
         'Audio':"(filepath='{filepath}',label_color='{label_color}')",
         'BGM':"(filepath='{filepath}',volume={volume},loop={loop},label_color='{label_color}')"
     }
