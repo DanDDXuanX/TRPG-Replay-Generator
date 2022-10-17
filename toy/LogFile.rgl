@@ -2,7 +2,7 @@
 #md D:/GitHub/TRPG-Replay-Generator/toy/MediaObject.txt
 
 # 综合演示
-# 序
+#s 序
 
 <set:bg_method_default>:<cross=30>
 <set:formula>:sincurve
@@ -16,8 +16,9 @@
 
 [KP]:本项目是回声工坊的基本示例视频，用于对本软件的基本功能进行展示。<w2w=2>{音效;5}
 [张安翔]:^项目链接：#https://github.com/DanDDXuanX/TRPG-Replay-Generator<w2w=2>{音效;5}
+#e
 
-#s 第一
+#s 第一：角色、立绘和气泡
 <background>:black
 [大字]<black=30>:一：角色、立绘和气泡<all=0>
 <background>:背景1
@@ -37,14 +38,15 @@
 [张安翔.害怕]:在角色框中指定差分名，可用使用差分立绘{音效;5}
 #e
 
-#s 第二
+#s 第二：媒体切换与放置
 <background>:black
 [大字]<black=30>:二：媒体切换与放置<all=0>
 <background>:背景2
 
 [KP]:使用背景命令切换背景{音效;5}
-<background><push=30>:背景1
+<background>:背景1
 [张安翔]:在背景行中可用指定切换效果{音效;5}
+<background><push=30>:背景2
 
 <animation><black_pass_up_major=30>:伊可头像
 [张安翔]:使用立绘命令，在画面上放置一个立绘。{音效;5}
@@ -119,12 +121,14 @@
 [KP]<replace=0>:恢复默认{音效;5}
 #e
 
-# 第四，重新定位
+#s 第四，重新定位
 <background>:black
 [大字]<black=30>:四：重新定位<all=0>
 <background>:背景1
 <set:speech_speed>:300
-<set:am_method_default>:<black=30>
+<set:am_method_default>:<black=10>
+<set:bb_method_default>:<black=10>
+<set:bg_method_default>:<cross=10>
 
 [张安翔]:如果希望角色的立绘或者气泡，位置是可变的，则将位置参数设置为一个自由位置对象{音效;5}
 [KP.运动]:在设置行中重新定位一个自由位置，变动会应用于所有使用这个自由位置的对象{音效;5}
