@@ -305,6 +305,10 @@ def open_pos_select_window(father,image_canvas,bgfigure='',postype='green',curre
     if postype=='green': # pos
         fig_W,fig_H = image_canvas.size
         select_canvas = Image.open('./media/canvas.png').crop((0,0,fig_W,fig_H))
+        # 叠上预览窗显示的内容（一半透明度）
+        preview = image_canvas.copy()
+        preview.putalpha(75)
+        select_canvas.paste(preview,(0,0),mask=preview)
         try: # 附图
             cursor_figure = Image.open(bgfigure)
             if cursor_figure.mode != 'RGBA': # 如果没有alpha通道
@@ -318,6 +322,10 @@ def open_pos_select_window(father,image_canvas,bgfigure='',postype='green',curre
             # messagebox.showwarning(title='无法载入气泡底图！',message=E)
             fig_W,fig_H = image_canvas.size
             select_canvas = Image.open('./media/canvas.png').crop((0,0,fig_W,fig_H))
+            # 叠上预览窗显示的内容（一半透明度）
+            preview = image_canvas.copy()
+            preview.putalpha(75)
+            select_canvas.paste(preview,(0,0),mask=preview)
         cursor_figure = Image.new(mode='RGBA',size=(1,1),color=(0,0,0,0))
     else:
         return False
