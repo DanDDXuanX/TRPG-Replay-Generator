@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 # coding: utf-8
-from Utils import EDITION
+from core.Utils import EDITION
 
 # 异常定义
 
-from Exceptions import RplGenError, Print
-from Exceptions import ArgumentError, DecodeError, MediaError, SyntaxsError
-from Exceptions import PrxmlPrint, WarningPrint
+from core.Exceptions import RplGenError, Print
+from core.Exceptions import ArgumentError, DecodeError, MediaError, SyntaxsError
+from core.Exceptions import PrxmlPrint, WarningPrint
 
 # 外部参数输入
 
@@ -88,7 +88,7 @@ from pygame import mixer
 import glob # 匹配路径
 import pickle
 
-from FreePos import Pos,FreePos,PosGrid
+from core.FreePos import Pos,FreePos,PosGrid
 
 # 文字对象
 
@@ -1099,7 +1099,7 @@ def PR_center_arg(obj_size,pygame_pos):
 
 # 全局变量
 
-from Medias import cmap
+from core.Medias import cmap
 # cmap = {'black':(0,0,0,255),'white':(255,255,255,255),'greenscreen':(0,177,64,255)}
 Is_NTSC = str(frame_rate % 30 == 0)
 Audio_type = 'Stereo'

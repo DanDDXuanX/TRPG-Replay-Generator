@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-from Utils import EDITION
+from core.Utils import EDITION
 
 # 在开源发布的版本中，隐去了各个key
 
@@ -10,9 +10,9 @@ from Utils import EDITION
 # 2. 无覆盖原log，合成未完成，不能继续执行主程序
 # 3. 有覆盖原log，合成未完成，不能继续执行主程序
 
-from Exceptions import RplGenError, Print
-from Exceptions import DecodeError, IgnoreInput, MediaError, ArgumentError, ParserError, SyntaxsError, SynthesisError
-from Exceptions import SynthPrint, WarningPrint
+from core.Exceptions import RplGenError, Print
+from core.Exceptions import DecodeError, IgnoreInput, MediaError, ArgumentError, ParserError, SyntaxsError, SynthesisError
+from core.Exceptions import SynthPrint, WarningPrint
 # 外部参数输入
 
 import argparse
@@ -89,7 +89,7 @@ from tkinter import messagebox
 from tkinter import filedialog
 
 # 语音合成服务
-from TTSengines import Aliyun_TTS_engine,Azure_TTS_engine,voice_lib
+from core.TTSengines import Aliyun_TTS_engine,Azure_TTS_engine,voice_lib
 
 Aliyun_TTS_engine.AKID = args.AccessKey
 Aliyun_TTS_engine.AKKEY = args.AccessKeySecret
@@ -98,11 +98,11 @@ Azure_TTS_engine.AZUKEY = args.Azurekey
 Azure_TTS_engine.service_region = args.ServRegion
 
 # 从主程序借来的Audio类
-from Medias import Audio
+from core.Medias import Audio
 # 正则表达式定义
-from Regexs import RE_dialogue,RE_characor,RE_asterisk
+from core.Regexs import RE_dialogue,RE_characor,RE_asterisk
 # 函数定义
-from Utils import clean_ts,isnumber,mod62_timestamp
+from core.Utils import clean_ts,isnumber,mod62_timestamp
 
 # 全局变量
 media_list=[]

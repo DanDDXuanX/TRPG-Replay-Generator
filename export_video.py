@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # coding: utf-8
-from Utils import EDITION
+from core.Utils import EDITION
 
-from Exceptions import RplGenError, Print
-from Exceptions import ArgumentError, DecodeError, MediaError, RenderError, SyntaxsError
-from Exceptions import VideoPrint, WarningPrint
+from core.Exceptions import RplGenError, Print
+from core.Exceptions import ArgumentError, DecodeError, MediaError, RenderError, SyntaxsError
+from core.Exceptions import VideoPrint, WarningPrint
 # 外部参数输入
 
 import argparse
@@ -83,26 +83,26 @@ import re
 import pickle
 
 # 自由点
-from FreePos import Pos,FreePos,PosGrid
+from core.FreePos import Pos,FreePos,PosGrid
 
 # 类定义 alpha 1.11.0
 
-from Medias import Text
-from Medias import StrokeText
-from Medias import Bubble
-from Medias import Balloon
-from Medias import DynamicBubble
-from Medias import ChatWindow
-from Medias import Background
-from Medias import Animation
-from Medias import GroupedAnimation
-from Medias import BuiltInAnimation
-from Medias import screen_config
+from core.Medias import Text
+from core.Medias import StrokeText
+from core.Medias import Bubble
+from core.Medias import Balloon
+from core.Medias import DynamicBubble
+from core.Medias import ChatWindow
+from core.Medias import Background
+from core.Medias import Animation
+from core.Medias import GroupedAnimation
+from core.Medias import BuiltInAnimation
+from core.Medias import screen_config
 screen_config['screen_size'] = (Width,Height)
 screen_config['frame_rate'] = frame_rate
 
-from Medias import Audio_Video as Audio
-from Medias import BGM_Video as BGM
+from core.Medias import Audio_Video as Audio
+from core.Medias import BGM_Video as BGM
 
 # 处理bg 和 am 的parser
 def parse_timeline(layer):

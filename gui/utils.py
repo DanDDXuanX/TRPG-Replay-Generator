@@ -3,7 +3,7 @@
 """
 from tkinter import colorchooser, filedialog, messagebox
 
-EDITION = '1.15.21'
+EDITION = '1.15.22'
 
 def browse_file(text_obj, method='file',filetype=None):
     """

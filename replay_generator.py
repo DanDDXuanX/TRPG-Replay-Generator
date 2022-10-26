@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-from Utils import EDITION
+from core.Utils import EDITION
 
 # 外部参数输入
 
@@ -10,9 +10,9 @@ import os
 
 # 异常和运行日志
 
-from Exceptions import RplGenError, Print
-from Exceptions import ParserError, RenderError, ArgumentError, MediaError, SyntaxsError, SynthesisError, DecodeError
-from Exceptions import MainPrint, WarningPrint, CMDPrint
+from core.Exceptions import RplGenError, Print
+from core.Exceptions import ParserError, RenderError, ArgumentError, MediaError, SyntaxsError, SynthesisError, DecodeError
+from core.Exceptions import MainPrint, WarningPrint, CMDPrint
 
 # 参数处理
 ap = argparse.ArgumentParser(description="Generating your TRPG replay video from logfile.")
@@ -108,37 +108,37 @@ import time #开发模式，显示渲染帧率
 import pickle
 
 # 自由点
-from FreePos import Pos,FreePos,PosGrid
+from core.FreePos import Pos,FreePos,PosGrid
 
 # 类定义 alpha 1.11.0
-from Medias import Text
-from Medias import StrokeText
-from Medias import Bubble
-from Medias import Balloon
-from Medias import DynamicBubble
-from Medias import ChatWindow
-from Medias import Background
-from Medias import Animation
-from Medias import GroupedAnimation
-from Medias import BuiltInAnimation
-from Medias import Audio
-from Medias import BGM
+from core.Medias import Text
+from core.Medias import StrokeText
+from core.Medias import Bubble
+from core.Medias import Balloon
+from core.Medias import DynamicBubble
+from core.Medias import ChatWindow
+from core.Medias import Background
+from core.Medias import Animation
+from core.Medias import GroupedAnimation
+from core.Medias import BuiltInAnimation
+from core.Medias import Audio
+from core.Medias import BGM
 # 窗体参数
-from Medias import screen_config
+from core.Medias import screen_config
 screen_config['screen_size'] = (Width,Height)
 screen_config['frame_rate'] = frame_rate
 # 色图
-from Medias import cmap
+from core.Medias import cmap
 
 # 正则表达式
-from Regexs import *
+from core.Regexs import *
 
 # 曲线函数
-from Formulas import linear,quadratic,quadraticR,sigmoid,right,left,sincurve,normalized
-from Formulas import formula_available
+from core.Formulas import linear,quadratic,quadraticR,sigmoid,right,left,sincurve,normalized
+from core.Formulas import formula_available
 
 # 小工具们
-from Utils import *
+from core.Utils import *
 
 # python的绝对路径
 python3 = sys.executable.replace('\\','/')
