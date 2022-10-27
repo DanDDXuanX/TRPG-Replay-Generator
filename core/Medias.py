@@ -8,9 +8,9 @@ import pygame
 import glob # 匹配路径
 import pydub
 
-from FreePos import Pos,FreePos
-from Exceptions import MediaError, WarningPrint
-from Formulas import sigmoid
+from .FreePos import Pos,FreePos
+from .Exceptions import MediaError, WarningPrint
+from .Formulas import sigmoid
 
 screen_config = {
     'screen_size' : (1920,1080),

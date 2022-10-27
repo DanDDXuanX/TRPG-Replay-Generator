@@ -8,7 +8,7 @@ import sys
 import os
 import pydub
 
-from Exceptions import SynthesisError, WarningPrint
+from .Exceptions import SynthesisError, WarningPrint
 
 voice_lib = pd.read_csv('./media/voice_volume.tsv',sep='\t').set_index('Voice')
 

@@ -672,7 +672,8 @@ def parser(stdin_text):
             this_duration = len(last_placed_index)
             this_am,am_method,am_dur,am_center = this_placed_animation
             # 如果place的this_duration小于切换时间，则清除动态切换效果
-            if this_duration<(2*am_dur+1) & (this_am != 'NA'):
+            if (this_duration<(2*am_dur+1)) & (this_am != 'NA'):
+                print(i+1)
                 print(WarningPrint('PAmMetDrop'))
                 am_dur = 0
                 am_method = 'replace'
@@ -739,7 +740,7 @@ def parser(stdin_text):
             # bb,method,method_dur,HT,MT,text_method,tx_dur,center
             this_bb,bb_method,bb_dur,this_hd,this_tx,text_method,text_dur,bb_center = this_placed_bubble
             # 如果place的this_duration小于切换时间，则清除动态切换效果
-            if this_duration<(2*bb_dur+1) & (this_bb != 'NA'):
+            if (this_duration<(2*bb_dur+1)) & (this_bb != 'NA'):
                 print(WarningPrint('PBbMetDrop'))
                 bb_dur = 0
                 bb_method = 'replace'
@@ -1076,7 +1077,7 @@ def parser(stdin_text):
         this_duration = len(last_placed_index)
         this_am,am_method,am_dur,am_center = this_placed_animation
         # 如果place的this_duration小于切换时间，则清除动态切换效果
-        if this_duration<(2*am_dur+1) & (this_am != 'NA'):
+        if (this_duration<(2*am_dur+1)) & (this_am != 'NA'):
             print(WarningPrint('PAmMetDrop'))
             am_dur = 0
             am_method = 'replace'
@@ -1100,7 +1101,7 @@ def parser(stdin_text):
         # bb,method,method_dur,HT,MT,text_method,tx_dur,center
         this_bb,bb_method,bb_dur,this_hd,this_tx,text_method,text_dur,bb_center = this_placed_bubble
         # 如果place的this_duration小于切换时间，则清除动态切换效果
-        if this_duration<(2*bb_dur+1) & (this_bb != 'NA'):
+        if (this_duration<(2*bb_dur+1)) & (this_bb != 'NA'):
             print(WarningPrint('PBbMetDrop'))
             bb_dur = 0
             bb_method = 'replace'
