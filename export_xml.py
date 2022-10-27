@@ -119,7 +119,8 @@ class Text:
             for tx in text_line:
                 out_text.append(self.render(tx))
         elif len(text) > self.line_limit: #如果既没有主动指定，字符长度也超限
-            for i in range(0,len(text)//self.line_limit+1):
+            ceil_div = lambda x,y: -(-x//y)
+            for i in range(0,ceil_div(len(text),self.line_limit)):
                 out_text.append(self.render(text[i*self.line_limit:(i+1)*self.line_limit]))
         else:
             out_text = [self.render(text)]
