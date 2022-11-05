@@ -24,7 +24,7 @@ from .SubWindow import SubWindow
 
 label_pos_show_text = ImageFont.truetype('./media/SourceHanSerifSC-Heavy.otf', 30)
 # RE_mediadef_args = re.compile('(fontfile|fontsize|color|line_limit|filepath|Main_Text|Header_Text|pos|end|x_step|y_step|mt_pos|mt_end|ht_pos|ht_target|fill_mode|align|line_distance|tick|loop|volume|edge_color|label_color)?\ {0,4}=?\ {0,4}(Text\(\)|[^,()]+|\([-\d,\ ]+\))')
-RE_mediadef_args = re.compile("(fontfile|fontsize|color|line_limit|filepath|Main_Text|Header_Text|pos|end|x_step|y_step|mt_pos|mt_end|ht_pos|ht_target|fill_mode|align|line_distance|tick|loop|volume|edge_color|sub_key|sub_Bubble|sub_Anime|sub_align|sub_pos|sub_end|am_left|am_right|sub_distance|label_color)?\ {0,4}=?\ {0,4}(Text\(\)|Pos\(\)|\[[\w,'()]+\]|\w+\[[\d\,]+\]|[^,()]+|\([-\d,\ ]+\))")
+RE_mediadef_args = re.compile("(fontfile|fontsize|color|line_limit|filepath|Main_Text|Header_Text|pos|end|x_step|y_step|mt_pos|mt_end|ht_pos|ht_target|fill_mode|align|line_distance|tick|loop|volume|edge_color|edge_width|sub_key|sub_Bubble|sub_Anime|sub_align|sub_pos|sub_end|am_left|am_right|sub_distance|label_color)?\ {0,4}=?\ {0,4}(Text\(\)|Pos\(\)|\[[\w,'()]+\]|\w+\[[\d\,]+\]|[^,()]+|\([-\d,\ ]+\))")
 # RE_parse_mediadef = re.compile('(\w+)[=\ ]+(Pos|FreePos|PosGrid|Text|StrokeText|Bubble|Animation|Background|BGM|Audio)(\(.+\))')
 RE_vaildname = re.compile('^\w+$')
 RE_pos_args = re.compile('(\d+),(\d+)|\*\((\d+),(\d+)\)')
@@ -404,7 +404,7 @@ def open_media_def_window(father,image_canvas,available_Text,available_Pos,avail
                 'ht_pos':ht_pos.get(),'ht_target':ht_target.get(),
                 'align':align.get(),'fill_mode':fill_mode.get(),
                 'line_distance':line_distance.get(),'tick':tick.get(),'loop':loop.get(),
-                'volume':volume.get(),'edge_color':edge_color.get(),
+                'volume':volume.get(),'edge_color':edge_color.get(),'edge_width':edge_width.get(),
                 'sub_key':sub_key.get(),'sub_Bubble':sub_Bubble.get(),'sub_Anime':sub_Anime.get(),
                 'sub_align':sub_align.get(),'sub_pos':sub_pos.get(),'sub_end':sub_end.get(),
                 'am_left':am_left.get(),'am_right':am_right.get(),'sub_distance':sub_distance.get(),
@@ -499,7 +499,7 @@ def open_media_def_window(father,image_canvas,available_Text,available_Pos,avail
         'FreePos':"{pos}",
         'PosGrid':"(pos={pos},end={end},x_step={x_step},y_step={y_step})",
         'Text':"(fontfile='{fontfile}',fontsize={fontsize},color={color},line_limit={line_limit},label_color='{label_color}')",
-        'StrokeText':"(fontfile='{fontfile}',fontsize={fontsize},color={color},line_limit={line_limit},edge_color={edge_color},label_color='{label_color}')",
+        'StrokeText':"(fontfile='{fontfile}',fontsize={fontsize},color={color},line_limit={line_limit},edge_color={edge_color},edge_width={edge_width},label_color='{label_color}')",
         'Animation':"(filepath='{filepath}',pos={pos},tick={tick},loop={loop},label_color='{label_color}')",
         'Background':"(filepath='{filepath}',pos={pos},label_color='{label_color}')",
         'Bubble':"(filepath='{filepath}',Main_Text={Main_Text},Header_Text={Header_Text},pos={pos},mt_pos={mt_pos},ht_pos={ht_pos},ht_target={ht_target},align='{align}',line_distance={line_distance},label_color='{label_color}')",
@@ -569,6 +569,7 @@ def open_media_def_window(father,image_canvas,available_Text,available_Pos,avail
     loop = tk.BooleanVar(Objdef_windows)
     volume = tk.IntVar()
     edge_color = tk.StringVar(Objdef_windows)
+    edge_width = tk.IntVar(Objdef_windows)
     sub_key = tk.StringVar(Objdef_windows)
     sub_Bubble = tk.StringVar(Objdef_windows)
     sub_Anime = tk.StringVar(Objdef_windows)
@@ -599,6 +600,7 @@ def open_media_def_window(father,image_canvas,available_Text,available_Pos,avail
     loop.set(True)
     volume.set(100)
     edge_color.set('(255,255,255,255)')
+    edge_width.set(1)
     mt_end.set('(0,0)')
     ht_target.set("'Name'") ################BUG in Balloon
     fill_mode.set('stretch')
@@ -620,7 +622,7 @@ def open_media_def_window(father,image_canvas,available_Text,available_Pos,avail
     # 外部输入参数
     type_keyword_position = {'Pos':['pos'],'FreePos':['pos'],'PosGrid':['pos','end','x_step','y_step'],
                             'Text':['fontfile','fontsize','color','line_limit','label_color'],
-                            'StrokeText':['fontfile','fontsize','color','line_limit','edge_color','label_color'],
+                            'StrokeText':['fontfile','fontsize','color','line_limit','edge_color','edge_width','label_color'],
                             'Bubble':['filepath','Main_Text','Header_Text','pos','mt_pos','ht_pos','ht_target','align','line_distance','label_color'],
                             'Balloon':['filepath','Main_Text','Header_Text','pos','mt_pos','ht_pos','ht_target','align','line_distance','label_color'],
                             'DynamicBubble':['filepath','Main_Text','Header_Text','pos','mt_pos','mt_end','ht_pos','ht_target','fill_mode','line_distance','label_color'],
@@ -704,16 +706,19 @@ def open_media_def_window(father,image_canvas,available_Text,available_Pos,avail
     ttk.Label(StrokeText_frame,text='字体颜色').place(x=10,y=70,width=65,height=25)
     ttk.Label(StrokeText_frame,text='单行字数').place(x=10,y=100,width=65,height=25)
     ttk.Label(StrokeText_frame,text='描边颜色').place(x=10,y=130,width=65,height=25)
+    ttk.Label(StrokeText_frame,text='描边宽度').place(x=10,y=160,width=65,height=25)
     ttk.Entry(StrokeText_frame,textvariable=fontfile).place(x=75,y=10,width=160,height=25)
     ttk.Entry(StrokeText_frame,textvariable=fontsize).place(x=75,y=40,width=160,height=25)
     ttk.Entry(StrokeText_frame,textvariable=color).place(x=75,y=70,width=160,height=25)
     ttk.Entry(StrokeText_frame,textvariable=line_limit).place(x=75,y=100,width=160,height=25)
     ttk.Entry(StrokeText_frame,textvariable=edge_color).place(x=75,y=130,width=160,height=25)
+    ttk.Entry(StrokeText_frame,textvariable=edge_width).place(x=75,y=160,width=160,height=25)
     ttk.Button(StrokeText_frame,text='浏览',command=lambda:call_browse_file(fontfile,'file',filetype='fontfile')).place(x=240,y=10,width=50,height=25)
     ttk.Label(StrokeText_frame,text='(整数)',anchor='center').place(x=240,y=40,width=50,height=25)
     ttk.Button(StrokeText_frame,text='选择',command=lambda:call_choose_color(color)).place(x=240,y=70,width=50,height=25)
     ttk.Label(StrokeText_frame,text='(整数)',anchor='center').place(x=240,y=100,width=50,height=25)
     ttk.Button(StrokeText_frame,text='选择',command=lambda:call_choose_color(edge_color)).place(x=240,y=130,width=50,height=25)
+    ttk.Label(StrokeText_frame,text='(整数)',anchor='center').place(x=240,y=160,width=50,height=25)
 
     # Bubble_frame
     # 左

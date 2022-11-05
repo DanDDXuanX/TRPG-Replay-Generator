@@ -248,6 +248,8 @@ class MediaError(RplGenError):
                         "({})对于内建动画-骰子，是非法参数。"],
         'BadAudio'    :["Unsupported audio files '{}'",
                         "不支持的音频文件 '{}'"],
+        'InvEgWd'     :["Invalid edge width {} for StrokeText!",
+                        "为描边文本指定的描边宽度 {} 是非法的值！"],
     }
     error_type = ["\x1B[31m[MediaError]:\x1B[0m ",
                   "\x1B[31m[媒体错误]:\x1B[0m "]
@@ -437,7 +439,9 @@ class WarningPrint(Print):
         'BGMIgnore'   :["BGM '{}' is automatically ignored, you should add BGM manually in Premiere Pro later.",
                         "背景音乐 “{}” 被自动地忽略了！你应该稍后在Premiere Pro软件中手动添加背景音乐。"],
         'BadAuFile'   :["Audio file '{}' is not exist.",
-                        "音频文件 '{}' 并不存在！"]
+                        "音频文件 '{}' 并不存在！"],
+        'WideEdge'    :["The edge width is set to more than 3, which may cause unintended results.",
+                        "描边宽度被设置超过3，这可能导致意料之外的显示效果。"]
     }
     # 类型：警告
     info_type = ["\x1B[33m[warning]:\x1B[0m ",

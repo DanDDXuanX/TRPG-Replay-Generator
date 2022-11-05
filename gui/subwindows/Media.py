@@ -161,17 +161,30 @@ class Text(Media):
         else:
             image_canvas.paste(draw_text,prevpos,mask=draw_text.split()[-1])
 class StrokeText(Text):
-    def __init__(self,fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0,0,255),line_limit=20,edge_color=(255,255,255,255),label_color='Lavender'):
+    def __init__(self,fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0,0,255),line_limit=20,edge_color=(255,255,255,255),edge_width=1,label_color='Lavender'):
         super().__init__(fontfile=fontfile,fontsize=fontsize,color=color,line_limit=line_limit,label_color=label_color)
         self.edge_color=edge_color
+        try:
+            self.edge_width = int(edge_width)
+        except ValueError:
+            raise Exception("非法的描边宽度！")
+        if self.edge_width < 0:
+            raise Exception("非法的描边宽度！")
     def draw(self,lenth=-1):
         if lenth ==-1:
             lenth = self.line_limit
-        test_canvas = Image.new(mode='RGBA',size=(self.size*int(self.line_limit*1.5),self.size*2),color=(0,0,0,0))#高度贪婪2x,宽度贪婪1.5x
+        ew = self.edge_width
+        test_canvas = Image.new(mode='RGBA',size=(self.size*int(self.line_limit*1.5)+2*ew,self.size*2+2*ew),color=(0,0,0,0))#高度贪婪2x,宽度贪婪1.5x
         test_draw = ImageDraw.Draw(test_canvas)
-        for pos in [(0,0),(0,1),(0,2),(1,0),(1,2),(2,0),(2,1),(2,2)]:
+        # 角
+        for pos in [[0,0],[0,2*ew],[2*ew,0],[2*ew,2*ew]]:
             test_draw.text(pos, ('测试文本'*50)[0:lenth], font = self.text_render,fill = self.edge_color)
-        test_draw.text((1,1), ('测试文本'*50)[0:lenth], font = self.text_render,fill = self.color)
+        # 边
+        for i in range(1,ew*2):
+            for pos in [[0,i],[i,0],[2*ew,i],[i,2*ew]]:
+                test_draw.text(pos, ('测试文本'*50)[0:lenth], font = self.text_render,fill = self.edge_color)
+        # 中心
+        test_draw.text((ew,ew), ('测试文本'*50)[0:lenth], font = self.text_render,fill = self.color)
         p1,p2,p3,p4 = test_canvas.getbbox()
         return test_canvas.crop((0,0,p3,p4))
 class Bubble(Media):

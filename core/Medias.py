@@ -57,19 +57,34 @@ class Text:
 # 描边文本，是Text的子类。注意，使用这个媒体类可能会影响帧率！
 class StrokeText(Text):
     pygame.font.init()
-    def __init__(self,fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0,0,255),line_limit=20,edge_color=(255,255,255,255),label_color='Lavender'):
+    def __init__(self,fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0,0,255),line_limit=20,edge_color=(255,255,255,255),edge_width=1,label_color='Lavender'):
         super().__init__(fontfile=fontfile,fontsize=fontsize,color=color,line_limit=line_limit,label_color=label_color) # 继承
-        self.edge_color=edge_color
+        self.edge_color = edge_color
+        try:
+            self.edge_width = int(edge_width)
+        except ValueError:
+            raise MediaError("InvEgWd",edge_width)
+        if self.edge_width < 0:
+            raise MediaError("InvEgWd",edge_width)
+        elif self.edge_width > 3:
+            print(WarningPrint('WideEdge'))
         # bug：受限于pygame的性能，无法正确的表现透明度不同的描边和字体，但在导出PR项目时是正常的
         if (self.color[3] < 255) | (self.edge_color[3] < 255):
             print(WarningPrint('AlphaText'))
     def render(self,tx):
         edge = self.text_render.render(tx,True,self.edge_color[0:3])
         face = self.text_render.render(tx,True,self.color[0:3])
-        canvas = pygame.Surface((edge.get_size()[0]+2,edge.get_size()[1]+2),pygame.SRCALPHA)
-        for pos in [(0,0),(0,1),(0,2),(1,0),(1,2),(2,0),(2,1),(2,2)]:
-            canvas.blit(edge,pos) # 最大值混合，避免多次blit的叠加
-        canvas.blit(face,(1,1))
+        ew = self.edge_width
+        canvas = pygame.Surface((edge.get_size()[0]+2*ew,edge.get_size()[1]+2*ew),pygame.SRCALPHA)
+        # 角
+        for pos in [[0,0],[0,2*ew],[2*ew,0],[2*ew,2*ew]]:
+            canvas.blit(edge,pos)
+        # 边
+        for i in range(1,ew*2):
+            for pos in [[0,i],[i,0],[2*ew,i],[i,2*ew]]:
+                canvas.blit(edge,pos)
+        # 中心
+        canvas.blit(face,(ew,ew))
         # bug：受限于pygame的性能，无法正确的表现透明度不同的描边和字体，但在导出PR项目时是正常的
         if (self.color[3] < 255) | (self.edge_color[3] < 255):
             # 按照透明度的最小值显示
