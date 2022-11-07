@@ -61,7 +61,7 @@ class XmlFrame(AppFrame):
 
     def run_command_xml(self):
         """执行导出xml的命令"""
-        command = self.app.python3 + ' ./export_xml.py --TimeLine {tm} --MediaObjDefine {md} --OutputPath {of} --FramePerSecond {fps} --Width {wd} --Height {he} --Zorder {zd} --Language zh '
+        command = self.app.python3.format('export_xml') + ' --TimeLine {tm} --MediaObjDefine {md} --OutputPath {of} --FramePerSecond {fps} --Width {wd} --Height {he} --Zorder {zd} --Language zh '
         if '' in [self.app.timeline_file.get(),self.app.media_define.get(),self.app.output_path.get(),
                   self.app.project_W.get(),self.app.project_H.get(),self.app.project_F.get(),self.app.project_Z.get()]:
             messagebox.showerror(title='错误',message='缺少必要的参数！')

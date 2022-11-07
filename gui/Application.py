@@ -72,9 +72,15 @@ class Application():
         # 读取配置
         self.load_configure()
 
-        # 获取python解释器的路径
-        self.python3 = sys.executable.replace('\\', '/')
-        # python3 = 'python' # exe发布版
+        # 获取解释器的路径
+        python3 = sys.executable.replace('\\', '/')
+        if python3.split('/')[-1] in ['py','py3','python','python3','python.exe','python3.exe']:
+            self.python3 = python3 + ' ./{}.py'
+        else:
+            if sys.platform == 'win32':
+                self.python3 = './RplGenCore.exe --module {}'
+            else:
+                self.python3 = './RplGenCore --module {}'
 
         # 创建组件
         self.create_widgets()
