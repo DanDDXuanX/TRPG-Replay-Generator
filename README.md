@@ -6,11 +6,11 @@
 
 ## 程序下载
 
-### [免安装版](https://github.com/DanDDXuanX/TRPG-Replay-Generator/releases/download/v1.1.0/TRPG-Replay-Generator-v1.1.0-win64.7z)
+### [免安装版](https://github.com/DanDDXuanX/TRPG-Replay-Generator/releases/download/v1.1.0/TRPG-Replay-Generator-v1.1.1-win64.7z)
 - 免安装版是二进制可执行文件（.exe），仅适用于windows 64位系统。<p>
 - **解压即可使用**，无需另外安装python环境及其依赖项目。<p>
 
-### [源代码](https://github.com/DanDDXuanX/TRPG-Replay-Generator/releases/download/v1.1.0/TRPG-Replay-Generator-v1.1.0-SourceCode.7z)
+### [源代码](https://github.com/DanDDXuanX/TRPG-Replay-Generator/releases/download/v1.1.0/TRPG-Replay-Generator-v1.1.1-SourceCode.7z)
 - 源代码是程序的源文件（.py），适用于 windows，linux和 macOS系统。<p>
 - **必须安装**[**环境要求**](./README.md#环境要求)中指定的项目后才能运行。<p>
 
@@ -71,7 +71,7 @@ python ./replay_generator.py -l ./toy/LogFile.rgl -d ./toy/MediaObject.txt -t ./
 ```
 4. 进入程序后，按空格键（SPACE）开始播放；播放的过程中，按A键或左方向键跳转到前一小节，D键或右方向键跳转到后一小节，按空格暂停播放，按F5键或I键展示详细信息，按F11键或P键将画面缩放至50%，按ESC键终止播放并退出。
 
-# 参考文档（文档版本 alpha 1.16.0）
+# 参考文档（文档版本 alpha 1.17.0）
 
 ## 输入文件格式
 
@@ -125,7 +125,7 @@ PosGrid(pos,end,x_step,y_step)
 3.	**文本、描边文本 Text、StrokeText**
 ```python 
 Text(fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0,0,255),line_limit=20,label_color='Lavender')
-StrokeText(fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0,0,255),line_limit=20,edge_color=(255,255,255,255),label_color='Lavender')
+StrokeText(fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0,0,255),line_limit=20,edge_color=(255,255,255,255),edge_width=1,label_color='Lavender')
 ```
 
 - 文本是气泡对象的一部分，无法单独使用；
@@ -134,6 +134,7 @@ StrokeText(fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0
 - `color`	可选参数，设置字体的颜色，是一个4元素的元组，对应(R,G,B,A)，四个元素应为0-255的整数；默认值是黑色；
 - `line_limit`	可选参数，设置单行显示的字符数量上限，超过上限会触发自动换行；默认为20字；
 - `edge_color`	可选参数，设置字体的描边颜色，仅描边文本可用，是一个4元素的元组，对应(R,G,B,A)，四个元素应为0-255的整数；默认值是白色。
+- `edge_width`	可选参数，设置字体描边的宽度，仅描边文本可用，合理的值应为一个正整数，单位为像素；默认值是1；
 - `label_color`	可选参数，设置字体内容在PR中显示的标签颜色，参考[可用颜色列表](./doc/XML_available_label_color.md)；默认值是淡紫色。
 
 > 注意：由于气泡对象需要引用文本对象，因此，文本对象在媒体定义文件中的位置必须在气泡对象的定义之前！。
