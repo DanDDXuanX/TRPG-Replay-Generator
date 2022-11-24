@@ -41,6 +41,7 @@ class PrMediaClip:
     output_path = './'
     frame_rate = 30
     Is_NTSC = True
+    Audio_type = 'Stereo'
     # 公共函数：处理PR的图片坐标
     def PR_center_arg(self,obj_size,pygame_pos) -> np.ndarray:
         screensize = np.array(self.screen_size)
@@ -1041,6 +1042,7 @@ class Export_xml:
         PrMediaClip.output_path = self.output_path
         PrMediaClip.frame_rate = self.frame_rate
         PrMediaClip.Is_NTSC = self.Is_NTSC
+        PrMediaClip.Audio_type = self.Audio_type
         # 开始执行主程序
         self.main()
     # 载入媒体定义文件和bulitintimeline
@@ -1056,45 +1058,47 @@ class Export_xml:
         object_define_text = object_define_text.split('\n')
         # 媒体名列表
         self.media_list = []
-        self.MediaObjects = pd.Series(dtype=object)
+        # self.MediaObjects = pd.Series(dtype=object)
         for i,text in enumerate(object_define_text):
             if text == '':
                 continue
             elif text[0] == '#':
                 continue
             try:
-                obj_name,obj_type,obj_args = RE_mediadef.findall(object_define_text)[0]
+                obj_name,obj_type,obj_args = RE_mediadef.findall(text)[0]
             except:
                 # 格式不合格的行直接略过
                 continue
             else:
                 try:
-                    instantiation = obj_type + obj_args
+                    # instantiation = obj_type + obj_args
                     if obj_name in self.occupied_variable_name:
                         raise SyntaxsError('OccName')
                     elif (len(re.findall('\w+',obj_name))==0)|(obj_name[0].isdigit()):
                         raise SyntaxsError('InvaName')
                     else:
                         #对象实例化
-                        self.MediaObjects[obj_name] = eval(instantiation) 
+                        # self.MediaObjects[obj_name] = eval(instantiation)
+                        exec('global {}; '.format(obj_name) + text)
                         self.media_list.append(obj_name) #记录新增对象名称
                 except Exception as E:
                     print(E)
                     print(SyntaxsError('MediaDef',text,str(i+1)))
                     sys.exit(1)
-        self.MediaObjects['black'] = Background('black')
-        self.MediaObjects['white'] = Background('white')
+        # self.MediaObjects['black'] = Background('black')
+        # self.MediaObjects['white'] = Background('white')
+        global black ; black = Background('black')
+        global white ; black = Background('white')
         self.media_list.append('black')
         self.media_list.append('white')
         # alpha 1.6.5 载入导出的内建媒体
         for key,values in self.bulitin_media.iteritems():
             # 更新：改写内建媒体的value,只需要保留 instantiation 就行了
-            # exec(values)
+            exec(values)
             # obj_name = key
-            print(values.split(';')[-1])
-            obj_name,obj_type,obj_args = RE_mediadef.findall(values.split(';')[-1])[0]
-            instantiation = obj_type + obj_args
-            self.MediaObjects[obj_name] = eval(instantiation) 
+            # obj_name,obj_type,obj_args = RE_mediadef.findall(values.split(';')[-1])[0]
+            # instantiation = obj_type + obj_args
+            # self.MediaObjects[obj_name] = eval(instantiation) 
             self.media_list.append(key)
     # 处理bg 和 am 的parser
     def parse_timeline(self,layer) -> list:
@@ -1170,9 +1174,9 @@ class Export_xml:
                 bubble_clip_list = []
                 text_clip_list = []
                 for item in track_items:
-                    bubble_this,text_this = self.MediaObjects[item[0]].display(begin=item[3],end=item[4],text=item[1],header=item[2])
-                    # bubble_this,text_this = eval('{0}.display(begin ={1},end={2},text="{3}",header="{4}")'
-                    #                             .format(item[0],item[3],item[4],item[1],item[2]))
+                    # bubble_this,text_this = self.MediaObjects[item[0]].display(begin=item[3],end=item[4],text=item[1],header=item[2])
+                    bubble_this,text_this = eval('{0}.display(begin ={1},end={2},text="{3}",header="{4}")'
+                                                .format(item[0],item[3],item[4],item[1],item[2]))
                     if bubble_this is not None:
                         # 气泡的返回值可能为空！
                         bubble_clip_list.append(bubble_this)
@@ -1186,8 +1190,8 @@ class Export_xml:
                 clip_list = []
                 for item in track_items:
                     if item[0] in self.media_list:
-                        # clip_list.append(eval('{0}.display(begin={1})'.format(item[0],item[1])))
-                        clip_list.append(self.MediaObjects[item[0]].display(begin=item[1]))
+                        clip_list.append(eval('{0}.display(begin={1})'.format(item[0],item[1])))
+                        # clip_list.append(self.MediaObjects[item[0]].display(begin=item[1]))
                     elif os.path.isfile(item[0][1:-1]) == True: # 注意这个位置的item[0]首尾应该有个引号
                         temp = Audio(item[0][1:-1])
                         clip_list.append(temp.display(begin=item[1]))
@@ -1199,8 +1203,8 @@ class Export_xml:
                 track_items = self.parse_timeline(layer)
                 clip_list = []
                 for item in track_items:
-                    clip_list.append(self.MediaObjects[item[0]].display(begin=item[1],end=item[2]))
-                    # clip_list.append(eval('{0}.display(begin={1},end={2})'.format(item[0],item[1],item[2])))
+                    # clip_list.append(self.MediaObjects[item[0]].display(begin=item[1],end=item[2]))
+                    clip_list.append(eval('{0}.display(begin={1},end={2})'.format(item[0],item[1],item[2])))
                 video_tracks.append(track_tplt.format(**{'targeted':'False','clips':'\n'.join(clip_list)}))
 
         main_output = project_tplt.format(**{'timebase':'%d'%self.frame_rate,
