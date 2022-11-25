@@ -155,9 +155,9 @@ class Bubble(PrMediaClip):
         self.line_distance = line_distance
         self.align = align
         # clip
-        self.fileindex = 'BBfile_' + '%d'% self.file_index
+        self.fileindex = 'BBfile_' + '%d'% PrMediaClip.file_index
         self.label_color = label_color
-        self.file_index = self.file_index+1
+        PrMediaClip.file_index = PrMediaClip.file_index+1
     # return a canvas
     def draw(self, text, header=''):
         # 生成文本图片
@@ -192,7 +192,7 @@ class Bubble(PrMediaClip):
         else:
             self.PRpos = self.PR_center_arg(np.array(self.size),np.array(Pos(*eval(center)).get()))
         
-        ofile = self.output_path+'/auto_TX_%d'%self.outtext_index+'.png'
+        ofile = self.output_path+'/auto_TX_%d'%PrMediaClip.outtext_index+'.png'
         canvas_draw = self.draw(text,header)
         canvas_draw.save(ofile)
         
@@ -203,7 +203,7 @@ class Bubble(PrMediaClip):
             clip_bubble = None
             # print('Render empty Bubble!')
         else:
-            clip_bubble = self.clip_tplt.format(**{'clipid':'BB_clip_%d'%self.clip_index,
+            clip_bubble = self.clip_tplt.format(**{'clipid':'BB_clip_%d'%PrMediaClip.clip_index,
                                               'clipname':self.filename,
                                               'timebase':'%d'%self.frame_rate,
                                               'ntsc':self.Is_NTSC,
@@ -219,24 +219,24 @@ class Bubble(PrMediaClip):
                                               'horiz':'%.5f'%pr_horiz,
                                               'vert':'%.5f'%pr_vert,
                                               'colorlabel':self.label_color})
-        clip_text = self.clip_tplt.format(**{'clipid':'TX_clip_%d'%self.clip_index,
-                                        'clipname':'auto_TX_%d.png'%self.outtext_index,
+        clip_text = self.clip_tplt.format(**{'clipid':'TX_clip_%d'%PrMediaClip.clip_index,
+                                        'clipname':'auto_TX_%d.png'%PrMediaClip.outtext_index,
                                         'timebase':'%d'%self.frame_rate,
                                         'ntsc':self.Is_NTSC,
                                         'start':'%d'%begin,
                                         'end':'%d'%end,
                                         'in':'%d'%90000,
                                         'out':'%d'%(90000+end-begin),
-                                        'fileid':'auto_TX_%d'%self.outtext_index,
-                                        'filename':'auto_TX_%d.png'%self.outtext_index,
+                                        'fileid':'auto_TX_%d'%PrMediaClip.outtext_index,
+                                        'filename':'auto_TX_%d.png'%PrMediaClip.outtext_index,
                                         'filepath':self.reformat_path(ofile),
                                         'filewidth':'%d'%width,
                                         'fileheight':'%d'%height,
                                         'horiz':'%.5f'%pr_horiz,
                                         'vert':'%.5f'%pr_vert,
                                         'colorlabel':self.MainText.label_color})
-        self.outtext_index = self.outtext_index + 1
-        self.clip_index = self.clip_index + 1
+        PrMediaClip.outtext_index = PrMediaClip.outtext_index + 1
+        PrMediaClip.clip_index = PrMediaClip.clip_index + 1
         return (clip_bubble,clip_text)
 
     def convert(self):
@@ -419,8 +419,8 @@ class DynamicBubble(Bubble):
             return bubble_canvas,text_canvas
     def display(self,begin,end,text,header='',center='NA'): # 这段代码是完全没有可读性的屎，但是确实可运行，非必要不要改
         # 先生成文件
-        bubble_ofile = self.output_path+'/auto_BB_%d'%self.outtext_index+'.png'
-        text_ofile = self.output_path+'/auto_TX_%d'%self.outtext_index+'.png'
+        bubble_ofile = self.output_path+'/auto_BB_%d'%PrMediaClip.outtext_index+'.png'
+        text_ofile = self.output_path+'/auto_TX_%d'%PrMediaClip.outtext_index+'.png'
 
         bubble_canvas,text_canvas = self.draw(text,header)
         temp_size = text_canvas.size
@@ -443,16 +443,16 @@ class DynamicBubble(Bubble):
         else:
             # 先保存气泡图片
             bubble_canvas.save(bubble_ofile)
-            clip_bubble = self.clip_tplt.format(**{'clipid':'BB_clip_%d'%self.clip_index,
-                                              'clipname':'auto_BB_%d.png'%self.outtext_index,
+            clip_bubble = self.clip_tplt.format(**{'clipid':'BB_clip_%d'%PrMediaClip.clip_index,
+                                              'clipname':'auto_BB_%d.png'%PrMediaClip.outtext_index,
                                               'timebase':'%d'%self.frame_rate,
                                               'ntsc':self.Is_NTSC,
                                               'start':'%d'%begin,
                                               'end':'%d'%end,
                                               'in':'%d'%90000,
                                               'out':'%d'%(90000+end-begin),
-                                              'fileid':'auto_BB_%d'%self.outtext_index,
-                                              'filename':'auto_BB_%d.png'%self.outtext_index,
+                                              'fileid':'auto_BB_%d'%PrMediaClip.outtext_index,
+                                              'filename':'auto_BB_%d.png'%PrMediaClip.outtext_index,
                                               'filepath':self.reformat_path(bubble_ofile),
                                               'filewidth':'%d'%width,
                                               'fileheight':'%d'%height,
@@ -460,24 +460,24 @@ class DynamicBubble(Bubble):
                                               'vert':'%.5f'%pr_vert,
                                               'colorlabel':self.label_color})
         # tx的clip
-        clip_text = self.clip_tplt.format(**{'clipid':'TX_clip_%d'%self.clip_index,
-                                        'clipname':'auto_TX_%d.png'%self.outtext_index,
+        clip_text = self.clip_tplt.format(**{'clipid':'TX_clip_%d'%PrMediaClip.clip_index,
+                                        'clipname':'auto_TX_%d.png'%PrMediaClip.outtext_index,
                                         'timebase':'%d'%self.frame_rate,
                                         'ntsc':self.Is_NTSC,
                                         'start':'%d'%begin,
                                         'end':'%d'%end,
                                         'in':'%d'%90000,
                                         'out':'%d'%(90000+end-begin),
-                                        'fileid':'auto_TX_%d'%self.outtext_index,
-                                        'filename':'auto_TX_%d.png'%self.outtext_index,
+                                        'fileid':'auto_TX_%d'%PrMediaClip.outtext_index,
+                                        'filename':'auto_TX_%d.png'%PrMediaClip.outtext_index,
                                         'filepath':self.reformat_path(text_ofile),
                                         'filewidth':'%d'%width,
                                         'fileheight':'%d'%height,
                                         'horiz':'%.5f'%pr_horiz,
                                         'vert':'%.5f'%pr_vert,
                                         'colorlabel':self.MainText.label_color})
-        self.outtext_index = self.outtext_index + 1
-        self.clip_index = self.clip_index+1
+        PrMediaClip.outtext_index = PrMediaClip.outtext_index + 1
+        PrMediaClip.clip_index = PrMediaClip.clip_index+1
         return (clip_bubble,clip_text)
 
 class ChatWindow(Bubble):
@@ -540,11 +540,11 @@ class ChatWindow(Bubble):
         self.main_text = ''
         self.header_text = ''
         # 其他气泡类clip的必要参数
-        self.fileindex = 'BBfile_' + '%d'% self.file_index
+        self.fileindex = 'BBfile_' + '%d'% PrMediaClip.file_index
         self.label_color = label_color
         # 这个MainText只是用来给labelcolor做参考用的。
         self.MainText = self.sub_Bubble[sub_key[0]].MainText
-        self.file_index = self.file_index + 1
+        PrMediaClip.file_index = PrMediaClip.file_index + 1
 
     # 渲染气泡中的文本，对于CW来说，包括子气泡的窗体和PC头像都在这里生成。
     def draw(self, text, header=''):
@@ -621,9 +621,9 @@ class Background(PrMediaClip):
             self.pos = Pos(*pos)
         # self.PRpos = PR_center_arg(np.array(self.size),np.array(self.pos.get()))
         self.filename = self.path.split('/')[-1]
-        self.fileindex = 'BGfile_%d'% self.file_index
+        self.fileindex = 'BGfile_%d'% PrMediaClip.file_index
         self.label_color = label_color
-        self.file_index = self.file_index+1
+        PrMediaClip.file_index = PrMediaClip.file_index+1
     def display(self,begin,end,center='NA'):
         if center == 'NA':
             self.PRpos = self.PR_center_arg(np.array(self.size),np.array(self.pos.get()))
@@ -631,7 +631,7 @@ class Background(PrMediaClip):
             self.PRpos = self.PR_center_arg(np.array(self.size),np.array(Pos(*eval(center)).get()))
         width,height = self.size
         pr_horiz,pr_vert = self.PRpos
-        clip_this = self.clip_tplt.format(**{'clipid':'BG_clip_%d'%self.clip_index,
+        clip_this = self.clip_tplt.format(**{'clipid':'BG_clip_%d'%PrMediaClip.clip_index,
                               'clipname':self.filename,
                               'timebase':'%d'%self.frame_rate,
                               'ntsc':self.Is_NTSC,
@@ -647,7 +647,7 @@ class Background(PrMediaClip):
                               'horiz':'%.5f'%pr_horiz,
                               'vert':'%.5f'%pr_vert,
                               'colorlabel':self.label_color})
-        self.clip_index = self.clip_index+1
+        PrMediaClip.clip_index = PrMediaClip.clip_index+1
         return clip_this
     def convert(self):
         pass
@@ -663,10 +663,10 @@ class Animation(PrMediaClip):
             self.pos = pos
         else:
             self.pos = Pos(*pos)
-        self.fileindex = 'AMfile_%d'% self.file_index
+        self.fileindex = 'AMfile_%d'% PrMediaClip.file_index
         # self.PRpos = PR_center_arg(np.array(self.size),np.array(self.pos.get()))
         self.label_color = label_color
-        self.file_index = self.file_index+1
+        PrMediaClip.file_index = PrMediaClip.file_index+1
     def display(self,begin,end,center='NA'):
         if center == 'NA':
             self.PRpos = self.PR_center_arg(np.array(self.size),np.array(self.pos.get()))
@@ -674,7 +674,7 @@ class Animation(PrMediaClip):
             self.PRpos = self.PR_center_arg(np.array(self.size),np.array(Pos(*eval(center)).get()))
         width,height = self.size
         pr_horiz,pr_vert = self.PRpos
-        clip_this = self.clip_tplt.format(**{'clipid':'AM_clip_%d'%self.clip_index,
+        clip_this = self.clip_tplt.format(**{'clipid':'AM_clip_%d'%PrMediaClip.clip_index,
                               'clipname':self.filename,
                               'timebase':'%d'%self.frame_rate,
                               'ntsc':self.Is_NTSC,
@@ -690,7 +690,7 @@ class Animation(PrMediaClip):
                               'horiz':'%.5f'%pr_horiz,
                               'vert':'%.5f'%pr_vert,
                               'colorlabel':self.label_color})
-        self.clip_index = self.clip_index+1
+        PrMediaClip.clip_index = PrMediaClip.clip_index+1
         return clip_this
     def convert(self):
         pass
@@ -698,7 +698,7 @@ class Animation(PrMediaClip):
 # a 1.13.5 组合立绘，Animation类的子类，组合立绘只能是静态立绘！
 class GroupedAnimation(Animation):
     def __init__(self,subanimation_list,subanimation_current_pos=None,label_color='Mango'):
-        ofile = self.output_path+'/auto_GA_%d'%self.outanime_index+'.png'
+        ofile = self.output_path+'/auto_GA_%d'%PrMediaClip.outanime_index+'.png'
         canvas = Image.new(size=self.screen_size,mode='RGBA',color=(0,0,0,0))
         # 如果外部未指定位置参数，则使用子Animation类的自身的pos
         if subanimation_current_pos is None:
@@ -730,11 +730,11 @@ class GroupedAnimation(Animation):
         self.pos = Pos(0,0)
         self.path = self.reformat_path(ofile)
         self.size = self.screen_size
-        self.filename = 'auto_GA_%d'%self.outanime_index+'.png'
-        self.fileindex = 'AMfile_%d'% self.file_index
+        self.filename = 'auto_GA_%d'%PrMediaClip.outanime_index+'.png'
+        self.fileindex = 'AMfile_%d'% PrMediaClip.file_index
         self.label_color = label_color
-        self.file_index = self.file_index+1
-        self.outanime_index = self.outanime_index+1
+        PrMediaClip.file_index = PrMediaClip.file_index+1
+        PrMediaClip.outanime_index = PrMediaClip.outanime_index+1
 # a1.6.5 内建动画，这是一个Animation类的子类，重构了构造函数
 class BuiltInAnimation(Animation):
     def __init__(self,anime_type='hitpoint',anime_args=('0',0,0,0),screensize = (1920,1080),layer=0,label_color='Mango'):
@@ -832,17 +832,17 @@ class BuiltInAnimation(Animation):
                         pass
             else:
                 pass
-            ofile = self.output_path+'/auto_BIA_%d'%self.outanime_index+'.png'
+            ofile = self.output_path+'/auto_BIA_%d'%PrMediaClip.outanime_index+'.png'
             canvas.save(ofile)
 
             #剩下的需要定义的
             self.media = canvas
             self.path = self.reformat_path(ofile) # 兼容动画Animation，只使用第一帧！
-            self.filename = 'auto_BIA_%d'%self.outanime_index+'.png'
-            self.fileindex = 'AMfile_%d'% self.file_index
+            self.filename = 'auto_BIA_%d'%PrMediaClip.outanime_index+'.png'
+            self.fileindex = 'AMfile_%d'% PrMediaClip.file_index
             # self.PRpos = PR_center_arg(np.array(self.size),np.array(self.pos.get()))
-            self.outanime_index = self.outanime_index+1
-            self.file_index = self.file_index+1
+            PrMediaClip.outanime_index = PrMediaClip.outanime_index+1
+            PrMediaClip.file_index = PrMediaClip.file_index+1
         if anime_type == 'dice':
             for die in anime_args:
                 try:
@@ -922,32 +922,32 @@ class BuiltInAnimation(Animation):
                     canvas.paste(face_surf,(int(0.1458*screensize[0]-fx-0.0278*screensize[1]),i*y_unit+(y_unit-fy)//2))
             else:
                 pass
-            ofile = self.output_path+'/auto_BIA_%d'%self.outanime_index+'.png'
+            ofile = self.output_path+'/auto_BIA_%d'%PrMediaClip.outanime_index+'.png'
             canvas.save(ofile)
             self.media = canvas
             self.path = self.reformat_path(ofile) # 兼容动画Animation，只使用第一帧！
-            self.filename = 'auto_BIA_%d'%self.outanime_index+'.png'
-            self.fileindex = 'AMfile_%d'% self.file_index
+            self.filename = 'auto_BIA_%d'%PrMediaClip.outanime_index+'.png'
+            self.fileindex = 'AMfile_%d'% PrMediaClip.file_index
             # self.PRpos = PR_center_arg(np.array(self.size),np.array(self.pos.get()))
-            self.outanime_index = self.outanime_index+1
-            self.file_index = self.file_index+1
+            PrMediaClip.outanime_index = PrMediaClip.outanime_index+1
+            PrMediaClip.file_index = PrMediaClip.file_index+1
             
 # 音效
 class Audio(PrMediaClip):
     def __init__(self,filepath,label_color='Caribbean'):
         self.path = self.reformat_path(filepath)
         self.filename = self.path.split('/')[-1]
-        self.fileindex = 'AUfile_%d'% self.file_index
+        self.fileindex = 'AUfile_%d'% PrMediaClip.file_index
         self.label_color = label_color
         try:
             self.length = self.get_length(filepath)*self.frame_rate
         except Exception as E:
             print(WarningPrint('BadAuLen',filepath,E))
             self.length = 0
-        self.file_index = self.file_index+1
+        PrMediaClip.file_index = PrMediaClip.file_index+1
         
     def display(self,begin):
-        clip_this = self.audio_clip_tplt.format(**{'clipid':'AU_clip_%d'%self.clip_index,
+        clip_this = self.audio_clip_tplt.format(**{'clipid':'AU_clip_%d'%PrMediaClip.clip_index,
                                               'type':self.Audio_type,
                                               'clipname':self.filename,
                                               'audiolen':'%d'%self.length,
@@ -961,7 +961,7 @@ class Audio(PrMediaClip):
                                               'filename':self.filename,
                                               'filepath':self.path,
                                               'colorlabel':self.label_color})
-        self.clip_index = self.clip_index+1
+        PrMediaClip.clip_index = PrMediaClip.clip_index+1
         return clip_this
     def get_length(self,filepath):
         mixer.init()
@@ -1088,7 +1088,7 @@ class Export_xml:
         # self.MediaObjects['black'] = Background('black')
         # self.MediaObjects['white'] = Background('white')
         global black ; black = Background('black')
-        global white ; black = Background('white')
+        global white ; white = Background('white')
         self.media_list.append('black')
         self.media_list.append('white')
         # alpha 1.6.5 载入导出的内建媒体
