@@ -978,7 +978,7 @@ class BGM:
         pass
 
 # 导出PR项目模块
-class Export_xml:
+class ExportXML:
     # 初始化模块功能，载入外部参数
     def __init__(self,args):
         # 外部输入参数
@@ -1034,7 +1034,7 @@ class Export_xml:
         self.stdin_name = self.stdin_log.replace('\\','/').split('/')[-1]
         self.occupied_variable_name = open('./media/occupied_variable_name.list','r',encoding='utf8').read().split('\n')
         # 载入工程文件
-        timeline_ifile = open(args.TimeLine,'rb')
+        timeline_ifile = open(self.stdin_log,'rb')
         self.timeline,self.break_point,self.bulitin_media = pickle.load(timeline_ifile)
         timeline_ifile.close()
         # 项目配置参数的初始化
@@ -1065,11 +1065,13 @@ class Export_xml:
             elif text[0] == '#':
                 continue
             try:
+                # 尝试解析媒体定义文件
                 obj_name,obj_type,obj_args = RE_mediadef.findall(text)[0]
             except:
                 # 格式不合格的行直接略过
                 continue
             else:
+                # 格式合格的行开始解析
                 try:
                     # instantiation = obj_type + obj_args
                     if obj_name in self.occupied_variable_name:
@@ -1251,7 +1253,7 @@ if __name__ == '__main__':
     args = ap.parse_args()
     # 主
     try:
-        Export_xml(args=args)
+        ExportXML(args=args)
     except:
         from traceback import print_exc
         print_exc()

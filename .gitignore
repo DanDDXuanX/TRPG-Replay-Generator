@@ -4,5 +4,6 @@ media/preview_tempfile.wav
 *.timeline
 *.breakpoint
 *.exe
+*.ipynb
 **/__pycache__/*
 .vscode/*
