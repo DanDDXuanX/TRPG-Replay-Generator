@@ -18,7 +18,8 @@ class MediaEditorWindow(SubWindow):
     """
     # 需要用到的正则表达式
     # RE_mediadef_args = re.compile('(fontfile|fontsize|color|line_limit|filepath|Main_Text|Header_Text|pos|end|x_step|y_step|mt_pos|ht_pos|align|line_distance|tick|loop|volume|edge_color|label_color)?\ {0,4}=?\ {0,4}(Text\(\)|[^,()]+|\([-\d,\ ]+\))')
-    RE_parse_mediadef = re.compile('(\w+)[=\ ]+(Pos|FreePos|PosGrid|Text|StrokeText|Bubble|Balloon|DynamicBubble|ChatWindow|Animation|Background|BGM|Audio)(\(.*\))')
+    # RE_parse_mediadef = re.compile('(\w+)[=\ ]+(Pos|FreePos|PosGrid|Text|StrokeText|Bubble|Balloon|DynamicBubble|ChatWindow|Animation|Background|BGM|Audio)(\(.*\))')
+    RE_parse_mediadef = re.compile('^(\w+) *= *(Pos|FreePos|PosGrid|Text|StrokeText|Bubble|Balloon|DynamicBubble|ChatWindow|Animation|GroupedAnimation|BuiltInAnimation|Background|BGM|Audio)(\(.*\))')
     RE_vaildname = re.compile('^\w+$')
     
     def __init__(self,master,Edit_filepath='',fig_W=960,fig_H=540,*args, **kwargs):

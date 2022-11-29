@@ -1,18 +1,15 @@
 #!/usr/bin/env python
 # coding: utf-8
+
+# 版本
 from core.Utils import EDITION
-
 # 异常定义
-
 from core.Exceptions import RplGenError, Print
 from core.Exceptions import ArgumentError, DecodeError, MediaError, RenderError, SyntaxsError
 from core.Exceptions import VideoPrint, WarningPrint
-
 # 包导入
-
 import sys
 import os
-
 import pandas as pd
 import numpy as np
 import pygame
@@ -21,9 +18,7 @@ import pydub
 import time
 import re
 import pickle
-
 # 媒体定义
-
 from core.FreePos import Pos,FreePos,PosGrid
 from core.Medias import Text
 from core.Medias import StrokeText
@@ -38,7 +33,7 @@ from core.Medias import BuiltInAnimation
 from core.Medias import Audio_Video as Audio
 from core.Medias import BGM_Video as BGM
 from core.Medias import screen_config
-
+# 正则
 from core.Regexs import RE_mediadef
 
 class ExportVideo:
