@@ -90,10 +90,10 @@ class ReplayGenerator:
             if self.output_path is None:
                 if (self.synth_anyway == True) | (self.export_xml == True) | (self.export_video == True):
                     raise ArgumentError('NeedOutput')
-            elif os.path.isdir(args.OutputPath) == False:
-                raise ArgumentError('DirNotFound',args.OutputPath)
+            elif os.path.isdir(self.output_path) == False:
+                raise ArgumentError('DirNotFound',self.output_path)
             else:
-                args.OutputPath = args.OutputPath.replace('\\','/')
+                self.output_path = self.output_path.replace('\\','/')
             # 显示参数
             if self.frame_rate <= 0:
                 raise ArgumentError('FrameRate',str(self.frame_rate))

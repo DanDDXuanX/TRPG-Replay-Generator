@@ -173,7 +173,7 @@ class SpeechSynthesizer:
             return 'None',False
         else:
             # alpha 1.12.4 在输出路径里加上timestamp，和序号和行号统一
-            ofile = args.OutputPath+'/'+'auto_AU_%d'%(key+1)+'_'+mod62_timestamp()+'.wav'
+            ofile = self.output_path +'/'+'auto_AU_%d'%(key+1)+'_'+mod62_timestamp()+'.wav'
             # alpha 1.12.4 如果合成出现异常，重试
             for time_retry in range(1,6):
                 # 最多重试5次

@@ -317,7 +317,7 @@ class ExportVideo:
         # 最终的显示
         print(VideoPrint('CostTime', time.strftime("%H:%M:%S", time.gmtime(used_time))))
         print(VideoPrint('RendSpeed', '%.2f'%(self.break_point.max()/used_time)))
-        print(VideoPrint('Done',args.OutputPath+'/'+self.stdin_name+'.mp4'))
+        print(VideoPrint('Done',self.output_path+'/'+self.stdin_name+'.mp4'))
     # ffmepg 导出视频的接口
     def ffmpeg_output(self):
         self.output_engine = (
