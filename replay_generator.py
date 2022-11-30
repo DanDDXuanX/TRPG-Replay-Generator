@@ -116,16 +116,16 @@ class ReplayGenerator:
         python3 = sys.executable.replace('\\','/')
         # python解释器 + 源码
         if python3.split('/')[-1] in ['py','py3','python','python3','python.exe','python3.exe']:
-            # python RplGenCore.py --module replay_generator
+            # python RplGenCore.py --Modules replay_generator
             if 'RplGenCore.py' in sys.argv[0]:
-                self.python3 = python3 + ' ' + sys.argv[0] +  ' --module {}'
+                self.python3 = python3 + ' ' + sys.argv[0] +  ' --Modules {}'
             # python ./replay_generator.py
             else:
                 self.python3 = python3 + ' ./{}.py'
         # 打包版 exe
-        # RplGenCore.exe --module replay_generator
+        # RplGenCore.exe --Modules replay_generator
         elif 'RplGenCore' in python3.split('/')[-1]:
-            self.python3 = python3 + ' --module {}'
+            self.python3 = python3 + ' --Modules {}'
         # 异常摆烂
         else:
             self.python3 = 'python ./{}.py'
@@ -1246,14 +1246,14 @@ class ReplayGenerator:
             self.system_terminated('Error')
     # 导出的子进程
     def flag_export(self) -> None:
-        print(MainPrint('OutTime',args.OutputPath))
+        print(MainPrint('OutTime',self.output_path))
         # 如果有输出路径，导出时间轴文件
         timenow = '%d'%time.time()
-        timeline_ofile = open(args.OutputPath+'/'+timenow+'.timeline','wb')
+        timeline_ofile = open(self.output_path+'/'+timenow+'.timeline','wb')
         pickle.dump([self.render_timeline,self.break_point,self.bulitin_media],timeline_ofile)
         timeline_ofile.close()
         # 如果导出PR项目
-        if args.ExportXML == True:
+        if self.export_xml == True:
             command = self.python3.format('export_xml') + ' --TimeLine {tm} --MediaObjDefine {md} --OutputPath {of} --FramePerSecond {fps} --Width {wd} --Height {he} --Zorder {zd} --Language {la}'
             command = command.format(tm = self.output_path +'/'+timenow+'.timeline',
                                     md = self.media_obj.replace('\\','/'), of = self.output_path.replace('\\','/'), 
@@ -1268,7 +1268,7 @@ class ReplayGenerator:
             except Exception as E:
                 print(WarningPrint('XMLFail',E))
         # 如果导出视频文件
-        if args.ExportVideo == True:
+        if self.export_video == True:
             command = self.python3.format('export_video') + ' --TimeLine {tm} --MediaObjDefine {md} --OutputPath {of} --FramePerSecond {fps} --Width {wd} --Height {he} --Zorder {zd} --Quality {ql} --Language {la}'
             command = command.format(tm = self.output_path +'/'+timenow+'.timeline',
                                     md = self.media_obj.replace('\\','/'), of = self.output_path.replace('\\','/'), 
