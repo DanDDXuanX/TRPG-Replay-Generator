@@ -40,6 +40,8 @@ if __name__ == '__main__':
     # 语言
     ap.add_argument("--Language",help='Choose the language of running log',default='en',type=str)
     ap.add_argument('--Modules',help='Choose subprogram. Choice: replay_generator, speech_synthesizer, export_xml, export_video.',type=str,default='replay_generator')
+    # 版本
+    ap.add_argument('-v','--version',action='version',version=EDITION,help='Display version')
     args = ap.parse_args()
     # 主程序
     if args.Modules == 'replay_generator':
