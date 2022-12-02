@@ -13,6 +13,7 @@ from .Exceptions import MediaError, WarningPrint
 from .Formulas import sigmoid
 
 screen_config = {
+    'medef_path' : '.',
     'screen_size' : (1920,1080),
     'frame_rate' : 30,
 }
@@ -25,6 +26,9 @@ cmap = {'black':(0,0,0,255),'white':(255,255,255,255),'greenscreen':(0,177,64,25
 class Text:
     pygame.font.init()
     def __init__(self,fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0,0,255),line_limit=20,label_color='Lavender'):
+        # 处理相对路径
+        if fontfile[0] == '@':
+            fontfile = screen_config['medef_path'] + fontfile[1:]
         self.text_render = pygame.font.Font(fontfile,fontsize)
         self.color=color
         self.size=fontsize
@@ -96,11 +100,17 @@ class StrokeText(Text):
 class Bubble:
     # 初始化
     def __init__(self,filepath=None,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),ht_pos=(0,0),ht_target='Name',align='left',line_distance=1.5,label_color='Lavender'):
-        if filepath is None or filepath == 'None': # 支持气泡图缺省
+        # 支持气泡图缺省
+        if filepath is None or filepath == 'None':
             # 媒体设为空图
             screen_size = screen_config['screen_size']
             self.media = pygame.Surface(screen_size,pygame.SRCALPHA)
             self.media.fill((0,0,0,0))
+        # 支持相对路径
+        elif filepath[0] == '@':
+            filepath = screen_config['medef_path'] + filepath[1:]
+            self.media = pygame.image.load(filepath)
+        # 正常
         else:
             self.media = pygame.image.load(filepath)
         if type(pos) in [Pos,FreePos]:
@@ -316,6 +326,10 @@ class ChatWindow(Bubble):
             screen_size = screen_config['screen_size']
             self.media = pygame.Surface(screen_size,pygame.SRCALPHA)
             self.media.fill((0,0,0,0))
+        # 支持相对路径
+        elif filepath[0] == '@':
+            filepath = screen_config['medef_path'] + filepath[1:]
+            self.media = pygame.image.load(filepath)
         else:
             self.media = pygame.image.load(filepath)
         if type(pos) in [Pos,FreePos]:
@@ -451,6 +465,10 @@ class Background:
             screen_size = screen_config['screen_size']
             self.media = pygame.Surface(screen_size)
             self.media.fill(cmap[filepath])
+        # 支持相对路径
+        elif filepath[0] == '@':
+            filepath = screen_config['medef_path'] + filepath[1:]
+            self.media = pygame.image.load(filepath)
         else:
             self.media = pygame.image.load(filepath)
         if type(pos) in [Pos,FreePos]:
@@ -478,6 +496,9 @@ class Background:
 # 这个是真的动画了，用法和旧版的amination是一样的！
 class Animation:
     def __init__(self,filepath,pos = (0,0),tick=1,loop=True,label_color='Lavender'):
+        # 支持相对路径
+        if filepath[0] == '@':
+            filepath = screen_config['medef_path'] + filepath[1:]
         file_list = np.frompyfunc(lambda x:x.replace('\\','/'),1,1)(glob.glob(filepath))
         self.length = len(file_list)
         if self.length == 0:
@@ -793,6 +814,9 @@ class Audio:
     pygame.mixer.init()
     def __init__(self,filepath,label_color='Caribbean'):
         try:
+            # 支持相对路径
+            if filepath[0] == '@':
+                filepath = screen_config['medef_path'] + filepath[1:]
             self.media = pygame.mixer.Sound(filepath)
         except Exception as E:
             raise MediaError('BadAudio',filepath)
@@ -807,6 +831,8 @@ class Audio:
 # 背景音乐
 class BGM:
     def __init__(self,filepath,volume=100,loop=True,label_color='Caribbean'):
+        if filepath[0] == '@':
+            filepath = screen_config['medef_path'] + filepath[1:]
         self.media = filepath
         self.volume = volume/100
         if loop == True:
@@ -832,6 +858,8 @@ class BGM:
 # 音效
 class Audio_Video:
     def __init__(self,filepath,label_color='Caribbean'):
+        if filepath[0] == '@':
+            filepath = screen_config['medef_path'] + filepath[1:]
         self.media = pydub.AudioSegment.from_file(filepath)
     def convert(self):
         pass
@@ -839,6 +867,8 @@ class Audio_Video:
 # 背景音乐
 class BGM_Video:
     def __init__(self,filepath,volume=100,loop=True,label_color='Caribbean'):
+        if filepath[0] == '@':
+            filepath = screen_config['medef_path'] + filepath[1:]
         self.media = pydub.AudioSegment.from_file(filepath) + np.log10(volume/100) * 20 # 调整音量
         self.loop = loop
     def convert(self):

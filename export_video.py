@@ -90,6 +90,7 @@ class ExportVideo:
             print(E)
             sys.exit(1)
         # 媒体类，配置
+        screen_config['medef_path'] = os.path.dirname(self.media_obj.replace('\\','/'))
         screen_config['screen_size'] = (self.Width,self.Height)
         screen_config['frame_rate'] = self.frame_rate
         # 全局变量

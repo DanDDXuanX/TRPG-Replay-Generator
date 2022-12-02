@@ -108,6 +108,7 @@ class ReplayGenerator:
             print(E)
             self.system_terminated('Error')
         # 媒体类，显示参数配置
+        screen_config['medef_path'] = os.path.dirname(self.media_obj.replace('\\','/'))
         screen_config['screen_size'] = (self.Width,self.Height)
         screen_config['frame_rate'] = self.frame_rate
         # 全局变量
@@ -166,7 +167,8 @@ class ReplayGenerator:
             cr,cre,ts,tse,se = RE_dialogue.findall(text)[0]
         except IndexError:
             raise ParserError('UnableDial')
-        this_duration = int(len(ts)/(self.dynamic_globals['speech_speed']/60/self.frame_rate))
+        # 缺省星标时的默认小节持续时间 = 字数/语速 + 星标间隔
+        this_duration = int(len(ts)/(self.dynamic_globals['speech_speed']/60/self.frame_rate)) + self.dynamic_globals['asterisk_pause']
         this_charactor = RE_characor.findall(cr)
         # 切换 method
         if (cre=='') | (self.dynamic_globals['inline_method_apply']=='none'): # 没有指定，或者禁用指定，都走默认值
@@ -1367,7 +1369,7 @@ class ReplayGenerator:
         except ParserError as E:
             print(E)
             self.system_terminated('Error')
-    # 倒计时
+    # 倒计时：已禁用，待删除
     def timer(self,clock):
         white.display(self.screen)
         self.screen.blit(self.note_text.render('%d'%clock,fgcolor=(150,150,150,255),size=0.0926*self.Height)[0],(0.484*self.Width,0.463*self.Height)) # for 1080p
@@ -1435,8 +1437,9 @@ class ReplayGenerator:
                     elif event.key == pygame.K_SPACE:
                         begin = True
                         break
-        for s in np.arange(5,0,-1):
-            self.timer(s)
+        # 倒数计时：暂时先不要了
+        #for s in np.arange(5,0,-1):
+        #    self.timer(s)
         # 预览播放参数
         n=0 # 当前帧
         forward = 1 #forward==0代表暂停

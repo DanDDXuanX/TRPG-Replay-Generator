@@ -42,6 +42,8 @@ class PrMediaClip:
     frame_rate = 30
     Is_NTSC = True
     Audio_type = 'Stereo'
+    # 媒体参数
+    medef_path = '.'
     # 公共函数：处理PR的图片坐标
     def PR_center_arg(self,obj_size,pygame_pos) -> np.ndarray:
         screensize = np.array(self.screen_size)
@@ -70,10 +72,12 @@ class PrMediaClip:
 
 class Text:
     def __init__(self,fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0,0,255),line_limit=20,label_color='Lavender'):
+        if fontfile[0] == '@':
+            fontfile = self.medef_path + fontfile[1:]
+        self.fontpath = fontfile
         self.color=color
         self.size=fontsize
         self.line_limit = line_limit
-        self.fontpath = fontfile
         self.label_color = label_color
     def render(self,tx):
         font_this = ImageFont.truetype(self.fontpath, self.size)
@@ -127,7 +131,7 @@ class StrokeText(Text):
         draw_this.text((ew,ew),tx,font = font_this,align ="left",fill = self.color)
         return text_this
 
-    # 对话框、气泡、文本框
+# 对话框、气泡、文本框
 class Bubble(PrMediaClip):
     def __init__(self,filepath=None,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),ht_pos=(0,0),ht_target='Name',align='left',line_distance=1.5,label_color='Lavender'):
         # 支持气泡图缺省
@@ -137,6 +141,8 @@ class Bubble(PrMediaClip):
             self.size = self.screen_size
             self.filename = None
         else:
+            if filepath[0] == '@':
+                filepath = self.medef_path + filepath[1:]
             self.path = self.reformat_path(filepath)
             self.media = Image.open(filepath).convert('RGBA')
             self.size = self.media.size
@@ -491,6 +497,8 @@ class ChatWindow(Bubble):
             self.size = self.screen_size
             self.filename = None
         else:
+            if filepath[0] == '@':
+                filepath = self.medef_path + filepath[1:]
             self.path = self.reformat_path(filepath)
             self.media = Image.open(filepath).convert('RGBA')
             self.size = self.media.size
@@ -612,6 +620,8 @@ class Background(PrMediaClip):
             self.path = self.reformat_path(ofile)
             self.size = self.screen_size
         else:
+            if filepath[0] == '@':
+                filepath = self.medef_path + filepath[1:]
             self.path = self.reformat_path(filepath)
             self.media = Image.open(filepath).convert('RGBA')
             self.size = self.media.size
@@ -655,6 +665,8 @@ class Background(PrMediaClip):
 # 立绘图片
 class Animation(PrMediaClip):
     def __init__(self,filepath,pos = (0,0),tick=1,loop=True,label_color='Lavender'):
+        if filepath[0] == '@':
+            filepath = self.medef_path + filepath[1:]
         self.path = self.reformat_path(glob.glob(filepath)[0]) # 兼容动画Animation，只使用第一帧！
         self.media = Image.open(glob.glob(filepath)[0].replace('\\','/')).convert('RGBA')
         self.size = self.media.size
@@ -935,6 +947,8 @@ class BuiltInAnimation(Animation):
 # 音效
 class Audio(PrMediaClip):
     def __init__(self,filepath,label_color='Caribbean'):
+        if filepath[0] == '@':
+            filepath = self.medef_path + filepath[1:]
         self.path = self.reformat_path(filepath)
         self.filename = self.path.split('/')[-1]
         self.fileindex = 'AUfile_%d'% PrMediaClip.file_index
@@ -973,6 +987,8 @@ class Audio(PrMediaClip):
 # 背景音乐
 class BGM:
     def __init__(self,filepath,volume=100,loop=True,label_color='Forest'):
+        if filepath[0] == '@':
+            filepath = self.medef_path + filepath[1:]
         print(WarningPrint('BGMIgnore',filepath))
     def convert(self):
         pass
@@ -1043,6 +1059,7 @@ class ExportXML:
         PrMediaClip.frame_rate = self.frame_rate
         PrMediaClip.Is_NTSC = self.Is_NTSC
         PrMediaClip.Audio_type = self.Audio_type
+        PrMediaClip.medef_path = os.path.dirname(self.media_obj.replace('\\','/'))
         # 开始执行主程序
         self.main()
     # 载入媒体定义文件和bulitintimeline
