@@ -652,7 +652,7 @@ class ReplayGenerator:
                     this_background = next_background #正式切换背景
                     # BGM
                     if BGM_queue != []:
-                        this_timeline.loc[0,'BGM'] = BGM_queue.pop(0)                
+                        this_timeline.loc[0,'BGM'] = BGM_queue.pop(0)
                     # 时间轴延长
                     this_timeline['section'] = i
                     break_point[i+1]=break_point[i]+len(this_timeline.index)
@@ -1062,6 +1062,32 @@ class ReplayGenerator:
                 except Exception as E:
                     print(E)
                     raise ParserError('ParErrDice',str(i+1))
+            # 等待行，停留在上一个小节的结束状态，不影响S图层
+            elif text[0:7] == '<wait>:':
+                # 获取参数
+                try:
+                    try:
+                        this_dur = int(RE_wait.findall(text)[0])
+                    except Exception as E:
+                        raise ParserError('InvWaitArg',E)
+                    # 持续指定帧，仅显示当前背景
+                    this_timeline=pd.DataFrame(index=range(0,this_dur),dtype=str,columns=render_arg)
+                    # 停留的帧：当前时间轴的最后一帧，不含S图层
+                    wait_frame = render_timeline.iloc[-1]
+                    # 应用
+                    this_timeline[render_arg] = wait_frame
+                    # BGM
+                    if BGM_queue != []:
+                        this_timeline.loc[0,'BGM'] = BGM_queue.pop(0)
+                    # 时间轴延长
+                    this_timeline['section'] = i
+                    break_point[i+1]=break_point[i]+len(this_timeline.index)
+                    this_timeline.index = range(break_point[i],break_point[i+1])
+                    render_timeline = pd.concat([render_timeline,this_timeline],axis=0)
+                    continue
+                except Exception as E:
+                    print(E)
+                    raise ParserError('ParErrWait',str(i+1))
             # 异常行，报出异常
             else:
                 raise ParserError('UnrecLine',str(i+1))

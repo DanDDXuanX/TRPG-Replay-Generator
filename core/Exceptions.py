@@ -145,6 +145,10 @@ class ParserError(RplGenError):
                         "星标语音文件 '{}' 并不存在！"],
         'InvAster'    :["Invalid asterisk label appeared in dialogue line.",
                         "无效的星标语音框出现在对话行中！"],
+        'ParErrWait'  :["Parse exception occurred in wait line {}.",
+                        "解析异常发生在第{}行（暂停行）。"],
+        'InvWaitArg'  :["Invalid argument for command <wait>: {}.",
+                        "在 <wait> 命令中指定了非法的参数：{}"],
     }
     error_type = ["\x1B[31m[ParserError]:\x1B[0m ",
                   "\x1B[31m[解析错误]:\x1B[0m "]
