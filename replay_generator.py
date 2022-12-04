@@ -1227,12 +1227,16 @@ class ReplayGenerator:
                 pygame.mixer.music.stop() #停止
                 pygame.mixer.music.unload() #换碟
             elif (this_frame[key] not in self.media_list): # 不是预先定义的媒体，则一定是合法的路径
-                if key == 'BGM':
-                    temp_BGM = BGM(filepath=this_frame[key][1:-1])
-                    temp_BGM.display()
-                else:
-                    temp_Audio = Audio(filepath=this_frame[key][1:-1])
-                    temp_Audio.display(channel=self.channel_list[key]) # 这里的参数需要是对象
+                try:
+                    if key == 'BGM':
+                        temp_BGM = BGM(filepath=this_frame[key][1:-1])
+                        temp_BGM.display()
+                    else:
+                        temp_Audio = Audio(filepath=this_frame[key][1:-1])
+                        temp_Audio.display(channel=self.channel_list[key]) # 这里的参数需要是对象
+                except Exception as E:
+                    print(E)
+                    raise RenderError('FailPlay',this_frame[key])
             else: # 预先定义的媒体
                 try:
                     if key == 'BGM':
@@ -1241,8 +1245,9 @@ class ReplayGenerator:
                     else:
                         eval(this_frame[key]).display(channel=self.channel_list[key]) # 否则就直接播放对象
                         # exec('{0}.display(channel={1})'.format(this_frame[key],self.channel_list[key])) 
-                except Exception:
-                    raise ParserError('FailPlay',this_frame[key])
+                except Exception as E:
+                    print(E)
+                    raise RenderError('FailPlay',this_frame[key])
         return 1
     # 执行语音合成子进程
     def flag_synthanyway(self) -> None:
