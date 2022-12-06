@@ -150,7 +150,10 @@ class MediaEditorWindow(SubWindow):
         """
         载入媒体定义文件
         """
-        if self.edit_filepath!='': # 如果有指定输入文件
+        # 媒体定义文件所在的路径
+        self.medef_path = os.path.dirname(self.edit_filepath.replace('\\','/'))
+        # 如果有指定输入文件
+        if self.edit_filepath!='':
             try:
                 mediadef_text = open(self.edit_filepath,'r',encoding='utf8').read().split('\n')
                 if mediadef_text[-1] == '':
@@ -161,27 +164,32 @@ class MediaEditorWindow(SubWindow):
                 for i,line in enumerate(mediadef_text):
                     parseline = self.RE_parse_mediadef.findall(line)
                     if len(parseline) == 1:
+                        # 解析单行
+                        this_name,this_type,this_args = parseline[0]
+                        # 如果参数中有当前媒体定义路径转移字符，则替换为媒体定义路径
+                        if len(re.findall("[\"\']@[\\/]",this_args)) != 0:
+                            this_args = this_args.replace('@',self.medef_path)
                         # 插入行，并进行偶数行着色
                         if i % 2 ==1:
-                            self.mediainfo.insert('','end',values = parseline[0])
+                            self.mediainfo.insert('','end',values = (this_name,this_type,this_args))
                         else:
-                            self.mediainfo.insert('','end',values = parseline[0],tags=("evenColor"))
+                            self.mediainfo.insert('','end',values = (this_name,this_type,this_args),tags=("evenColor"))
                         
                         # 如果是字体媒体，提前载入
                         # if parseline[0][1] == "Text" or parseline[0][1] == "StrokeText":
                         #     exec('global {name};{name}={type}{args}'.format(name=parseline[0][0],type=parseline[0][1],args=parseline[0][2]))
-
-                        self.used_variable_name.append(parseline[0][0])
-                        self.media_lines.append(parseline[0])
-
-                        if parseline[0][1] in ['Text','StrokeText']:
-                            self.available_text.append(parseline[0][0])
-                        elif parseline[0][1] in ['Pos','FreePos']:
-                            self.available_pos.append(parseline[0][0])
-                        elif parseline[0][1] in ['Bubble','Balloon','DynamicBubble','ChatWindow']:
-                            self.available_bubble.append(parseline[0][0])
-                        elif parseline[0][1] == 'Animation':
-                            self.available_anime.append(parseline[0][0])
+                        # 占用变量名
+                        self.used_variable_name.append(this_name)
+                        self.media_lines.append((this_name,this_type,this_args))
+                        # 占用变量类
+                        if this_type in ['Text','StrokeText']:
+                            self.available_text.append(this_name)
+                        elif this_type in ['Pos','FreePos']:
+                            self.available_pos.append(this_name)
+                        elif this_type in ['Bubble','Balloon','DynamicBubble','ChatWindow']:
+                            self.available_bubble.append(this_name)
+                        elif this_type == 'Animation':
+                            self.available_anime.append(this_name)
                     else:
                         warning_line.append(i+1)
                 
@@ -438,14 +446,18 @@ class MediaEditorWindow(SubWindow):
                 return False
             ofile = open(Save_filepath,'w',encoding='utf8')
             self.edit_return_value = Save_filepath
-        
+        # 获取媒体文件的路径
+        self.medef_path = os.path.dirname(self.edit_return_value.replace('\\','/'))
         # 保存前先将筛选器调回All
         self.media_type.set("All")
         self.filter_media(None)
-
-        for lid in self.mediainfo.get_children(): # 输出表格内容
-            #print(mediainfo.item(lid, "values"))
-            ofile.write('{0} = {1}{2}\n'.format(*self.mediainfo.item(lid, "values")))
+        # 逐行输出表格内容
+        for lid in self.mediainfo.get_children(): 
+            this_name,this_type,this_args = self.mediainfo.item(lid, "values")
+            # 如果this_args中包含了当前路径
+            if self.medef_path in this_args:
+                this_args = this_args.replace(self.medef_path,'@')
+            ofile.write('{0} = {1}{2}\n'.format(this_name,this_type,this_args))
         ofile.close()
         self.destroy()
         self.quit()
