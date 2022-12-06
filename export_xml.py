@@ -73,7 +73,7 @@ class PrMediaClip:
 class Text:
     def __init__(self,fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0,0,255),line_limit=20,label_color='Lavender'):
         if fontfile[0] == '@':
-            fontfile = self.medef_path + fontfile[1:]
+            fontfile = PrMediaClip.medef_path + fontfile[1:]
         self.fontpath = fontfile
         self.color=color
         self.size=fontsize
@@ -987,8 +987,6 @@ class Audio(PrMediaClip):
 # 背景音乐
 class BGM:
     def __init__(self,filepath,volume=100,loop=True,label_color='Forest'):
-        if filepath[0] == '@':
-            filepath = self.medef_path + filepath[1:]
         print(WarningPrint('BGMIgnore',filepath))
     def convert(self):
         pass
