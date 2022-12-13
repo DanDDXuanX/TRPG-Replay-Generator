@@ -5,18 +5,14 @@
 
 import numpy as np
 from pygame import mixer
-
-import sys
-import os
-
 from PIL import Image,ImageFont,ImageDraw
 
-from core.Exceptions import MediaError,WarningPrint
-from core.FreePos import Pos,FreePos,PosGrid
+from .Medias import MediaObj
+from .FilePaths import Filepath
+from .Exceptions import MediaError,WarningPrint
+from .FreePos import Pos,FreePos,PosGrid
 
-from Medias import MediaObj
-from FilePaths import Filepath
-
+# PR序列的基类，继承自MediaObj
 class PrMediaClip(MediaObj):
     # 剪辑的xml模板
     clip_tplt = open('./xml_templates/tplt_clip.xml','r',encoding='utf8').read()
@@ -30,13 +26,11 @@ class PrMediaClip(MediaObj):
     output_path = './'
     Is_NTSC = True
     Audio_type = 'Stereo'
-    # 画面配置参数：继承 MediaObj
-    # def __init__(self,filepath:str,label_color:str) -> None:... 继承
     # 公共函数：处理PR的图片坐标
     def PR_center_arg(self,obj_size,pygame_pos) -> np.ndarray:
         screensize = np.array(self.screen_size)
         return (pygame_pos+obj_size/2-screensize/2)/obj_size
-
+# 字体
 class Text(PrMediaClip):
     def __init__(self,fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0,0,255),line_limit=20,label_color='Lavender'):
         super().__init__(filepath=fontfile,label_color=label_color)
@@ -64,7 +58,7 @@ class Text(PrMediaClip):
         else:
             out_text = [self.render(text)]
         return out_text
-
+# 描边字体
 class StrokeText(Text):
     def __init__(self,fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0,0,255),line_limit=20,edge_color=(255,255,255,255),edge_width=1,label_color='Lavender'):
         super().__init__(fontfile=fontfile,fontsize=fontsize,color=color,line_limit=line_limit,label_color=label_color) # 继承
@@ -79,7 +73,7 @@ class StrokeText(Text):
             print(WarningPrint('WideEdge'))
     def render(self,tx):
         ew = self.edge_width
-        font_this = ImageFont.truetype(self.fontpath, self.size)
+        font_this = ImageFont.truetype(self.filepath.exact(), self.size)
         text_this = Image.new(mode='RGBA',size=(self.size*int(len(tx)*1.5)+2*ew,self.size*2+2*ew),color=(0,0,0,0)) # 画布贪婪为2x高度，1.5*宽度
         draw_this = ImageDraw.Draw(text_this)
         # 角
@@ -92,8 +86,7 @@ class StrokeText(Text):
         # 中心
         draw_this.text((ew,ew),tx,font = font_this,align ="left",fill = self.color)
         return text_this
-
-# 对话框、气泡、文本框
+# 气泡
 class Bubble(PrMediaClip):
     def __init__(self,filepath=None,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),ht_pos=(0,0),ht_target='Name',align='left',line_distance=1.5,label_color='Lavender'):
         super().__init__(filepath=filepath,label_color=label_color)
@@ -158,9 +151,9 @@ class Bubble(PrMediaClip):
         else:
             self.PRpos = self.PR_center_arg(np.array(self.size),np.array(Pos(*eval(center)).get()))
         
-        ofile = Filepath(self.output_path+'/auto_TX_%d'%PrMediaClip.outtext_index+'.png')
+        ofile = self.output_path+'/auto_TX_%d'%PrMediaClip.outtext_index+'.png'
         canvas_draw = self.draw(text,header)
-        canvas_draw.save(ofile.exact())
+        canvas_draw.save(ofile)
         
         # 生成序列
         width,height = self.size
@@ -195,7 +188,7 @@ class Bubble(PrMediaClip):
                                         'out':'%d'%(90000+end-begin),
                                         'fileid':'auto_TX_%d'%PrMediaClip.outtext_index,
                                         'filename':'auto_TX_%d.png'%PrMediaClip.outtext_index,
-                                        'filepath':ofile.xml_reformated(),
+                                        'filepath':Filepath(ofile).xml_reformated(),
                                         'filewidth':'%d'%width,
                                         'fileheight':'%d'%height,
                                         'horiz':'%.5f'%pr_horiz,
@@ -204,8 +197,7 @@ class Bubble(PrMediaClip):
         PrMediaClip.outtext_index = PrMediaClip.outtext_index + 1
         PrMediaClip.clip_index = PrMediaClip.clip_index + 1
         return (clip_bubble,clip_text)
-
-
+# 气球
 class Balloon(Bubble):
     def __init__(self,filepath=None,Main_Text=Text(),Header_Text=[None],pos=(0,0),mt_pos=(0,0),ht_pos=[(0,0)],ht_target=['Name'],align='left',line_distance=1.5,label_color='Lavender'):
         super().__init__(filepath=filepath,Main_Text=Main_Text,Header_Text=Header_Text,pos=pos,mt_pos=mt_pos,ht_pos=ht_pos,ht_target=ht_target,align=align,line_distance=line_distance,label_color=label_color)
@@ -246,7 +238,7 @@ class Balloon(Bubble):
                              )
                             )
         return canvas
-
+# 自适应气泡
 class DynamicBubble(Bubble):
     def __init__(self,filepath=None,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),mt_end=(0,0),ht_pos=(0,0),ht_target='Name',fill_mode='stretch',line_distance=1.5,label_color='Lavender'):
         super().__init__(filepath=filepath,Main_Text=Main_Text,Header_Text=Header_Text,pos=pos,mt_pos=mt_pos,ht_pos=ht_pos,ht_target=ht_target,line_distance=line_distance,label_color=label_color)
@@ -383,14 +375,14 @@ class DynamicBubble(Bubble):
             return bubble_canvas,text_canvas
     def display(self,begin,end,text,header='',center='NA'): # 这段代码是完全没有可读性的屎，但是确实可运行，非必要不要改
         # 先生成文件
-        bubble_ofile = Filepath(self.output_path+'/auto_BB_%d'%PrMediaClip.outtext_index+'.png')
-        text_ofile = Filepath(self.output_path+'/auto_TX_%d'%PrMediaClip.outtext_index+'.png')
+        bubble_ofile = self.output_path+'/auto_BB_%d'%PrMediaClip.outtext_index+'.png'
+        text_ofile = self.output_path+'/auto_TX_%d'%PrMediaClip.outtext_index+'.png'
 
         bubble_canvas,text_canvas = self.draw(text,header)
         temp_size = text_canvas.size
 
         # 保存文件
-        text_canvas.save(text_ofile.exact())
+        text_canvas.save(text_ofile)
 
         # 获取动态气泡的参数
         width,height = temp_size
@@ -406,7 +398,7 @@ class DynamicBubble(Bubble):
             # print('Render empty Bubble!')
         else:
             # 先保存气泡图片
-            bubble_canvas.save(bubble_ofile.exact())
+            bubble_canvas.save(bubble_ofile)
             clip_bubble = self.clip_tplt.format(**{'clipid':'BB_clip_%d'%PrMediaClip.clip_index,
                                               'clipname':'auto_BB_%d.png'%PrMediaClip.outtext_index,
                                               'timebase':'%d'%self.frame_rate,
@@ -417,7 +409,7 @@ class DynamicBubble(Bubble):
                                               'out':'%d'%(90000+end-begin),
                                               'fileid':'auto_BB_%d'%PrMediaClip.outtext_index,
                                               'filename':'auto_BB_%d.png'%PrMediaClip.outtext_index,
-                                              'filepath':bubble_ofile.xml_reformated(),
+                                              'filepath':Filepath(bubble_ofile).xml_reformated(),
                                               'filewidth':'%d'%width,
                                               'fileheight':'%d'%height,
                                               'horiz':'%.5f'%pr_horiz,
@@ -434,7 +426,7 @@ class DynamicBubble(Bubble):
                                         'out':'%d'%(90000+end-begin),
                                         'fileid':'auto_TX_%d'%PrMediaClip.outtext_index,
                                         'filename':'auto_TX_%d.png'%PrMediaClip.outtext_index,
-                                        'filepath':text_ofile.xml_reformated(),
+                                        'filepath':Filepath(text_ofile).xml_reformated(),
                                         'filewidth':'%d'%width,
                                         'fileheight':'%d'%height,
                                         'horiz':'%.5f'%pr_horiz,
@@ -443,7 +435,7 @@ class DynamicBubble(Bubble):
         PrMediaClip.outtext_index = PrMediaClip.outtext_index + 1
         PrMediaClip.clip_index = PrMediaClip.clip_index+1
         return (clip_bubble,clip_text)
-
+# 聊天窗
 class ChatWindow(Bubble):
     def __init__(self,filepath=None,sub_key=['Key1'],sub_Bubble=[Bubble()],sub_Anime=[],sub_align=['left'],pos=(0,0),sub_pos=(0,0),sub_end=(0,0),am_left=0,am_right=0,sub_distance=50,label_color='Lavender'):
         # 媒体和路径
@@ -565,19 +557,19 @@ class ChatWindow(Bubble):
         canvas.paste(sub_canvas,self.sub_pos)
         canvas.paste(am_canvas,(self.am_left,self.sub_pos[1]),mask=am_canvas)
         return canvas
-
-# 背景图片
+# 背景
 class Background(PrMediaClip):
     def __init__(self,filepath,pos = (0,0),label_color='Lavender'):
         super().__init__(filepath=filepath,label_color=label_color)
         # 对纯色定义的背景的支持
         if filepath in self.cmap.keys():
             # 新建图像，并保存
-            ofile = Filepath(self.output_path+'/auto_BG_'+filepath+'.png')
+            ofile = self.output_path+'/auto_BG_'+filepath+'.png'
             self.media = Image.new(mode='RGBA',size=self.screen_size,color=self.cmap[filepath])
-            self.media.save(ofile.exact())
+            self.media.save(ofile)
+            self.filepath = Filepath(ofile)
             # 路径和尺寸
-            self.path = ofile.xml_reformated()
+            self.path = self.filepath.xml_reformated()
             self.size = self.screen_size
         else:
             self.path = self.filepath.xml_reformated()
@@ -618,7 +610,6 @@ class Background(PrMediaClip):
         return clip_this
     def convert(self):
         pass
-
 # 立绘图片
 class Animation(PrMediaClip):
     def __init__(self,filepath,pos = (0,0),tick=1,loop=True,label_color='Lavender'):
@@ -661,11 +652,10 @@ class Animation(PrMediaClip):
                               'colorlabel':self.label_color})
         PrMediaClip.clip_index = PrMediaClip.clip_index+1
         return clip_this
-
-# a 1.13.5 组合立绘，Animation类的子类，组合立绘只能是静态立绘！
+# 组合立绘
 class GroupedAnimation(Animation):
     def __init__(self,subanimation_list,subanimation_current_pos=None,label_color='Mango'):
-        ofile = Filepath(self.output_path+'/auto_GA_%d'%PrMediaClip.outanime_index+'.png')
+        ofile = self.output_path+'/auto_GA_%d'%PrMediaClip.outanime_index+'.png'
         canvas = Image.new(size=self.screen_size,mode='RGBA',color=(0,0,0,0))
         # 如果外部未指定位置参数，则使用子Animation类的自身的pos
         if subanimation_current_pos is None:
@@ -693,9 +683,11 @@ class GroupedAnimation(Animation):
                     # 打开 subanimation 的图片对象，将其按照am_pos, paste到canvas
                     canvas.paste(subanimation.media,am_pos,mask=subanimation.media)
         # 保存文件
-        canvas.save(ofile.exact())
+        canvas.save(ofile)
+        # 媒体参数
+        self.filepath = Filepath(ofile)
         self.pos = Pos(0,0)
-        self.path = ofile.xml_reformated()
+        self.path = self.filepath.xml_reformated()
         self.size = self.screen_size
         self.filename = 'auto_GA_%d'%PrMediaClip.outanime_index+'.png'
         self.fileindex = 'AMfile_%d'% PrMediaClip.file_index
@@ -703,7 +695,7 @@ class GroupedAnimation(Animation):
         # 序号
         PrMediaClip.file_index = PrMediaClip.file_index+1
         PrMediaClip.outanime_index = PrMediaClip.outanime_index+1
-# a1.6.5 内建动画，这是一个Animation类的子类，重构了构造函数
+# 内建动画
 class BuiltInAnimation(Animation):
     def __init__(self,anime_type='hitpoint',anime_args=('0',0,0,0),screensize = (1920,1080),layer=0,label_color='Mango'):
         self.label_color = label_color
@@ -800,13 +792,13 @@ class BuiltInAnimation(Animation):
                         pass
             else:
                 pass
-            ofile = Filepath(self.output_path+'/auto_BIA_%d'%PrMediaClip.outanime_index+'.png')
-            canvas.save(ofile.exact())
-
+            ofile = self.output_path+'/auto_BIA_%d'%PrMediaClip.outanime_index+'.png'
+            canvas.save(ofile)
             #剩下的需要定义的
+            self.filepath = Filepath(ofile)
             self.media = canvas
-            self.path = ofile.xml_reformated() # 兼容动画Animation，只使用第一帧！
-            self.filename = ofile.name()
+            self.path = self.filepath.xml_reformated() # 兼容动画Animation，只使用第一帧！
+            self.filename = self.filepath.name()
             self.fileindex = 'AMfile_%d'% PrMediaClip.file_index
             # 序号
             PrMediaClip.outanime_index = PrMediaClip.outanime_index+1
@@ -890,16 +882,17 @@ class BuiltInAnimation(Animation):
                     canvas.paste(face_surf,(int(0.1458*screensize[0]-fx-0.0278*screensize[1]),i*y_unit+(y_unit-fy)//2))
             else:
                 pass
-            ofile = Filepath(self.output_path+'/auto_BIA_%d'%PrMediaClip.outanime_index+'.png')
-            canvas.save(ofile.exact())
+            ofile = self.output_path+'/auto_BIA_%d'%PrMediaClip.outanime_index+'.png'
+            canvas.save(ofile)
+            # 其他的
+            self.filepath = Filepath(ofile)
             self.media = canvas
-            self.path = ofile.xml_reformated() # 兼容动画Animation，只使用第一帧！
-            self.filename = ofile.name()
+            self.path = self.filepath.xml_reformated() # 兼容动画Animation，只使用第一帧！
+            self.filename = self.filepath.name()
             self.fileindex = 'AMfile_%d'% PrMediaClip.file_index
             # self.PRpos = PR_center_arg(np.array(self.size),np.array(self.pos.get()))
             PrMediaClip.outanime_index = PrMediaClip.outanime_index+1
             PrMediaClip.file_index = PrMediaClip.file_index+1
-            
 # 音效
 class Audio(PrMediaClip):
     def __init__(self,filepath,label_color='Caribbean'):
@@ -908,9 +901,9 @@ class Audio(PrMediaClip):
         self.filename = self.filepath.name()
         self.fileindex = 'AUfile_%d'% PrMediaClip.file_index
         try:
-            self.length = self.get_length(filepath)*self.frame_rate
+            self.length = self.get_length(self.filepath.exact())*self.frame_rate
         except Exception as E:
-            print(WarningPrint('BadAuLen',filepath,E))
+            print(WarningPrint('BadAuLen',self.filepath.exact(),E))
             self.length = 0
         PrMediaClip.file_index = PrMediaClip.file_index+1
         
@@ -935,7 +928,6 @@ class Audio(PrMediaClip):
         mixer.init()
         this_audio = mixer.Sound(filepath)
         return this_audio.get_length()
-
 # 背景音乐
 class BGM:
     def __init__(self,filepath,volume=100,loop=True,label_color='Forest'):

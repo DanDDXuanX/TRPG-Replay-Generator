@@ -33,6 +33,8 @@ from core.Medias import GroupedAnimation
 from core.Medias import BuiltInAnimation
 from core.Medias import Audio_Video as Audio
 from core.Medias import BGM_Video as BGM
+# 文件路径
+from core.FilePaths import Filepath
 # 正则
 from core.Regexs import RE_mediadef
 
@@ -90,7 +92,7 @@ class ExportVideo:
             print(E)
             sys.exit(1)
         # 媒体类，配置
-        MediaObj.medef_path = os.path.dirname(self.media_obj.replace('\\','/'))
+        Filepath.Mediapath = os.path.dirname(self.media_obj.replace('\\','/'))
         MediaObj.screen_size = (self.Width,self.Height)
         MediaObj.frame_rate = self.frame_rate
         # 全局变量

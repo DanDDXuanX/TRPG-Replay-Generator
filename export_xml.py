@@ -17,13 +17,18 @@ import pandas as pd
 import numpy as np
 import re
 import pickle
-
+# 媒体路径
+from core.FilePaths import Filepath
 # 媒体导入
-
 from core.FreePos import Pos,FreePos,PosGrid
-from core.PrClips import *
+from core.PrClips import PrMediaClip
+from core.PrClips import Text,StrokeText
+from core.PrClips import Bubble,Balloon,DynamicBubble,ChatWindow
+from core.PrClips import Background
+from core.PrClips import Animation,GroupedAnimation,BuiltInAnimation
+from core.PrClips import Audio,BGM
+# 正则
 from core.Regexs import RE_mediadef
-
 
 # 导出PR项目模块
 class ExportXML:
@@ -86,12 +91,12 @@ class ExportXML:
         self.timeline,self.break_point,self.bulitin_media = pickle.load(timeline_ifile)
         timeline_ifile.close()
         # 项目配置参数的初始化
+        Filepath.Mediapath = os.path.dirname(self.media_obj.replace('\\','/'))
         PrMediaClip.screen_size = self.screen_size
         PrMediaClip.output_path = self.output_path
         PrMediaClip.frame_rate = self.frame_rate
         PrMediaClip.Is_NTSC = self.Is_NTSC
         PrMediaClip.Audio_type = self.Audio_type
-        PrMediaClip.medef_path = os.path.dirname(self.media_obj.replace('\\','/'))
         # 开始执行主程序
         self.main()
     # 载入媒体定义文件和bulitintimeline
@@ -152,7 +157,37 @@ class ExportXML:
             # self.MediaObjects[obj_name] = eval(instantiation) 
             self.media_list.append(key)
     # 处理bg 和 am 的parser
-    def parse_timeline(self,layer) -> list:
+    def parse_timeline_anime(self,layer) -> list:
+        break_at_breakpoint = ((layer[0:2]!='BG') & (layer[-1]!='S'))
+        track = self.timeline[[layer,layer+'_c']]
+        clips = []
+        item,begin,end = 'NA',0,0
+        center:str = '(0,0)'
+        for key,values in track.iterrows():
+            #如果item变化了，或者进入了指定的断点(仅断点分隔的图层)
+            if (values[layer] != item) | ((key in self.break_point.values) & break_at_breakpoint): 
+                if (item == 'NA') | (item!=item): # 如果item是空 
+                    pass # 则不输出什么
+                else:
+                    end = key #否则把当前key作为一个clip的断点
+                    clips.append((item,begin,end,center)) #并记录下这个断点
+                #无论如何，重设item和begin和center
+                item = values[layer] 
+                begin = key
+                center = values[layer + '_c']
+            #如果不满足断点要求，那么就什么都不做
+            else:
+                pass            
+        # 循环结束之后，最后检定一次是否需要输出一个clips
+        #end = key # alpha 1.7.5 debug: 循环结束时的key有可能并不是时间轴的终点
+        end = int(self.break_point.max()) # 因为有可能到终点为止，所有帧都是一样的，而导致被去重略去
+        if (item == 'NA') | (item!=item):
+            pass
+        else:
+            clips.append((item,begin,end,center))
+        return clips #返回一个clip的列表
+    # 处理se 和 bgm 的parser
+    def parse_timeline_audio(self,layer) -> list:
         break_at_breakpoint = ((layer[0:2]!='BG') & (layer[-1]!='S'))
         track = self.timeline[[layer]]
         clips = []
@@ -160,15 +195,17 @@ class ExportXML:
         for key,values in track.iterrows():
             #如果item变化了，或者进入了指定的断点(仅断点分隔的图层)
             if (values[layer] != item) | ((key in self.break_point.values) & break_at_breakpoint): 
-                if (item == 'NA') | (item!=item): # 如果itme是空 
+                if (item == 'NA') | (item!=item): # 如果item是空 
                     pass # 则不输出什么
                 else:
                     end = key #否则把当前key作为一个clip的断点
                     clips.append((item,begin,end)) #并记录下这个断点
-                item = values[layer] #无论如何，重设item和begin
+                #无论如何，重设item和begin和center
+                item = values[layer] 
                 begin = key
-            else: #如果不满足断点要求，那么就什么都不做
-                pass
+            #如果不满足断点要求，那么就什么都不做
+            else:
+                pass            
         # 循环结束之后，最后检定一次是否需要输出一个clips
         #end = key # alpha 1.7.5 debug: 循环结束时的key有可能并不是时间轴的终点
         end = int(self.break_point.max()) # 因为有可能到终点为止，所有帧都是一样的，而导致被去重略去
@@ -180,34 +217,36 @@ class ExportXML:
     # 处理Bb 的parser
     def parse_timeline_bubble(self,layer) -> list:
         break_at_breakpoint = ((layer[0:2]!='BG') & (layer[-1]!='S'))
-        track = self.timeline[[layer,layer+'_main',layer+'_header']]
+        track = self.timeline[[layer,layer+'_main',layer+'_header',layer+'_c']]
         clips = []
         item,begin,end = 'NA',0,0
+        center:str = '(0,0)'
         for key,values in track.iterrows():
             #如果item变化了，或者进入了指定的断点(这是保证断句的关键！)(仅断点分隔的图层)
             if (values[layer] != item) | ((key in self.break_point.values) & break_at_breakpoint): 
-                if (item == 'NA') | (item!=item): # 如果itme是空 
+                if (item == 'NA') | (item!=item): # 如果item是空 item 指前一个小节的元素
                     pass # 则不输出什么
                 else:
                     end = key #否则把当前key作为一个clip的断点
-                    clips.append((item,main_text,header_text,begin,end)) #并记录下这个断点
-                item = values[layer] #无论如何，重设item和begin
-                # main_text = values[layer + '_main'] # v 1.10.15 这两行似乎没啥用？
-                # header_text = values[layer + '_header'] # 因为下面又赋值了一遍
+                    clips.append((item,main_text,header_text,begin,end,center)) #并记录下这个断点
+                # 无论如何，重设item和begin
+                item = values[layer]
                 begin = key
+                center = values[layer + '_c']
             else: #如果不满足断点要求，那么就什么都不做
                 pass
             # 然后更新文本内容
             main_text = values[layer + '_main']
             header_text = values[layer + '_header']
+            
         # 循环结束之后，最后检定一次是否需要输出一个clips
         #end = key
         end = int(self.break_point.max()) # alpha 1.7.5 debug: 而breakpoint的最大值一定是时间轴的终点
         if (item == 'NA') | (item!=item):
             pass
         else:
-            clips.append((item,main_text,header_text,begin,end))
-        return clips #返回一个clip的列表
+            clips.append((item,main_text,header_text,begin,end,center))
+        return clips #返回一个clip的列表(str,str,str,int,int,str)
     # 构建序列
     def bulid_sequence(self) -> str:
         # 载入xml模板
@@ -226,8 +265,9 @@ class ExportXML:
                 text_clip_list = []
                 for item in track_items:
                     # bubble_this,text_this = self.MediaObjects[item[0]].display(begin=item[3],end=item[4],text=item[1],header=item[2])
-                    bubble_this,text_this = eval('{0}.display(begin ={1},end={2},text="{3}",header="{4}")'
-                                                .format(item[0],item[3],item[4],item[1],item[2]))
+                    # bubble_this,text_this = eval('{0}.display(begin ={1},end={2},text="{3}",header="{4}")'
+                    #                             .format(item[0],item[3],item[4],item[1],item[2]))
+                    bubble_this,text_this = eval(item[0]).display(text=item[1],header=item[2],begin=(item[3]),end=item[4],center=item[5])
                     if bubble_this is not None:
                         # 气泡的返回值可能为空！
                         bubble_clip_list.append(bubble_this)
@@ -237,12 +277,13 @@ class ExportXML:
                 video_tracks.append(track_tplt.format(**{'targeted':'True','clips':'\n'.join(text_clip_list)}))
             # 音效图层
             elif layer in ['SE','Voice']:
-                track_items = self.parse_timeline(layer)
+                track_items = self.parse_timeline_audio(layer)
                 clip_list = []
                 for item in track_items:
                     if item[0] in self.media_list:
-                        clip_list.append(eval('{0}.display(begin={1})'.format(item[0],item[1])))
+                        # clip_list.append(eval('{0}.display(begin={1})'.format(item[0],item[1])))
                         # clip_list.append(self.MediaObjects[item[0]].display(begin=item[1]))
+                        clip_list.append(eval(item[0]).display(begin=item[1]))
                     elif os.path.isfile(item[0][1:-1]) == True: # 注意这个位置的item[0]首尾应该有个引号
                         temp = Audio(item[0][1:-1])
                         clip_list.append(temp.display(begin=item[1]))
@@ -251,11 +292,12 @@ class ExportXML:
                 audio_tracks.append(audio_track_tplt.format(**{'type':self.Audio_type,'clips':'\n'.join(clip_list)}))
             # 立绘或者背景图层
             else:
-                track_items = self.parse_timeline(layer)
+                track_items = self.parse_timeline_anime(layer)
                 clip_list = []
                 for item in track_items:
                     # clip_list.append(self.MediaObjects[item[0]].display(begin=item[1],end=item[2]))
-                    clip_list.append(eval('{0}.display(begin={1},end={2})'.format(item[0],item[1],item[2])))
+                    # clip_list.append(eval('{0}.display(begin={1},end={2})'.format(item[0],item[1],item[2])))
+                    clip_list.append(eval(item[0]).display(begin=item[1],end=item[2],center=item[3]))
                 video_tracks.append(track_tplt.format(**{'targeted':'False','clips':'\n'.join(clip_list)}))
 
         main_output = project_tplt.format(**{'timebase':'%d'%self.frame_rate,

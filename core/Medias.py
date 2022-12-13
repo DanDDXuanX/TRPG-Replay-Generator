@@ -13,10 +13,8 @@ from .Exceptions import MediaError, WarningPrint
 from .Formulas import sigmoid
 
 # 主程序 replay_generator
-
+# 媒体对象，所有媒体类的基类
 class MediaObj:
-    # 媒体定义路径
-    medef_path = '.'
     # 工程分辨率
     screen_size = (1920,1080)
     # 工程帧率
@@ -40,7 +38,6 @@ class MediaObj:
     # 转换媒体，仅图像媒体类需要
     def convert(self):
         pass
-
 # 文字对象
 class Text(MediaObj):
     pygame.font.init()
@@ -72,8 +69,7 @@ class Text(MediaObj):
         else:
             out_text = [self.render(text)]
         return out_text
-
-# 描边文本，是Text的子类。注意，使用这个媒体类可能会影响帧率！
+# 描边文本
 class StrokeText(Text):
     pygame.font.init()
     def __init__(self,fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0,0,255),line_limit=20,edge_color=(255,255,255,255),edge_width=1,label_color='Lavender'):
@@ -110,8 +106,7 @@ class StrokeText(Text):
             min_alpha = min(self.color[3],self.edge_color[3])
             canvas.set_alpha(min_alpha)
         return canvas
-
-# 对话框、气泡、文本框
+# 气泡
 class Bubble(MediaObj):                                   
     # 初始化
     def __init__(self,filepath=None,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),ht_pos=(0,0),ht_target='Name',align='left',line_distance=1.5,label_color='Lavender'):
@@ -181,8 +176,7 @@ class Bubble(MediaObj):
     # 转换媒体对象
     def convert(self):
         self.media = self.media.convert_alpha()
-
-# 多头文本框，气球
+# 气球
 class Balloon(Bubble):
     def __init__(self,filepath=None,Main_Text=Text(),Header_Text=[None],pos=(0,0),mt_pos=(0,0),ht_pos=[(0,0)],ht_target=['Name'],align='left',line_distance=1.5,label_color='Lavender'):
         super().__init__(filepath=filepath,Main_Text=Main_Text,Header_Text=Header_Text,pos=pos,mt_pos=mt_pos,ht_pos=ht_pos,ht_target=ht_target,align=align,line_distance=line_distance,label_color=label_color)
@@ -210,8 +204,7 @@ class Balloon(Bubble):
                 word_w,word_h = s.get_size()
                 temp.blit(s,(x+(self.MainText.size*self.MainText.line_limit - word_w)//2,y+i*self.MainText.size*self.line_distance))
         return temp,temp.get_size()
-
-# 尺寸自适应气泡
+# 自适应气泡
 class DynamicBubble(Bubble):
     def __init__(self,filepath=None,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),mt_end=(0,0),ht_pos=(0,0),ht_target='Name',fill_mode='stretch',line_distance=1.5,label_color='Lavender'):
         # align 只能为left
@@ -327,7 +320,6 @@ class DynamicBubble(Bubble):
     def convert(self): # 和Animation类相同的convert
         super().convert()
         self.bubble_clip = np.frompyfunc(lambda x:x.convert_alpha(),1,1)(self.bubble_clip)
-
 # 聊天窗
 class ChatWindow(Bubble):
     def __init__(self,filepath=None,sub_key=['Key1'],sub_Bubble=[Bubble()],sub_Anime=[],sub_align=['left'],pos=(0,0),sub_pos=(0,0),sub_end=(0,0),am_left=0,am_right=0,sub_distance=50,label_color='Lavender'):
@@ -468,8 +460,7 @@ class ChatWindow(Bubble):
         temp.blit(sub_surface,self.sub_pos)
         temp.blit(sub_groupam,(self.am_left,self.sub_pos[1]))
         return temp,temp.get_size()
-
-# 背景图片
+# 背景
 class Background(MediaObj):
     def __init__(self,filepath,pos = (0,0),label_color='Lavender'):
         # 文件和路径
@@ -501,8 +492,7 @@ class Background(MediaObj):
             surface.blit(self.media,render_pos.get())
     def convert(self):
         self.media = self.media.convert_alpha()
-
-# 这个是真的动画了，用法和旧版的amination是一样的！
+# 立绘
 class Animation(MediaObj):
     def __init__(self,filepath,pos = (0,0),tick=1,loop=True,label_color='Lavender'):
         # 文件和路径
@@ -543,8 +533,7 @@ class Animation(MediaObj):
         return tick_lineline
     def convert(self):
         self.media = np.frompyfunc(lambda x:x.convert_alpha(),1,1)(self.media)
-
-# a 1.13.5 组合立绘，Animation类的子类，组合立绘只能是静态立绘！
+# 组合立绘
 class GroupedAnimation(Animation):
     def __init__(self,subanimation_list,subanimation_current_pos=None,label_color='Mango'):
         # 新建画板，尺寸为全屏
@@ -589,8 +578,7 @@ class GroupedAnimation(Animation):
         self.this = 0
         self.tick = 1
         self.label_color = label_color
-
-# a1.7.5 内建动画，Animation类的子类
+# 内建动画
 class BuiltInAnimation(Animation):
     def __init__(self,anime_type='hitpoint',anime_args=('0',0,0,0),screensize = (1920,1080),layer=0,label_color='Mango'):
         BIA_text = Text('./media/SourceHanSerifSC-Heavy.otf',fontsize=int(0.0521*screensize[0]),color=(255,255,255,255),line_limit=10)
@@ -816,7 +804,6 @@ class BuiltInAnimation(Animation):
                 pass
             self.this = 0
             self.length=len(self.media)
-
 # 音效
 class Audio(MediaObj):
     pygame.mixer.init()
@@ -832,7 +819,6 @@ class Audio(MediaObj):
         channel.play(self.media)
     def get_length(self):
         return self.media.get_length()
-
 # 背景音乐
 class BGM(MediaObj):
     def __init__(self,filepath,volume=100,loop=True,label_color='Caribbean'):
@@ -857,13 +843,11 @@ class BGM(MediaObj):
         pygame.mixer.music.set_volume(self.volume) #设置音量
 
 # 导出视频模块 export video
-
 # 音效
 class Audio_Video(MediaObj):
     def __init__(self,filepath,label_color='Caribbean'):
         super().__init__(filepath=filepath,label_color=label_color)
         self.media = pydub.AudioSegment.from_file(self.filepath.exact())
-
 # 背景音乐
 class BGM_Video(MediaObj):
     def __init__(self,filepath,volume=100,loop=True,label_color='Caribbean'):

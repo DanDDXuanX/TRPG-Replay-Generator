@@ -17,22 +17,16 @@ import pygame.freetype
 import re
 import time #开发模式，显示渲染帧率
 import pickle
+# 文件路径
+from core.FilePaths import Filepath
 # 媒体类
 from core.FreePos import Pos,FreePos,PosGrid
 from core.Medias import MediaObj
-from core.Medias import Text
-from core.Medias import StrokeText
-from core.Medias import Bubble
-from core.Medias import Balloon
-from core.Medias import DynamicBubble
-from core.Medias import ChatWindow
+from core.Medias import Text,StrokeText
+from core.Medias import Bubble,Balloon,DynamicBubble,ChatWindow
 from core.Medias import Background
-from core.Medias import Animation
-from core.Medias import GroupedAnimation
-from core.Medias import BuiltInAnimation
-from core.Medias import Audio
-from core.Medias import BGM
-
+from core.Medias import Animation,GroupedAnimation,BuiltInAnimation
+from core.Medias import Audio,BGM
 # 正则表达式
 from core.Regexs import *
 # 曲线函数
@@ -108,7 +102,7 @@ class ReplayGenerator:
             print(E)
             self.system_terminated('Error')
         # 媒体类，显示参数配置
-        MediaObj.medef_path = os.path.dirname(self.media_obj.replace('\\','/'))
+        Filepath.Mediapath = os.path.dirname(self.media_obj.replace('\\','/'))
         MediaObj.screen_size = (self.Width,self.Height)
         MediaObj.frame_rate = self.frame_rate
         # 全局变量
