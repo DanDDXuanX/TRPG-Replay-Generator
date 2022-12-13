@@ -19,6 +19,7 @@ import time #开发模式，显示渲染帧率
 import pickle
 # 媒体类
 from core.FreePos import Pos,FreePos,PosGrid
+from core.Medias import MediaObj
 from core.Medias import Text
 from core.Medias import StrokeText
 from core.Medias import Bubble
@@ -31,8 +32,7 @@ from core.Medias import GroupedAnimation
 from core.Medias import BuiltInAnimation
 from core.Medias import Audio
 from core.Medias import BGM
-from core.Medias import screen_config
-from core.Medias import cmap
+
 # 正则表达式
 from core.Regexs import *
 # 曲线函数
@@ -108,9 +108,9 @@ class ReplayGenerator:
             print(E)
             self.system_terminated('Error')
         # 媒体类，显示参数配置
-        screen_config['medef_path'] = os.path.dirname(self.media_obj.replace('\\','/'))
-        screen_config['screen_size'] = (self.Width,self.Height)
-        screen_config['frame_rate'] = self.frame_rate
+        MediaObj.medef_path = os.path.dirname(self.media_obj.replace('\\','/'))
+        MediaObj.screen_size = (self.Width,self.Height)
+        MediaObj.frame_rate = self.frame_rate
         # 全局变量
         self.occupied_variable_name = open('./media/occupied_variable_name.list','r',encoding='utf8').read().split('\n')
         # 获取解释器的路径
@@ -1536,21 +1536,21 @@ class ReplayGenerator:
                     self.render(this_frame)
                     # 如果正在暂停
                     if forward == 0:
-                        self.screen.blit(self.note_text.render('Press space to continue.',fgcolor=cmap['notetext'],size=0.0278*self.Height)[0],(0.410*self.Width,0.926*self.Height)) # pause
+                        self.screen.blit(self.note_text.render('Press space to continue.',fgcolor=MediaObj.cmap['notetext'],size=0.0278*self.Height)[0],(0.410*self.Width,0.926*self.Height)) # pause
                     # 显示详情模式
                     if show_detail_info == 1:
-                        self.screen.blit(self.note_text.render(detail_info[0],fgcolor=cmap['notetext'],size=0.0185*self.Height)[0],(10,10))
-                        self.screen.blit(self.note_text.render(detail_info[2].format(n,this_frame['section']+1),fgcolor=cmap['notetext'],size=0.0185*self.Height)[0],(10,10+0.0666*self.Height))
-                        self.screen.blit(self.note_text.render(detail_info[3].format(self.stdin_text[this_frame['section']]),fgcolor=cmap['notetext'],size=0.0185*self.Height)[0],(10,10+0.1*self.Height))
-                        self.screen.blit(self.note_text.render(detail_info[4],fgcolor=cmap['notetext'],size=0.0185*self.Height)[0],(10,10+0.1333*self.Height))
-                        self.screen.blit(self.note_text.render(detail_info[5].format(this_frame['BG1'],this_frame['BG2']),fgcolor=cmap['notetext'],size=0.0185*self.Height)[0],(10,10+0.1666*self.Height))
-                        self.screen.blit(self.note_text.render(detail_info[6].format(this_frame['Am1'],this_frame['Am2'],this_frame['Am3'],this_frame['AmS']),fgcolor=cmap['notetext'],size=0.0185*self.Height)[0],(10,10+0.2*self.Height))
-                        self.screen.blit(self.note_text.render(detail_info[7].format(this_frame['Bb'],this_frame['Bb_header'],this_frame['Bb_main']),fgcolor=cmap['notetext'],size=0.0185*self.Height)[0],(10,10+0.2333*self.Height))
-                        self.screen.blit(self.note_text.render(detail_info[8].format(this_frame['BbS'],this_frame['BbS_header'],this_frame['BbS_main']),fgcolor=cmap['notetext'],size=0.0185*self.Height)[0],(10,10+0.2666*self.Height))
-                        self.screen.blit(self.note_text.render(detail_info[1].format(int(1/(time.time()-ct+1e-4))),fgcolor=cmap['notetext'],size=0.0185*self.Height)[0],(10,10+0.0333*self.Height))
+                        self.screen.blit(self.note_text.render(detail_info[0],fgcolor=MediaObj.cmap['notetext'],size=0.0185*self.Height)[0],(10,10))
+                        self.screen.blit(self.note_text.render(detail_info[2].format(n,this_frame['section']+1),fgcolor=MediaObj.cmap['notetext'],size=0.0185*self.Height)[0],(10,10+0.0666*self.Height))
+                        self.screen.blit(self.note_text.render(detail_info[3].format(self.stdin_text[this_frame['section']]),fgcolor=MediaObj.cmap['notetext'],size=0.0185*self.Height)[0],(10,10+0.1*self.Height))
+                        self.screen.blit(self.note_text.render(detail_info[4],fgcolor=MediaObj.cmap['notetext'],size=0.0185*self.Height)[0],(10,10+0.1333*self.Height))
+                        self.screen.blit(self.note_text.render(detail_info[5].format(this_frame['BG1'],this_frame['BG2']),fgcolor=MediaObj.cmap['notetext'],size=0.0185*self.Height)[0],(10,10+0.1666*self.Height))
+                        self.screen.blit(self.note_text.render(detail_info[6].format(this_frame['Am1'],this_frame['Am2'],this_frame['Am3'],this_frame['AmS']),fgcolor=MediaObj.cmap['notetext'],size=0.0185*self.Height)[0],(10,10+0.2*self.Height))
+                        self.screen.blit(self.note_text.render(detail_info[7].format(this_frame['Bb'],this_frame['Bb_header'],this_frame['Bb_main']),fgcolor=MediaObj.cmap['notetext'],size=0.0185*self.Height)[0],(10,10+0.2333*self.Height))
+                        self.screen.blit(self.note_text.render(detail_info[8].format(this_frame['BbS'],this_frame['BbS_header'],this_frame['BbS_main']),fgcolor=MediaObj.cmap['notetext'],size=0.0185*self.Height)[0],(10,10+0.2666*self.Height))
+                        self.screen.blit(self.note_text.render(detail_info[1].format(int(1/(time.time()-ct+1e-4))),fgcolor=MediaObj.cmap['notetext'],size=0.0185*self.Height)[0],(10,10+0.0333*self.Height))
                     # 仅显示帧率
                     else:
-                        self.screen.blit(self.note_text.render('%d'%(1//(time.time()-ct+1e-4)),fgcolor=cmap['notetext'],size=0.0278*self.Height)[0],(10,10)) ##render rate +1e-4 to avoid float divmod()
+                        self.screen.blit(self.note_text.render('%d'%(1//(time.time()-ct+1e-4)),fgcolor=MediaObj.cmap['notetext'],size=0.0278*self.Height)[0],(10,10)) ##render rate +1e-4 to avoid float divmod()
                     # 如果缩放到一半大小
                     if resize_screen == 1:
                         self.screen_resized.blit(pygame.transform.scale(self.screen,(self.Width//2,self.Height//2)),(0,0))

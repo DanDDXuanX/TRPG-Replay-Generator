@@ -5,21 +5,12 @@
 
 import numpy as np
 import pygame
-import glob # 匹配路径
 import pydub
 
 from .FilePaths import Filepath
 from .FreePos import Pos,FreePos
 from .Exceptions import MediaError, WarningPrint
 from .Formulas import sigmoid
-
-# screen_config = {
-#     'medef_path' : '.',
-#     'screen_size' : (1920,1080),
-#     'frame_rate' : 30,
-# }
-
-# cmap = {'black':(0,0,0,255),'white':(255,255,255,255),'greenscreen':(0,177,64,255),'notetext':(118,185,0,255)}
 
 # 主程序 replay_generator
 
@@ -597,12 +588,14 @@ class GroupedAnimation(Animation):
         self.loop = 0
         self.this = 0
         self.tick = 1
+        self.label_color = label_color
 
 # a1.7.5 内建动画，Animation类的子类
 class BuiltInAnimation(Animation):
     def __init__(self,anime_type='hitpoint',anime_args=('0',0,0,0),screensize = (1920,1080),layer=0,label_color='Mango'):
         BIA_text = Text('./media/SourceHanSerifSC-Heavy.otf',fontsize=int(0.0521*screensize[0]),color=(255,255,255,255),line_limit=10)
         frame_rate = self.frame_rate
+        self.label_color = label_color
         if anime_type == 'hitpoint': # anime_args=('0',0,0,0)
             # 载入图片
             heart = pygame.image.load('./media/heart.png')

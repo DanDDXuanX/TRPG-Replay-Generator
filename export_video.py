@@ -20,6 +20,7 @@ import re
 import pickle
 # 媒体定义
 from core.FreePos import Pos,FreePos,PosGrid
+from core.Medias import MediaObj
 from core.Medias import Text
 from core.Medias import StrokeText
 from core.Medias import Bubble
@@ -32,7 +33,6 @@ from core.Medias import GroupedAnimation
 from core.Medias import BuiltInAnimation
 from core.Medias import Audio_Video as Audio
 from core.Medias import BGM_Video as BGM
-from core.Medias import screen_config
 # 正则
 from core.Regexs import RE_mediadef
 
@@ -90,9 +90,9 @@ class ExportVideo:
             print(E)
             sys.exit(1)
         # 媒体类，配置
-        screen_config['medef_path'] = os.path.dirname(self.media_obj.replace('\\','/'))
-        screen_config['screen_size'] = (self.Width,self.Height)
-        screen_config['frame_rate'] = self.frame_rate
+        MediaObj.medef_path = os.path.dirname(self.media_obj.replace('\\','/'))
+        MediaObj.screen_size = (self.Width,self.Height)
+        MediaObj.frame_rate = self.frame_rate
         # 全局变量
         self.stdin_name = self.stdin_log.replace('\\','/').split('/')[-1]
         self.occupied_variable_name = open('./media/occupied_variable_name.list','r',encoding='utf8').read().split('\n')

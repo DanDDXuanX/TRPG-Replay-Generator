@@ -68,6 +68,9 @@ class Filepath:
     # 文件后缀
     def type(self) -> str:
         return self.exact().split('.')[-1]
+    # 文件名字
+    def name(self) -> str:
+        return self.exact().split('/')[-1]
     # PR路径（不包含通配符）
     def xml_reformated(self) -> str:
         to_format = self.exact()
