@@ -1067,7 +1067,12 @@ class ReplayGenerator:
                     # 持续指定帧，仅显示当前背景
                     this_timeline=pd.DataFrame(index=range(0,this_dur),dtype=str,columns=render_arg)
                     # 停留的帧：当前时间轴的最后一帧，不含S图层
-                    wait_frame = render_timeline.iloc[-1]
+                    wait_frame = render_timeline.iloc[-1].copy()
+                    # 检查wait frame里面，有没有透明度为0，如果有则删除图层
+                    for layer in self.zorder:
+                        if wait_frame[layer+'_a'] == 0:
+                            # 以防导出xml项目异常
+                            wait_frame[layer] = 'NA'
                     # 应用
                     this_timeline[render_arg] = wait_frame
                     # BGM

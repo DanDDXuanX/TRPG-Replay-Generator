@@ -15,7 +15,7 @@
 <set:speech_speed>:500
 
 [KP]:本项目是回声工坊的基本示例视频，用于对本软件的基本功能进行展示。<w2w=2>{音效;5}
-[张安翔]:^项目链接：#https://github.com/DanDDXuanX/TRPG-Replay-Generator<w2w=2>{音效;5}
+[张安翔]<black=30>:^项目链接：#https://github.com/DanDDXuanX/TRPG-Replay-Generator<w2w=2>{音效;5}
 <animation>:回放标记
 <wait>:100
 #e
