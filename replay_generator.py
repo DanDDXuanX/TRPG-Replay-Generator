@@ -352,8 +352,8 @@ class ReplayGenerator:
         'BbS','BbS_main','BbS_header','BbS_a','BbS_c','BbS_p',
         'BGM','Voice','SE'
         ]
-        # 断点文件
-        break_point = pd.Series(0,index=range(0,len(stdin_text)),dtype=int)
+        # 断点文件: index + 1 == section, 因为还要包含尾部，所以总长比section长1
+        break_point = pd.Series(0,index=range(0,len(stdin_text)+1),dtype=int)
         # break_point[0]=0
         # 视频+音轨 时间轴
         render_timeline = pd.DataFrame(dtype=str,columns=render_arg)
@@ -1090,12 +1090,13 @@ class ReplayGenerator:
             # 异常行，报出异常
             else:
                 raise ParserError('UnrecLine',str(i+1))
+            # 鲁棒性建议：把break_point的操作全部移入各个分支里独立处理，而不是靠continue
             break_point[i+1]=break_point[i]
         
-        # 处理上一次的place最终一次
+        # 处理上一次的place最终一次：注意，这里已经是末端了
         try:
             # 处理上一次的place:AmS最终一次
-            last_placed_index = range(break_point[last_placed_animation_section],break_point[i])
+            last_placed_index = range(break_point[last_placed_animation_section],break_point.iloc[-1])
             this_duration = len(last_placed_index)
             this_am,am_method,am_dur,am_center = this_placed_animation
             # 如果place的this_duration小于切换时间，则清除动态切换效果
@@ -1118,7 +1119,7 @@ class ReplayGenerator:
                 render_timeline.loc[last_placed_index,'AmS_c'] = am_center
 
             # 处理上一次的place:BbS最终一次
-            last_placed_index = range(break_point[last_placed_bubble_section],break_point[i])
+            last_placed_index = range(break_point[last_placed_bubble_section],break_point.iloc[-1])
             this_duration = len(last_placed_index)
             # bb,method,method_dur,HT,MT,text_method,tx_dur,center
             this_bb,bb_method,bb_dur,this_hd,this_tx,text_method,text_dur,bb_center = this_placed_bubble

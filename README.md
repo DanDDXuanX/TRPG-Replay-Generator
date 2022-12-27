@@ -6,11 +6,11 @@
 
 ## 程序下载
 
-### [免安装版](https://github.com/DanDDXuanX/TRPG-Replay-Generator/releases/download/v1.1.1/TRPG-Replay-Generator-v1.1.1-win64.7z)
+### [免安装版](https://github.com/DanDDXuanX/TRPG-Replay-Generator/releases/download/v1.1.2/TRPG-Replay-Generator-v1.1.2-win64.7z)
 - 免安装版是二进制可执行文件（.exe），仅适用于windows 64位系统。<p>
 - **解压即可使用**，无需另外安装python环境及其依赖项目。<p>
 
-### [源代码](https://github.com/DanDDXuanX/TRPG-Replay-Generator/releases/download/v1.1.1/TRPG-Replay-Generator-v1.1.1-SourceCode.7z)
+### [源代码](https://github.com/DanDDXuanX/TRPG-Replay-Generator/releases/download/v1.1.2/TRPG-Replay-Generator-v1.1.2-SourceCode.7z)
 - 源代码是程序的源文件（.py），适用于 windows，linux和 macOS系统。<p>
 - **必须安装**[**环境要求**](./README.md#环境要求)中指定的项目后才能运行。<p>
 
@@ -23,42 +23,35 @@
 1. 显示器分辨率：1920x1080
 2. 内存：8GB 或者更多
 
-## 环境要求：
-
-**运行主程序replay_generator所必要的：**
-1. python &gt;= 3.8.3
-2. [pygame](https://github.com/pygame/pygame) &gt;= 2.0.1
-3. [numpy](https://github.com/numpy/numpy) &gt;= 1.18.5
-4. [pandas](https://github.com/pandas-dev/pandas) &gt;= 1.0.5
-5. openpyxl &gt;= 3.0.4
-
-**若要导出为Premiere Pro XML 文件，额外要求：**
-1. [Pillow](https://github.com/python-pillow/Pillow) &gt;= 7.2.0
-
-**若要导出为 MP4 视频，额外要求：**
-1. [ffmpeg-python](https://github.com/kkroening/ffmpeg-python) &gt;= 0.2.0
-2. [pydub](https://github.com/jiaaro/pydub) &gt;= 0.25.1
-3. 下载[ffmpeg](https://ffmpeg.org/download.html)的可执行文件，并解压到本程序根目录。
-
-**若使用语音合成模块，额外要求：**
-1. 安装[阿里云智能语音服务Python SDK](https://github.com/aliyun/alibabacloud-nls-python-sdk)
-2. 获得[阿里云AccessKey、AccessKey_Secret、Appkey](https://ram.console.aliyun.com/manage/ak)
-3. azure-cognitiveservices-speech &gt;= 1.21.0
-4. 获得[Azure key](https://azure.microsoft.com/zh-cn/services/cognitive-services/text-to-speech/#overview)
-
 ## 快速上手
 
 ### 1. 使用免安装版
 
 1. 下载可执行文件的压缩包，并解压；<br>
-2. 运行 `TRPG-Replay-Generator-v1.0.0.exe` 打开图形界面；<br>
+2. 运行 `回声工坊.exe` 打开图形界面；<br>
 3. 在媒体定义栏输入 `./toy/MediaObject.txt` ，角色定义栏输入 `./toy/CharactorTable.tsv` ，log文件栏输入 `./toy/LogFile.rgl` ；<br>
 4. 点击开始，即可开始放映示例项目；<br>
 5. 进入程序后，按空格键（SPACE）开始播放；播放的过程中，按A键或左方向键跳转到前一小节，D键或右方向键跳转到后一小节，按空格暂停播放，按F5键或I键展示详细信息，按F11键或P键将画面缩放至50%，按ESC键终止播放并退出。
 
-> 注意：可执行文件release无需另外安装python环境就可使用。
+> 注意：免安装版不需要安装python环境！
 
 ### 2. 使用源代码
+
+#### 环境要求：
+
+1. python &gt;= 3.8.3
+2. [pygame](https://github.com/pygame/pygame) &gt;= 2.0.1
+3. [numpy](https://github.com/numpy/numpy) &gt;= 1.18.5
+4. [pandas](https://github.com/pandas-dev/pandas) &gt;= 1.0.5
+5. openpyxl &gt;= 3.0.4
+6. [Pillow](https://github.com/python-pillow/Pillow) &gt;= 7.2.0
+7. [ffmpeg-python](https://github.com/kkroening/ffmpeg-python) &gt;= 0.2.0
+8. [pydub](https://github.com/jiaaro/pydub) &gt;= 0.25.1
+9. azure-cognitiveservices-speech &gt;= 1.21.0
+10. 下载[ffmpeg](https://ffmpeg.org/download.html)的可执行文件，并解压到本程序根目录。
+11. 安装[阿里云智能语音服务Python SDK](https://github.com/aliyun/alibabacloud-nls-python-sdk)
+
+#### 操作流程：
 
 1. 下载源代码的压缩包，并解压；<br>
 2. 确保python已经准确安装，然后在解压路径，使用终端运行下列命令，安装环境要求；<br>
@@ -71,7 +64,7 @@ python ./replay_generator.py -l ./toy/LogFile.rgl -d ./toy/MediaObject.txt -t ./
 ```
 4. 进入程序后，按空格键（SPACE）开始播放；播放的过程中，按A键或左方向键跳转到前一小节，D键或右方向键跳转到后一小节，按空格暂停播放，按F5键或I键展示详细信息，按F11键或P键将画面缩放至50%，按ESC键终止播放并退出。
 
-# 参考文档（文档版本 alpha 1.17.0）
+# 参考文档（文档版本 alpha 1.18.0）
 
 ## 输入文件格式
 
