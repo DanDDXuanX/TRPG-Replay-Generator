@@ -459,7 +459,7 @@ class SpeechStudio:
         #messagebox.showinfo(title='复制到剪贴板',message='已成功将\n'+copy_to_clipboard+'\n复制到剪贴板')
         self.main_window.clipboard_clear()
         self.main_window.clipboard_append(copy_to_clipboard)
-    # 将选择条的数值强行转换为整型
+    # 将选择条的数值强行转换为整型 # BUG
     def get_scale_to_intvar(self,variable):
         variable.set(int(variable.get()))
     # 执行语音合成
