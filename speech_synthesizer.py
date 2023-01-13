@@ -459,7 +459,7 @@ class SpeechStudio:
         #messagebox.showinfo(title='复制到剪贴板',message='已成功将\n'+copy_to_clipboard+'\n复制到剪贴板')
         self.main_window.clipboard_clear()
         self.main_window.clipboard_append(copy_to_clipboard)
-    # 将选择条的数值强行转换为整型 # BUG
+    # 将选择条的数值强行转换为整型
     def get_scale_to_intvar(self,variable):
         variable.set(int(variable.get()))
     # 执行语音合成
@@ -569,8 +569,8 @@ class SpeechStudio:
         # 选择音源参数
         ttk.Spinbox(self.Aliyun_frame,from_=-500,to=500,textvariable=self.speech_rate,increment=10).place(x=75,y=40,width=50,height=25)
         ttk.Spinbox(self.Aliyun_frame,from_=-500,to=500,textvariable=self.pitch_rate,increment=10).place(x=75,y=70,width=50,height=25)
-        ttk.Scale(self.Aliyun_frame,from_=-500,to=500,variable=self.speech_rate,command=lambda:self.get_scale_to_intvar(self.speech_rate)).place(x=135,y=40,width=200,height=25)
-        ttk.Scale(self.Aliyun_frame,from_=-500,to=500,variable=self.pitch_rate,command=lambda:self.get_scale_to_intvar(self.pitch_rate)).place(x=135,y=70,width=200,height=25)
+        ttk.Scale(self.Aliyun_frame,from_=-500,to=500,variable=self.speech_rate,command=lambda event:self.get_scale_to_intvar(self.speech_rate)).place(x=135,y=40,width=200,height=25)
+        ttk.Scale(self.Aliyun_frame,from_=-500,to=500,variable=self.pitch_rate,command=lambda event:self.get_scale_to_intvar(self.pitch_rate)).place(x=135,y=70,width=200,height=25)
         # Azure参数
         self.azure_voice = tk.StringVar(self.Azure_frame)
         self.azure_style = tk.StringVar(self.Azure_frame)
@@ -600,8 +600,8 @@ class SpeechStudio:
         ## 选择语速和语调
         ttk.Spinbox(self.Azure_frame,from_=-500,to=500,textvariable=self.speech_rate,increment=10).place(x=75,y=100,width=50,height=25)
         ttk.Spinbox(self.Azure_frame,from_=-500,to=500,textvariable=self.pitch_rate,increment=10).place(x=75,y=130,width=50,height=25)
-        ttk.Scale(self.Azure_frame,from_=-500,to=500,variable=self.speech_rate,command=lambda:self.get_scale_to_intvar(self.speech_rate)).place(x=135,y=100,width=200,height=25)
-        ttk.Scale(self.Azure_frame,from_=-500,to=500,variable=self.pitch_rate,command=lambda:self.get_scale_to_intvar(self.pitch_rate)).place(x=135,y=130,width=200,height=25)
+        ttk.Scale(self.Azure_frame,from_=-500,to=500,variable=self.speech_rate,command=lambda event:self.get_scale_to_intvar(self.speech_rate)).place(x=135,y=100,width=200,height=25)
+        ttk.Scale(self.Azure_frame,from_=-500,to=500,variable=self.pitch_rate,command=lambda event:self.get_scale_to_intvar(self.pitch_rate)).place(x=135,y=130,width=200,height=25)
         # 文本框体
         self.text_to_synth = tk.Text(self.text_frame,font=("黑体",11))
         self.text_to_synth.place(x=10,y=5,width=335,height=115)
