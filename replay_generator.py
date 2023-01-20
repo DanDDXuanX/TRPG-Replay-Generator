@@ -1420,6 +1420,64 @@ class ReplayGenerator:
             pygame.mixer.music.unpause()
             for Ch in self.channel_list.values():
                 Ch.unpause()
+    # 生成进度条
+    def progress_bar(self) -> tuple:
+        available_label_color = {'Violet':'#a690e0','Iris':'#729acc','Caribbean':'#29d698','Lavender':'#e384e3',
+                                'Cerulean':'#2fbfde','Forest':'#51b858','Rose':'#f76fa4','Mango':'#eda63b',
+                                'Purple':'#970097','Blue':'#3c3cff','Teal':'#008080','Magenta':'#e732e7',
+                                'Tan':'#cec195','Green':'#1d7021','Brown':'#8b4513','Yellow':'#e2e264'}
+        # 新建纯黑图层：width = screen, height = screen//30
+        progress_bar_surface = pygame.Surface((self.Width,self.Height//40),pygame.SRCALPHA)
+        progress_bar_surface.fill((0,0,0,0))
+        # 每个小节的长度，不包含0
+        len_of_section = self.break_point.diff().dropna()
+        # 整个timeline的总长度：
+        timeline_len = self.break_point.max()
+        # 遍历breakpoint：breakpoint 的值是每个小节的终点，key-1才是起点
+        for key in len_of_section.index:
+            # 如果key是0，或者本小节的长度是0，跳过本小节
+            if (key == 0) or (len_of_section[key] == 0):
+                continue
+            # 否则，渲染这个图层
+            else:
+                # 小节颜色：尝试获取立绘Am1、气泡Bb、背景BG2 的colorlabel
+                section_first_frame:pd.Series = self.render_timeline.loc[self.break_point[key-1]]
+                if section_first_frame['Am1'] != 'NA' and section_first_frame['Am1']==section_first_frame['Am1']:
+                    this_color = eval(section_first_frame['Am1']).label_color
+                elif section_first_frame['Bb'] != 'NA' and section_first_frame['Bb']==section_first_frame['Bb']:
+                    this_color = eval(section_first_frame['Bb']).label_color
+                else:
+                    this_color = eval(section_first_frame['BG2']).label_color
+                # 小节位置和宽度
+                section_pos_x = self.Width*(self.break_point[key-1] / timeline_len)
+                section_width = self.Width*(len_of_section[key] / timeline_len)
+                if section_width < 1:
+                    section_width = 1
+                # 渲染
+                pygame.draw.rect(
+                    surface=progress_bar_surface,
+                    color=available_label_color[this_color],
+                    rect=(section_pos_x,0,section_width,self.Height//40),
+                    width=0
+                    )
+                pygame.draw.rect(
+                    surface=progress_bar_surface,
+                    color=(0,0,0,255),
+                    rect=(section_pos_x,0,section_width,self.Height//40),
+                    width=1
+                    )
+        # 设置为半透明：还是算了
+        # progress_bar_surface.set_alpha(75)
+        # 三角形
+        unit = self.Height//40
+        triangular_surface = pygame.Surface((unit,unit),pygame.SRCALPHA)
+        triangular_surface.fill((0,0,0,0))
+        pygame.draw.polygon(
+            surface=triangular_surface,
+            color=(255,255,255,255),
+            points=[(0,0),(unit,0),(unit/2,unit)]
+            )
+        return (progress_bar_surface,triangular_surface)
     # 播放窗口
     def preview_display(self) -> None:
         # 修复缩放错误
@@ -1486,6 +1544,9 @@ class ReplayGenerator:
                     8:"Layer: BbS:{0}; HDS:{1}; TXS:{2}"
                     }
         resize_screen = 0 # 是否要强制缩小整个演示窗体
+        # 进度条
+        progress_bar,triangular = self.progress_bar()
+        # self.screen.blit(progress_bar,(0,self.Height-self.Height//30))
         # 主循环
         while n < self.break_point.max():
             ct = time.time()
@@ -1534,6 +1595,13 @@ class ReplayGenerator:
                     this_frame = self.render_timeline.loc[n]
                     # 渲染！
                     self.render(this_frame)
+                    # 显示进度条
+                    self.screen.blit(progress_bar,(0,self.Height-self.Height//40))
+                    # 显示进度条箭头
+                    self.screen.blit(triangular,(
+                        n/self.break_point.max()*self.Width-self.Height//80, # x
+                        self.Height-self.Height//20) # y
+                        )
                     # 如果正在暂停
                     if forward == 0:
                         self.screen.blit(self.note_text.render('Press space to continue.',fgcolor=MediaObj.cmap['notetext'],size=0.0278*self.Height)[0],(0.410*self.Width,0.926*self.Height)) # pause
