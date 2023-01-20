@@ -1427,8 +1427,8 @@ class ReplayGenerator:
                                 'Purple':'#970097','Blue':'#3c3cff','Teal':'#008080','Magenta':'#e732e7',
                                 'Tan':'#cec195','Green':'#1d7021','Brown':'#8b4513','Yellow':'#e2e264'}
         # 新建纯黑图层：width = screen, height = screen//30
-        progress_bar_surface = pygame.Surface((self.Width,self.Height//40),pygame.SRCALPHA)
-        progress_bar_surface.fill((0,0,0,0))
+        progress_bar_surface = pygame.Surface((self.Width,self.Height//60),pygame.SRCALPHA)
+        progress_bar_surface.fill((0,0,0,255))
         # 每个小节的长度，不包含0
         len_of_section = self.break_point.diff().dropna()
         # 整个timeline的总长度：
@@ -1442,12 +1442,10 @@ class ReplayGenerator:
             else:
                 # 小节颜色：尝试获取立绘Am1、气泡Bb、背景BG2 的colorlabel
                 section_first_frame:pd.Series = self.render_timeline.loc[self.break_point[key-1]]
-                if section_first_frame['Am1'] != 'NA' and section_first_frame['Am1']==section_first_frame['Am1']:
-                    this_color = eval(section_first_frame['Am1']).label_color
-                elif section_first_frame['Bb'] != 'NA' and section_first_frame['Bb']==section_first_frame['Bb']:
-                    this_color = eval(section_first_frame['Bb']).label_color
-                else:
-                    this_color = eval(section_first_frame['BG2']).label_color
+                for layer in ['Am1','Am2','Am3','Bb','BG2']:
+                    if section_first_frame[layer] != 'NA' and section_first_frame[layer]==section_first_frame[layer]:
+                        this_color = eval(section_first_frame[layer]).label_color
+                        break
                 # 小节位置和宽度
                 section_pos_x = self.Width*(self.break_point[key-1] / timeline_len)
                 section_width = self.Width*(len_of_section[key] / timeline_len)
@@ -1457,25 +1455,32 @@ class ReplayGenerator:
                 pygame.draw.rect(
                     surface=progress_bar_surface,
                     color=available_label_color[this_color],
-                    rect=(section_pos_x,0,section_width,self.Height//40),
+                    rect=(section_pos_x,0,section_width,self.Height//60),
                     width=0
                     )
                 pygame.draw.rect(
                     surface=progress_bar_surface,
                     color=(0,0,0,255),
-                    rect=(section_pos_x,0,section_width,self.Height//40),
+                    rect=(section_pos_x,0,section_width,self.Height//60),
                     width=1
                     )
         # 设置为半透明：还是算了
         # progress_bar_surface.set_alpha(75)
         # 三角形
-        unit = self.Height//40
-        triangular_surface = pygame.Surface((unit,unit),pygame.SRCALPHA)
+        unit = self.Height//60
+        triangular_surface = pygame.Surface((unit,unit*2),pygame.SRCALPHA)
         triangular_surface.fill((0,0,0,0))
         pygame.draw.polygon(
             surface=triangular_surface,
             color=(255,255,255,255),
             points=[(0,0),(unit,0),(unit/2,unit)]
+            )
+        pygame.draw.line(
+            surface=triangular_surface,
+            color=(255,255,255,255),
+            start_pos=(unit/2,0),
+            end_pos=(unit/2,2*unit),
+            width=3
             )
         return (progress_bar_surface,triangular_surface)
     # 播放窗口
@@ -1530,12 +1535,13 @@ class ReplayGenerator:
         #for s in np.arange(5,0,-1):
         #    self.timer(s)
         # 预览播放参数
+        timeline_len = self.break_point.max() # 时间轴总长度
         n=0 # 当前帧
         forward = 1 #forward==0代表暂停
         show_detail_info = 0 # show_detail_info == 1代表显示详细信息
         detail_info = {0:"Project: Resolution: {0}x{1} ; FrameRate: {2} fps;".format(self.Width,self.Height,self.frame_rate),
                     1:"Render Speed: {0} fps",
-                    2:"Frame: {0}/"+str(self.break_point.max())+" ; Section: {1}/"+str(len(self.break_point)),
+                    2:"Frame: {0}/"+str(timeline_len)+" ; Section: {1}/"+str(len(self.break_point)),
                     3:"Command: {0}",
                     4:"Zorder: {0}".format('>>>'+'>'.join(self.zorder)+'>>>'),
                     5:"Layer: BG1:{0}; BG2:{1};",
@@ -1548,13 +1554,15 @@ class ReplayGenerator:
         progress_bar,triangular = self.progress_bar()
         # self.screen.blit(progress_bar,(0,self.Height-self.Height//30))
         # 主循环
-        while n < self.break_point.max():
+        while n < timeline_len:
             ct = time.time()
             try:
                 for event in pygame.event.get():
+                    # 关闭窗口事件
                     if event.type == pygame.QUIT:
                         pygame.quit()
                         self.system_terminated('User')
+                    # 键盘事件
                     elif event.type == pygame.KEYDOWN:
                         if event.key == pygame.K_ESCAPE:
                             self.stop_SE()
@@ -1562,6 +1570,7 @@ class ReplayGenerator:
                             pygame.quit()
                             self.system_terminated('User')
                         elif event.key in [pygame.K_a,pygame.K_LEFT]:
+                            # 警告：这个地方真的是要执行2次的！
                             n=self.break_point[(self.break_point-n)<0].max()
                             n=self.break_point[(self.break_point-n)<0].max()
                             if n != n: # 确保不会被a搞崩
@@ -1591,17 +1600,41 @@ class ReplayGenerator:
                             self.pause_SE(forward) # 0:pause,1:unpause
                         else:
                             pass
+                    # 鼠标点击事件
+                    elif event.type == pygame.MOUSEBUTTONDOWN:
+                        if event.button == 1: # 左键
+                            click_x, click_y = event.pos
+                            if click_y >= (self.Height - self.Height//60): # 进度条区区域
+                                # 被点击的帧
+                                frame_click = int(click_x / self.Width * timeline_len)
+                                # 定位到小节起始点
+                                n = self.break_point[(self.break_point-frame_click)<0].max()
+                                if n != n: # 确保不会被a搞崩
+                                    n = 0
+                                self.stop_SE()
+                                pygame.mixer.music.stop()
+                                continue
+                            else:
+                                pass
+                        else:
+                            pass
                 if n in self.render_timeline.index:
                     this_frame = self.render_timeline.loc[n]
                     # 渲染！
                     self.render(this_frame)
                     # 显示进度条
-                    self.screen.blit(progress_bar,(0,self.Height-self.Height//40))
+                    self.screen.blit(progress_bar,(0,self.Height-self.Height//60))
                     # 显示进度条箭头
                     self.screen.blit(triangular,(
-                        n/self.break_point.max()*self.Width-self.Height//80, # x
-                        self.Height-self.Height//20) # y
+                        n/timeline_len*self.Width-self.Height//120, # x
+                        self.Height-self.Height//30) # y
                         )
+                    # 小节数显示
+                    section_display = self.note_text.render('%d'%(this_frame['section']+1),fgcolor=MediaObj.cmap['white'],size=0.02*self.Height)[0]
+                    self.screen.blit(section_display,(
+                            n/timeline_len*self.Width-section_display.get_size()[0]/2,
+                            self.Height-self.Height//30-self.Height//50
+                        ))
                     # 如果正在暂停
                     if forward == 0:
                         self.screen.blit(self.note_text.render('Press space to continue.',fgcolor=MediaObj.cmap['notetext'],size=0.0278*self.Height)[0],(0.410*self.Width,0.926*self.Height)) # pause

@@ -1,1 +1,0 @@
-气泡 = Bubble(filepath='./toy/media/bubble1.png',Main_Text=Text(),Header_Text=None,pos=(300,330),mt_pos=(180,100),ht_pos=(0,0),ht_target='Name',align='left',line_distance=1.5,label_color='Lavender')
