@@ -72,9 +72,27 @@ class Text(MediaObj):
 # 描边文本
 class StrokeText(Text):
     pygame.font.init()
-    def __init__(self,fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0,0,255),line_limit=20,edge_color=(255,255,255,255),edge_width=1,label_color='Lavender'):
+    def __init__(self,fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0,0,255),line_limit=20,edge_color=(255,255,255,255),edge_width=1,projection='C',label_color='Lavender'):
         super().__init__(fontfile=fontfile,fontsize=fontsize,color=color,line_limit=line_limit,label_color=label_color) # 继承
+        # 描边颜色
         self.edge_color = edge_color
+        # 投影方向
+        self.dirction_dict = {
+            'C' :np.array([ 0, 0]),
+            'E' :np.array([ 1, 0]),
+            'W' :np.array([-1, 0]),
+            'N' :np.array([ 0,-1]),
+            'S' :np.array([ 0, 1]),
+            'NE':np.array([ 1,-1]),
+            'NW':np.array([-1,-1]),
+            'SE':np.array([ 1, 1]),
+            'SW':np.array([-1, 1]),
+        }
+        if projection in self.dirction_dict.keys():
+            self.dirction = projection
+        else:
+            self.dirction = 'C'
+        # 描边宽度
         try:
             self.edge_width = int(edge_width)
         except ValueError:
@@ -90,16 +108,22 @@ class StrokeText(Text):
         edge = self.text_render.render(tx,True,self.edge_color[0:3])
         face = self.text_render.render(tx,True,self.color[0:3])
         ew = self.edge_width
+        # 描边图层
         canvas = pygame.Surface((edge.get_size()[0]+2*ew,edge.get_size()[1]+2*ew),pygame.SRCALPHA)
-        # 角
-        for pos in [[0,0],[0,2*ew],[2*ew,0],[2*ew,2*ew]]:
-            canvas.blit(edge,pos)
-        # 边
-        for i in range(1,ew*2):
-            for pos in [[0,i],[i,0],[2*ew,i],[i,2*ew]]:
+        # 如果有描边
+        if ew > 0:
+            # 角
+            for pos in [[0,0],[0,2*ew],[2*ew,0],[2*ew,2*ew]]:
                 canvas.blit(edge,pos)
-        # 中心
-        canvas.blit(face,(ew,ew))
+            # 边
+            for i in range(1,ew*2):
+                for pos in [[0,i],[i,0],[2*ew,i],[i,2*ew]]:
+                    canvas.blit(edge,pos)
+        # 如果没有描边，则直接不放描边
+        else:
+            pass
+        # face图层：在投影模式下，也至少回保留一个像素
+        canvas.blit(face,(ew,ew)-self.dirction_dict[self.dirction]*(ew-1))
         # bug：受限于pygame的性能，无法正确的表现透明度不同的描边和字体，但在导出PR项目时是正常的
         if (self.color[3] < 255) | (self.edge_color[3] < 255):
             # 按照透明度的最小值显示
