@@ -252,6 +252,14 @@ class ReplayGenerator:
             word_count_timeline = np.hstack(wc_list) # this_duration < est
             word_count_timeline = word_count_timeline[0:this_duration]
         return word_count_timeline.astype(int)
+    # 交叉溶解的时间轴生成
+    def get_cross_timeline(self,timeline:pd.DataFrame,method:MotionMethod,begin:int,center:int,end:int,layer:str)->np.ndarray:
+        dur = center - begin
+        last = timeline.loc[begin:center-1,layer].values
+        last = np.hstack([last,np.repeat(last[-1],dur)])
+        this = timeline.loc[center:end-1,layer].values
+        this = np.hstack([np.repeat(this[0],dur),this])
+        return method.cross_mark(this,last)
     # log 解析器，返回（timeline,breakpoint,builtinmeida）[DataFrame]
     def parser(self,stdin_text) -> tuple:
         # section:小节号, BG: 背景，Am：立绘，Bb：气泡，BGM：背景音乐，Voice：语音，SE：音效
@@ -277,11 +285,15 @@ class ReplayGenerator:
         last_placed_bubble_section = 0
         this_placed_bubble = ('NA','replace',0,'','','all',0,'NA') # bb,method,method_dur,HT,MT,tx_method,tx_dur,center
         # 当前对话小节的am_bb_method
-        last_dialog_method = {'Am':None,'Bb':None}
+        last_dialog_method = {'Am':None,'Bb':None,'A1':0,'A2':0,'A3':0}
+        this_dialog_method = {'Am':None,'Bb':None,'A1':0,'A2':0,'A3':0}
         # 内建的媒体，主要指BIA
         bulitin_media = {}
 
         for i,text in enumerate(stdin_text):
+            # 保留前一行的切换效果参数，重置当前行的参数
+            last_dialog_method = this_dialog_method
+            this_dialog_method = {'Am':None,'Bb':None,'A1':0,'A2':0,'A3':0}
             # 空白行
             if text == '':
                 break_point[i+1]=break_point[i]
@@ -319,6 +331,8 @@ class ReplayGenerator:
                     # 载入切换效果
                     am_method_obj = MotionMethod(am_method,am_dur,self.dynamic_globals['formula'],i)
                     bb_method_obj = MotionMethod(bb_method,bb_dur,self.dynamic_globals['formula'],i)
+                    this_dialog_method['Am'] = am_method_obj
+                    this_dialog_method['Bb'] = bb_method_obj
                     #各个角色：
                     if len(this_charactor) > 3:
                         raise ParserError('2muchChara',str(i+1))
@@ -356,11 +370,14 @@ class ReplayGenerator:
                         # 透明度参数（alpha）
                         if (alpha >= 0)&(alpha <= 100): # alpha 1.8.8 如果有指定合法的透明度，则使用指定透明度
                             this_timeline['Am'+str(k+1)+'_a']=am_method_obj.alpha(this_duration,alpha)
+                            this_dialog_method['A'+str(k+1)] = alpha
                         else: # 如果没有指定透明度
                             if k == 0: # 如果是首要角色，透明度为100
                                 this_timeline['Am'+str(k+1)+'_a']=am_method_obj.alpha(this_duration,100)
+                                this_dialog_method['A'+str(k+1)] = 100
                             else: # 如果是次要角色，透明度为secondary_alpha，默认值60
                                 this_timeline['Am'+str(k+1)+'_a']=am_method_obj.alpha(this_duration,self.dynamic_globals['secondary_alpha'])
+                                this_dialog_method['A'+str(k+1)] = self.dynamic_globals['secondary_alpha']
                         # 位置参数（pos)
                         this_timeline['Am'+str(k+1)+'_p'] = am_method_obj.motion(this_duration)
                         # 气泡的参数
@@ -502,13 +519,59 @@ class ReplayGenerator:
                     this_timeline.index = range(break_point[i],break_point[i+1])
                     render_timeline = pd.concat([render_timeline,this_timeline],axis=0)
                     # 检查是否和前一个小节存在交叉溶解
-                    if am_method_obj.cross_check(last_dialog_method['Am']) is True:
-                        pass
-                    if bb_method_obj.cross_check(last_dialog_method['Bb']) is True:
-                        pass
-                    # 记录这个小节的切换效果
-                    last_dialog_method['Am'] = am_method_obj
-                    last_dialog_method['Bb'] = bb_method_obj
+                    if this_dialog_method['Am'].cross_check(last_dialog_method['Am']) is True:
+                        # 立绘
+                        this_method_dur = this_dialog_method['Am'].method_dur
+                        cross_frame_break = break_point[i]
+                        cross_frame_begin = break_point[i]-this_method_dur
+                        cross_frame_end = break_point[i]+this_method_dur
+                        for k in range(1,4):
+                            AK_this = this_dialog_method['A%d'%k]
+                            AK_last = last_dialog_method['A%d'%k]
+                            if AK_this <=0 or AK_last <=0:
+                                continue
+                            else:
+                                cross_alpha_this = this_dialog_method['Am'].cross_alpha(last_dialog_method['Am'],AK_this,AK_last)
+                                cross_motion_this = this_dialog_method['Am'].cross_motion(last_dialog_method['Am'])
+                            # 替换到对应时间轴
+                            # Am Am_t Am_c
+                            for layer in ['Am%d'%k,'Am%d_t'%k,'Am%d_c'%k]:
+                                render_timeline.loc[cross_frame_begin:cross_frame_end-1,layer] = self.get_cross_timeline(
+                                    timeline = render_timeline,
+                                    method = this_dialog_method['Am'],
+                                    begin = cross_frame_begin,
+                                    center = cross_frame_break,
+                                    end = cross_frame_end,
+                                    layer = layer
+                                    )
+                            # Am_a
+                            render_timeline.loc[cross_frame_begin:cross_frame_end-1,'Am%d_a'%k] = cross_alpha_this
+                            # Am_p
+                            render_timeline.loc[cross_frame_begin:cross_frame_end-1,'Am%d_p'%k] = cross_motion_this
+                    if this_dialog_method['Bb'].cross_check(last_dialog_method['Bb']) is True:
+                        # 气泡
+                        this_method_dur = this_dialog_method['Bb'].method_dur
+                        cross_frame_break = break_point[i]
+                        cross_frame_begin = break_point[i]-this_method_dur
+                        cross_frame_end = break_point[i]+this_method_dur
+                        # 获取透明度和运动
+                        cross_alpha_this = this_dialog_method['Bb'].cross_alpha(last_dialog_method['Bb'])
+                        cross_motion_this = this_dialog_method['Bb'].cross_motion(last_dialog_method['Bb'])
+                        # 替换到对应时间轴
+                        # 'Bb','Bb_main','Bb_header','Bb_a','Bb_c','Bb_p',
+                        for layer in ['Bb','Bb_main','Bb_header','Bb_c']:
+                            render_timeline.loc[cross_frame_begin:cross_frame_end-1,layer] = self.get_cross_timeline(
+                                timeline = render_timeline,
+                                method = this_dialog_method['Bb'],
+                                begin = cross_frame_begin,
+                                center = cross_frame_break,
+                                end = cross_frame_end,
+                                layer = layer
+                                )
+                        # Bb_a
+                        render_timeline.loc[cross_frame_begin:cross_frame_end-1,'Bb_a'] = cross_alpha_this
+                        # Bb_p
+                        render_timeline.loc[cross_frame_begin:cross_frame_end-1,'Bb_p'] = cross_motion_this
                     continue
                 except Exception as E:
                     print(E)
@@ -1103,6 +1166,41 @@ class ReplayGenerator:
             # 不渲染的条件：图层为"Na"，或者np.nan
             if (this_frame[layer]=='NA')|(this_frame[layer]!=this_frame[layer]):
                 continue
+            # 如果是包含了交叉溶解的图层
+            if (' <- ' in this_frame[layer]) | (' -> ' in this_frame[layer]):
+                if layer[0:2] == 'Bb':
+                    cross_1 = this_frame[[layer,layer+'_header',layer+'_main',layer+'_a',layer+'_p',layer+'_c']].replace('(.+) (->|<-) (.+)',r'\1',regex=True)
+                    cross_2 = this_frame[[layer,layer+'_header',layer+'_main',layer+'_a',layer+'_p',layer+'_c']].replace('(.+) (->|<-) (.+)',r'\3',regex=True)
+                    if ' -> ' in this_frame[layer]:
+                        cross_zorder = [cross_1,cross_2]
+                    else:
+                        cross_zorder = [cross_2,cross_1]
+                    for cross in cross_zorder:
+                        try:
+                            Object = eval(cross[layer])
+                            Object.display(
+                                surface=self.screen,alpha=float(cross[layer+'_a']),
+                                text=cross[layer+'_main'],header=cross[layer+'_header'],
+                                adjust=cross[layer+'_p'],center=cross[layer+'_c']
+                            )
+                        except Exception:
+                            raise RenderError('FailRender',cross[layer],'Bubble')
+                elif layer[0:2] == 'Am':
+                    cross_1 = this_frame[[layer,layer+'_a',layer+'_t',layer+'_p',layer+'_c']].replace('(.+) (->|<-) (.+)',r'\1',regex=True)
+                    cross_2 = this_frame[[layer,layer+'_a',layer+'_t',layer+'_p',layer+'_c']].replace('(.+) (->|<-) (.+)',r'\3',regex=True)
+                    if ' -> ' in this_frame[layer]:
+                        cross_zorder = [cross_1,cross_2]
+                    else:
+                        cross_zorder = [cross_2,cross_1]
+                    for cross in cross_zorder:
+                        try:
+                            Object = eval(cross[layer])
+                            Object.display(
+                                surface=self.screen,alpha=float(cross[layer+'_a']),frame=int(cross[layer+'_t']),
+                                adjust=cross[layer+'_p'],center=cross[layer+'_c']
+                            )
+                        except Exception:
+                            raise RenderError('FailRender',cross[layer],'Animation')
             elif this_frame[layer+'_a']<=0: #或者图层的透明度小于等于0(由于fillna("NA"),出现的异常)
                 continue
             elif this_frame[layer] not in self.media_list:
@@ -1363,7 +1461,11 @@ class ReplayGenerator:
                 section_first_frame:pd.Series = self.render_timeline.loc[self.break_point[key-1]]
                 for layer in ['Am1','Am2','Am3','Bb','BG2']:
                     if section_first_frame[layer] != 'NA' and section_first_frame[layer]==section_first_frame[layer]:
-                        this_color = eval(section_first_frame[layer]).label_color
+                        try:
+                            this_color = eval(section_first_frame[layer]).label_color
+                        except:
+                            # 交叉溶解模式
+                            this_color = eval(section_first_frame[layer].split(' <- ')[0]).label_color
                         break
                 # 小节位置和宽度
                 section_pos_x = self.Width*(self.break_point[key-1] / timeline_len)

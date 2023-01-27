@@ -88,7 +88,7 @@ class MotionMethod:
             method_dur = int(method_dur)
         # 如果运动模式是静止：
         if self.method_args['motion'] == 'static':
-            return 'NA'
+            return np.repeat('NA',this_duration)
         # 设定弧度
         theta = np.deg2rad(self.method_args['direction'])
         # 尺度上下绑定屏幕高度，左右绑定屏幕宽度*scale_dic[method_args['scale']]
@@ -121,7 +121,7 @@ class MotionMethod:
             D1 = np.sin(theta_timeline)*scale_value
             D2 = -np.cos(theta_timeline)*scale_value
         else:
-            return 'NA'
+            return np.repeat('NA',this_duration)
         pos_timeline = concat_xy(D1,D2)
         return pos_timeline
     # 动态(尺度,持续事件,平衡位置,切入切出,启用)
