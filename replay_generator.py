@@ -27,6 +27,8 @@ from core.Medias import Bubble,Balloon,DynamicBubble,ChatWindow
 from core.Medias import Background
 from core.Medias import Animation,GroupedAnimation,BuiltInAnimation
 from core.Medias import Audio,BGM
+# 动态切换效果类
+from core.Motion import MotionMethod
 # 正则表达式
 from core.Regexs import *
 # 曲线函数
@@ -103,6 +105,7 @@ class ReplayGenerator:
             self.system_terminated('Error')
         # 媒体类，显示参数配置
         Filepath.Mediapath = os.path.dirname(self.media_obj.replace('\\','/'))
+        MotionMethod.screen_size = (self.Width,self.Height)
         MediaObj.screen_size = (self.Width,self.Height)
         MediaObj.frame_rate = self.frame_rate
         # 全局变量
@@ -233,97 +236,6 @@ class ReplayGenerator:
         except IndexError:
             raise ParserError('UnableSet')
         return (target,args)
-    # 处理am和bb类的动态切换效果，返回(alpha_timeline,pos_timeline)[ndarray]
-    def ambb_methods(self,method_name,method_dur,this_duration,i) -> tuple:
-        def dynamic(scale,duration,balance,cut,enable): # 动态(尺度,持续,平衡,进出,启用)
-            if enable == True: # cutin=1,cutout=0
-                if cut == balance:
-                    return self.dynamic_globals['formula'](0,scale,duration)
-                else:
-                    return self.dynamic_globals['formula'](scale,0,duration)
-            else: # enable == False:
-                return np.ones(duration)*scale*balance
-        
-        if method_dur == 0:
-            return np.ones(this_duration),'NA'
-        method_keys = method_name.split('_')
-        method_args = {'alpha':'replace','motion':'static','direction':'up','scale':'major','cut':'both'} #default
-        scale_dic = {'major':0.3,'minor':0.12,'entire':1.0}
-        direction_dic = {'up':0,'down':180,'left':90,'right':270} # up = 0 剩下的逆时针
-        # parse method name
-        for key in method_keys:
-            if key in ['black','replace','delay']:
-                method_args['alpha'] = key
-            elif key in ['pass','leap','static','circular']:
-                method_args['motion'] = key
-            elif key in ['up','down','left','right']:
-                method_args['direction'] = key
-            elif key in ['major','minor','entire']:
-                method_args['scale'] = key
-            elif key in ['in','out','both']:
-                method_args['cut'] = key
-            elif 'DG' == key[0:2]:
-                try:
-                    method_args['direction'] = float(key[2:])
-                except Exception:
-                    raise ParserError('SwitchDial',method_name,str(i+1))
-            else:
-                try:
-                    method_args['scale'] = int(key)
-                except Exception:
-                    raise ParserError('SwitchDial',method_name,str(i+1))
-        # 切入，切出，或者双端
-        cutin,cutout ={'in':(1,0),'out':(0,1),'both':(1,1)}[method_args['cut']]
-        # alpha
-        if method_args['alpha'] == 'replace': #--
-            alpha_timeline = np.hstack(np.ones(this_duration)) # replace的延后功能撤销！
-        elif method_args['alpha'] == 'delay': #_-
-            alpha_timeline = np.hstack([np.zeros(method_dur),np.ones(this_duration-method_dur)]) # 延后功能
-        else: # method_args['alpha'] == 'black':#>1<
-            alpha_timeline = np.hstack([dynamic(1,method_dur,1,1,cutin),np.ones(this_duration-2*method_dur),dynamic(1,method_dur,1,0,cutout)])
-        # static 的提前终止
-        if method_args['motion'] == 'static':
-            pos_timeline = 'NA'
-            return alpha_timeline,pos_timeline
-        # direction
-        try:
-            theta = np.deg2rad(direction_dic[method_args['direction']])
-        except Exception: # 设定为角度
-            theta = np.deg2rad(method_args['direction'])
-        # scale
-        if method_args['scale'] in ['major','minor','entire']: #上下绑定屏幕高度，左右绑定屏幕宽度*scale_dic[method_args['scale']]
-            method_args['scale'] = ((np.cos(theta)*self.Height)**2+(np.sin(theta)*self.Width)**2)**(1/2)*scale_dic[method_args['scale']]
-        else: # 指定了scale
-            pass
-        # motion
-        if method_args['motion'] == 'pass': # >0>
-            D1 = np.hstack([dynamic(method_args['scale']*np.sin(theta),method_dur,0,1,cutin),
-                            np.zeros(this_duration-2*method_dur),
-                            dynamic(-method_args['scale']*np.sin(theta),method_dur,0,0,cutout)])
-            D2 = np.hstack([dynamic(method_args['scale']*np.cos(theta),method_dur,0,1,cutin),
-                            np.zeros(this_duration-2*method_dur),
-                            dynamic(-method_args['scale']*np.cos(theta),method_dur,0,0,cutout)])
-        elif method_args['motion'] == 'leap': # >0<
-            D1 = np.hstack([dynamic(method_args['scale']*np.sin(theta),method_dur,0,1,cutin),
-                            np.zeros(this_duration-2*method_dur),
-                            dynamic(method_args['scale']*np.sin(theta),method_dur,0,0,cutout)])
-            D2 = np.hstack([dynamic(method_args['scale']*np.cos(theta),method_dur,0,1,cutin),
-                            np.zeros(this_duration-2*method_dur),
-                            dynamic(method_args['scale']*np.cos(theta),method_dur,0,0,cutout)])
-        # 实验性质的功能，想必不可能真的有人用这么鬼畜的效果吧
-        elif method_args['motion'] == 'circular': 
-            theta_timeline = (
-                np
-                .repeat(self.dynamic_globals['formula'](0-theta,2*np.pi-theta,method_dur),np.ceil(this_duration/method_dur).astype(int))
-                .reshape(method_dur,np.ceil(this_duration/method_dur).astype(int))
-                .transpose().ravel())[0:this_duration]
-            D1 = np.sin(theta_timeline)*method_args['scale']
-            D2 = -np.cos(theta_timeline)*method_args['scale']
-        else:
-            pos_timeline = 'NA'
-            return alpha_timeline,pos_timeline
-        pos_timeline = concat_xy(D1,D2)
-        return alpha_timeline,pos_timeline
     # 手动换行的l2l
     def get_l2l(self,ts,text_dur,this_duration) -> np.ndarray:
         lines = ts.split('#')
@@ -364,6 +276,8 @@ class ReplayGenerator:
         this_placed_animation = ('NA','replace',0,'NA') # am,method,method_dur,center
         last_placed_bubble_section = 0
         this_placed_bubble = ('NA','replace',0,'','','all',0,'NA') # bb,method,method_dur,HT,MT,tx_method,tx_dur,center
+        # 当前对话小节的am_bb_method
+        last_dialog_method = {'Am':None,'Bb':None}
         # 内建的媒体，主要指BIA
         bulitin_media = {}
 
@@ -403,8 +317,8 @@ class ReplayGenerator:
                     this_timeline['BG2'] = this_background
                     this_timeline['BG2_a'] = 100
                     # 载入切换效果
-                    alpha_timeline_A,pos_timeline_A = self.ambb_methods(am_method,am_dur,this_duration,i)
-                    alpha_timeline_B,pos_timeline_B = self.ambb_methods(bb_method,bb_dur,this_duration,i)
+                    am_method_obj = MotionMethod(am_method,am_dur,self.dynamic_globals['formula'],i)
+                    bb_method_obj = MotionMethod(bb_method,bb_dur,self.dynamic_globals['formula'],i)
                     #各个角色：
                     if len(this_charactor) > 3:
                         raise ParserError('2muchChara',str(i+1))
@@ -441,14 +355,14 @@ class ReplayGenerator:
                                 raise ParserError('UndefAnime', this_am, name+subtype)
                         # 透明度参数（alpha）
                         if (alpha >= 0)&(alpha <= 100): # alpha 1.8.8 如果有指定合法的透明度，则使用指定透明度
-                            this_timeline['Am'+str(k+1)+'_a']=alpha_timeline_A*alpha
+                            this_timeline['Am'+str(k+1)+'_a']=am_method_obj.alpha(this_duration,alpha)
                         else: # 如果没有指定透明度
                             if k == 0: # 如果是首要角色，透明度为100
-                                this_timeline['Am'+str(k+1)+'_a']=alpha_timeline_A*100
+                                this_timeline['Am'+str(k+1)+'_a']=am_method_obj.alpha(this_duration,100)
                             else: # 如果是次要角色，透明度为secondary_alpha，默认值60
-                                this_timeline['Am'+str(k+1)+'_a']=alpha_timeline_A*self.dynamic_globals['secondary_alpha'] 
+                                this_timeline['Am'+str(k+1)+'_a']=am_method_obj.alpha(this_duration,self.dynamic_globals['secondary_alpha'])
                         # 位置参数（pos)
-                        this_timeline['Am'+str(k+1)+'_p'] = pos_timeline_A
+                        this_timeline['Am'+str(k+1)+'_p'] = am_method_obj.motion(this_duration)
                         # 气泡的参数
                         if k == 0:
                             this_bb = this_char_series['Bubble']
@@ -520,8 +434,8 @@ class ReplayGenerator:
                             this_timeline['Bb'] = this_bb
                             this_timeline['Bb_main'] = ts
                             this_timeline['Bb_header'] = target_text
-                            this_timeline['Bb_a'] = alpha_timeline_B*100
-                            this_timeline['Bb_p'] = pos_timeline_B
+                            this_timeline['Bb_a'] = bb_method_obj.alpha(this_duration,100)
+                            this_timeline['Bb_p'] = bb_method_obj.motion(this_duration)
                             this_timeline['Bb_c'] = str(eval(this_bb+'.pos'))
 
                     # 文字显示的参数
@@ -587,6 +501,14 @@ class ReplayGenerator:
                     break_point[i+1]=break_point[i]+this_duration
                     this_timeline.index = range(break_point[i],break_point[i+1])
                     render_timeline = pd.concat([render_timeline,this_timeline],axis=0)
+                    # 检查是否和前一个小节存在交叉溶解
+                    if am_method_obj.cross_check(last_dialog_method['Am']) is True:
+                        pass
+                    if bb_method_obj.cross_check(last_dialog_method['Bb']) is True:
+                        pass
+                    # 记录这个小节的切换效果
+                    last_dialog_method['Am'] = am_method_obj
+                    last_dialog_method['Bb'] = bb_method_obj
                     continue
                 except Exception as E:
                     print(E)
@@ -676,9 +598,9 @@ class ReplayGenerator:
                     render_timeline.loc[last_placed_index,'AmS_c'] = 'NA'
                     render_timeline.loc[last_placed_index,'AmS_p'] = 'NA'
                 else:
-                    alpha_timeline_A,pos_timeline_A = self.ambb_methods(am_method,am_dur,this_duration,i)
-                    render_timeline.loc[last_placed_index,'AmS_a'] = alpha_timeline_A*100
-                    render_timeline.loc[last_placed_index,'AmS_p'] = pos_timeline_A
+                    am_method_obj = MotionMethod(am_method,am_dur,self.dynamic_globals['formula'],i)
+                    render_timeline.loc[last_placed_index,'AmS_a'] = am_method_obj.alpha(this_duration,100)
+                    render_timeline.loc[last_placed_index,'AmS_p'] = am_method_obj.motion(this_duration)
                     render_timeline.loc[last_placed_index,'AmS_t'] = eval('{am}.get_tick({dur})'.format(am=this_am,dur=this_duration))
                     render_timeline.loc[last_placed_index,'AmS_c'] = am_center
                 # 获取本次的
@@ -745,11 +667,10 @@ class ReplayGenerator:
                     render_timeline.loc[last_placed_index,'BbS_c'] = 'NA'
                     render_timeline.loc[last_placed_index,'BbS_p'] = 'NA'
                 else:
-                    # 
-                    alpha_timeline_B,pos_timeline_B = self.ambb_methods(bb_method,bb_dur,this_duration,i)
-                    render_timeline.loc[last_placed_index,'BbS_a'] = alpha_timeline_B*100
+                    bb_method_obj = MotionMethod(bb_method,bb_dur,self.dynamic_globals['formula'],i)
+                    render_timeline.loc[last_placed_index,'BbS_a'] = bb_method_obj.alpha(this_duration,100)
                     render_timeline.loc[last_placed_index,'BbS_c'] = bb_center
-                    render_timeline.loc[last_placed_index,'BbS_p'] = pos_timeline_B
+                    render_timeline.loc[last_placed_index,'BbS_p'] = bb_method_obj.motion(this_duration)
                     render_timeline.loc[last_placed_index,'BbS_main'] = this_tx
                     render_timeline.loc[last_placed_index,'BbS_header'] = this_hd
                     # 文字显示的参数
@@ -931,7 +852,6 @@ class ReplayGenerator:
                     # 建立小节
                     this_timeline=pd.DataFrame(index=range(0,self.frame_rate*4),dtype=str,columns=render_arg)
                     # 背景
-                    #alpha_timeline,pos_timeline = ambb_methods('black',method_dur=frame_rate//2,this_duration=frame_rate*4,i=i)
                     alpha_timeline = np.hstack([self.dynamic_globals['formula'](0,1,self.frame_rate//2),np.ones(self.frame_rate*3-self.frame_rate//2),self.dynamic_globals['formula'](1,0,self.frame_rate)])
                     this_timeline['BG1'] = 'black' # 黑色背景
                     this_timeline['BG1_a'] = alpha_timeline * 80
@@ -1112,9 +1032,9 @@ class ReplayGenerator:
                 render_timeline.loc[last_placed_index,'AmS_c'] = 'NA'
                 render_timeline.loc[last_placed_index,'AmS_p'] = 'NA'
             else:
-                alpha_timeline_A,pos_timeline_A = self.ambb_methods(am_method,am_dur,this_duration,i)
-                render_timeline.loc[last_placed_index,'AmS_a'] = alpha_timeline_A*100
-                render_timeline.loc[last_placed_index,'AmS_p'] = pos_timeline_A
+                am_method_obj = MotionMethod(am_method,am_dur,self.dynamic_globals['formula'],i)
+                render_timeline.loc[last_placed_index,'AmS_a'] = am_method_obj.alpha(this_duration,100)
+                render_timeline.loc[last_placed_index,'AmS_p'] = am_method_obj.motion(this_duration)
                 render_timeline.loc[last_placed_index,'AmS_t'] = eval('{am}.get_tick({dur})'.format(am=this_am,dur=this_duration))
                 render_timeline.loc[last_placed_index,'AmS_c'] = am_center
 
@@ -1138,11 +1058,10 @@ class ReplayGenerator:
                 render_timeline.loc[last_placed_index,'BbS_c'] = 'NA'
                 render_timeline.loc[last_placed_index,'BbS_p'] = 'NA'
             else:
-                # 
-                alpha_timeline_B,pos_timeline_B = self.ambb_methods(bb_method,bb_dur,this_duration,i)
-                render_timeline.loc[last_placed_index,'BbS_a'] = alpha_timeline_B*100
+                bb_method_obj = MotionMethod(bb_method,bb_dur,self.dynamic_globals['formula'],i)
+                render_timeline.loc[last_placed_index,'BbS_a'] = bb_method_obj.alpha(this_duration,100)
                 render_timeline.loc[last_placed_index,'BbS_c'] = bb_center
-                render_timeline.loc[last_placed_index,'BbS_p'] = pos_timeline_B
+                render_timeline.loc[last_placed_index,'BbS_p'] = bb_method_obj.motion(this_duration)
                 render_timeline.loc[last_placed_index,'BbS_main'] = this_tx
                 render_timeline.loc[last_placed_index,'BbS_header'] = this_hd
                 # 文字显示的参数

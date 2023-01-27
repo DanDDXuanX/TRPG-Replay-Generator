@@ -64,7 +64,7 @@ class MotionMethod:
                 except Exception:
                     raise ParserError('SwitchDial',method_name,str(self.section+1))
     # 透明度
-    def alpha(self,this_duration,media_alpha):
+    def alpha(self,this_duration,media_alpha=100):
         # 切入切出
         cutin,cutout = self.method_args['cut']
         # 不同的透明度模式
@@ -165,7 +165,10 @@ class MotionMethod:
     # 检查两个切换效果是否能匹配
     def cross_check(self,last)->bool:
         # last指前一个小节的method
-        if self.method_args['alpha'] != 'cross' or last.method_args['alpha'] != 'cross':
+        if last is None:
+            # 如果前一个小节不存在，那么不能交叉
+            return 0
+        elif self.method_args['alpha'] != 'cross' or last.method_args['alpha'] != 'cross':
             # 如果前一个小节和本小节的切换效果不都是cross，那么不能交叉
             return False
         elif self.method_dur != last.method_dur:
