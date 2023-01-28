@@ -192,8 +192,45 @@ class ExportVideo:
             # 不渲染的条件：图层为"Na"，或者np.nan
             if (this_frame[layer]=='NA')|(this_frame[layer]!=this_frame[layer]):
                 continue
-            elif this_frame[layer+'_a']<=0: #或者图层的透明度小于等于0(由于fillna("NA"),出现的异常)
+            # 如果是包含了交叉溶解的图层
+            elif (' <- ' in this_frame[layer]) | (' -> ' in this_frame[layer]):
+                if layer[0:2] == 'Bb':
+                    cross_1 = this_frame[[layer,layer+'_header',layer+'_main',layer+'_a',layer+'_p',layer+'_c']].replace('(.+) (->|<-) (.+)',r'\1',regex=True)
+                    cross_2 = this_frame[[layer,layer+'_header',layer+'_main',layer+'_a',layer+'_p',layer+'_c']].replace('(.+) (->|<-) (.+)',r'\3',regex=True)
+                    if ' -> ' in this_frame[layer]:
+                        cross_zorder = [cross_1,cross_2]
+                    else:
+                        cross_zorder = [cross_2,cross_1]
+                    for cross in cross_zorder:
+                        try:
+                            Object = eval(cross[layer])
+                            Object.display(
+                                surface=self.screen,alpha=float(cross[layer+'_a']),
+                                text=cross[layer+'_main'],header=cross[layer+'_header'],
+                                adjust=cross[layer+'_p'],center=cross[layer+'_c']
+                            )
+                        except Exception:
+                            raise RenderError('FailRender',cross[layer],'Bubble')
+                elif layer[0:2] == 'Am':
+                    cross_1 = this_frame[[layer,layer+'_a',layer+'_t',layer+'_p',layer+'_c']].replace('(.+) (->|<-) (.+)',r'\1',regex=True)
+                    cross_2 = this_frame[[layer,layer+'_a',layer+'_t',layer+'_p',layer+'_c']].replace('(.+) (->|<-) (.+)',r'\3',regex=True)
+                    if ' -> ' in this_frame[layer]:
+                        cross_zorder = [cross_1,cross_2]
+                    else:
+                        cross_zorder = [cross_2,cross_1]
+                    for cross in cross_zorder:
+                        try:
+                            Object = eval(cross[layer])
+                            Object.display(
+                                surface=self.screen,alpha=float(cross[layer+'_a']),frame=int(cross[layer+'_t']),
+                                adjust=cross[layer+'_p'],center=cross[layer+'_c']
+                            )
+                        except Exception:
+                            raise RenderError('FailRender',cross[layer],'Animation')
+            #或者图层的透明度小于等于0(由于fillna("NA"),出现的异常)
+            elif this_frame[layer+'_a']<=0: 
                 continue
+            # 如果媒体不存在
             elif this_frame[layer] not in self.media_list:
                 raise RenderError('UndefMedia',this_frame[layer])
             # 渲染背景图层

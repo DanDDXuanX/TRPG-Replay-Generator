@@ -164,17 +164,27 @@ class ExportXML:
         item,begin,end = 'NA',0,0
         center:str = '(0,0)'
         for key,values in track.iterrows():
+            # 检查是否有交叉溶解标记
+            if ' -> ' in values[layer]:
+                item_this = values[layer].split(' -> ')[0]
+                center_this = values[layer + '_c'].split(' -> ')[0]
+            elif ' <- ' in values[layer]:
+                item_this = values[layer].split(' <- ')[0]
+                center_this = values[layer + '_c'].split(' <- ')[0]
+            else:
+                item_this = values[layer]
+                center_this = values[layer + '_c']
             #如果item变化了，或者进入了指定的断点(仅断点分隔的图层)
-            if (values[layer] != item) | ((key in self.break_point.values) & break_at_breakpoint): 
+            if (item_this != item) | ((key in self.break_point.values) & break_at_breakpoint): 
                 if (item == 'NA') | (item!=item): # 如果item是空 
                     pass # 则不输出什么
                 else:
                     end = key #否则把当前key作为一个clip的断点
                     clips.append((item,begin,end,center)) #并记录下这个断点
                 #无论如何，重设item和begin和center
-                item = values[layer] 
+                item = item_this 
                 begin = key
-                center = values[layer + '_c']
+                center = center_this
             #如果不满足断点要求，那么就什么都不做
             else:
                 pass            
@@ -222,22 +232,38 @@ class ExportXML:
         item,begin,end = 'NA',0,0
         center:str = '(0,0)'
         for key,values in track.iterrows():
+            # 检查是否有交叉溶解标记
+            if ' -> ' in values[layer]:
+                item_this = values[layer].split(' -> ')[0]
+                center_this = values[layer + '_c'].split(' -> ')[0]
+                header_this = values[layer + '_header'].split(' -> ')[0]
+                main_this = values[layer + '_main'].split(' -> ')[0]
+            elif ' <- ' in values[layer]:
+                item_this = values[layer].split(' <- ')[0]
+                center_this = values[layer + '_c'].split(' <- ')[0]
+                header_this = values[layer + '_header'].split(' <- ')[0]
+                main_this = values[layer + '_main'].split(' <- ')[0]
+            else:
+                item_this = values[layer]
+                center_this = values[layer + '_c']
+                header_this = values[layer + '_header']
+                main_this = values[layer + '_main']
             #如果item变化了，或者进入了指定的断点(这是保证断句的关键！)(仅断点分隔的图层)
-            if (values[layer] != item) | ((key in self.break_point.values) & break_at_breakpoint): 
+            if (item_this != item) | ((key in self.break_point.values) & break_at_breakpoint): 
                 if (item == 'NA') | (item!=item): # 如果item是空 item 指前一个小节的元素
                     pass # 则不输出什么
                 else:
                     end = key #否则把当前key作为一个clip的断点
                     clips.append((item,main_text,header_text,begin,end,center)) #并记录下这个断点
                 # 无论如何，重设item和begin
-                item = values[layer]
+                item = item_this
                 begin = key
-                center = values[layer + '_c']
+                center = center_this
             else: #如果不满足断点要求，那么就什么都不做
                 pass
             # 然后更新文本内容
-            main_text = values[layer + '_main']
-            header_text = values[layer + '_header']
+            main_text = main_this
+            header_text = header_this
             
         # 循环结束之后，最后检定一次是否需要输出一个clips
         #end = key

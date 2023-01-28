@@ -1167,7 +1167,7 @@ class ReplayGenerator:
             if (this_frame[layer]=='NA')|(this_frame[layer]!=this_frame[layer]):
                 continue
             # 如果是包含了交叉溶解的图层
-            if (' <- ' in this_frame[layer]) | (' -> ' in this_frame[layer]):
+            elif (' <- ' in this_frame[layer]) | (' -> ' in this_frame[layer]):
                 if layer[0:2] == 'Bb':
                     cross_1 = this_frame[[layer,layer+'_header',layer+'_main',layer+'_a',layer+'_p',layer+'_c']].replace('(.+) (->|<-) (.+)',r'\1',regex=True)
                     cross_2 = this_frame[[layer,layer+'_header',layer+'_main',layer+'_a',layer+'_p',layer+'_c']].replace('(.+) (->|<-) (.+)',r'\3',regex=True)
@@ -1201,8 +1201,10 @@ class ReplayGenerator:
                             )
                         except Exception:
                             raise RenderError('FailRender',cross[layer],'Animation')
-            elif this_frame[layer+'_a']<=0: #或者图层的透明度小于等于0(由于fillna("NA"),出现的异常)
+            #或者图层的透明度小于等于0(由于fillna("NA"),出现的异常)
+            elif this_frame[layer+'_a']<=0: 
                 continue
+            # 如果媒体不存在
             elif this_frame[layer] not in self.media_list:
                 raise RenderError('UndefMedia',this_frame[layer])
             # 渲染背景图层
