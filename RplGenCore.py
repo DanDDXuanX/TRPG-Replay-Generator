@@ -34,6 +34,7 @@ if __name__ == '__main__':
     ap.add_argument('--ExportVideo',help='Export MP4 video file, this will disables interface display',action='store_true')
     ap.add_argument('--SynthesisAnyway',help='Execute speech_synthezier first, and process all unprocessed asterisk time label.',action='store_true')
     ap.add_argument('--FixScreenZoom',help='Windows system only, use this flag to fix incorrect windows zoom.',action='store_true')
+    ap.add_argument("--ForceSplitClip", help='Force to separate clips at breakpoints while exporting PR sequence.',action='store_true' )
     # 语音合成预览flag
     ap.add_argument('--PreviewOnly',help='Ignore the input files, and open a speech preview gui windows.',action='store_true')
     ap.add_argument('--Init',help='The initial speech service in preview.',type=str,default='Aliyun')

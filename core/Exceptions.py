@@ -254,6 +254,8 @@ class MediaError(RplGenError):
                         "不支持的音频文件 '{}'"],
         'InvEgWd'     :["Invalid edge width {} for StrokeText!",
                         "为描边文本指定的描边宽度 {} 是非法的值！"],
+        'InvFit'      :["Invalid fit axis '{}' for DynamicBubble!",
+                        "无效的自适应气泡的适应方向：{}"],
     }
     error_type = ["\x1B[31m[MediaError]:\x1B[0m ",
                   "\x1B[31m[媒体错误]:\x1B[0m "]

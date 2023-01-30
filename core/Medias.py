@@ -230,7 +230,7 @@ class Balloon(Bubble):
         return temp,temp.get_size()
 # 自适应气泡
 class DynamicBubble(Bubble):
-    def __init__(self,filepath=None,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),mt_end=(0,0),ht_pos=(0,0),ht_target='Name',fill_mode='stretch',line_distance=1.5,label_color='Lavender'):
+    def __init__(self,filepath=None,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),mt_end=(0,0),ht_pos=(0,0),ht_target='Name',fill_mode='stretch',fit_axis='free',line_distance=1.5,label_color='Lavender'):
         # align 只能为left
         super().__init__(filepath=filepath,Main_Text=Main_Text,Header_Text=Header_Text,pos=pos,mt_pos=mt_pos,ht_pos=ht_pos,ht_target=ht_target,line_distance=line_distance,label_color=label_color)
         if (mt_pos[0] >= mt_end[0]) | (mt_pos[1] >= mt_end[1]) | (mt_end[0] > self.media.get_size()[0]) | (mt_end[1] > self.media.get_size()[1]):
@@ -244,6 +244,11 @@ class DynamicBubble(Bubble):
             self.fill_mode = fill_mode
         else:
             raise MediaError('InvFill',fill_mode)
+        # fit_axis 只能是 free vertical horizontal
+        if fit_axis in ['free','vertical','horizontal']:
+            self.horizontal,self.vertical = {'free':(1,1),'vertical':(0,1),'horizontal':(1,0)}[fit_axis]
+        else:
+            raise MediaError('InvFit',fit_axis)
         # x,y轴上的四条分割线
         self.x_tick = [0,self.mt_pos[0],self.mt_end[0],self.media.get_size()[0]]
         self.y_tick = [0,self.mt_pos[1],self.mt_end[1],self.media.get_size()[1]]
@@ -276,6 +281,11 @@ class DynamicBubble(Bubble):
             if x_this > xlim:
                 xlim = int(x_this)
             ylim = int(y_this)
+        # 检查适应方向
+        if self.vertical == 0:
+            ylim = self.bubble_clip_size[4][1]
+        if self.horizontal == 0:
+            xlim = self.bubble_clip_size[4][0]
         # 建立变形后的气泡
         temp_size_x = xlim + self.x_tick[1] + self.x_tick[3] - self.x_tick[2]
         temp_size_y = ylim + self.y_tick[1] + self.y_tick[3] - self.y_tick[2]

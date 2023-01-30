@@ -24,7 +24,7 @@ from .SubWindow import SubWindow
 
 label_pos_show_text = ImageFont.truetype('./media/SourceHanSerifSC-Heavy.otf', 30)
 # RE_mediadef_args = re.compile('(fontfile|fontsize|color|line_limit|filepath|Main_Text|Header_Text|pos|end|x_step|y_step|mt_pos|mt_end|ht_pos|ht_target|fill_mode|align|line_distance|tick|loop|volume|edge_color|label_color)?\ {0,4}=?\ {0,4}(Text\(\)|[^,()]+|\([-\d,\ ]+\))')
-RE_mediadef_args = re.compile("(fontfile|fontsize|color|line_limit|filepath|Main_Text|Header_Text|pos|end|x_step|y_step|mt_pos|mt_end|ht_pos|ht_target|fill_mode|align|line_distance|tick|loop|volume|edge_color|edge_width|projection|sub_key|sub_Bubble|sub_Anime|sub_align|sub_pos|sub_end|am_left|am_right|sub_distance|label_color)?\ {0,4}=?\ {0,4}(Text\(\)|Pos\(\)|\[[\w,'()]+\]|\w+\[[\d\,]+\]|[^,()]+|\([-\d,\ ]+\))")
+RE_mediadef_args = re.compile("(fontfile|fontsize|color|line_limit|filepath|Main_Text|Header_Text|pos|end|x_step|y_step|mt_pos|mt_end|ht_pos|ht_target|fill_mode|fit_axis|align|line_distance|tick|loop|volume|edge_color|edge_width|projection|sub_key|sub_Bubble|sub_Anime|sub_align|sub_pos|sub_end|am_left|am_right|sub_distance|label_color)?\ {0,4}=?\ {0,4}(Text\(\)|Pos\(\)|\[[\w,'()]+\]|\w+\[[\d\,]+\]|[^,()]+|\([-\d,\ ]+\))")
 # RE_parse_mediadef = re.compile('(\w+)[=\ ]+(Pos|FreePos|PosGrid|Text|StrokeText|Bubble|Animation|Background|BGM|Audio)(\(.+\))')
 RE_vaildname = re.compile('^\w+$')
 RE_pos_args = re.compile('(\d+),(\d+)|\*\((\d+),(\d+)\)')
@@ -402,7 +402,7 @@ def open_media_def_window(father,image_canvas,available_Text,available_Pos,avail
                 'pos':pos.get(),'end':end.get(),'x_step':x_step.get(),'y_step':y_step.get(),
                 'mt_pos':mt_pos.get(),'mt_end':mt_end.get(),
                 'ht_pos':ht_pos.get(),'ht_target':ht_target.get(),
-                'align':align.get(),'fill_mode':fill_mode.get(),
+                'align':align.get(),'fill_mode':fill_mode.get(),'fit_axis':fit_axis.get(),
                 'line_distance':line_distance.get(),'tick':tick.get(),'loop':loop.get(),
                 'volume':volume.get(),'edge_color':edge_color.get(),'edge_width':edge_width.get(),
                 'projection':projection.get(),
@@ -505,7 +505,7 @@ def open_media_def_window(father,image_canvas,available_Text,available_Pos,avail
         'Background':"(filepath='{filepath}',pos={pos},label_color='{label_color}')",
         'Bubble':"(filepath='{filepath}',Main_Text={Main_Text},Header_Text={Header_Text},pos={pos},mt_pos={mt_pos},ht_pos={ht_pos},ht_target={ht_target},align='{align}',line_distance={line_distance},label_color='{label_color}')",
         'Balloon':"(filepath='{filepath}',Main_Text={Main_Text},Header_Text=[{Header_Text}],pos={pos},mt_pos={mt_pos},ht_pos=[{ht_pos}],ht_target=[{ht_target}],align='{align}',line_distance={line_distance},label_color='{label_color}')",
-        'DynamicBubble':"(filepath='{filepath}',Main_Text={Main_Text},Header_Text={Header_Text},pos={pos},mt_pos={mt_pos},mt_end={mt_end},ht_pos={ht_pos},ht_target={ht_target},fill_mode='{fill_mode}',line_distance={line_distance},label_color='{label_color}')",
+        'DynamicBubble':"(filepath='{filepath}',Main_Text={Main_Text},Header_Text={Header_Text},pos={pos},mt_pos={mt_pos},mt_end={mt_end},ht_pos={ht_pos},ht_target={ht_target},fill_mode='{fill_mode}',fit_axis='{fit_axis}',line_distance={line_distance},label_color='{label_color}')",
         'ChatWindow':"(filepath='{filepath}',sub_key=[{sub_key}],sub_Bubble=[{sub_Bubble}],sub_Anime=[{sub_Anime}],sub_align=[{sub_align}],pos={pos},sub_pos={sub_pos},sub_end={sub_end},am_left={am_left},am_right={am_right},sub_distance={sub_distance},label_color='{label_color}')",
         'Audio':"(filepath='{filepath}',label_color='{label_color}')",
         'BGM':"(filepath='{filepath}',volume={volume},loop={loop},label_color='{label_color}')"
@@ -564,6 +564,7 @@ def open_media_def_window(father,image_canvas,available_Text,available_Pos,avail
     ht_pos = tk.StringVar(Objdef_windows)
     ht_target = tk.StringVar(Objdef_windows)
     fill_mode = tk.StringVar(Objdef_windows)
+    fit_axis = tk.StringVar(Objdef_windows)
     align = tk.StringVar(Objdef_windows)
     line_distance = tk.DoubleVar(Objdef_windows)
     tick = tk.IntVar(Objdef_windows)
@@ -607,6 +608,7 @@ def open_media_def_window(father,image_canvas,available_Text,available_Pos,avail
     mt_end.set('(0,0)')
     ht_target.set("'Name'") ################BUG in Balloon
     fill_mode.set('stretch')
+    fit_axis.set('free')
     sub_key.set("'Key'")
     sub_Bubble.set('Bubble()')
     sub_Anime.set('')
@@ -628,7 +630,7 @@ def open_media_def_window(father,image_canvas,available_Text,available_Pos,avail
                             'StrokeText':['fontfile','fontsize','color','line_limit','edge_color','edge_width','projection','label_color'],
                             'Bubble':['filepath','Main_Text','Header_Text','pos','mt_pos','ht_pos','ht_target','align','line_distance','label_color'],
                             'Balloon':['filepath','Main_Text','Header_Text','pos','mt_pos','ht_pos','ht_target','align','line_distance','label_color'],
-                            'DynamicBubble':['filepath','Main_Text','Header_Text','pos','mt_pos','mt_end','ht_pos','ht_target','fill_mode','line_distance','label_color'],
+                            'DynamicBubble':['filepath','Main_Text','Header_Text','pos','mt_pos','mt_end','ht_pos','ht_target','fill_mode','fit_axis','line_distance','label_color'],
                             'ChatWindow':['filepath','sub_key','sub_Bubble','sub_Anime','sub_align','pos','sub_pos','sub_end','am_left','am_right','sub_distance','label_color'],
                             'Background':['filepath','pos','label_color'],
                             'Animation':['filepath','pos','tick','loop','label_color'],
@@ -802,6 +804,7 @@ def open_media_def_window(father,image_canvas,available_Text,available_Pos,avail
     ttk.Label(DynamicBubble_frame,text='主文本终点').place(x=10,y=220,width=65,height=25)
     ttk.Label(DynamicBubble_frame,text='主文本行距').place(x=10,y=250,width=65,height=25)
     ttk.Label(DynamicBubble_frame,text='填充模式').place(x=10,y=280,width=65,height=25)
+    ttk.Label(DynamicBubble_frame,text='适应模式').place(x=10,y=310,width=65,height=25)
     # 中
     ttk.Entry(DynamicBubble_frame,textvariable=filepath).place(x=75,y=10,width=160,height=25)
     ttk.Combobox(DynamicBubble_frame,textvariable=pos,value=available_Pos).place(x=75,y=40,width=160,height=25)
@@ -813,6 +816,7 @@ def open_media_def_window(father,image_canvas,available_Text,available_Pos,avail
     ttk.Entry(DynamicBubble_frame,textvariable=mt_end).place(x=75,y=220,width=160,height=25)
     ttk.Entry(DynamicBubble_frame,textvariable=line_distance).place(x=75,y=250,width=160,height=25)
     ttk.Combobox(DynamicBubble_frame,textvariable=fill_mode,value=['stretch','collage']).place(x=75,y=280,width=160,height=25)
+    ttk.Combobox(DynamicBubble_frame,textvariable=fit_axis,value=['free','vertical','horizontal']).place(x=75,y=310,width=160,height=25)
     # 右
     ttk.Button(DynamicBubble_frame,text='浏览',command=lambda:call_browse_file(filepath,'file',filetype='picture')).place(x=240,y=10,width=50,height=25) # filepath
     ttk.Button(DynamicBubble_frame,text='选择',command=lambda:call_possele(pos,'green')).place(x=240,y=40,width=50,height=25) # pos
@@ -824,7 +828,7 @@ def open_media_def_window(father,image_canvas,available_Text,available_Pos,avail
     ttk.Button(DynamicBubble_frame,text='选择',command=lambda:call_possele(mt_end,'purple')).place(x=240,y=220,width=50,height=25) # mt_end
     ttk.Label(DynamicBubble_frame,text='(小数)',anchor='center').place(x=240,y=250,width=50,height=25) # line_distance
     ttk.Label(DynamicBubble_frame,text='(选择)',anchor='center').place(x=240,y=280,width=50,height=25) # align
-
+    ttk.Label(DynamicBubble_frame,text='(选择)',anchor='center').place(x=240,y=310,width=50,height=25) # align
     # ChatWindow_frame
     # 左
     ttk.Label(ChatWindow_frame,text='底图文件').place(x=10,y=10,width=65,height=25)

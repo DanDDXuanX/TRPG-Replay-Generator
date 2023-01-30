@@ -63,6 +63,7 @@ class ReplayGenerator:
         self.export_video = args.ExportVideo
         self.synth_anyway = args.SynthesisAnyway
         self.fix_screen = args.FixScreenZoom
+        self.force_split_clip = args.ForceSplitClip # 是否强制在断点处拆分序列
         # 语言
         self.lang = args.Language
         # 初始化日志打印
@@ -1307,6 +1308,9 @@ class ReplayGenerator:
         # 如果导出PR项目
         if self.export_xml == True:
             command = self.python3.format('export_xml') + ' --TimeLine {tm} --MediaObjDefine {md} --OutputPath {of} --FramePerSecond {fps} --Width {wd} --Height {he} --Zorder {zd} --Language {la}'
+            # 是否在断点处强制分割剪辑
+            if self.force_split_clip:
+                command = command + ' --ForceSplitClip'
             command = command.format(tm = self.output_path +'/'+timenow+'.timeline',
                                     md = self.media_obj.replace('\\','/'), of = self.output_path.replace('\\','/'), 
                                     fps = self.frame_rate, wd = self.Width, he = self.Height, zd = ','.join(self.zorder), la=self.lang)
@@ -1748,6 +1752,7 @@ if __name__ == '__main__':
     ap.add_argument('--ExportVideo',help='Export MP4 video file, this will disables interface display',action='store_true')
     ap.add_argument('--SynthesisAnyway',help='Execute speech_synthezier first, and process all unprocessed asterisk time label.',action='store_true')
     ap.add_argument('--FixScreenZoom',help='Windows system only, use this flag to fix incorrect windows zoom.',action='store_true')
+    ap.add_argument("--ForceSplitClip", help='Force to separate clips at breakpoints while exporting PR sequence.',action='store_true' )
     # 语言
     ap.add_argument("--Language",help='Choose the language of running log',default='en',type=str)
     # 主

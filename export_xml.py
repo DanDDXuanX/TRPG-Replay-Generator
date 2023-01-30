@@ -42,6 +42,7 @@ class ExportXML:
         self.screen_size = (args.Width,args.Height) #显示的分辨率
         self.frame_rate = args.FramePerSecond #帧率 单位fps
         self.zorder = args.Zorder.split(',') #渲染图层顺序
+        self.force_split_clip = args.ForceSplitClip # 是否强制在断点处拆分序列
         # 初始化日志打印
         if args.Language == 'zh':
             # 中文
@@ -158,7 +159,7 @@ class ExportXML:
             self.media_list.append(key)
     # 处理bg 和 am 的parser
     def parse_timeline_anime(self,layer) -> list:
-        break_at_breakpoint = ((layer[0:2]!='BG') & (layer[-1]!='S'))
+        break_at_breakpoint = ((layer[0:2]!='BG') & (layer[-1]!='S')) | self.force_split_clip
         track = self.timeline[[layer,layer+'_c']]
         clips = []
         item,begin,end = 'NA',0,0
@@ -198,7 +199,7 @@ class ExportXML:
         return clips #返回一个clip的列表
     # 处理se 和 bgm 的parser
     def parse_timeline_audio(self,layer) -> list:
-        break_at_breakpoint = ((layer[0:2]!='BG') & (layer[-1]!='S'))
+        break_at_breakpoint = ((layer[0:2]!='BG') & (layer[-1]!='S')) | self.force_split_clip
         track = self.timeline[[layer]]
         clips = []
         item,begin,end = 'NA',0,0
@@ -226,7 +227,7 @@ class ExportXML:
         return clips #返回一个clip的列表
     # 处理Bb 的parser
     def parse_timeline_bubble(self,layer) -> list:
-        break_at_breakpoint = ((layer[0:2]!='BG') & (layer[-1]!='S'))
+        break_at_breakpoint = ((layer[0:2]!='BG') & (layer[-1]!='S')) | self.force_split_clip
         track = self.timeline[[layer,layer+'_main',layer+'_header',layer+'_c']]
         clips = []
         item,begin,end = 'NA',0,0
@@ -359,12 +360,14 @@ if __name__ == '__main__':
     ap.add_argument("-d", "--MediaObjDefine", help='Definition of the media elements, using real python code.',type=str)
     ap.add_argument("-t", "--CharacterTable", help='This program do not need CharacterTable.',type=str)
     ap.add_argument("-o", "--OutputPath", help='Choose the destination directory to save the project timeline and break_point file.',type=str,default=None)
-    # 增加一个，读取时间轴和断点文件的选项！
+    # 导出选项
     ap.add_argument("-F", "--FramePerSecond", help='Set the FPS of display, default is 30 fps, larger than this may cause lag.',type=int,default=30)
     ap.add_argument("-W", "--Width", help='Set the resolution of display, default is 1920, larger than this may cause lag.',type=int,default=1920)
     ap.add_argument("-H", "--Height", help='Set the resolution of display, default is 1080, larger than this may cause lag.',type=int,default=1080)
     ap.add_argument("-Z", "--Zorder", help='Set the display order of layers, not recommended to change the values unless necessary!',type=str,
                     default='BG2,BG1,Am3,Am2,Am1,AmS,Bb,BbS')
+    # Flag
+    ap.add_argument("--ForceSplitClip", help='Force to separate clips at breakpoints while exporting PR sequence.',action='store_true' )
     # 语言
     ap.add_argument("--Language",help='Choose the language of running log',default='en',type=str)
     args = ap.parse_args()
