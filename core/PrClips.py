@@ -29,7 +29,16 @@ class PrMediaClip(MediaObj):
     # 公共函数：处理PR的图片坐标
     def PR_center_arg(self,obj_size,pygame_pos) -> np.ndarray:
         screensize = np.array(self.screen_size)
-        return (pygame_pos+obj_size/2-screensize/2)/obj_size
+        return (pygame_pos+obj_size/2-screensize/2)/obj_size*self.scale
+    def zoom(self,media:Image.Image,scale:float)->Image.Image:
+        if scale == 1:
+            return media
+        elif scale <= 0:
+            raise MediaError('InvScale',scale)
+        else:
+            sizex,sizey = media.size
+            target_size = int(sizex * scale),int(sizey * scale)
+            return media.resize(target_size)
 # 字体
 class Text(PrMediaClip):
     def __init__(self,fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0,0,255),line_limit=20,label_color='Lavender'):
@@ -109,17 +118,22 @@ class StrokeText(Text):
         return text_this
 # 气泡
 class Bubble(PrMediaClip):
-    def __init__(self,filepath=None,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),ht_pos=(0,0),ht_target='Name',align='left',line_distance=1.5,label_color='Lavender'):
+    def __init__(self,filepath=None,scale=1,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),ht_pos=(0,0),ht_target='Name',align='left',line_distance=1.5,label_color='Lavender'):
         super().__init__(filepath=filepath,label_color=label_color)
         # 支持气泡图缺省
         if self.filepath is None:
             self.path = None
             self.media = None
+            self.scale = 100
             self.filename = None
             self.size = self.screen_size
+            self.origin_size = self.size
         else:
             self.path = self.filepath.xml_reformated()
-            self.media = Image.open(self.filepath.exact()).convert('RGBA')
+            origin_media = Image.open(self.filepath.exact()).convert('RGBA')
+            self.origin_size = origin_media.size
+            self.media = self.zoom(origin_media,scale=scale)
+            self.scale = scale
             self.size = self.media.size
             self.filename = self.filepath.name()
         # pos
@@ -177,7 +191,7 @@ class Bubble(PrMediaClip):
         canvas_draw.save(ofile)
         
         # 生成序列
-        width,height = self.size
+        width,height = self.origin_size
         pr_horiz,pr_vert = self.PRpos
         if self.path is None:
             clip_bubble = None
@@ -198,6 +212,7 @@ class Bubble(PrMediaClip):
                                               'fileheight':'%d'%height,
                                               'horiz':'%.5f'%pr_horiz,
                                               'vert':'%.5f'%pr_vert,
+                                              'scale':'%.2f'%(self.scale*100),
                                               'colorlabel':self.label_color})
         clip_text = self.clip_tplt.format(**{'clipid':'TX_clip_%d'%PrMediaClip.clip_index,
                                         'clipname':'auto_TX_%d.png'%PrMediaClip.outtext_index,
@@ -214,14 +229,15 @@ class Bubble(PrMediaClip):
                                         'fileheight':'%d'%height,
                                         'horiz':'%.5f'%pr_horiz,
                                         'vert':'%.5f'%pr_vert,
+                                        'scale':100,
                                         'colorlabel':self.MainText.label_color})
         PrMediaClip.outtext_index = PrMediaClip.outtext_index + 1
         PrMediaClip.clip_index = PrMediaClip.clip_index + 1
         return (clip_bubble,clip_text)
 # 气球
 class Balloon(Bubble):
-    def __init__(self,filepath=None,Main_Text=Text(),Header_Text=[None],pos=(0,0),mt_pos=(0,0),ht_pos=[(0,0)],ht_target=['Name'],align='left',line_distance=1.5,label_color='Lavender'):
-        super().__init__(filepath=filepath,Main_Text=Main_Text,Header_Text=Header_Text,pos=pos,mt_pos=mt_pos,ht_pos=ht_pos,ht_target=ht_target,align=align,line_distance=line_distance,label_color=label_color)
+    def __init__(self,filepath=None,scale=1,Main_Text=Text(),Header_Text=[None],pos=(0,0),mt_pos=(0,0),ht_pos=[(0,0)],ht_target=['Name'],align='left',line_distance=1.5,label_color='Lavender'):
+        super().__init__(filepath=filepath,scale=scale,Main_Text=Main_Text,Header_Text=Header_Text,pos=pos,mt_pos=mt_pos,ht_pos=ht_pos,ht_target=ht_target,align=align,line_distance=line_distance,label_color=label_color)
         if len(self.Header)!=len(self.ht_pos) or len(self.Header)!=len(self.target):
             raise MediaError('BnHead')
         else:
@@ -261,8 +277,8 @@ class Balloon(Bubble):
         return canvas
 # 自适应气泡
 class DynamicBubble(Bubble):
-    def __init__(self,filepath=None,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),mt_end=(0,0),ht_pos=(0,0),ht_target='Name',fill_mode='stretch',fit_axis='free',line_distance=1.5,label_color='Lavender'):
-        super().__init__(filepath=filepath,Main_Text=Main_Text,Header_Text=Header_Text,pos=pos,mt_pos=mt_pos,ht_pos=ht_pos,ht_target=ht_target,line_distance=line_distance,label_color=label_color)
+    def __init__(self,filepath=None,scale=1,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),mt_end=(0,0),ht_pos=(0,0),ht_target='Name',fill_mode='stretch',fit_axis='free',line_distance=1.5,label_color='Lavender'):
+        super().__init__(filepath=filepath,scale=scale,Main_Text=Main_Text,Header_Text=Header_Text,pos=pos,mt_pos=mt_pos,ht_pos=ht_pos,ht_target=ht_target,line_distance=line_distance,label_color=label_color)
         if (mt_pos[0] >= mt_end[0]) | (mt_pos[1] >= mt_end[1]) | (mt_end[0] > self.size[0]) | (mt_end[1] > self.size[1]):
             raise MediaError('InvSep','mt_end')
         elif (mt_pos[0] < 0) | (mt_pos[1] < 0):
@@ -445,6 +461,7 @@ class DynamicBubble(Bubble):
                                               'fileheight':'%d'%height,
                                               'horiz':'%.5f'%pr_horiz,
                                               'vert':'%.5f'%pr_vert,
+                                              'scale':100,
                                               'colorlabel':self.label_color})
         # tx的clip
         clip_text = self.clip_tplt.format(**{'clipid':'TX_clip_%d'%PrMediaClip.clip_index,
@@ -462,24 +479,30 @@ class DynamicBubble(Bubble):
                                         'fileheight':'%d'%height,
                                         'horiz':'%.5f'%pr_horiz,
                                         'vert':'%.5f'%pr_vert,
+                                        'scale':100,
                                         'colorlabel':self.MainText.label_color})
         PrMediaClip.outtext_index = PrMediaClip.outtext_index + 1
         PrMediaClip.clip_index = PrMediaClip.clip_index+1
         return (clip_bubble,clip_text)
 # 聊天窗
 class ChatWindow(Bubble):
-    def __init__(self,filepath=None,sub_key=['Key1'],sub_Bubble=[Bubble()],sub_Anime=[],sub_align=['left'],pos=(0,0),sub_pos=(0,0),sub_end=(0,0),am_left=0,am_right=0,sub_distance=50,label_color='Lavender'):
+    def __init__(self,filepath=None,scale=1,sub_key=['Key1'],sub_Bubble=[Bubble()],sub_Anime=[],sub_align=['left'],pos=(0,0),sub_pos=(0,0),sub_end=(0,0),am_left=0,am_right=0,sub_distance=50,label_color='Lavender'):
         # 媒体和路径
         PrMediaClip.__init__(self,filepath=filepath,label_color=label_color)
         # 空白底图
         if self.filepath is None:
             self.path = None
             self.media = None
+            self.scale = 100
             self.filename = None
             self.size = self.screen_size
+            self.origin_size = self.size
         else:
             self.path = self.filepath.xml_reformated()
-            self.media = Image.open(self.filepath.exact()).convert('RGBA')
+            origin_media = Image.open(self.filepath.exact()).convert('RGBA')
+            self.origin_size = origin_media.size
+            self.media = self.zoom(origin_media,scale=scale)
+            self.scale = scale
             self.filename = self.filepath.name()
             self.size = self.media.size
         # 位置
@@ -590,7 +613,7 @@ class ChatWindow(Bubble):
         return canvas
 # 背景
 class Background(PrMediaClip):
-    def __init__(self,filepath,pos = (0,0),label_color='Lavender'):
+    def __init__(self,filepath,scale=1,pos = (0,0),label_color='Lavender'):
         super().__init__(filepath=filepath,label_color=label_color)
         # 对纯色定义的背景的支持
         if filepath in self.cmap.keys():
@@ -598,14 +621,19 @@ class Background(PrMediaClip):
             ofile = self.output_path+'/auto_BG_'+filepath+'.png'
             self.media = Image.new(mode='RGBA',size=self.screen_size,color=self.cmap[filepath])
             self.media.save(ofile)
+            self.scale = 100
             self.filepath = Filepath(ofile)
             # 路径和尺寸
             self.path = self.filepath.xml_reformated()
             self.size = self.screen_size
+            self.origin_size = self.size
         else:
             self.path = self.filepath.xml_reformated()
-            self.media = Image.open(self.filepath.exact()).convert('RGBA')
+            origin_media = Image.open(self.filepath.exact()).convert('RGBA')
+            self.origin_size = origin_media.size
+            self.media = self.zoom(origin_media,scale=scale)
             self.size = self.media.size
+            self.scale = scale
         if type(pos) in [Pos,FreePos]:
             self.pos = pos
         else:
@@ -619,7 +647,7 @@ class Background(PrMediaClip):
             self.PRpos = self.PR_center_arg(np.array(self.size),np.array(self.pos.get()))
         else:
             self.PRpos = self.PR_center_arg(np.array(self.size),np.array(Pos(*eval(center)).get()))
-        width,height = self.size
+        width,height = self.origin_size
         pr_horiz,pr_vert = self.PRpos
         clip_this = self.clip_tplt.format(**{'clipid':'BG_clip_%d'%PrMediaClip.clip_index,
                               'clipname':self.filename,
@@ -636,6 +664,7 @@ class Background(PrMediaClip):
                               'fileheight':'%d'%height,
                               'horiz':'%.5f'%pr_horiz,
                               'vert':'%.5f'%pr_vert,
+                              'scale':'%.2f'%(self.scale*100),
                               'colorlabel':self.label_color})
         PrMediaClip.clip_index = PrMediaClip.clip_index+1
         return clip_this
@@ -643,11 +672,14 @@ class Background(PrMediaClip):
         pass
 # 立绘图片
 class Animation(PrMediaClip):
-    def __init__(self,filepath,pos = (0,0),tick=1,loop=True,label_color='Lavender'):
+    def __init__(self,filepath,scale=1,pos = (0,0),tick=1,loop=True,label_color='Lavender'):
         # 文件路径
         super().__init__(filepath=filepath,label_color=label_color)
         self.path = self.filepath.xml_reformated() # 兼容动画Animation，只使用第一帧！
-        self.media = Image.open(self.filepath.exact()).convert('RGBA')
+        origin_media = Image.open(self.filepath.exact()).convert('RGBA')
+        self.origin_size = origin_media.size
+        self.media = self.zoom(origin_media,scale=scale)
+        self.scale = scale
         self.size = self.media.size
         self.filename = self.filepath.name()
         # 位置
@@ -663,7 +695,7 @@ class Animation(PrMediaClip):
             self.PRpos = self.PR_center_arg(np.array(self.size),np.array(self.pos.get()))
         else:
             self.PRpos = self.PR_center_arg(np.array(self.size),np.array(Pos(*eval(center)).get()))
-        width,height = self.size
+        width,height = self.origin_size
         pr_horiz,pr_vert = self.PRpos
         clip_this = self.clip_tplt.format(**{'clipid':'AM_clip_%d'%PrMediaClip.clip_index,
                               'clipname':self.filename,
@@ -680,6 +712,7 @@ class Animation(PrMediaClip):
                               'fileheight':'%d'%height,
                               'horiz':'%.5f'%pr_horiz,
                               'vert':'%.5f'%pr_vert,
+                              'scale':'%.2f'%(self.scale*100),
                               'colorlabel':self.label_color})
         PrMediaClip.clip_index = PrMediaClip.clip_index+1
         return clip_this
@@ -720,6 +753,8 @@ class GroupedAnimation(Animation):
         self.pos = Pos(0,0)
         self.path = self.filepath.xml_reformated()
         self.size = self.screen_size
+        self.origin_size = self.size
+        self.scale = 100
         self.filename = 'auto_GA_%d'%PrMediaClip.outanime_index+'.png'
         self.fileindex = 'AMfile_%d'% PrMediaClip.file_index
         self.label_color = label_color
@@ -829,6 +864,8 @@ class BuiltInAnimation(Animation):
             self.filepath = Filepath(ofile)
             self.media = canvas
             self.path = self.filepath.xml_reformated() # 兼容动画Animation，只使用第一帧！
+            self.scale = 100
+            self.origin_size = self.size
             self.filename = self.filepath.name()
             self.fileindex = 'AMfile_%d'% PrMediaClip.file_index
             # 序号
@@ -919,6 +956,8 @@ class BuiltInAnimation(Animation):
             self.filepath = Filepath(ofile)
             self.media = canvas
             self.path = self.filepath.xml_reformated() # 兼容动画Animation，只使用第一帧！
+            self.scale = 100
+            self.origin_size = self.size
             self.filename = self.filepath.name()
             self.fileindex = 'AMfile_%d'% PrMediaClip.file_index
             # self.PRpos = PR_center_arg(np.array(self.size),np.array(self.pos.get()))

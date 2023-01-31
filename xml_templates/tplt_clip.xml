@@ -52,6 +52,13 @@
 												<vert>{vert}</vert>
 											</value>
 										</parameter>
+										<parameter authoringApp="PremierePro">
+											<parameterid>scale</parameterid>
+											<name>Scale</name>
+											<valuemin>0</valuemin>
+											<valuemax>1000</valuemax>
+											<value>{scale}</value>
+										</parameter>
 									</effect>
 								</filter>
 								<labels>

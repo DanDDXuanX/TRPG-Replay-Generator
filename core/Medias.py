@@ -35,6 +35,16 @@ class MediaObj:
             self.filepath = Filepath(filepath=filepath)
         # 标签颜色
         self.label_color = label_color
+    # 缩放图像媒体
+    def zoom(self,media:pygame.Surface,scale:float) -> pygame.Surface:
+        if scale == 1:
+            return media
+        elif scale <= 0:
+            raise MediaError('InvScale',scale)
+        else:
+            sizex,sizey = media.get_size()
+            target_size = int(sizex * scale),int(sizey * scale)
+            return pygame.transform.smoothscale(media,target_size)
     # 转换媒体，仅图像媒体类需要
     def convert(self):
         pass
@@ -133,7 +143,7 @@ class StrokeText(Text):
 # 气泡
 class Bubble(MediaObj):                                   
     # 初始化
-    def __init__(self,filepath=None,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),ht_pos=(0,0),ht_target='Name',align='left',line_distance=1.5,label_color='Lavender'):
+    def __init__(self,filepath=None,scale=1,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),ht_pos=(0,0),ht_target='Name',align='left',line_distance=1.5,label_color='Lavender'):
         # 媒体和路径
         super().__init__(filepath=filepath,label_color=label_color)
         if self.filepath is None:
@@ -141,7 +151,8 @@ class Bubble(MediaObj):
             self.media = pygame.Surface(self.screen_size,pygame.SRCALPHA)
             self.media.fill(self.cmap['empty'])
         else:
-            self.media = pygame.image.load(self.filepath.exact())
+            self.media = self.zoom(pygame.image.load(self.filepath.exact()),scale=scale)
+            self.scale = scale
         # 位置
         if type(pos) in [Pos,FreePos]:
             self.pos = pos
@@ -202,8 +213,8 @@ class Bubble(MediaObj):
         self.media = self.media.convert_alpha()
 # 气球
 class Balloon(Bubble):
-    def __init__(self,filepath=None,Main_Text=Text(),Header_Text=[None],pos=(0,0),mt_pos=(0,0),ht_pos=[(0,0)],ht_target=['Name'],align='left',line_distance=1.5,label_color='Lavender'):
-        super().__init__(filepath=filepath,Main_Text=Main_Text,Header_Text=Header_Text,pos=pos,mt_pos=mt_pos,ht_pos=ht_pos,ht_target=ht_target,align=align,line_distance=line_distance,label_color=label_color)
+    def __init__(self,filepath=None,scale=1,Main_Text=Text(),Header_Text=[None],pos=(0,0),mt_pos=(0,0),ht_pos=[(0,0)],ht_target=['Name'],align='left',line_distance=1.5,label_color='Lavender'):
+        super().__init__(filepath=filepath,scale=scale,Main_Text=Main_Text,Header_Text=Header_Text,pos=pos,mt_pos=mt_pos,ht_pos=ht_pos,ht_target=ht_target,align=align,line_distance=line_distance,label_color=label_color)
         if len(self.Header)!=len(self.ht_pos) or len(self.Header)!=len(self.target):
             raise MediaError('BnHead')
         else:
@@ -230,9 +241,9 @@ class Balloon(Bubble):
         return temp,temp.get_size()
 # 自适应气泡
 class DynamicBubble(Bubble):
-    def __init__(self,filepath=None,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),mt_end=(0,0),ht_pos=(0,0),ht_target='Name',fill_mode='stretch',fit_axis='free',line_distance=1.5,label_color='Lavender'):
+    def __init__(self,filepath=None,scale=1,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),mt_end=(0,0),ht_pos=(0,0),ht_target='Name',fill_mode='stretch',fit_axis='free',line_distance=1.5,label_color='Lavender'):
         # align 只能为left
-        super().__init__(filepath=filepath,Main_Text=Main_Text,Header_Text=Header_Text,pos=pos,mt_pos=mt_pos,ht_pos=ht_pos,ht_target=ht_target,line_distance=line_distance,label_color=label_color)
+        super().__init__(filepath=filepath,scale=scale,Main_Text=Main_Text,Header_Text=Header_Text,pos=pos,mt_pos=mt_pos,ht_pos=ht_pos,ht_target=ht_target,line_distance=line_distance,label_color=label_color)
         if (mt_pos[0] >= mt_end[0]) | (mt_pos[1] >= mt_end[1]) | (mt_end[0] > self.media.get_size()[0]) | (mt_end[1] > self.media.get_size()[1]):
             raise MediaError('InvSep','mt_end')
         elif (mt_pos[0] < 0) | (mt_pos[1] < 0):
@@ -356,7 +367,7 @@ class DynamicBubble(Bubble):
         self.bubble_clip = np.frompyfunc(lambda x:x.convert_alpha(),1,1)(self.bubble_clip)
 # 聊天窗
 class ChatWindow(Bubble):
-    def __init__(self,filepath=None,sub_key=['Key1'],sub_Bubble=[Bubble()],sub_Anime=[],sub_align=['left'],pos=(0,0),sub_pos=(0,0),sub_end=(0,0),am_left=0,am_right=0,sub_distance=50,label_color='Lavender'):
+    def __init__(self,filepath=None,scale=1,sub_key=['Key1'],sub_Bubble=[Bubble()],sub_Anime=[],sub_align=['left'],pos=(0,0),sub_pos=(0,0),sub_end=(0,0),am_left=0,am_right=0,sub_distance=50,label_color='Lavender'):
         # 媒体和路径
         MediaObj.__init__(self,filepath=filepath,label_color=label_color)
         if self.filepath is None: # 支持气泡图缺省
@@ -364,7 +375,8 @@ class ChatWindow(Bubble):
             self.media = pygame.Surface(self.screen_size,pygame.SRCALPHA)
             self.media.fill(self.cmap['empty'])
         else:
-            self.media = pygame.image.load(self.filepath.exact())
+            self.media = self.zoom(pygame.image.load(self.filepath.exact()),scale=scale)
+            self.scale = scale
         # 位置
         if type(pos) in [Pos,FreePos]:
             self.pos = pos
@@ -496,14 +508,15 @@ class ChatWindow(Bubble):
         return temp,temp.get_size()
 # 背景
 class Background(MediaObj):
-    def __init__(self,filepath,pos = (0,0),label_color='Lavender'):
+    def __init__(self,filepath,scale=1,pos = (0,0),label_color='Lavender'):
         # 文件和路径
         super().__init__(filepath=filepath,label_color=label_color)
         if filepath in self.cmap.keys():
             self.media = pygame.Surface(self.screen_size)
             self.media.fill(self.cmap[filepath])
         else:
-            self.media = pygame.image.load(self.filepath.exact())
+            self.media = self.zoom(pygame.image.load(self.filepath.exact()),scale=scale)
+            self.scale = scale
         # 位置
         if type(pos) in [Pos,FreePos]:
             self.pos = pos
@@ -528,12 +541,13 @@ class Background(MediaObj):
         self.media = self.media.convert_alpha()
 # 立绘
 class Animation(MediaObj):
-    def __init__(self,filepath,pos = (0,0),tick=1,loop=True,label_color='Lavender'):
+    def __init__(self,filepath,scale=1,pos = (0,0),tick=1,loop=True,label_color='Lavender'):
         # 文件和路径
         super().__init__(filepath=filepath,label_color=label_color)
         self.length = len(self.filepath.list())
         # self.media -> np.ndarray(Surface)
-        self.media:np.ndarray = np.frompyfunc(pygame.image.load,1,1)(self.filepath.list())
+        self.media:np.ndarray = np.frompyfunc(lambda x:self.zoom(pygame.image.load(x),scale=scale),1,1)(self.filepath.list())
+        self.scale = scale
         if type(pos) in [Pos,FreePos]:
             self.pos = pos
         else:
