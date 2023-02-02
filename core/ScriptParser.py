@@ -5,7 +5,7 @@
 import numpy as np
 import pandas as pd
 
-from .Exceptions import DecodeError,ParserError,WarningPrint
+from .Exceptions import DecodeError,ParserError,WarningPrint,SyntaxsError
 from .Regexs import *
 from .Formulas import *
 
@@ -333,3 +333,109 @@ class RplGenLog:
             struct[i] = this_section
         # 返回值
         return struct
+
+class MediaDef:
+    # 外部输入参数
+    type_keyword_position = {'Pos':['pos'],'FreePos':['pos'],'PosGrid':['pos','end','x_step','y_step'],
+                            'Text':['fontfile','fontsize','color','line_limit','label_color'],
+                            'StrokeText':['fontfile','fontsize','color','line_limit','edge_color','edge_width','projection','label_color'],
+                            'Bubble':['filepath','Main_Text','Header_Text','pos','mt_pos','ht_pos','ht_target','align','line_distance','label_color'],
+                            'Balloon':['filepath','Main_Text','Header_Text','pos','mt_pos','ht_pos','ht_target','align','line_distance','label_color'],
+                            'DynamicBubble':['filepath','Main_Text','Header_Text','pos','mt_pos','mt_end','ht_pos','ht_target','fill_mode','fit_axis','line_distance','label_color'],
+                            'ChatWindow':['filepath','sub_key','sub_Bubble','sub_Anime','sub_align','pos','sub_pos','sub_end','am_left','am_right','sub_distance','label_color'],
+                            'Background':['filepath','pos','label_color'],
+                            'Animation':['filepath','pos','tick','loop','label_color'],
+                            'Audio':['filepath','label_color'],
+                            'BGM':['filepath','volume','loop','label_color']}
+    # 初始化
+    def __init__(self,filepath:str=None,json:dict=None) -> None:
+        # json 输入
+        if json is not None:
+            self.struct = json
+        # RGL 输入
+        elif filepath is not None:
+            self.struct = self.MDF_parser(filepath=filepath)
+        # 如果没有输入
+        else:
+            self.struct = {}
+    # MDF -> struct
+    def value_parser(self,value:str):
+        # 1. 是数值
+        if re.match('^-?[\d\.]+(e-?\d+)?$',value):
+            if '.' in value:
+                return float(value)
+            else:
+                return int(value)
+        # 2. 是字符串
+        if re.match('^(\".+\"|\'.+\')$',value):
+            return value[1:-1]
+        # 3. 是列表或者元组：不能嵌套！
+        if re.match('^\[.+\]|\(.+\)$',value):
+            pass
+        # 4. 是另一个实例化: Class()
+        if re.match('^[a-zA-Z_]\w*\(.*\)$',value):
+            print(value)
+        # 5. 是一个subscript: Obj[1]
+        # 6. 是一个对象 Obj
+    def args_parser(self,obj_type:str,obj_args:str) -> dict:
+        args_list = RE_mediadef_args.findall(obj_args)
+        this_args_set = {}
+        allow_position_args = True
+        for i,arg in enumerate(args_list):
+            keyword,value:str = arg
+            # 关键字
+            if keyword == '':
+                # option arg
+                if allow_position_args == True:
+                    keyword = self.type_keyword_position[obj_type][i]
+                else:
+                    raise SyntaxsError('BadPosArg')
+            else:
+                allow_position_args = False
+            # 值
+            # 该怎么做呢？
+        return this_args_set
+    def MDF_parser(self,filepath:str) -> dict:
+        try:
+            object_define_text = open(filepath,'r',encoding='utf-8').read()#.split('\n') # 修改后的逻辑
+        except UnicodeDecodeError as E:
+            raise DecodeError('DecodeErr',E)
+        # 清除 UTF-8 BOM
+        if object_define_text[0] == '\ufeff':
+            print(WarningPrint('UFT8BOM'))
+            object_define_text = object_define_text[1:] # 去掉首位
+        # 分割小节
+        object_define_text = object_define_text.split('\n')
+        # 结构体
+        struct = {}
+        # 逐句读取小节
+        for i,text in enumerate(object_define_text):
+            if text == '':
+                continue
+            elif text[0] == '#':
+                continue
+            try:
+                # 尝试解析媒体定义文件
+                obj_name,obj_type,obj_args = RE_mediadef.findall(text)[0]
+            except:
+                # 格式不合格的行直接略过
+                continue
+            else:
+                # 格式合格的行开始解析
+                this_section = {}
+                try:
+                    # instantiation = obj_type + obj_args
+                    if obj_name in self.occupied_variable_name:
+                        raise SyntaxsError('OccName')
+                    elif (len(re.findall('\w+',obj_name))==0)|(obj_name[0].isdigit()):
+                        raise SyntaxsError('InvaName')
+                    else:
+                        this_section['type'] = obj_type
+                        #对象实例化
+                        # self.MediaObjects[obj_name] = eval(instantiation)
+                        exec('global {}; '.format(obj_name) + text)
+                        self.media_list.append(obj_name) #记录新增对象名称
+                except Exception as E:
+                    print(E)
+                    print(SyntaxsError('MediaDef',text,str(i+1)))
+                    self.system_terminated('Error')

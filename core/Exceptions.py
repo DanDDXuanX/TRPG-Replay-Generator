@@ -214,6 +214,8 @@ class SyntaxsError(RplGenError):
                         "无法载入角色配置表，由于：{}"],
         'MissCol'     :["missing necessary columns.",
                         "角色配置表缺失必要的列"],
+        'BadPosArg'   :["positional argument follows keyword argument.",
+                        "位置参数被置于关键字参数后面"],
     }
     error_type = ["\x1B[31m[SyntaxError]:\x1B[0m ",
                   "\x1B[31m[语法错误]:\x1B[0m "]
