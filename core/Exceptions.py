@@ -149,6 +149,8 @@ class ParserError(RplGenError):
                         "解析异常发生在第{}行（暂停行）。"],
         'InvWaitArg'  :["Invalid argument for command <wait>: {}.",
                         "在 <wait> 命令中指定了非法的参数：{}"],
+        'SetInvMet'   :["Try to set {} to a invalid value: {}.",
+                        "尝试将默认效果 {} 设置为一个非法的值：{}。"],
     }
     error_type = ["\x1B[31m[ParserError]:\x1B[0m ",
                   "\x1B[31m[解析错误]:\x1B[0m "]
