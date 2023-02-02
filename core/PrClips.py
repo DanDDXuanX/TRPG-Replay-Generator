@@ -124,7 +124,7 @@ class Bubble(PrMediaClip):
         if self.filepath is None:
             self.path = None
             self.media = None
-            self.scale = 100
+            self.scale = 1
             self.filename = None
             self.size = self.screen_size
             self.origin_size = self.size
@@ -493,7 +493,7 @@ class ChatWindow(Bubble):
         if self.filepath is None:
             self.path = None
             self.media = None
-            self.scale = 100
+            self.scale = 1
             self.filename = None
             self.size = self.screen_size
             self.origin_size = self.size
@@ -621,7 +621,7 @@ class Background(PrMediaClip):
             ofile = self.output_path+'/auto_BG_'+filepath+'.png'
             self.media = Image.new(mode='RGBA',size=self.screen_size,color=self.cmap[filepath])
             self.media.save(ofile)
-            self.scale = 100
+            self.scale = 1
             self.filepath = Filepath(ofile)
             # 路径和尺寸
             self.path = self.filepath.xml_reformated()
@@ -754,7 +754,7 @@ class GroupedAnimation(Animation):
         self.path = self.filepath.xml_reformated()
         self.size = self.screen_size
         self.origin_size = self.size
-        self.scale = 100
+        self.scale = 1
         self.filename = 'auto_GA_%d'%PrMediaClip.outanime_index+'.png'
         self.fileindex = 'AMfile_%d'% PrMediaClip.file_index
         self.label_color = label_color
@@ -864,7 +864,7 @@ class BuiltInAnimation(Animation):
             self.filepath = Filepath(ofile)
             self.media = canvas
             self.path = self.filepath.xml_reformated() # 兼容动画Animation，只使用第一帧！
-            self.scale = 100
+            self.scale = 1
             self.origin_size = self.size
             self.filename = self.filepath.name()
             self.fileindex = 'AMfile_%d'% PrMediaClip.file_index
@@ -956,7 +956,7 @@ class BuiltInAnimation(Animation):
             self.filepath = Filepath(ofile)
             self.media = canvas
             self.path = self.filepath.xml_reformated() # 兼容动画Animation，只使用第一帧！
-            self.scale = 100
+            self.scale = 1
             self.origin_size = self.size
             self.filename = self.filepath.name()
             self.fileindex = 'AMfile_%d'% PrMediaClip.file_index
