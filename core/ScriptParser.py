@@ -37,7 +37,7 @@ class RplGenLog:
             else:
                 this_charactor['subtype'] = subtype[1:] # 去除首字符.
             if alpha == '':
-                this_charactor['alpha'] = -1
+                this_charactor['alpha'] = None
             else:
                 this_charactor['alpha'] = int(alpha[1:-1]) # 去掉首尾括号
             this_charactor_set[k] = this_charactor
@@ -70,21 +70,21 @@ class RplGenLog:
                 this_asterisk = {}
                 # 音效
                 if list_of_AS[0][1] == '':
-                    this_asterisk['sound'] = False
+                    this_asterisk['sound'] = None
                 else:
                     this_asterisk['sound'] = list_of_AS[0][1][:-1] # 去除最后存在的分号
                 # 时间
                 if list_of_AS[0][-1] == '':
-                    this_asterisk['time'] = False
+                    this_asterisk['time'] = None
                 else:
                     try:
                         this_asterisk['time'] = float(list_of_AS[0][-1])
                     except Exception:
-                        this_asterisk['time'] = False
-                        if this_asterisk['sound'] == False:
+                        this_asterisk['time'] = None
+                        if this_asterisk['sound'] is None:
                             # 指定发言内容
                             this_asterisk['specified_speech'] = list_of_AS[0][-1]
-                if this_asterisk['sound'] == False or this_asterisk['time'] == False:
+                if this_asterisk['sound'] is None or this_asterisk['time'] is None:
                     # 如果是待合成的
                     this_sound_set['{*}'] = this_asterisk
                 else:
@@ -180,7 +180,7 @@ class RplGenLog:
                 except IndexError:
                     raise ParserError('UnablePlace')
                 # <效果>
-                this_section['bb_method'] = self.method_parser(obje)
+                this_section['bg_method'] = self.method_parser(obje)
                 # 对象
                 this_section['object'] = objc
             # 常驻立绘设置行，格式：<animation><black=30>:(Am_obj,Am_obj2)
@@ -196,7 +196,7 @@ class RplGenLog:
                 this_section['am_method'] = self.method_parser(obje)
                 # 对象
                 if objc == 'NA' or objc == 'None':
-                    this_section['object'] = False
+                    this_section['object'] = None
                 elif (objc[0] == '(') and (objc[-1] == ')'):
                     # 如果是一个集合
                     this_GA_set = {} # GA
@@ -219,7 +219,7 @@ class RplGenLog:
                 this_section['bb_method'] = self.method_parser(obje)
                 # 对象
                 if objc == 'NA' or objc == 'None':
-                    this_section['object'] = False
+                    this_section['object'] = None
                 else:
                     this_section['object'] = self.bubble_parser(bubble_exp=objc,i=i)
             # 参数设置行，格式：<set:speech_speed>:220
@@ -233,53 +233,53 @@ class RplGenLog:
                 this_section['target'] = target
                 # 类型1：整数型
                 if target in ['am_dur_default','bb_dur_default','bg_dur_default','tx_dur_default','speech_speed','asterisk_pause','secondary_alpha']:
-                    this_section['arg_type'] = 'digit' # natural number
+                    this_section['value_type'] = 'digit' # natural number
                     try:
-                        this_section['args'] = int(args)
+                        this_section['value'] = int(args)
                     except:
                         print(WarningPrint('Set2Invalid',target,args))
-                        this_section['args'] = args
+                        this_section['value'] = args
                 # 类型2：method
                 elif target in ['am_method_default','bb_method_default','bg_method_default','tx_method_default']:
-                    this_section['arg_type'] = 'method'
+                    this_section['value_type'] = 'method'
                     try:
-                        this_section['args'] = self.method_parser(args)
+                        this_section['value'] = self.method_parser(args)
                     except IndexError:
                         raise ParserError('SetInvMet',target,args)
                 # 类型3：BGM
                 elif target == 'BGM':
-                    this_section['arg_type'] = 'music'
-                    this_section['args'] = args
+                    this_section['value_type'] = 'music'
+                    this_section['value'] = args
                 # 类型4：函数
                 elif target == 'formula':
-                    this_section['arg_type'] = 'function'
+                    this_section['value_type'] = 'function'
                     if args in formula_available.keys() or args[0:6] == 'lambda':
-                        this_section['args'] = args
+                        this_section['value'] = args
                     else:
                         raise ParserError('UnspFormula',args,str(i+1))
                 # 类型5：枚举
                 elif target == 'inline_method_apply':
-                    this_section['arg_type'] = 'enumerate'
-                    this_section['args'] = args
+                    this_section['value_type'] = 'enumerate'
+                    this_section['value'] = args
                 # 类型6：角色表
                 elif '.' in target:
-                    this_section['arg_type'] = 'chartab'
+                    this_section['value_type'] = 'chartab'
                     this_target = {}
                     target_split = target.split('.')
                     if len(target_split) == 2:
                         this_target['name'],this_target['column'] = target_split
-                        this_target['subtype'] = False
+                        this_target['subtype'] = None
                     elif len(target_split) == 3:
                         this_target['name'],this_target['subtype'],this_target['column'] = target_split
                     # 如果超过4个指定项目，无法解析，抛出ParserError(不被支持的参数)
                     else:
                         raise ParserError('UnsuppSet',target,str(i+1))
                     this_section['target'] = this_target
-                    this_section['args'] = args
+                    this_section['value'] = args
                 # 类型7：尚且无法定性的，例如FreePos
                 else:
-                    this_section['arg_type'] = 'unknown'
-                    this_section['args'] = args
+                    this_section['value_type'] = 'unknown'
+                    this_section['value'] = args
             # 清除行，仅适用于ChatWindow
             elif (text[0:8] == '<clear>:'):
                 this_section['type'] = 'clear'
@@ -312,7 +312,7 @@ class RplGenLog:
                             this_dice['dicemax'] = int(dicemax)
                             this_dice['face'] = int(face)
                             if check == 'NA':
-                                this_dice['check'] = 'NA'
+                                this_dice['check'] = None
                             else:
                                 this_dice['check'] = int(check)
                             this_dice_set[k] = this_dice
@@ -333,6 +333,147 @@ class RplGenLog:
             struct[i] = this_section
         # 返回值
         return struct
+    # struct -> RGL
+    def method_export(self,method_obj:dict)->str:
+        if method_obj['method'] == 'default':
+            return ''
+        else:
+            if method_obj['method_dur'] == 'default':
+                return '<'+ method_obj['method'] +'>'
+            else:
+                return '<'+ method_obj['method'] + '=' + str(method_obj['method_dur']) +'>'
+    def sound_export(self,sound_obj_set:dict)->str:
+        sound_script_list = []
+        for key in sound_obj_set.keys():
+            sound_obj = sound_obj_set[key]
+            if key == '*': # {sound;*50}
+                sound_script_list.append('{' + sound_obj['sound'] + ';*' + str(sound_obj['time']) + '}')
+            elif key == '{*}':
+                if 'specified_speech' not in sound_obj.key(): # {*abc}
+                    sound_script_list.append('{*' + str(sound_obj['specified_speech']) + '}')
+                elif sound_obj['sound'] is not None: # {sound;*}
+                    sound_script_list.append('{' + str(sound_obj['sound']) + ';*}')
+                else:
+                    sound_script_list.append('{*}') # {*}
+            else:
+                if sound_obj['delay'] != 0: # {sound;5}
+                    sound_script_list.append('{' + str(sound_obj['sound']) +';'+ str(sound_obj['delay']) +'}')
+                else: # {sound}
+                    sound_script_list.append('{' + str(sound_obj['sound']) + '}')
+        return ''.join(sound_script_list)
+    def RGL_export(self,filepath:str) -> None:
+        list_of_scripts = []
+        for key in self.struct.keys():
+            this_section:dict = self.struct[key]
+            type_this:str = this_section['type']
+            # 空行
+            if type_this == 'blank':
+                this_script = ''
+            # 备注
+            elif type_this == 'comment':
+                this_script = '#' + this_section['content']
+            # 对话行
+            elif this_section['type'] == 'dialog':
+                # 角色
+                charactor_set:dict = this_section['charactor_set']
+                charactor_script_list:list = []
+                for key in charactor_set.keys():
+                    charactor = charactor_set[key]
+                    charactor_script = charactor['name']
+                    if charactor['alpha'] is not None:
+                        charactor_script = charactor_script + '(%d)'%charactor['alpha']
+                    if charactor['subtype'] != 'default':
+                        charactor_script = charactor_script + '.' + charactor['subtype']
+                    charactor_script_list.append(charactor_script)
+                CR = '[' + ','.join(charactor_script_list) + ']'
+                # 媒体效果
+                MM = self.method_export(this_section['ab_method'])
+                TM = self.method_export(this_section['tx_method'])
+                SE = self.sound_export(this_section['sound_set'])
+                this_script = CR + MM + ':' + this_section['content'] + TM + SE
+            # 背景
+            elif this_section['type'] == 'background':
+                MM = self.method_export(this_section['bg_method'])
+                this_script = '<background>' + MM + ':' + this_section['object']
+            # 立绘
+            elif this_section['type'] == 'animation':
+                MM = self.method_export(this_section['am_method'])
+                if this_section['object'] is None:
+                    OB = 'NA'
+                elif type(this_section['object']) is str:
+                    OB =  this_section['object']
+                else:
+                    OB = '(' + ','.join(this_section['object'].values()) + ')'
+                this_script = '<animation>' + MM + ':' + OB
+            # 气泡
+            elif this_section['type'] == 'bubble':
+                MM = self.method_export(this_section['bb_method'])
+                if this_section['object'] is None:
+                    OB = 'NA'
+                else:
+                    bubble_object = this_section['object']
+                    TM = self.method_export(bubble_object['tx_method'])
+                    OB = '{}("{}","{}"{})'.format(
+                        bubble_object['bubble'],
+                        bubble_object['header_text'],
+                        bubble_object['main_text'],TM)
+                this_script = '<bubble>' + MM + ':' + OB
+            # 设置
+            elif this_section['type'] == 'set':
+                if this_section['value_type'] == 'digit':
+                    value = str(this_section['value'])
+                    target = this_section['target']
+                elif this_section['value_type'] in ['music','function','enumerate','unknown']:
+                    value = this_section['value']
+                    target = this_section['target']
+                elif this_section['value_type'] == 'method':
+                    value = self.method_export(this_section['value'])
+                    target = this_section['target']
+                elif this_section['value_type'] == 'chartab':
+                    value = this_section['value']
+                    if this_section['target']['subtype'] is None:
+                        target = this_section['target']['name'] +'.'+ this_section['target']['column']
+                    else:
+                        target = this_section['target']['name'] +'.'+ this_section['target']['subtype'] +'.'+ this_section['target']['column']
+                else:
+                    this_script = ''
+                this_script = '<set:{}>:{}'.format(target,value)
+            # 清除
+            elif this_section['type'] == 'clear':
+                this_script = '<clear>:' + this_section['object']
+            # 生命值
+            elif this_section['type'] == 'hitpoint':
+                this_script = '<hitpoint>:({},{},{},{})'.format(
+                    this_section['content'],
+                    this_section['hp_max'],
+                    this_section['hp_begin'],
+                    this_section['hp_end']
+                )
+            # 骰子
+            elif this_section['type'] == 'dice':
+                list_of_dice_express = []
+                for key in this_section['dice_set'].keys():
+                    this_dice = this_section['dice_set'][key]
+                    if this_dice['check'] is None:
+                        CK = 'NA'
+                    else:
+                        CK = int(this_dice['check'])
+                    list_of_dice_express.append(
+                        '({},{},{},{})'.format(
+                            this_dice['content'],
+                            this_dice['dicemax'],
+                            CK,
+                            this_dice['face']))
+                    this_script = '<dice>:' + ','.join(list_of_dice_express)
+            elif this_section['type'] == 'wait':
+                this_script = '<wait>:{}'.format(this_section['time'])
+            else:
+                this_script = ''
+            # 添加到列表
+            list_of_scripts.append(this_script)
+        # 导出到文件
+        with open(filepath,'w',encoding='utf-8') as of:
+            of.write('\n'.join(list_of_scripts))
 
 class MediaDef:
     # 参数
