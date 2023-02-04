@@ -1,11 +1,16 @@
+# Pos
 张安翔立绘位置 = Pos(1336,480)
 KP立绘位置 = FreePos(0,480)
 位置网格 = PosGrid(pos=(400,100),end=(1500,1000),x_step=11,y_step=9)
+
+# Text
 气泡主文本 = Text(fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(60,60,60,255),line_limit=30,label_color='Lavender')
 大文本 = Text(fontfile='./media/SourceHanSerifSC-Heavy.otf',fontsize=100,color=(255,255,255,255),line_limit=15,label_color='Lavender')
 血条字体 = Text(fontfile='@/media/consola.ttf',fontsize=40,color=(255,87,87,255),line_limit=20,label_color='Lavender')
 聊天窗主文本 = Text(fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(60,60,60,255),line_limit=20,label_color='Lavender')
 气泡头文本 = StrokeText(fontfile='./media/SourceHanSerifSC-Heavy.otf',fontsize=40,color=(255,255,255,255),line_limit=10,edge_color=(60,60,60,255),edge_width=2,projection='SE',label_color='Lavender')
+
+# Animation
 张安翔 = Animation(filepath='@/media/am1.png',pos=张安翔立绘位置,tick=1,loop=True,label_color='Purple')
 果汁 = Animation(filepath='@/media/am3.png',pos=KP立绘位置,tick=1,loop=True,label_color='Forest')
 伊可 = Animation(filepath='@/media/正作伊可.png',pos=(1375,481),tick=1,loop=True,label_color='Magenta')
@@ -14,6 +19,8 @@ KP立绘位置 = FreePos(0,480)
 KP头像 = Animation(filepath='@/media/K.png',pos=KP立绘位置,tick=1,loop=True,label_color='Forest')
 面露难色 = Animation(filepath='@/media/am2.png',pos=张安翔立绘位置,tick=1,loop=True,label_color='Purple')
 回放标记 = Animation(filepath='@/media/回放标记/回放标记_*.png',scale=2,pos=(700,100),tick=1,loop=True,label_color='Lavender')
+
+# Bubble
 全屏大字 = Bubble(filepath='None',Main_Text=大文本,Header_Text=None,pos=(0,0),mt_pos=(230,400),ht_pos=(0,0),ht_target='Name',align='center',line_distance=1.2,label_color='Lavender')
 气泡左 = Bubble(filepath='@/media/bubble.png',Main_Text=气泡主文本,Header_Text=气泡头文本,pos=(70,700),mt_pos=(50,110),ht_pos=(200,10),ht_target='Name',align='left',line_distance=1.3,label_color='Caribbean')
 气泡右 = Bubble(filepath='@/media/bubble.png',Main_Text=气泡主文本,Header_Text=气泡头文本,pos=(550,700),mt_pos=(50,110),ht_pos=(200,10),ht_target='Name',align='left',line_distance=1.3,label_color='Caribbean')
@@ -21,7 +28,11 @@ KP头像 = Animation(filepath='@/media/K.png',pos=KP立绘位置,tick=1,loop=Tru
 自适应白 = DynamicBubble(filepath='@/media/dynamic2.png',Main_Text=聊天窗主文本,Header_Text=气泡头文本,pos=(100,600),mt_pos=(50,93),mt_end=(86,129),ht_pos=(50,0),ht_target='Name',fill_mode='stretch',line_distance=1.3,label_color='Cerulean')
 自适应蓝 = DynamicBubble(filepath='@/media/dynamic1.png',fit_axis='vertical',Main_Text=聊天窗主文本,Header_Text=None,pos=(160,0),mt_pos=(50,50),mt_end=(86,86),ht_pos=(50,0),ht_target='Name',fill_mode='stretch',line_distance=1.3,label_color='Cerulean')
 聊天窗 = ChatWindow(filepath='@/media/chat.png',sub_key=['伊可','KP'],sub_Bubble=[自适应蓝,自适应白],sub_Anime=[伊可头像,KP头像],sub_align=['right','left'],pos=(0,240),sub_pos=(188,185),sub_end=(1240,800),am_left=35,am_right=1398,sub_distance=0,label_color='Rose')
+
+# Background
 背景1 = Background(filepath='@/media/bg1.jpg',pos=(0,0),label_color='Iris')
 背景2 = Background(filepath='@/media/bg2.jpg',pos=(0,0),label_color='Violet')
+
+# Sound
 音效 = Audio(filepath='@/media/SE1.wav',label_color='Lavender')
 背景音乐 = BGM(filepath='@/media/BGM.ogg',volume=10,loop=True,label_color='Lavender')

@@ -216,6 +216,10 @@ class SyntaxsError(RplGenError):
                         "角色配置表缺失必要的列"],
         'BadPosArg'   :["positional argument follows keyword argument.",
                         "位置参数被置于关键字参数后面"],
+        'InvExp'      :["Expression {} is invalid syntax",
+                        "表达式 {} 是一个非法的输入！"],
+        'ToMuchArgs'  :["To much arguments are specified to MediaType {}.",
+                        "给媒体类型 {} 指定了过多的参数"],
     }
     error_type = ["\x1B[31m[SyntaxError]:\x1B[0m ",
                   "\x1B[31m[语法错误]:\x1B[0m "]

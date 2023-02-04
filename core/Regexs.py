@@ -24,5 +24,7 @@ RE_asterisk = re.compile('(\{([^\{\}]*?[;])?\*([\w\ \.\,，。：？！“”]*)
 RE_hitpoint = re.compile('<hitpoint>:\((.+?),(\d+),(\d+),(\d+)\)') # a 1.6.5 血条预设动画
 RE_dice = re.compile('\((.+?),(\d+),([\d]+|NA),(\d+)\)') # a 1.7.5 骰子预设动画，老虎机
 RE_wait = re.compile('^<wait>:(.+)$')
+# 媒体定义的解析
 RE_mediadef = re.compile('^(\w+) *= *(Pos|FreePos|PosGrid|Text|StrokeText|Bubble|Balloon|DynamicBubble|ChatWindow|Animation|GroupedAnimation|BuiltInAnimation|Background|BGM|Audio)(\(.*\))')
-RE_mediadef_args = re.compile("(fontfile|fontsize|color|line_limit|filepath|Main_Text|Header_Text|pos|end|x_step|y_step|mt_pos|mt_end|ht_pos|ht_target|fill_mode|fit_axis|align|line_distance|tick|loop|volume|edge_color|edge_width|projection|sub_key|sub_Bubble|sub_Anime|sub_align|sub_pos|sub_end|am_left|am_right|sub_distance|label_color)?\ {0,4}=?\ {0,4}(Text\(\)|Pos\(\)|\[[\w,'()]+\]|\w+\[[\d\,]+\]|[^,()]+|\([-\d,\ ]+\))")
+RE_mediadef_args = re.compile("(fontfile|fontsize|color|line_limit|filepath|scale|Main_Text|Header_Text|pos|end|x_step|y_step|mt_pos|mt_end|ht_pos|ht_target|fill_mode|fit_axis|align|line_distance|tick|loop|volume|edge_color|edge_width|projection|sub_key|sub_Bubble|sub_Anime|sub_align|sub_pos|sub_end|am_left|am_right|sub_distance|label_color)?\ {0,4}=?\ {0,4}(Text\(\)|Pos\(\)|\[[\w,'()]+\]|\w+\[[\d\,]+\]|[^,()]+|\([-\d,\ ]+\))")
+RE_subscript_def = re.compile('^(\w+) *= *(\w+\[.*\])')
