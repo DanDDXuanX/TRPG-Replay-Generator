@@ -5,22 +5,62 @@
 import numpy as np
 import pandas as pd
 
+import json
+
 from .Exceptions import DecodeError,ParserError,WarningPrint,SyntaxsError
 from .Regexs import *
 from .Formulas import *
 
-class RplGenLog:
+# 输入文件，基类
+class Script:
     # 初始化
-    def __init__(self,filepath:str=None,json:dict=None) -> None:
-        # json 输入
-        if json is not None:
-            self.struct = json
-        # RGL 输入
-        elif filepath is not None:
-            self.struct = self.RGL_parser(filepath=filepath)
+    def __init__(self,string_input=None,dict_input=None,file_input=None,json_input=None) -> None:
+        # 字典 输入：不安全的方法
+        if dict_input is not None:
+            self.struct:dict = dict_input
+        # 字符串输入
+        elif string_input is not None:
+            self.struct:dict = self.parser(script=string_input)
+        # 如果输入了脚本文件
+        elif file_input is not None:
+            self.struct:dict = self.parser(script=self.load_file(filepath=file_input))
+        # 如果输入了json文件：不安全的方法
+        elif json_input is not None:
+            self.struct:dict = self.load_json(filepath=json_input)
         # 如果没有输入
         else:
-            self.struct = {}
+            self.struct:dict = {}
+    # 读取文本文件
+    def load_file(self,filepath:str)->str:
+        try:
+            stdin_text = open(filepath,'r',encoding='utf-8').read()
+        except UnicodeDecodeError as E:
+            raise DecodeError('DecodeErr',E)
+        # 清除 UTF-8 BOM
+        if stdin_text[0] == '\ufeff':
+            print(WarningPrint('UFT8BOM'))
+            stdin_text = stdin_text[1:]
+        return stdin_text
+    # 将读取的文本文件解析为json
+    def load_json(self,filepath:str)->dict:
+        return json.loads(self.load_file(filepath=filepath))
+    # 保存为文本文件
+    def dump_file(self,filepath:str)->None:
+        list_of_scripts = self.export()
+        with open(filepath,'w',encoding='utf-8') as of:
+            of.write(list_of_scripts)
+    # 保存为json
+    def dump_json(self,filepath:str)->None:
+        with open(filepath,'w',encoding='utf-8') as of:
+            of.write(json.dumps(self.struct,indent=4))
+    # 待重载的：
+    def parser(self,script:str)->dict:
+        return {}
+    def export(self):
+        return ''
+
+# log文件
+class RplGenLog(Script):
     # RGL -> struct
     def charactor_parser(self,cr:str,i=0)->dict: # [CH1,CH2,CH3]
         list_of_CR = RE_characor.findall(cr)
@@ -40,7 +80,7 @@ class RplGenLog:
                 this_charactor['alpha'] = None
             else:
                 this_charactor['alpha'] = int(alpha[1:-1]) # 去掉首尾括号
-            this_charactor_set[k] = this_charactor
+            this_charactor_set[str(k)] = this_charactor
         return this_charactor_set
     def method_parser(self,method:str)->dict: # <method=0>
         this_section = {}
@@ -106,7 +146,7 @@ class RplGenLog:
                 else:
                     this_soundeff['sound'] = se[1:-1]
                     this_soundeff['delay'] = 0
-                this_sound_set[k] = this_soundeff
+                this_sound_set[str(k)] = this_soundeff
             # 给到上一层
             return this_sound_set
     def bubble_parser(self,bubble_exp:str,i=0)->dict: # Bubble("header_","main_text",<w2w=1>)
@@ -126,18 +166,9 @@ class RplGenLog:
         this_bubble['tx_method'] = self.method_parser(this_method_label)
         # 返回
         return this_bubble
-    def RGL_parser(self,filepath) -> dict:
-        # 读取文本文件
-        try:
-            stdin_text = open(filepath,'r',encoding='utf8').read()
-        except UnicodeDecodeError as E:
-            raise DecodeError('DecodeErr',E)
-        # 清除 UTF-8 BOM
-        if stdin_text[0] == '\ufeff':
-            print(WarningPrint('UFT8BOM'))
-            stdin_text = stdin_text[1:]
+    def parser(self,script:str) -> dict:
         # 分割小节
-        stdin_text = stdin_text.split('\n')
+        stdin_text = script.split('\n')
         # 结构体
         struct = {}
         # 逐句读取小节
@@ -202,7 +233,7 @@ class RplGenLog:
                     this_GA_set = {} # GA
                     animation_list = objc[1:-1].split(',')
                     for k,am in enumerate(animation_list):
-                        this_GA_set[k] = am
+                        this_GA_set[str(k)] = am
                     this_section['object'] = this_GA_set
                 else:
                     this_section['object'] = objc
@@ -315,7 +346,7 @@ class RplGenLog:
                                 this_dice['check'] = None
                             else:
                                 this_dice['check'] = int(check)
-                            this_dice_set[k] = this_dice
+                            this_dice_set[str(k)] = this_dice
                         this_section['dice_set'] = this_dice_set
                     except Exception as E:
                         print(E)
@@ -330,7 +361,7 @@ class RplGenLog:
             # 异常行，报出异常
             else:
                 raise ParserError('UnrecLine',str(i+1))
-            struct[i] = this_section
+            struct[str(i)] = this_section
         # 返回值
         return struct
     # struct -> RGL
@@ -361,7 +392,7 @@ class RplGenLog:
                 else: # {sound}
                     sound_script_list.append('{' + str(sound_obj['sound']) + '}')
         return ''.join(sound_script_list)
-    def RGL_export(self,filepath:str) -> None:
+    def export(self) -> str:
         list_of_scripts = []
         for key in self.struct.keys():
             this_section:dict = self.struct[key]
@@ -436,7 +467,7 @@ class RplGenLog:
                     else:
                         target = this_section['target']['name'] +'.'+ this_section['target']['subtype'] +'.'+ this_section['target']['column']
                 else:
-                    this_script = ''
+                    continue
                 this_script = '<set:{}>:{}'.format(target,value)
             # 清除
             elif this_section['type'] == 'clear':
@@ -471,11 +502,11 @@ class RplGenLog:
                 this_script = ''
             # 添加到列表
             list_of_scripts.append(this_script)
-        # 导出到文件
-        with open(filepath,'w',encoding='utf-8') as of:
-            of.write('\n'.join(list_of_scripts))
+        # 返回
+        return '\n'.join(list_of_scripts)
 
-class MediaDef:
+# 媒体定义文件
+class MediaDef(Script):
     # 参数
     type_keyword_position = {'Pos':['pos'],'FreePos':['pos'],'PosGrid':['pos','end','x_step','y_step'],
                             'Text':['fontfile','fontsize','color','line_limit','label_color'],
@@ -488,17 +519,6 @@ class MediaDef:
                             'Animation':['filepath','scale','pos','tick','loop','label_color'],
                             'Audio':['filepath','label_color'],
                             'BGM':['filepath','volume','loop','label_color']}
-    # 初始化
-    def __init__(self,filepath:str=None,json:dict=None) -> None:
-        # json 输入
-        if json is not None:
-            self.struct = json
-        # RGL 输入
-        elif filepath is not None:
-            self.struct = self.MDF_parser(filepath=filepath)
-        # 如果没有输入
-        else:
-            self.struct = {}
     # MDF -> struct
     def list_parser(self,list_str:str)->list:
         # 列表，元组，不包含外括号
@@ -573,17 +593,9 @@ class MediaDef:
                 # 值
                 this_instance[keyword] = self.value_parser(value)
             return this_instance
-    def MDF_parser(self,filepath:str) -> dict:
-        try:
-            object_define_text = open(filepath,'r',encoding='utf-8').read()#.split('\n') # 修改后的逻辑
-        except UnicodeDecodeError as E:
-            raise DecodeError('DecodeErr',E)
-        # 清除 UTF-8 BOM
-        if object_define_text[0] == '\ufeff':
-            print(WarningPrint('UFT8BOM'))
-            object_define_text = object_define_text[1:] # 去掉首位
+    def parser(self,script:str) -> dict:
         # 分割小节
-        object_define_text = object_define_text.split('\n')
+        object_define_text = script.split('\n')
         # 结构体
         struct = {}
         # 逐句读取小节
@@ -621,7 +633,7 @@ class MediaDef:
                     raise SyntaxsError('MediaDef',text,str(i+1))
                 struct[obj_name] = this_section
         return struct
-    # 重新导出为Mdf文件
+    # struct -> MDF
     def instance_export(self,media_object:dict)->str:
         type_this = media_object['type']
         if type_this == 'subscript':
@@ -674,7 +686,7 @@ class MediaDef:
         # 其他
         else:
             return ''       
-    def MDF_export(self,filepath:str)->None:
+    def export(self)->str:
         list_of_scripts = []
         for key in self.struct.keys():
             obj_this:dict = self.struct[key]
@@ -690,6 +702,7 @@ class MediaDef:
                 this_script = key + ' = ' + self.instance_export(obj_this)
             # 添加到列表
             list_of_scripts.append(this_script)
-        # 导出到文件
-        with open(filepath,'w',encoding='utf-8') as of:
-            of.write('\n'.join(list_of_scripts))
+        # 返回
+        return '\n'.join(list_of_scripts)
+
+# 角色配置文件
