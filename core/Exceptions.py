@@ -220,6 +220,8 @@ class SyntaxsError(RplGenError):
                         "表达式 {} 是一个非法的输入！"],
         'ToMuchArgs'  :["To much arguments are specified to MediaType {}.",
                         "给媒体类型 {} 指定了过多的参数"],
+        'UndefName'   :["Name '{}' is not defined!",
+                        "媒体名 {} 尚未定义！"],
     }
     error_type = ["\x1B[31m[SyntaxError]:\x1B[0m ",
                   "\x1B[31m[语法错误]:\x1B[0m "]

@@ -5,22 +5,47 @@
 import numpy as np
 import pandas as pd
 
+import os
 import json
 
 from .Exceptions import DecodeError,ParserError,WarningPrint,SyntaxsError
 from .Regexs import *
 from .Formulas import *
+from .Medias import Text,StrokeText,Bubble,Balloon,DynamicBubble,ChatWindow,Animation,GroupedAnimation,BuiltInAnimation,Background,BGM,Audio
+from .FreePos import Pos,FreePos,PosGrid
+from .FilePaths import Filepath
 
 # 输入文件，基类
 class Script:
+    # 类型名对应的Class
+    Media_type = {
+        'Pos':Pos,'FreePos':FreePos,'PosGrid':PosGrid,
+        'Text':Text,'StrokeText':StrokeText,
+        'Bubble':Bubble,'Balloon':Balloon,'DynamicBubble':DynamicBubble,'ChatWindow':ChatWindow,
+        'Animation':Animation,'GroupedAnimation':GroupedAnimation,'BuiltInAnimation':BuiltInAnimation,
+        'Background':Background,
+        'BGM':BGM,'Audio':Audio
+        }
+    # 类型名对应的参数列表
+    type_keyword_position = {'Pos':['pos'],'FreePos':['pos'],'PosGrid':['pos','end','x_step','y_step'],
+                            'Text':['fontfile','fontsize','color','line_limit','label_color'],
+                            'StrokeText':['fontfile','fontsize','color','line_limit','edge_color','edge_width','projection','label_color'],
+                            'Bubble':['filepath','scale','Main_Text','Header_Text','pos','mt_pos','ht_pos','ht_target','align','line_distance','label_color'],
+                            'Balloon':['filepath','scale','Main_Text','Header_Text','pos','mt_pos','ht_pos','ht_target','align','line_distance','label_color'],
+                            'DynamicBubble':['filepath','scale','Main_Text','Header_Text','pos','mt_pos','mt_end','ht_pos','ht_target','fill_mode','fit_axis','line_distance','label_color'],
+                            'ChatWindow':['filepath','scale','sub_key','sub_Bubble','sub_Anime','sub_align','pos','sub_pos','sub_end','am_left','am_right','sub_distance','label_color'],
+                            'Background':['filepath','scale','pos','label_color'],
+                            'Animation':['filepath','scale','pos','tick','loop','label_color'],
+                            'Audio':['filepath','label_color'],
+                            'BGM':['filepath','volume','loop','label_color']}
     # 初始化
     def __init__(self,string_input=None,dict_input=None,file_input=None,json_input=None) -> None:
-        # 字典 输入：不安全的方法
-        if dict_input is not None:
-            self.struct:dict = dict_input
         # 字符串输入
-        elif string_input is not None:
+        if string_input is not None:
             self.struct:dict = self.parser(script=string_input)
+        # 字典 输入：不安全的方法
+        elif dict_input is not None:
+            self.struct:dict = dict_input
         # 如果输入了脚本文件
         elif file_input is not None:
             self.struct:dict = self.parser(script=self.load_file(filepath=file_input))
@@ -56,8 +81,338 @@ class Script:
     # 待重载的：
     def parser(self,script:str)->dict:
         return {}
-    def export(self):
+    def export(self)->str:
         return ''
+
+# 媒体定义文件
+class MediaDef(Script):
+    def __init__(self, string_input=None, dict_input=None, file_input=None, json_input=None) -> None:
+        super().__init__(string_input, dict_input, file_input, json_input)
+        # 媒体的相对位置@
+        if file_input is not None:
+            Filepath.Mediapath = os.path.dirname(file_input.replace('\\','/'))
+        elif json_input is not None:
+            Filepath.Mediapath = os.path.dirname(json_input.replace('\\','/'))
+    # MDF -> struct
+    def list_parser(self,list_str:str)->list:
+        # 列表，元组，不包含外括号
+        list_str = list_str.replace(' ','')
+        values = re.findall("(\w+\(\)|\[[-\w,.\ ]+\]|\([-\d,.\ ]+\)|\w+\[[\d\,]+\]|[^,()]+)",list_str)
+        this_list = []
+        for value in values:
+            this_list.append(self.value_parser(value))
+        return this_list
+    def subscript_parser(self,obj_name:str,sub_indexs:str)->dict:
+        # Object[1,2]
+        this_subscript = {'type':'subscript','object':'$'+obj_name}
+        this_subscript['index'] = self.list_parser(sub_indexs)
+        return this_subscript
+    def value_parser(self,value:str):
+    # 数值、字符串、列表、实例化、subs、对象
+        # 1. 是数值
+        if re.match('^-?[\d\.]+(e-?\d+)?$',value):
+            if '.' in value:
+                return float(value)
+            else:
+                return int(value)
+        # 2. 是字符串
+        elif re.match('^(\".+\"|\'.+\')$',value):
+            return value[1:-1]
+        # 3. 是列表或者元组：不能嵌套！
+        elif re.match('^\[.+\]|\(.+\)$',value):
+            return self.list_parser(value[1:-1])
+        # 4. 是另一个实例化: Class()
+        elif re.match('^[a-zA-Z_]\w*\(.*\)$',value):
+            obj_type,obj_value = re.findall('^([a-zA-Z_]\w*)\((.*)\)$',string=value)[0]
+            return self.instance_parser(obj_type,obj_value)
+        # 5. 是一个subscript: Obj[1]
+        elif re.match('^\w+\[[\d\, ]+\]$',value):
+            obj_name,sub_indexs = re.findall('(\w+)\[([\d\, ]+)\]$',string=value)[0]
+            return self.subscript_parser(obj_name,sub_indexs)
+        # 6. 是特殊的常量
+        elif value in ('False','True','None'):
+            return {'False':False,'True':True,'None':None}[value]
+        # 7. 是一个对象名 Obj
+        elif re.match('^\w*$',value) and value[0].isdigit()==False:
+            return '$' + value
+        else:
+            raise SyntaxsError('InvExp',value)
+    def instance_parser(self,obj_type:str,obj_args:str)->dict:
+        # 实例化
+        this_instance = {'type':obj_type}
+        # Pos 类型
+        if obj_type in ['Pos','FreePos']:
+            this_instance['pos'] = self.list_parser(obj_args)
+            return this_instance
+        # 其他类型
+        else:
+            args_list = RE_mediadef_args.findall(obj_args)
+            allow_position_args = True
+            for i,arg in enumerate(args_list):
+                keyword,value = arg
+                # 关键字
+                if keyword == '':
+                    if allow_position_args == True:
+                        try:
+                            keyword = self.type_keyword_position[obj_type][i]
+                        except IndexError:
+                            # 给媒体指定了过多的参数
+                            SyntaxsError('ToMuchArgs',obj_type)
+                    else:
+                        # 非法使用的顺序参数
+                        print(args_list)
+                        raise SyntaxsError('BadPosArg')
+                else:
+                    allow_position_args = False
+                # 值
+                this_instance[keyword] = self.value_parser(value)
+            return this_instance
+    def parser(self,script:str) -> dict:
+        # 分割小节
+        object_define_text = script.split('\n')
+        # 结构体
+        struct = {}
+        # 逐句读取小节
+        for i,text in enumerate(object_define_text):
+            # 空行
+            if text == '':
+                struct[str(i)] = {'type':'blank'}
+                continue
+            # 备注
+            elif text[0] == '#':
+                struct[str(i)] = {'type':'comment','content':text[1:]}
+                continue
+            # 有内容的
+            try:
+                # 尝试解析媒体定义文件
+                obj_name,obj_type,obj_args = RE_mediadef.findall(text)[0]
+            except:
+                # 格式不合格的行直接报错
+                try:
+                    obj_name,value_obj = RE_subscript_def.findall(text)[0]
+                    struct[obj_name] = self.value_parser(value_obj)
+                    continue
+                except Exception:
+                    raise SyntaxsError('MediaDef',text,str(i+1))
+            else:
+                # 格式合格的行开始解析
+                try:
+                    # 如果是非法的标识符
+                    if (len(re.findall('\w+',obj_name))==0)|(obj_name[0].isdigit()):
+                        raise SyntaxsError('InvaName')
+                    else:
+                        this_section = self.instance_parser(obj_type,obj_args[1:-1])
+                except Exception as E:
+                    print(E)
+                    raise SyntaxsError('MediaDef',text,str(i+1))
+                struct[obj_name] = this_section
+        return struct
+    # struct -> MDF
+    def instance_export(self,media_object:dict)->str:
+        type_this = media_object['type']
+        if type_this == 'subscript':
+            return media_object['object'] + self.list_export(media_object['index'],is_tuple=False)
+        elif type_this in ['Pos','FreePos']:
+            return type_this + self.list_export(media_object['pos'],is_tuple=True)
+        else:
+            argscript_list = []
+            for key in media_object.keys():
+                if key == 'type':
+                    continue
+                else:
+                    argscript_list.append(key + '=' + self.value_export(media_object[key]))
+            return type_this + '(' + ','.join(argscript_list) + ')'
+    def list_export(self,list_object:list,is_tuple=True)->str:
+        list_unit = []
+        for unit in list_object:
+            if type(unit) not in [int,float]:
+                is_tuple = False
+            list_unit.append(self.value_export(unit))
+        # 注意：纯数值组成的列表使用tuple
+        if is_tuple:
+            return '(' + ','.join(list_unit) + ')'
+        # 反之必须使用list，源于解析的要求
+        else:
+            return '[' + ','.join(list_unit) + ']'
+    def value_export(self,unit:object)->str:
+        # 常量
+        if type(unit) in [int,float]:
+            return str(unit)
+        elif type(unit) is bool:
+            return {False:'False',True:'True'}[unit]
+        elif unit is None:
+            return 'None'
+        # 字符串
+        elif type(unit) is str:
+            # 如果是一个引用对象
+            if unit[0] == '$':
+                return unit[1:]
+            else:
+                if "'" in unit:
+                    unit.replace("'","\\'")
+                return "'" + unit + "'"
+        # 列表
+        elif type(unit) is list:
+            return self.list_export(unit)
+        # 对象
+        elif type(unit) is dict:
+            return self.instance_export(unit)
+        # 其他
+        else:
+            return ''       
+    def export(self)->str:
+        list_of_scripts = []
+        for key in self.struct.keys():
+            obj_this:dict = self.struct[key]
+            type_this:str = obj_this['type']
+            # 空行
+            if type_this == 'blank':
+                this_script = ''
+            # 备注
+            elif type_this == 'comment':
+                this_script = '#' + obj_this['content']
+            # 实例化
+            else:
+                this_script = key + ' = ' + self.instance_export(obj_this)
+            # 添加到列表
+            list_of_scripts.append(this_script)
+        # 返回
+        return '\n'.join(list_of_scripts)
+    # 执行：实例化媒体定义文件中的媒体类，并保存在 self.Medias:dict
+    def instance_execute(self,instance_dict:dict)->object:
+        # 本行的类型
+        type_this:str  = instance_dict['type']
+        if type_this in ['blank','comment']:
+            # 如果是空行或者备注
+            return None
+        elif type_this == 'subscript':
+            # 如果是subscript
+            object_this = self.reference_object_execute(instance_dict['object'])
+            index_this:list = instance_dict['index']
+            # 借用魔法方法
+            return object_this.__getitem__(index_this)
+        elif type_this in ['Pos','FreePos']:
+            # 如果是采取特殊实例化
+            ClassThis:type = self.Media_type[type_this]
+            pos_this:list = self.list_execute(instance_dict['pos'])
+            return ClassThis(*pos_this)
+        else:
+            # 建立关键字字典
+            ClassThis:type = self.Media_type[type_this]
+            this_instance_args = {}
+            # 遍历元素
+            for key in instance_dict.keys():
+                if key == 'type':
+                    continue
+                else:
+                    value_this = instance_dict[key]
+                    this_instance_args[key] = self.value_execute(value_this)
+            # 实例化
+            return ClassThis(**this_instance_args)       
+    def list_execute(self,list_object:list)->list:
+        this_list_unit = []
+        for unit in list_object:
+            this_list_unit.append(self.value_execute(unit))
+        return this_list_unit
+    def value_execute(self,unit:object)->object:
+        if type(unit) is str:
+            if unit[0] == '$':
+                return self.reference_object_execute(unit)
+            else:
+                return unit
+        elif type(unit) is dict:
+            # 递归调用 instance_execute
+            return self.instance_execute(unit)
+        elif type(unit) is list:
+            # 是列表
+            return self.list_execute(unit)
+        else:
+            # 是值
+            return unit
+    def reference_object_execute(self,reference_name:str)->object:
+        # 根据 $媒体名 返回 媒体对象
+        try:
+            return self.Medias[reference_name[1:]]
+        except KeyError:
+            raise SyntaxsError('UndefName',reference_name[1:])
+    def execute(self) -> dict:
+        self.Medias = {}
+        # 每一个媒体类
+        for i,obj_name in enumerate(self.struct.keys()):
+            # 来自结构体
+            obj_dict_this:dict = self.struct[obj_name]
+            # 实例化
+            try:
+                object_this = self.instance_execute(obj_dict_this)
+            except Exception as E:
+                print(E)
+                text = self.instance_export(obj_dict_this)
+                raise SyntaxsError('MediaDef',text,str(i+1)) # TODO:改改这个SyntaxsError的输出文本吧
+            # 保存:
+            if object_this is None:
+                pass
+            else:
+                self.Medias[obj_name] = object_this
+
+# 角色配置文件
+class CharTable(Script):
+    # 初始化
+    def __init__(self,table_input=None,dict_input=None,file_input=None,json_input=None) -> None:
+        # DataFrame 输入
+        if table_input is not None:
+            self.struct:dict = self.parser(table=table_input)
+        # 字典 输入
+        elif dict_input is not None:
+            self.struct:dict = dict_input
+        # 如果输入了 tsv、xlsx、xls
+        elif file_input is not None:
+            self.struct:dict = self.parser(table=self.load_table(filepath=file_input))
+        # 如果输入了json文件：不安全的方法
+        elif json_input is not None:
+            self.struct:dict = self.load_json(filepath=json_input)
+        # 如果没有输入
+        else:
+            self.struct:dict = {}
+    # 从文件读取表格
+    def load_table(self, filepath: str) -> pd.DataFrame:
+        # 读取表格，并把表格中的空值处理为 "NA"
+        try:
+            if filepath.split('.')[-1] in ['xlsx','xls']:
+                # 是excel表格
+                import warnings
+                with warnings.catch_warnings():
+                    warnings.simplefilter('ignore') # 禁用读取excel时报出的：UserWarning: Data Validation extension is not supported and will be removed
+                    # 支持excel格式的角色配置表，默认读取sheet1
+                    charactor_table:pd.DataFrame = pd.read_excel(filepath,dtype = str).fillna('NA')
+            else:
+                # 是tsv
+                charactor_table:pd.DataFrame = pd.read_csv(filepath,sep='\t',dtype = str).fillna('NA')
+            charactor_table.index = charactor_table['Name']+'.'+charactor_table['Subtype']
+            if charactor_table.index.is_unique == False:
+                duplicate_subtype_name = charactor_table.index[charactor_table.index.duplicated()][0]
+                raise ParserError('DupSubtype',duplicate_subtype_name)
+        except Exception as E:
+            raise SyntaxsError('CharTab',E)
+        # 如果角色表缺省关键列
+        if ('Animation' not in charactor_table.columns) | ('Bubble' not in charactor_table.columns):
+            raise SyntaxsError('MissCol')
+        # 返回角色表格
+        return charactor_table
+    # 将DataFrame 解析为 dict：
+    def parser(self, table: pd.DataFrame) -> dict:
+        # 正常是to_dict 是以列为key，需要转置为以行为key
+        return table.T.to_dict()
+    # 将 dict 转为 DataFrame
+    def export(self)->pd.DataFrame:
+        # dict -> 转为 DataFrame，把潜在的缺失值处理为'NA'
+        return pd.DataFrame(self.struct).T.fillna('NA')
+    # 保存为文本文件 (tsv)
+    def dump_file(self,filepath:str)->None:
+        charactor_table = self.export()
+        charactor_table.to_csv(filepath,sep='\t',index=False)
+    # 执行：角色表哪儿有需要执行的哦，直接返回自己的结构就行了
+    def execute(self) -> dict:
+        return self.struct
 
 # log文件
 class RplGenLog(Script):
@@ -504,205 +859,6 @@ class RplGenLog(Script):
             list_of_scripts.append(this_script)
         # 返回
         return '\n'.join(list_of_scripts)
-
-# 媒体定义文件
-class MediaDef(Script):
-    # 参数
-    type_keyword_position = {'Pos':['pos'],'FreePos':['pos'],'PosGrid':['pos','end','x_step','y_step'],
-                            'Text':['fontfile','fontsize','color','line_limit','label_color'],
-                            'StrokeText':['fontfile','fontsize','color','line_limit','edge_color','edge_width','projection','label_color'],
-                            'Bubble':['filepath','scale','Main_Text','Header_Text','pos','mt_pos','ht_pos','ht_target','align','line_distance','label_color'],
-                            'Balloon':['filepath','scale','Main_Text','Header_Text','pos','mt_pos','ht_pos','ht_target','align','line_distance','label_color'],
-                            'DynamicBubble':['filepath','scale','Main_Text','Header_Text','pos','mt_pos','mt_end','ht_pos','ht_target','fill_mode','fit_axis','line_distance','label_color'],
-                            'ChatWindow':['filepath','scale','sub_key','sub_Bubble','sub_Anime','sub_align','pos','sub_pos','sub_end','am_left','am_right','sub_distance','label_color'],
-                            'Background':['filepath','scale','pos','label_color'],
-                            'Animation':['filepath','scale','pos','tick','loop','label_color'],
-                            'Audio':['filepath','label_color'],
-                            'BGM':['filepath','volume','loop','label_color']}
-    # MDF -> struct
-    def list_parser(self,list_str:str)->list:
-        # 列表，元组，不包含外括号
-        list_str = list_str.replace(' ','')
-        values = re.findall("(\w+\(\)|\[[-\w,.\ ]+\]|\([-\d,.\ ]+\)|\w+\[[\d\,]+\]|[^,()]+)",list_str)
-        this_list = []
-        for value in values:
-            this_list.append(self.value_parser(value))
-        return this_list
-    def subscript_parser(self,obj_name:str,sub_indexs:str)->dict:
-        # Object[1,2]
-        this_subscript = {'type':'subscript','object':'$'+obj_name}
-        this_subscript['index'] = self.list_parser(sub_indexs)
-        return this_subscript
-    def value_parser(self,value:str):
-    # 数值、字符串、列表、实例化、subs、对象
-        # 1. 是数值
-        if re.match('^-?[\d\.]+(e-?\d+)?$',value):
-            if '.' in value:
-                return float(value)
-            else:
-                return int(value)
-        # 2. 是字符串
-        elif re.match('^(\".+\"|\'.+\')$',value):
-            return value[1:-1]
-        # 3. 是列表或者元组：不能嵌套！
-        elif re.match('^\[.+\]|\(.+\)$',value):
-            return self.list_parser(value[1:-1])
-        # 4. 是另一个实例化: Class()
-        elif re.match('^[a-zA-Z_]\w*\(.*\)$',value):
-            obj_type,obj_value = re.findall('^([a-zA-Z_]\w*)\((.*)\)$',string=value)[0]
-            return self.instance_parser(obj_type,obj_value)
-        # 5. 是一个subscript: Obj[1]
-        elif re.match('^\w+\[[\d\, ]+\]$',value):
-            obj_name,sub_indexs = re.findall('(\w+)\[([\d\, ]+)\]$',string=value)[0]
-            return self.subscript_parser(obj_name,sub_indexs)
-        # 6. 是特殊的常量
-        elif value in ('False','True','None'):
-            return {'False':False,'True':True,'None':None}[value]
-        # 7. 是一个对象名 Obj
-        elif re.match('^\w*$',value) and value[0].isdigit()==False:
-            return '$' + value
-        else:
-            raise SyntaxsError('InvExp',value)
-    def instance_parser(self,obj_type:str,obj_args:str)->dict:
-        # 实例化
-        this_instance = {'type':obj_type}
-        # Pos 类型
-        if obj_type in ['Pos','FreePos']:
-            this_instance['pos'] = self.list_parser(obj_args)
-            return this_instance
-        # 其他类型
-        else:
-            args_list = RE_mediadef_args.findall(obj_args)
-            allow_position_args = True
-            for i,arg in enumerate(args_list):
-                keyword,value = arg
-                # 关键字
-                if keyword == '':
-                    if allow_position_args == True:
-                        try:
-                            keyword = self.type_keyword_position[obj_type][i]
-                        except IndexError:
-                            # 给媒体指定了过多的参数
-                            SyntaxsError('ToMuchArgs',obj_type)
-                    else:
-                        # 非法使用的顺序参数
-                        print(args_list)
-                        raise SyntaxsError('BadPosArg')
-                else:
-                    allow_position_args = False
-                # 值
-                this_instance[keyword] = self.value_parser(value)
-            return this_instance
-    def parser(self,script:str) -> dict:
-        # 分割小节
-        object_define_text = script.split('\n')
-        # 结构体
-        struct = {}
-        # 逐句读取小节
-        for i,text in enumerate(object_define_text):
-            # 空行
-            if text == '':
-                struct[str(i)] = {'type':'blank'}
-                continue
-            # 备注
-            elif text[0] == '#':
-                struct[str(i)] = {'type':'comment','content':text[1:]}
-                continue
-            # 有内容的
-            try:
-                # 尝试解析媒体定义文件
-                obj_name,obj_type,obj_args = RE_mediadef.findall(text)[0]
-            except:
-                # 格式不合格的行直接报错
-                try:
-                    obj_name,value_obj = RE_subscript_def.findall(text)[0]
-                    struct[obj_name] = self.value_parser(value_obj)
-                    continue
-                except Exception:
-                    raise SyntaxsError('MediaDef',text,str(i+1))
-            else:
-                # 格式合格的行开始解析
-                try:
-                    # 如果是非法的标识符
-                    if (len(re.findall('\w+',obj_name))==0)|(obj_name[0].isdigit()):
-                        raise SyntaxsError('InvaName')
-                    else:
-                        this_section = self.instance_parser(obj_type,obj_args[1:-1])
-                except Exception as E:
-                    print(E)
-                    raise SyntaxsError('MediaDef',text,str(i+1))
-                struct[obj_name] = this_section
-        return struct
-    # struct -> MDF
-    def instance_export(self,media_object:dict)->str:
-        type_this = media_object['type']
-        if type_this == 'subscript':
-            return media_object['object'] + self.list_export(media_object['index'],is_tuple=False)
-        elif type_this in ['Pos','FreePos']:
-            return type_this + self.list_export(media_object['pos'],is_tuple=True)
-        else:
-            argscript_list = []
-            for key in media_object.keys():
-                if key == 'type':
-                    continue
-                else:
-                    argscript_list.append(key + '=' + self.value_export(media_object[key]))
-            return type_this + '(' + ','.join(argscript_list) + ')'
-    def list_export(self,list_object:list,is_tuple=True)->str:
-        list_unit = []
-        for unit in list_object:
-            if type(unit) not in [int,float]:
-                is_tuple = False
-            list_unit.append(self.value_export(unit))
-        # 注意：纯数值组成的列表使用tuple
-        if is_tuple:
-            return '(' + ','.join(list_unit) + ')'
-        # 反之必须使用list，源于解析的要求
-        else:
-            return '[' + ','.join(list_unit) + ']'
-    def value_export(self,unit:object)->str:
-        # 常量
-        if type(unit) in [int,float]:
-            return str(unit)
-        elif type(unit) is bool:
-            return {False:'False',True:'True'}[unit]
-        elif unit is None:
-            return 'None'
-        # 字符串
-        elif type(unit) is str:
-            # 如果是一个引用对象
-            if unit[0] == '$':
-                return unit[1:]
-            else:
-                if "'" in unit:
-                    unit.replace("'","\\'")
-                return "'" + unit + "'"
-        # 列表
-        elif type(unit) is list:
-            return self.list_export(unit)
-        # 对象
-        elif type(unit) is dict:
-            return self.instance_export(unit)
-        # 其他
-        else:
-            return ''       
-    def export(self)->str:
-        list_of_scripts = []
-        for key in self.struct.keys():
-            obj_this:dict = self.struct[key]
-            type_this:str = obj_this['type']
-            # 空行
-            if type_this == 'blank':
-                this_script = ''
-            # 备注
-            elif type_this == 'comment':
-                this_script = '#' + obj_this['content']
-            # 实例化
-            else:
-                this_script = key + ' = ' + self.instance_export(obj_this)
-            # 添加到列表
-            list_of_scripts.append(this_script)
-        # 返回
-        return '\n'.join(list_of_scripts)
-
-# 角色配置文件
+    # 执行解析 -> (timeline:pd.DF,breakpoint:pd.Ser,builtin_media:dict?<方便在其他模块实例化>)
+    def execute(self,media_define:MediaDef,char_table:CharTable)->tuple:
+        pass

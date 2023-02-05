@@ -87,7 +87,7 @@ class PosGrid:
             raise Exception('Invalid separate param end for posgrid!')
         X,Y = np.mgrid[x1:x2:(x2-x1)/x_step,y1:y2:(y2-y1)/y_step].astype(int)
         self._grid = np.frompyfunc(lambda x,y:Pos(x,y),2,1)(X,Y)
-    def __getitem__(self,key):
+    def __getitem__(self,key)->Pos:
         return self._grid[key[0],key[1]]
     def size(self):
         return self._grid.shape
