@@ -14,6 +14,8 @@ from .Formulas import *
 from .Medias import Text,StrokeText,Bubble,Balloon,DynamicBubble,ChatWindow,Animation,GroupedAnimation,BuiltInAnimation,Background,BGM,Audio
 from .FreePos import Pos,FreePos,PosGrid
 from .FilePaths import Filepath
+from .ProjConfig import Config
+from .Motion import MotionMethod
 
 # 输入文件，基类
 class Script:
@@ -410,9 +412,9 @@ class CharTable(Script):
     def dump_file(self,filepath:str)->None:
         charactor_table = self.export()
         charactor_table.to_csv(filepath,sep='\t',index=False)
-    # 执行：角色表哪儿有需要执行的哦，直接返回自己的结构就行了
-    def execute(self) -> dict:
-        return self.struct
+    # 执行：角色表哪儿有需要执行的哦，直接返回自己的表就行了
+    def execute(self) -> pd.DataFrame:
+        return self.export().copy()
 
 # log文件
 class RplGenLog(Script):
@@ -860,5 +862,173 @@ class RplGenLog(Script):
         # 返回
         return '\n'.join(list_of_scripts)
     # 执行解析 -> (timeline:pd.DF,breakpoint:pd.Ser,builtin_media:dict?<方便在其他模块实例化>)
-    def execute(self,media_define:MediaDef,char_table:CharTable)->tuple:
-        pass
+    def execute(self,media_define:MediaDef,char_table:CharTable,config:Config)->tuple:
+        # 媒体和角色
+        self.medias:dict = media_define.Medias
+        self.charactors:pd.DataFrame = char_table.execute()
+        # section:小节号, BG: 背景，Am：立绘，Bb：气泡，BGM：背景音乐，Voice：语音，SE：音效
+        render_arg = [
+        'section',
+        'BG1','BG1_a','BG1_c','BG1_p','BG2','BG2_a','BG2_c','BG2_p',
+        'Am1','Am1_t','Am1_a','Am1_c','Am1_p','Am2','Am2_t','Am2_a','Am2_c','Am2_p','Am3','Am3_t','Am3_a','Am3_c','Am3_p',
+        'AmS','AmS_t','AmS_a','AmS_c','AmS_p',
+        'Bb','Bb_main','Bb_header','Bb_a','Bb_c','Bb_p',
+        'BbS','BbS_main','BbS_header','BbS_a','BbS_c','BbS_p',
+        'BGM','Voice','SE'
+        ]
+        # 断点文件: index + 1 == section, 因为还要包含尾部，所以总长比section长1
+        break_point = pd.Series(0,index=range(0,len(self.struct.keys())+1),dtype=int)
+        # 视频+音轨 时间轴
+        timeline = pd.DataFrame(dtype=str,columns=render_arg)
+        # 内建的媒体，主要指BIA # 保存为另外的一个Media文件
+        bulitin_media = MediaDef()
+        # 背景音乐队列
+        BGM_queue = []
+        # 初始化的背景、放置立绘、放置气泡
+        this_background = "black"
+        # 放置的立绘
+        last_placed_animation_section = 0
+        this_placed_animation = ('NA','replace',0,'NA') # am,method,method_dur,center
+        # 放置的气泡
+        last_placed_bubble_section = 0
+        this_placed_bubble = ('NA','replace',0,'','','all',0,'NA') # bb,method,method_dur,HT,MT,tx_method,tx_dur,center
+        # 当前对话小节的am_bb_method
+        last_dialog_method = {'Am':None,'Bb':None,'A1':0,'A2':0,'A3':0}
+        this_dialog_method = {'Am':None,'Bb':None,'A1':0,'A2':0,'A3':0}
+        # 动态变量
+        self.dynamic = {
+            #默认切换效果（立绘）
+            'am_method_default' : {'method':'replace','method_dur':0},
+            #默认切换效果持续时间（立绘）
+            'am_dur_default' : 10,
+            #默认切换效果（文本框）
+            'bb_method_default' : {'method':'replace','method_dur':0},
+            #默认切换效果持续时间（文本框）
+            'bb_dur_default' : 10,
+            #默认切换效果（背景）
+            'bg_method_default' : {'method':'replace','method_dur':0},
+            #默认切换效果持续时间（背景）
+            'bg_dur_default' : 10,
+            #默认文本展示方式
+            'tx_method_default' : {'method':'all','method_dur':0},
+            #默认单字展示时间参数
+            'tx_dur_default' : 5,
+            #语速，单位word per minute
+            'speech_speed' : 220,
+            #默认的曲线函数
+            'formula' : linear,
+            # 星标音频的句间间隔 a1.4.3，单位是帧，通过处理delay
+            'asterisk_pause' : 20,
+            # a 1.8.8 次要立绘的默认透明度
+            'secondary_alpha' : 60,
+            # 对话行内指定的方法的应用对象：animation、bubble、both、none
+            'inline_method_apply' : 'both'
+        }
+        # 开始遍历
+        for key in self.struct.keys():
+            # 保留前一行的切换效果参数，重置当前行的参数
+            last_dialog_method = this_dialog_method
+            this_dialog_method = {'Am':None,'Bb':None,'A1':0,'A2':0,'A3':0}
+            # 本小节：
+            i = str(key)
+            this_section = self.struct[key]
+            # 空白行
+            if this_section['type'] == 'blank':
+                break_point[i+1]=break_point[i]
+                continue
+            # 注释行
+            elif this_section['type'] == 'comment':
+                break_point[i+1]=break_point[i]
+                continue
+            # 对话行
+            elif this_section['type'] == 'dialog':
+                # 这个小节的持续时长
+                if '*' in this_section['sound_set'].keys():
+                    # 如果存在星标音效：持续时长 = 星标间隔 + ceil(秒数时间*帧率)
+                    this_duration:int = self.dynamic['asterisk_pause'] + np.ceil(this_section['sound_set']['*']['time'] * config.frame_rate).astype(int)
+                elif '{*}' in this_section['sound_set'].keys():
+                    # 如果存在待处理星标：举起伊可
+                    raise ParserError('UnpreAster', str(i+1))
+                else:
+                    # 如果缺省星标：持续时间 = 字数/语速 + 星标间隔
+                    this_duration:int = self.dynamic['asterisk_pause'] + int(len(this_section['content'])/(self.dynamic['speech_speed']/60/config.frame_rate))
+                # 本小节的切换效果：am_method，bb_method
+                if this_section['ab_method']['method'] == 'default' | self.dynamic['inline_method_apply'] == 'none':
+                    # 未指定
+                    am_method:dict = self.dynamic['am_method_default'].copy()
+                    bb_method:dict = self.dynamic['bb_method_default'].copy()
+                else:
+                    # 有指定
+                    if self.dynamic['inline_method_apply'] in ['animation','both']:
+                        am_method:dict = this_section['ab_method'].copy()
+                    else:
+                        am_method:dict = self.dynamic['am_method_default'].copy()
+                    if self.dynamic['inline_method_apply'] in ['bubble','both']:
+                        bb_method:dict = this_section['ab_method'].copy()
+                    else:
+                        bb_method:dict = self.dynamic['bb_method_default'].copy()
+                # 是否缺省时长
+                if am_method['method_dur'] == 'default':
+                    am_method['method_dur'] = self.dynamic['am_dur_default']
+                if bb_method['method_dur'] == 'default':
+                    bb_method['method_dur'] = self.dynamic['bb_dur_default']
+                # 小节持续时长是否低于切换效果的持续时长？
+                method_dur = max(am_method['method_dur'],bb_method['method_dur'])
+                if this_duration<(2*method_dur+1):
+                    this_duration = 2*method_dur+1
+                # 建立本小节的timeline文件
+                this_timeline=pd.DataFrame(index=range(0,this_duration),dtype=str,columns=render_arg)
+                this_timeline['BG2'] = this_background
+                this_timeline['BG2_a'] = 100
+                # 载入切换效果
+                am_method_obj = MotionMethod(am_method['method'],am_method['method_dur'],self.dynamic['formula'],i)
+                bb_method_obj = MotionMethod(bb_method['method'],bb_method['method_dur'],self.dynamic['formula'],i)
+                this_dialog_method['Am'] = am_method_obj
+                this_dialog_method['Bb'] = bb_method_obj
+                # 遍历角色
+                for chara_key in this_section['charactor_set'].keys():
+                    # 当前角色和当前图层：'0' -> 'Am1'
+                    this_charactor:dict = this_section['charactor_set'][chara_key]
+                    this_layer:str = 'Am%d' % (int(chara_key) + 1)
+                    # 获取角色配置
+                    name:str = this_charactor['name']
+                    subtype:str = this_charactor['subtype']
+                    alpha:int = this_charactor['subtype']
+                    try:
+                        this_charactor_config = self.charactors.loc[name+':'+subtype]
+                    except KeyError as E: # 在角色表里面找不到name，raise在这里！
+                        raise ParserError('UndefName',name+subtype,str(i+1),E)
+                    # 立绘
+                    this_am:str = this_charactor_config['Animation']
+                    this_timeline[this_layer] = this_am
+                    if this_am == 'NA':
+                        # 如果立绘缺省
+                        this_timeline[this_layer+'_t'] = 0
+                        this_timeline[this_layer+'_c'] = 'NA'
+                    elif this_am not in self.medias.keys():
+                        # 如果媒体名未定义
+                        raise ParserError('UndefAnime', this_am, name+':'+subtype)
+                    elif media_define.struct[this_am]['type'] not in ['Animation','GroupedAnimation','BuiltInAnimation']:
+                        # 如果媒体不是一个立绘类
+                        raise ParserError('NotAnime', this_am, name+':'+subtype)
+                    else:
+                        this_am_obj:Animation = self.medias[this_am]
+                        this_timeline[this_layer+'_t'] = this_am_obj.get_tick(this_duration)
+                        this_timeline[this_layer+'_c'] = str(this_am_obj.pos)
+                    # 透明度
+                    AN = this_layer.replace('m','')
+                    if (alpha >= 0)&(alpha <= 100):
+                        # 如果有指定合法的透明度，则使用指定透明度
+                        this_timeline[this_layer+'_a']=am_method_obj.alpha(this_duration,alpha)
+                        this_dialog_method[AN] = alpha
+                    else:
+                        # 如果指定是None，或者其他非法值
+                        if chara_key == '0': # 如果是首要角色，透明度为100
+                            this_timeline[this_layer+'_a']=am_method_obj.alpha(this_duration,100)
+                            this_dialog_method[AN] = 100
+                        else: # 如果是次要角色，透明度为secondary_alpha，默认值60
+                            this_timeline[this_layer+'_a']=am_method_obj.alpha(this_duration,self.dynamic['secondary_alpha'])
+                            this_dialog_method[AN] = self.dynamic['secondary_alpha']
+                    # 位置参数
+                    this_timeline[this_layer+'_p'] = am_method_obj.motion(this_duration)
+                    # 气泡参数

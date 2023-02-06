@@ -43,6 +43,8 @@ class ArgumentError(RplGenError):
                         "没有指定输出路径！"],
         'MkdirErr'    :["Cannot make directory '{}'.",
                         "无法创建文件夹：'{}'"],
+        'InvDict'     :["Cannot load config arguments from dictionary input!",
+                        "无法从字典输入中载入项目配置参数！"],
     }
     error_type = ["\x1B[31m[ArgumentError]:\x1B[0m ",
                   "\x1B[31m[参数错误]:\x1B[0m "]
@@ -67,6 +69,8 @@ class ParserError(RplGenError):
                         "差分名“{}”在角色表中重复出现！"],
         'UndefAnime'  :["Name '{}' is not defined, which is specified to '{}' as Animation!",
                         "媒体名“{}”尚未在媒体定义文件中定义，但其被指定给角色 '{}' 作为立绘！"],
+        'NotAnime'    :["Name '{}' is not an Animation, but it's specified to '{}' as Animation!",
+                        "媒体名“{}”并非一个立绘类，但其被指定给角色 '{}' 作为立绘！"],
         'CharaNoBb'   :["No bubble is specified to major charactor '{0}' of dialogue line {1}.",
                         "第{1}行的主要发言人“{0}”，缺失发言气泡！"],
         'InvalidKey'  :["Key '{0}' specified to ChatWindow object '{1}' is not exist!",
