@@ -864,6 +864,7 @@ class RplGenLog(Script):
     # 执行解析 -> (timeline:pd.DF,breakpoint:pd.Ser,builtin_media:dict?<方便在其他模块实例化>
     def tx_method_execute(self,content:str,tx_method:dict,line_limit:int,this_duration:int,i=0) -> np.ndarray:
         content_length:int = len(content)
+        UF_limit_content_length:np.ufunc = np.frompyfunc(lambda x:x if x<=content_length else content_length,1,1)
         # 全部显示
         if tx_method['method'] == 'all':
             if tx_method['method_dur'] >= this_duration:
@@ -873,10 +874,10 @@ class RplGenLog(Script):
                     np.zeros(tx_method['method_dur']),
                     content_length*np.ones(this_duration-tx_method['method_dur'])
                     ])
-            return main_text_eff
+            return main_text_eff.astype(int)
         # 逐字显示
         elif tx_method['method'] == 'w2w':
-            return np.frompyfunc(lambda x:x if x<=content_length else content_length,1,1)(np.arange(0,this_duration,1)//tx_method['method_dur'])
+            return UF_limit_content_length(np.arange(0,this_duration,1)//tx_method['method_dur'])
         # 逐行显示
         elif tx_method['method'] == 'l2l':
             if ((content[0]=='^')|('#' in content)): #如果是手动换行的列
@@ -893,9 +894,9 @@ class RplGenLog(Script):
                 except Exception: 
                     word_count_timeline = np.hstack(wc_list) # this_duration < est
                     word_count_timeline = word_count_timeline[0:this_duration]
-                return word_count_timeline.astype(int)
+                return UF_limit_content_length(word_count_timeline).astype(int)
             else:
-                return (np.arange(0,this_duration,1)//(tx_method['method_dur']*line_limit)+1)*line_limit
+                return UF_limit_content_length((np.arange(0,this_duration,1)//(tx_method['method_dur']*line_limit)+1)*line_limit)
         # 逐句显示
         elif tx_method['method'] == 's2s':
             pass
@@ -904,6 +905,14 @@ class RplGenLog(Script):
             pass
         else:
             raise ParserError('UnrecTxMet', self.method_export(tx_method), str(i+1))
+    def cross_timeline_execute(self,timeline:pd.DataFrame,method:MotionMethod,begin:int,center:int,end:int,layer:str)->np.ndarray:
+        # 交叉溶解的时间轴生成 
+        dur = center - begin
+        last = timeline.loc[begin:center-1,layer].values
+        last = np.hstack([last,np.repeat(last[-1],dur)])
+        this = timeline.loc[center:end-1,layer].values
+        this = np.hstack([np.repeat(this[0],dur),this])
+        return method.cross_mark(this,last)
     def execute(self,media_define:MediaDef,char_table:CharTable,config:Config)->tuple:
         # 媒体和角色
         self.medias:dict = media_define.Medias
@@ -921,7 +930,7 @@ class RplGenLog(Script):
         # 断点文件: index + 1 == section, 因为还要包含尾部，所以总长比section长1
         break_point = pd.Series(0,index=range(0,len(self.struct.keys())+1),dtype=int)
         # 视频+音轨 时间轴
-        timeline = pd.DataFrame(dtype=str,columns=render_arg)
+        main_timeline = pd.DataFrame(dtype=str,columns=render_arg)
         # 内建的媒体，主要指BIA # 保存为另外的一个Media文件
         bulitin_media = MediaDef()
         # 背景音乐队列
@@ -972,7 +981,7 @@ class RplGenLog(Script):
             last_dialog_method = this_dialog_method
             this_dialog_method = {'Am':None,'Bb':None,'A1':0,'A2':0,'A3':0}
             # 本小节：
-            i = str(key)
+            i = int(key)
             this_section = self.struct[key]
             # 空白行
             if this_section['type'] == 'blank':
@@ -984,209 +993,312 @@ class RplGenLog(Script):
                 continue
             # 对话行
             elif this_section['type'] == 'dialog':
-                # 这个小节的持续时长
-                if '*' in this_section['sound_set'].keys():
-                    # 如果存在星标音效：持续时长 = 星标间隔 + ceil(秒数时间*帧率)
-                    this_duration:int = self.dynamic['asterisk_pause'] + np.ceil(this_section['sound_set']['*']['time'] * config.frame_rate).astype(int)
-                elif '{*}' in this_section['sound_set'].keys():
-                    # 如果存在待处理星标：举起伊可
-                    raise ParserError('UnpreAster', str(i+1))
-                else:
-                    # 如果缺省星标：持续时间 = 字数/语速 + 星标间隔
-                    this_duration:int = self.dynamic['asterisk_pause'] + int(len(this_section['content'])/(self.dynamic['speech_speed']/60/config.frame_rate))
-                # 本小节的切换效果：am_method，bb_method
-                if this_section['ab_method']['method'] == 'default' | self.dynamic['inline_method_apply'] == 'none':
-                    # 未指定
-                    am_method:dict = self.dynamic['am_method_default'].copy()
-                    bb_method:dict = self.dynamic['bb_method_default'].copy()
-                else:
-                    # 有指定
-                    if self.dynamic['inline_method_apply'] in ['animation','both']:
-                        am_method:dict = this_section['ab_method'].copy()
+                try:
+                    # 这个小节的持续时长
+                    if '*' in this_section['sound_set'].keys():
+                        # 如果存在星标音效：持续时长 = 星标间隔 + ceil(秒数时间*帧率)
+                        this_duration:int = self.dynamic['asterisk_pause'] + np.ceil(this_section['sound_set']['*']['time'] * config.frame_rate).astype(int)
+                    elif '{*}' in this_section['sound_set'].keys():
+                        # 如果存在待处理星标：举起伊可
+                        raise ParserError('UnpreAster', str(i+1))
                     else:
+                        # 如果缺省星标：持续时间 = 字数/语速 + 星标间隔
+                        this_duration:int = self.dynamic['asterisk_pause'] + int(len(this_section['content'])/(self.dynamic['speech_speed']/60/config.frame_rate))
+                    # 本小节的切换效果：am_method，bb_method
+                    if this_section['ab_method']['method'] == 'default' or self.dynamic['inline_method_apply'] == 'none':
+                        # 未指定
                         am_method:dict = self.dynamic['am_method_default'].copy()
-                    if self.dynamic['inline_method_apply'] in ['bubble','both']:
-                        bb_method:dict = this_section['ab_method'].copy()
-                    else:
                         bb_method:dict = self.dynamic['bb_method_default'].copy()
-                # 是否缺省时长
-                if am_method['method_dur'] == 'default':
-                    am_method['method_dur'] = self.dynamic['am_dur_default']
-                if bb_method['method_dur'] == 'default':
-                    bb_method['method_dur'] = self.dynamic['bb_dur_default']
-                # 小节持续时长是否低于切换效果的持续时长？
-                method_dur = max(am_method['method_dur'],bb_method['method_dur'])
-                if this_duration<(2*method_dur+1):
-                    this_duration = 2*method_dur+1
-                # 建立本小节的timeline文件
-                this_timeline=pd.DataFrame(index=range(0,this_duration),dtype=str,columns=render_arg)
-                this_timeline['BG2'] = this_background
-                this_timeline['BG2_a'] = 100
-                # 载入切换效果
-                am_method_obj = MotionMethod(am_method['method'],am_method['method_dur'],self.dynamic['formula'],i)
-                bb_method_obj = MotionMethod(bb_method['method'],bb_method['method_dur'],self.dynamic['formula'],i)
-                this_dialog_method['Am'] = am_method_obj
-                this_dialog_method['Bb'] = bb_method_obj
-                # 遍历角色
-                for chara_key in this_section['charactor_set'].keys():
-                    this_charactor:dict = this_section['charactor_set'][chara_key]
-                    # 获取角色配置
-                    name:str = this_charactor['name']
-                    subtype:str = this_charactor['subtype']
-                    alpha:int = this_charactor['subtype']
-                    try:
-                        this_charactor_config = self.charactors.loc[name+':'+subtype]
-                    except KeyError as E: # 在角色表里面找不到name，raise在这里！
-                        raise ParserError('UndefName',name+subtype,str(i+1),E)
-                    # 立绘：'Am1','Am1_t','Am1_a','Am1_c','Am1_p
-                    this_layer:str = 'Am%d' % (int(chara_key) + 1)
-                    AN = this_layer.replace('m','')
-                    this_am:str = this_charactor_config['Animation']
-                    # 立绘的名字
-                    this_timeline[this_layer] = this_am
-                    if this_am == 'NA':
-                        # 如果立绘缺省
-                        this_timeline[this_layer+'_t'] = 0
-                        this_timeline[this_layer+'_c'] = 'NA'
-                        this_timeline[this_layer+'_a'] = 0
-                        this_timeline[this_layer+'_p'] = 'NA'
-                        this_dialog_method[AN] = 0
-                    elif this_am not in self.medias.keys():
-                        # 如果媒体名未定义
-                        raise ParserError('UndefAnime', this_am, name+':'+subtype)
-                    elif media_define.struct[this_am]['type'] not in ['Animation','GroupedAnimation','BuiltInAnimation']:
-                        # 如果媒体不是一个立绘类
-                        raise ParserError('NotAnime', this_am, name+':'+subtype)
                     else:
-                        # 立绘的对象、帧顺序、中心位置
-                        this_am_obj:Animation = self.medias[this_am]
-                        this_timeline[this_layer+'_t'] = this_am_obj.get_tick(this_duration)
-                        this_timeline[this_layer+'_c'] = str(this_am_obj.pos)
-                        # 立绘的透明度
-                        if (alpha >= 0)&(alpha <= 100):
-                            # 如果有指定合法的透明度，则使用指定透明度
-                            this_timeline[this_layer+'_a']=am_method_obj.alpha(this_duration,alpha)
-                            this_dialog_method[AN] = alpha
+                        # 有指定
+                        if self.dynamic['inline_method_apply'] in ['animation','both']:
+                            am_method:dict = this_section['ab_method'].copy()
                         else:
-                            # 如果指定是None（默认），或者其他非法值
-                            if chara_key == '0': # 如果是首要角色，透明度为100
-                                this_timeline[this_layer+'_a']=am_method_obj.alpha(this_duration,100)
-                                this_dialog_method[AN] = 100
-                            else: # 如果是次要角色，透明度为secondary_alpha，默认值60
-                                this_timeline[this_layer+'_a']=am_method_obj.alpha(this_duration,self.dynamic['secondary_alpha'])
-                                this_dialog_method[AN] = self.dynamic['secondary_alpha']
-                        # 立绘的运动
-                        this_timeline[this_layer+'_p'] = am_method_obj.motion(this_duration)
-                    # 气泡参数: 'Bb','Bb_main','Bb_main_e','Bb_header','Bb_a','Bb_c','Bb_p',
-                    if chara_key == '0':
-                        # 仅考虑首要角色的气泡
-                        this_layer = 'Bb'
-                        this_bb_key:str = this_charactor_config['Bubble']
-                        # 是否是 ChatWindow:key 的形式？
-                        if ':' in this_bb:
-                            this_bb:str = this_bb_key.split(':')[0]
+                            am_method:dict = self.dynamic['am_method_default'].copy()
+                        if self.dynamic['inline_method_apply'] in ['bubble','both']:
+                            bb_method:dict = this_section['ab_method'].copy()
                         else:
-                            this_bb:str = this_bb_key
-                        if this_bb == 'NA':
-                            # 气泡是否缺省？
-                            this_timeline[this_layer] = 'NA'
-                            this_timeline[this_layer+'_main'] = ''
-                            this_timeline[this_layer+'_main_e'] = 0
-                            this_timeline[this_layer+'_header'] = ''
+                            bb_method:dict = self.dynamic['bb_method_default'].copy()
+                    # 是否缺省时长
+                    if am_method['method_dur'] == 'default':
+                        am_method['method_dur'] = self.dynamic['am_dur_default']
+                    if bb_method['method_dur'] == 'default':
+                        bb_method['method_dur'] = self.dynamic['bb_dur_default']
+                    # 小节持续时长是否低于切换效果的持续时长？
+                    method_dur = max(am_method['method_dur'],bb_method['method_dur'])
+                    if this_duration<(2*method_dur+1):
+                        this_duration = 2*method_dur+1
+                    # 建立本小节的timeline文件
+                    this_timeline=pd.DataFrame(index=range(0,this_duration),dtype=str,columns=render_arg)
+                    this_timeline['BG2'] = this_background
+                    this_timeline['BG2_a'] = 100
+                    # 载入切换效果
+                    am_method_obj = MotionMethod(am_method['method'],am_method['method_dur'],self.dynamic['formula'],i)
+                    bb_method_obj = MotionMethod(bb_method['method'],bb_method['method_dur'],self.dynamic['formula'],i)
+                    this_dialog_method['Am'] = am_method_obj
+                    this_dialog_method['Bb'] = bb_method_obj
+                    # 遍历角色
+                    for chara_key in this_section['charactor_set'].keys():
+                        this_charactor:dict = this_section['charactor_set'][chara_key]
+                        # 获取角色配置
+                        name:str = this_charactor['name']
+                        subtype:str = this_charactor['subtype']
+                        alpha:int = this_charactor['alpha']
+                        try:
+                            this_charactor_config = self.charactors.loc[name+'.'+subtype]
+                        except KeyError as E: # 在角色表里面找不到name，raise在这里！
+                            raise ParserError('UndefName',name+'.'+subtype,str(i+1),E)
+                        # 立绘：'Am1','Am1_t','Am1_a','Am1_c','Am1_p
+                        this_layer:str = 'Am%d' % (int(chara_key) + 1)
+                        AN = this_layer.replace('m','')
+                        this_am:str = this_charactor_config['Animation']
+                        # 立绘的名字
+                        this_timeline[this_layer] = this_am
+                        if this_am == 'NA':
+                            # 如果立绘缺省
+                            this_timeline[this_layer+'_t'] = 0
                             this_timeline[this_layer+'_c'] = 'NA'
                             this_timeline[this_layer+'_a'] = 0
                             this_timeline[this_layer+'_p'] = 'NA'
-                        elif this_bb not in self.medias.keys():
+                            this_dialog_method[AN] = 0
+                        elif this_am not in self.medias.keys():
                             # 如果媒体名未定义
-                            raise ParserError('UndefBubble', this_bb, name+':'+subtype)
-                        elif media_define.struct[this_bb]['type'] not in ['Bubble','Balloon','DynamicBubble','ChatWindow']:
-                            # 如果媒体不是一个气泡类
-                            raise ParserError('NotBubble', this_bb, name+':'+subtype)
+                            raise ParserError('UndefAnime', this_am, name+'.'+subtype)
+                        elif media_define.struct[this_am]['type'] not in ['Animation','GroupedAnimation','BuiltInAnimation']:
+                            # 如果媒体不是一个立绘类
+                            raise ParserError('NotAnime', this_am, name+'.'+subtype)
                         else:
-                            # 气泡的对象
-                            this_bb_obj:Bubble = self.medias[this_bb]
-                            # 头文本
-                            try:
+                            # 立绘的对象、帧顺序、中心位置
+                            this_am_obj:Animation = self.medias[this_am]
+                            this_timeline[this_layer+'_t'] = this_am_obj.get_tick(this_duration)
+                            this_timeline[this_layer+'_c'] = str(this_am_obj.pos)
+                            # 立绘的透明度
+                            if alpha is None:
+                                alpha = -1
+                            if alpha >= 0 and alpha <= 100:
+                                # 如果有指定合法的透明度，则使用指定透明度
+                                this_timeline[this_layer+'_a']=am_method_obj.alpha(this_duration,alpha)
+                                this_dialog_method[AN] = alpha
+                            else:
+                                # 如果指定是None（默认），或者其他非法值
+                                if chara_key == '0': # 如果是首要角色，透明度为100
+                                    this_timeline[this_layer+'_a']=am_method_obj.alpha(this_duration,100)
+                                    this_dialog_method[AN] = 100
+                                else: # 如果是次要角色，透明度为secondary_alpha，默认值60
+                                    this_timeline[this_layer+'_a']=am_method_obj.alpha(this_duration,self.dynamic['secondary_alpha'])
+                                    this_dialog_method[AN] = self.dynamic['secondary_alpha']
+                            # 立绘的运动
+                            this_timeline[this_layer+'_p'] = am_method_obj.motion(this_duration)
+                        # 气泡参数: 'Bb','Bb_main','Bb_main_e','Bb_header','Bb_a','Bb_c','Bb_p',
+                        if chara_key == '0':
+                            # 仅考虑首要角色的气泡
+                            this_layer = 'Bb'
+                            this_bb_key:str = this_charactor_config['Bubble']
+                            # 是否是 ChatWindow:key 的形式？
+                            if ':' in this_bb_key:
+                                this_bb:str = this_bb_key.split(':')[0]
+                            else:
+                                this_bb:str = this_bb_key
+                            if this_bb == 'NA':
+                                # 气泡是否缺省？
+                                this_timeline[this_layer] = 'NA'
+                                this_timeline[this_layer+'_main'] = ''
+                                this_timeline[this_layer+'_main_e'] = 0
+                                this_timeline[this_layer+'_header'] = ''
+                                this_timeline[this_layer+'_c'] = 'NA'
+                                this_timeline[this_layer+'_a'] = 0
+                                this_timeline[this_layer+'_p'] = 'NA'
+                            elif this_bb not in self.medias.keys():
+                                # 如果媒体名未定义
+                                raise ParserError('UndefBubble', this_bb, name+'.'+subtype)
+                            elif media_define.struct[this_bb]['type'] not in ['Bubble','Balloon','DynamicBubble','ChatWindow']:
+                                # 如果媒体不是一个气泡类
+                                raise ParserError('NotBubble', this_bb, name+'.'+subtype)
+                            else:
+                                # 气泡的对象
+                                this_bb_obj:Bubble = self.medias[this_bb]
+                                # 头文本
+                                try:
+                                    if type(this_bb_obj) is ChatWindow:
+                                        # ChatWindow 类：只有一个头文本，头文本不能包含|和#，还需要附上key
+                                        if this_bb_key == this_bb:
+                                            # 如果聊天窗没有key，在单独使用
+                                            raise ParserError('CWUndepend', this_bb)
+                                        cw_key = this_bb_key.split(':')[1]
+                                        # 获取当前key的子气泡的target，target是角色表的列
+                                        try:
+                                            targets:str = this_bb_obj.sub_Bubble[cw_key].target
+                                        except KeyError:
+                                            raise ParserError('InvalidKey', cw_key, this_bb)
+                                        # 获取target的文本内容
+                                        if ('|' in this_charactor_config[targets]) | ('#' in this_charactor_config[targets]):
+                                            # 如果包含了非法字符：| #
+                                            raise ParserError('InvSymbpd',name+'.'+subtype)
+                                        else:
+                                            target_text = cw_key+'#'+this_charactor_config[targets]
+                                    elif type(this_bb_obj) is Balloon:
+                                        # Balloon 类：有若干个头文本，targets是一个list,用 | 分隔
+                                        targets:list = this_bb_obj.target
+                                        target_text = '|'.join(this_charactor_config[targets].values)
+                                    else: #  type(this_bb_obj) in [Bubble,DynamicBubble]:
+                                        # Bubble,DynamicBubble类：只有一个头文本
+                                        targets:str = this_bb_obj.target
+                                        target_text = this_charactor_config[targets]
+                                except KeyError as E:
+                                    raise ParserError('TgNotExist', E, this_bb)
+                                # 主文本
+                                content_text = this_section['content']
                                 if type(this_bb_obj) is ChatWindow:
-                                    # ChatWindow 类：只有一个头文本，头文本不能包含|和#，还需要附上key
-                                    if this_bb_key == this_bb:
-                                        # 如果聊天窗没有key，在单独使用
-                                        raise ParserError('CWUndepend', this_bb)
-                                    cw_key = this_bb_key.split(':')[1]
-                                    # 获取当前key的子气泡的target，target是角色表的列
-                                    try:
-                                        targets:str = this_bb_obj.sub_Bubble[cw_key].target
-                                    except KeyError:
-                                        raise ParserError('InvalidKey', cw_key, this_bb)
-                                    # 获取target的文本内容
-                                    if ('|' in this_charactor_config[targets]) | ('#' in this_charactor_config[targets]):
-                                        # 如果包含了非法字符：| #
-                                        raise ParserError('InvSymbpd',name+':'+subtype)
-                                    else:
-                                        target_text = cw_key+'#'+this_charactor_config[targets]
-                                elif type(this_bb_obj) is Balloon:
-                                    # Balloon 类：有若干个头文本，targets是一个list,用 | 分隔
-                                    targets:list = this_bb_obj.target
-                                    target_text = '|'.join(this_charactor_config[targets].values)
-                                else: #  type(this_bb_obj) in [Bubble,DynamicBubble]:
-                                    # Bubble,DynamicBubble类：只有一个头文本
-                                    targets:str = this_bb_obj.target
-                                    target_text = this_charactor_config[targets]
-                            except KeyError as E:
-                                raise ParserError('TgNotExist', E, this_bb)
-                            # 主文本
-                            content_text = this_section['content']
-                            if type(this_bb_obj) is ChatWindow:
-                                mainText_this = this_bb_obj.sub_Bubble[cw_key].MainText
+                                    mainText_this = this_bb_obj.sub_Bubble[cw_key].MainText
+                                else:
+                                    mainText_this = this_bb_obj.MainText
+                                if mainText_this is None:
+                                    # 气泡如果缺失主文本
+                                    raise ParserError('MissMainTx',this_bb)
+                                else:
+                                    this_line_limit:int = mainText_this.line_limit
+                                # 主头文本有非法字符，双引号，反斜杠
+                                if ('"' in target_text) | ('\\' in target_text) | ('"' in content_text) | ('\\' in content_text):
+                                    raise ParserError('InvSymbqu',str(i+1))
+                                # 未声明手动换行
+                                if ('#' in content_text)&(content_text[0]!='^'):
+                                    content_text = '^' + content_text # 补齐申明符号
+                                    print(WarningPrint('UndeclMB',str(i+1)))
+                                #行数过多的警告
+                                if (len(content_text)>this_line_limit*4) | (len(content_text.split('#'))>4):
+                                    print(WarningPrint('More4line',str(i+1)))
+                                # 手动换行的字数超限的警告
+                                if ((content_text[0]=='^')|('#' in content_text))&(np.frompyfunc(len,1,1)(content_text.replace('^','').split('#')).max()>this_line_limit):
+                                    print(WarningPrint('MBExceed',str(i+1)))
+                                # 赋值给当前时间轴的Bb轨道
+                                this_timeline['Bb'] = this_bb
+                                this_timeline['Bb_a'] = bb_method_obj.alpha(this_duration,100)
+                                this_timeline['Bb_p'] = bb_method_obj.motion(this_duration)
+                                this_timeline['Bb_c'] = str(this_bb_obj.pos)
+                                if type(this_bb_obj) is ChatWindow:
+                                    # 如果是聊天窗对象，更新timeline对象，追加历史记录
+                                    this_timeline['Bb_header'] = this_bb_obj.UF_add_header_text(target_text)
+                                    this_timeline['Bb_main'] = this_bb_obj.UF_add_main_text(content_text)
+                                    # 更新bubble对象的历史记录
+                                    this_bb_obj.append(content_text,target_text)
+                                else:
+                                    this_timeline['Bb_main'] = content_text
+                                    this_timeline['Bb_header'] = target_text
+                                # 文字显示效果
+                                if this_section['tx_method']['method'] == 'default':
+                                    # 未指定
+                                    tx_method:dict = self.dynamic['tx_method_default'].copy()
+                                else:
+                                    # 有指定
+                                    tx_method:dict = this_section['tx_method'].copy()
+                                # 是否缺省时长
+                                if tx_method['method_dur'] == 'default':
+                                    tx_method['method_dur'] = self.dynamic['tx_dur_default']
+                                # 效果记录
+                                this_timeline['Bb_main_e'] = self.tx_method_execute(
+                                    content=content_text,
+                                    tx_method=tx_method,
+                                    line_limit=this_line_limit,
+                                    this_duration=this_duration,
+                                    i=i)
+                    # 音效
+                    for sound_key in this_section['sound_set'].keys():
+                        this_sound:dict = this_section['sound_set'][sound_key]
+                        # 音效时间点
+                        if sound_key == '*':
+                            # 如果是星标音效
+                            delay:int = int(self.dynamic['asterisk_pause']/2)
+                        else:
+                            # 是一般的音效: 不能超过小节长度
+                            delay:int = min(this_sound['delay'],this_duration-1)
+                        # 音效对象
+                        if this_sound['sound'] in self.medias.keys():
+                            # 如果是音效媒体：视为音效
+                            this_timeline.loc[delay,'SE'] = this_sound['sound']
+                        elif os.path.isfile(this_sound['sound'][1:-1]) == True:
+                            # 如果是一个指向文件的路径：视为语音
+                            this_timeline.loc[delay,'Voice'] = this_sound['sound']
+                        elif this_sound['sound'] in ['NA','']:
+                            # 如果音效对象是空值或NA
+                            pass
+                        else:
+                            raise ParserError('SEnotExist', this_sound['sound'], str(i+1))
+                    # 背景音乐
+                    if BGM_queue != []:
+                        #从BGM_queue里取第一个出来
+                        this_timeline.loc[0,'BGM'] = BGM_queue.pop(0)
+                    # 和主时间轴合并
+                    this_timeline['section'] = i
+                    break_point[i+1]=break_point[i]+this_duration
+                    this_timeline.index = range(break_point[i],break_point[i+1])
+                    main_timeline = pd.concat([main_timeline,this_timeline],axis=0)
+                    # 交叉溶解检查：立绘的
+                    if this_dialog_method['Am'].cross_check(last_dialog_method['Am']):
+                        # 如果本小节的Am切换效果和前一小节通过交叉溶解检查
+                        this_method_dur = this_dialog_method['Am'].method_dur
+                        cross_frame_break = break_point[i]
+                        cross_frame_begin = break_point[i]-this_method_dur
+                        cross_frame_end = break_point[i]+this_method_dur
+                        for k in range(1,4):
+                            AK_this = this_dialog_method['A%d'%k]
+                            AK_last = last_dialog_method['A%d'%k]
+                            if AK_this <=0 or AK_last <=0:
+                                continue
                             else:
-                                mainText_this = this_bb_obj.MainText
-                            if mainText_this is None:
-                                # 气泡如果缺失主文本
-                                raise ParserError('MissMainTx',this_bb)
-                            else:
-                                this_line_limit:int = mainText_this.line_limit
-                            # 主头文本有非法字符，双引号，反斜杠
-                            if ('"' in target_text) | ('\\' in target_text) | ('"' in content_text) | ('\\' in content_text):
-                                raise ParserError('InvSymbqu',str(i+1))
-                            # 未声明手动换行
-                            if ('#' in content_text)&(content_text[0]!='^'):
-                                content_text = '^' + content_text # 补齐申明符号
-                                print(WarningPrint('UndeclMB',str(i+1)))
-                            #行数过多的警告
-                            if (len(content_text)>this_line_limit*4) | (len(content_text.split('#'))>4):
-                                print(WarningPrint('More4line',str(i+1)))
-                            # 手动换行的字数超限的警告
-                            if ((content_text[0]=='^')|('#' in content_text))&(np.frompyfunc(len,1,1)(content_text.replace('^','').split('#')).max()>this_line_limit):
-                                print(WarningPrint('MBExceed',str(i+1)))
-                            # 赋值给当前时间轴的Bb轨道
-                            this_timeline['Bb'] = this_bb
-                            this_timeline['Bb_a'] = bb_method_obj.alpha(this_duration,100)
-                            this_timeline['Bb_p'] = bb_method_obj.motion(this_duration)
-                            this_timeline['Bb_c'] = str(this_bb_obj.pos)
-                            if type(this_bb_obj) is ChatWindow:
-                                # 如果是聊天窗对象，更新timeline对象，追加历史记录
-                                this_timeline['Bb_header'] = this_bb_obj.UF_add_header_text(target_text)
-                                this_timeline['Bb_main'] = this_bb_obj.UF_add_main_text(content_text)
-                                # 更新bubble对象的历史记录
-                                this_bb_obj.append(content_text,target_text)
-                            else:
-                                this_timeline['Bb_main'] = content_text
-                                this_timeline['Bb_header'] = target_text
-                            # 文字显示效果
-                            if this_section['tx_method']['method'] == 'default':
-                                # 未指定
-                                tx_method:dict = self.dynamic['tx_method_default'].copy()
-                            else:
-                                # 有指定
-                                tx_method:dict = this_section['tx_method'].copy()
-                            # 是否缺省时长
-                            if tx_method['method_dur'] == 'default':
-                                tx_method['method_dur'] = self.dynamic['tx_dur_default']
-                            # 效果
-                            content_length = len(content_text)
-                            this_timeline['Bb_main_e'] = self.tx_method_execute(
-                                content=content_text,
-                                tx_method=tx_method,
-                                line_limit=this_line_limit,
-                                this_duration=this_duration,
-                                i=i)
+                                cross_alpha_this = this_dialog_method['Am'].cross_alpha(last_dialog_method['Am'],AK_this,AK_last)
+                                cross_motion_this = this_dialog_method['Am'].cross_motion(last_dialog_method['Am'])
+                            # 编辑时间轴：Am Am_t Am_c
+                            for layer in ['Am%d'%k,'Am%d_t'%k,'Am%d_c'%k]:
+                                main_timeline.loc[cross_frame_begin:cross_frame_end-1,layer] = self.cross_timeline_execute(
+                                    timeline = main_timeline,
+                                    method = this_dialog_method['Am'],
+                                    begin = cross_frame_begin,
+                                    center = cross_frame_break,
+                                    end = cross_frame_end,
+                                    layer = layer
+                                )
+                            # 编辑时间轴：Am_a，Am_p
+                            main_timeline.loc[cross_frame_begin:cross_frame_end-1,'Am%d_a'%k] = cross_alpha_this
+                            main_timeline.loc[cross_frame_begin:cross_frame_end-1,'Am%d_p'%k] = cross_motion_this
+                    # 交叉溶解检查：气泡的
+                    if this_dialog_method['Bb'].cross_check(last_dialog_method['Bb']) is True:
+                        # 气泡
+                        this_method_dur = this_dialog_method['Bb'].method_dur
+                        cross_frame_break = break_point[i]
+                        cross_frame_begin = break_point[i]-this_method_dur
+                        cross_frame_end = break_point[i]+this_method_dur
+                        # 获取透明度和运动
+                        cross_alpha_this = this_dialog_method['Bb'].cross_alpha(last_dialog_method['Bb'])
+                        cross_motion_this = this_dialog_method['Bb'].cross_motion(last_dialog_method['Bb'])
+                        # 替换到对应时间轴
+                        # 'Bb','Bb_main','Bb_header','Bb_a','Bb_c','Bb_p',
+                        for layer in ['Bb','Bb_main','Bb_header','Bb_c']:
+                            main_timeline.loc[cross_frame_begin:cross_frame_end-1,layer] = self.cross_timeline_execute(
+                                timeline = main_timeline,
+                                method = this_dialog_method['Bb'],
+                                begin = cross_frame_begin,
+                                center = cross_frame_break,
+                                end = cross_frame_end,
+                                layer = layer
+                                )
+                        # Bb_a
+                        main_timeline.loc[cross_frame_begin:cross_frame_end-1,'Bb_a'] = cross_alpha_this
+                        # Bb_p
+                        main_timeline.loc[cross_frame_begin:cross_frame_end-1,'Bb_p'] = cross_motion_this
+                    continue
+                except Exception as E:
+                    print(E)
+                    raise ParserError('ParErrDial', str(i+1))
+            # 背景设置行
+            elif this_section['type'] == 'background':
+                break_point[i+1]=break_point[i]
+                continue
+            else:
+                break_point[i+1]=break_point[i]
+                continue
+
+        # 返回
+        return (main_timeline,break_point,bulitin_media)
+
+
+
