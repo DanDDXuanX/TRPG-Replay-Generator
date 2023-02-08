@@ -99,6 +99,8 @@ class ParserError(RplGenError):
                         "解析异常发生在第{}行（对话行）。"],
         'UndefBackGd' :["The background '{0}' specified in background line {1} is not defined!",
                         "在第{1}行（背景行）中指定的背景“{0}”尚未在媒体定义文件中定义！"],
+        'NotBackGd'   :["The background '{0}' specified in background line {1} is not a Background!",
+                        "在第{1}行（背景行）中指定的背景“{0}”并不是一个背景类媒体！"],
         'SwitchBkGd'  :["Unrecognized switch method: '{}' appeared in background line {}.",
                         "无法识别的动态切换效果“{}”出现在第{}行（背景行）中。"],
         'ParErrBkGd'  :["Parse exception occurred in background line {}.",

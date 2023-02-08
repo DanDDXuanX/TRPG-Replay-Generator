@@ -16,6 +16,7 @@ from .FreePos import Pos,FreePos,PosGrid
 from .FilePaths import Filepath
 from .ProjConfig import Config
 from .Motion import MotionMethod
+from .Utils import concat_xy
 
 # 输入文件，基类
 class Script:
@@ -932,7 +933,18 @@ class RplGenLog(Script):
         # 视频+音轨 时间轴
         main_timeline = pd.DataFrame(dtype=str,columns=render_arg)
         # 内建的媒体，主要指BIA # 保存为另外的一个Media文件
-        bulitin_media = MediaDef()
+        # TODO:内建媒体应该以怎样的方式存在和传递?
+        bulitin_media = MediaDef(dict_input={
+            "black": {
+                "type": "Background",
+                "filepath": "black",
+            },
+            "white": {
+                "type": "Background",
+                "filepath": "white",
+            },
+            })
+        bulitin_media.execute()
         # 背景音乐队列
         BGM_queue = []
         # 初始化的背景、放置立绘、放置气泡
@@ -1291,8 +1303,81 @@ class RplGenLog(Script):
                     raise ParserError('ParErrDial', str(i+1))
             # 背景设置行
             elif this_section['type'] == 'background':
-                break_point[i+1]=break_point[i]
-                continue
+                try:
+                    # 对象是否存在
+                    this_bg:str = this_section['object']
+                    if this_bg not in self.medias.keys() and this_bg not in ['black','white']:
+                        raise ParserError('UndefBackGd',this_bg,str(i+1))
+                    elif media_define.struct[this_bg]['type'] != 'background':
+                        raise ParserError('NotBackGd',this_bg,str(i+1))
+                    else:
+                        next_background = this_bg
+                    # 背景切换效果
+                    if this_section['bg_method']['method'] == 'default':
+                        bg_method = self.dynamic['bg_method_default'].copy()
+                    else:
+                        bg_method = this_section['bg_method'].copy()
+                    if bg_method['method_dur'] == 'default':
+                        bg_method['method_dur'] = self.dynamic['bg_dur_default']
+                    method = bg_method['method']
+                    method_dur = bg_method['method_dur']
+                    if method=='replace': #replace 改为立刻替换 并持续n秒
+                        this_timeline=pd.DataFrame(index=range(0,method_dur),dtype=str,columns=render_arg)
+                        this_timeline['BG2']=next_background
+                        this_timeline['BG2_a']=100
+                        this_timeline['BG2_c']=str(self.medias[next_background].pos)
+                    elif method=='delay': # delay 等价于原来的replace，延后n秒，然后替换
+                        this_timeline=pd.DataFrame(index=range(0,method_dur),dtype=str,columns=render_arg)
+                        this_timeline['BG2']=this_background
+                        this_timeline['BG2_a']=100
+                        this_timeline['BG2_c']=str(self.medias[this_background].pos)
+                    # 'black','white'
+                    elif method in ['black','white']:
+                        this_timeline=pd.DataFrame(index=range(0,method_dur),dtype=str,columns=render_arg)
+                        # 下图层BG2，前半程是旧图层，后半程是新图层，透明度均为100
+                        this_timeline.loc[:(method_dur//2),'BG2'] = this_background
+                        this_timeline.loc[(method_dur//2):,'BG2'] = next_background
+                        this_timeline.loc[:(method_dur//2),'BG2_c']=str(self.medias[this_background].pos)
+                        this_timeline.loc[(method_dur//2):,'BG2_c']=str(self.medias[next_background].pos)
+                        this_timeline['BG2_a'] = 100
+                        # 上图层BG1，是指定的颜色，透明度是100-abs(formula(100,-100,dur))
+                        this_timeline['BG1'] = method
+                        this_timeline['BG1_c']='(0,0)'
+                        this_timeline['BG1_a']=100-np.abs(self.dynamic['formula'](-100,100,method_dur))
+                        pass
+                    elif method in ['cross','push','cover']: # 交叉溶解，黑场，白场，推，覆盖
+                        this_timeline=pd.DataFrame(index=range(0,method_dur),dtype=str,columns=render_arg)
+                        this_timeline['BG1']=next_background
+                        this_timeline['BG1_c']=str(self.medias[next_background].pos)
+                        this_timeline['BG2']=this_background
+                        this_timeline['BG2_c']=str(self.medias[this_background].pos)
+                        if method == 'cross':
+                            this_timeline['BG1_a']=self.dynamic['formula'](0,100,method_dur)
+                            this_timeline['BG2_a']=100
+                        elif method in ['push','cover']:
+                            this_timeline['BG1_a']=100
+                            this_timeline['BG2_a']=100
+                            if method == 'push': # 新背景从右侧把旧背景推出去
+                                this_timeline['BG1_p'] = concat_xy(self.dynamic['formula'](config.Width,0,method_dur),np.zeros(method_dur))
+                                this_timeline['BG2_p'] = concat_xy(self.dynamic['formula'](0,-config.Width,method_dur),np.zeros(method_dur))
+                            else: #cover 新背景从右侧进来叠在原图上面
+                                this_timeline['BG1_p'] = concat_xy(self.dynamic['formula'](config.Width,0,method_dur),np.zeros(method_dur))
+                                this_timeline['BG2_p'] = 'NA'
+                    else:
+                        raise ParserError('SwitchBkGd',method,str(i+1))
+                    this_background = next_background #正式切换背景
+                    # BGM
+                    if BGM_queue != []:
+                        this_timeline.loc[0,'BGM'] = BGM_queue.pop(0)
+                    # 时间轴延长
+                    this_timeline['section'] = i
+                    break_point[i+1]=break_point[i]+len(this_timeline.index)
+                    this_timeline.index = range(break_point[i],break_point[i+1])
+                    main_timeline = pd.concat([main_timeline,this_timeline],axis=0)
+                    continue
+                except Exception as E:
+                    print(E)
+                    raise ParserError('ParErrBkGd',str(i+1))
             else:
                 break_point[i+1]=break_point[i]
                 continue
