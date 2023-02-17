@@ -934,19 +934,20 @@ class RplGenLog(Script):
         # 视频+音轨 时间轴
         main_timeline = pd.DataFrame(dtype=str,columns=render_arg)
         # 内建的媒体，主要指BIA # 保存为另外的一个Media文件
-        # TODO:内建媒体应该以怎样的方式存在和传递?
-        bulitin_media = MediaDef(dict_input={
-            "black": {
-                "type": "Background",
-                "filepath": "black",
-            },
-            "white": {
-                "type": "Background",
-                "filepath": "white",
-            },
-            })
+        # bulitin_media = MediaDef(dict_input={
+        #     "black": {
+        #         "type": "Background",
+        #         "filepath": "black",
+        #     },
+        #     "white": {
+        #         "type": "Background",
+        #         "filepath": "white",
+        #     },
+        #     })
         # 更新 self.media
-        self.medias.update(bulitin_media.execute())
+        self.medias['black'] = Background('black')
+        self.medias['white'] = Background('white')
+        # self.medias.update(bulitin_media.execute())
         # 背景音乐队列
         BGM_queue = []
         # 初始化的背景、放置立绘、放置气泡
@@ -1380,12 +1381,95 @@ class RplGenLog(Script):
                 except Exception as E:
                     print(E)
                     raise ParserError('ParErrBkGd',str(i+1))
+            # 放置立绘行
+            elif this_section['type'] == 'animation':
+                # 处理上一次的
+                last_placed_index = range(break_point[last_placed_animation_section],break_point[i])
+                this_duration = len(last_placed_index)
+                this_am,am_method,am_dur,am_center = this_placed_animation
+                # 如果place的this_duration小于切换时间，则清除动态切换效果
+                if (this_duration<(2*am_dur+1)) & (this_am != 'NA'):
+                    print(WarningPrint('PAmMetDrop'))
+                    am_dur = 0
+                    am_method = 'replace'
+                # 立绘的对象
+                main_timeline.loc[last_placed_index,'AmS'] = this_am
+                # this_am 可能为空的，需要先处理这种情况！
+                if this_am == 'NA':
+                    main_timeline.loc[last_placed_index,'AmS_t'] = 0
+                    main_timeline.loc[last_placed_index,'AmS_a'] = 0
+                    main_timeline.loc[last_placed_index,'AmS_c'] = 'NA'
+                    main_timeline.loc[last_placed_index,'AmS_p'] = 'NA'
+                else:
+                    am_method_obj = MotionMethod(am_method,am_dur,self.dynamic['formula'],i)
+                    main_timeline.loc[last_placed_index,'AmS_a'] = am_method_obj.alpha(this_duration,100)
+                    main_timeline.loc[last_placed_index,'AmS_p'] = am_method_obj.motion(this_duration)
+                    main_timeline.loc[last_placed_index,'AmS_t'] = self.medias[this_am].get_tick(this_duration)
+                    main_timeline.loc[last_placed_index,'AmS_c'] = am_center
+                # 处理本次的
+                try:
+                    method = this_section['am_method']['method']
+                    method_dur = this_section['am_method']['method_dur']
+                    # 如果是多个立绘
+                    if type(this_section['object']) is dict:
+                        anime_objs = []
+                        anime_poses = []
+                        # 检查是否是立绘对象
+                        for idx in this_section['object'].keys():
+                            am_name = this_section['object'][idx]
+                            if am_name not in self.medias.keys():
+                                raise ParserError('UndefPAnime',am_name,str(i+1))
+                            elif type(self.medias[am_name]) not in [Animation,BuiltInAnimation,GroupedAnimation]:
+                                raise ParserError('NotPAnime',am_name,str(i+1))
+                            else:
+                                anime_objs.append(self.medias[am_name])
+                                anime_poses.append(self.medias[am_name].pos)
+                        # 生成组合立绘
+                        Auto_media_name = 'BIA_'+str(i+1)
+                        self.medias[Auto_media_name] = GroupedAnimation(subanimation_list=anime_objs,subanimation_current_pos=anime_poses)
+                        # 标记为下一次
+                        this_placed_animation = (Auto_media_name,method,method_dur,'(0,0)') # 因为place的应用是落后于设置的，因此需要保留c参数！
+                        last_placed_animation_section = i
+                    # 如果是单个立绘
+                    elif this_section['object'] in self.medias.keys():
+                        am_name = this_section['object']
+                        if type(self.medias[am_name]) not in [Animation,BuiltInAnimation,GroupedAnimation]:
+                            raise ParserError('NotPAnime',am_name,str(i+1))
+                        else: # 如果type 不是 Animation 类，也 UndefPAnime
+                            this_placed_animation = (am_name,method,method_dur,str(self.medias[am_name].pos))
+                            last_placed_animation_section = i
+                    # 如果是取消立绘
+                    elif type(this_section['object']) is None:
+                        this_placed_animation = ('NA','replace',0,'(0,0)')
+                        last_placed_animation_section = i
+                    else:
+                        raise ParserError('UndefPAnime',this_section['object'],str(i+1))
+                except Exception as E:
+                    print(E)
+                    raise ParserError('ParErrAnime',str(i+1))
+            # 放置气泡行
+            elif this_section['type'] == 'bubble':
+                pass
+            # 动态设置行
+            elif this_section['type'] == 'set':
+                pass
+            # 清除聊天窗
+            elif this_section['type'] == 'clear':
+                pass
+            # 生命值内建动画
+            elif this_section['type'] == 'hitpoint':
+                pass
+            # 骰点内建动画
+            elif this_section['type'] == 'dice':
+                pass
+            # 暂停画面
+            elif this_section['type'] == 'wait':
+                pass
             else:
                 break_point[i+1]=break_point[i]
                 continue
 
         # 返回
-        return (main_timeline,break_point,bulitin_media)
-
+        return (main_timeline,break_point)
 
 

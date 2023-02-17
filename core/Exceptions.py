@@ -107,6 +107,8 @@ class ParserError(RplGenError):
                         "解析异常发生在第{}行（背景行）。"],
         'UndefPAnime' :["The Animation '{0}' specified in animation line {1} is not defined!",
                         "在第{1}行（立绘行）指定的立绘对象“{0}”尚未在媒体定义文件中定义！"],
+        'NotPAnime'   :["Name '{}' is not an Animation, but it's specified in animation line {}!",
+                        "媒体名“{}”并非一个立绘类，但其被用于第{}行（立绘行）！"],
         'ParErrAnime' :["Parse exception occurred in animation line {}.",
                         "解析异常发生在第{}行（立绘行）。"],
         'InvaPBbExp'  :["The Bubble expression '{0}' specified in bubble line {1} is invalid syntax!",
