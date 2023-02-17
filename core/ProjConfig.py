@@ -30,7 +30,7 @@ class Config:
                 # 导出PR时：是否强制在断点处拆分序列
                 self.force_split_clip:bool = dict_input['ForceSplitClip']
             except:
-                raise ArgumentError['InvDict']
+                raise ArgumentError('InvDict')
         elif argparse_input is not None:
             # 分辨率参数
             self.Width = argparse_input.Width
@@ -52,7 +52,25 @@ class Config:
             # 导出PR时：是否强制在断点处拆分序列
             self.force_split_clip:bool = argparse_input.ForceSplitClip
         else:
-            raise ArgumentError['NoArgs']
+            # 分辨率参数
+            self.Width = 1920
+            self.Height = 1080
+            # 帧率
+            self.frame_rate = 30 # 帧率 单位fps
+            # 图层顺序
+            self.zorder = ['BG2','BG1','Am3','Am2','Am1','AmS','Bb','BbS'] # 渲染图层顺序
+            # 语言
+            self.lang:str = 'en'
+            # 合成语音时：key
+            self.accesskey:str = 'Your_AccessKey'
+            self.accesskey_secret:str = 'Your_AccessKey_Secret'
+            self.appkey:str = 'Your_Appkey'
+            self.azurekey:str = 'Your_Azurekey'
+            self.service_region:str = 'eastasia'
+            # 导出视频时：视频质量
+            self.crf:int = 24
+            # 导出PR时：是否强制在断点处拆分序列
+            self.force_split_clip:bool = False
         # 检查：帧率
         if self.frame_rate <= 0:
             raise ArgumentError('FrameRate',str(self.frame_rate))

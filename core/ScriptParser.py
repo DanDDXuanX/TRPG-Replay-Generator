@@ -356,6 +356,7 @@ class MediaDef(Script):
                 pass
             else:
                 self.Medias[obj_name] = object_this
+        return self.Medias
 
 # 角色配置文件
 class CharTable(Script):
@@ -916,7 +917,7 @@ class RplGenLog(Script):
         return method.cross_mark(this,last)
     def execute(self,media_define:MediaDef,char_table:CharTable,config:Config)->tuple:
         # 媒体和角色
-        self.medias:dict = media_define.Medias
+        self.medias:dict = media_define.execute().copy() # 浅复制，只复制了对象地址
         self.charactors:pd.DataFrame = char_table.execute()
         # section:小节号, BG: 背景，Am：立绘，Bb：气泡，BGM：背景音乐，Voice：语音，SE：音效
         render_arg = [
@@ -944,7 +945,8 @@ class RplGenLog(Script):
                 "filepath": "white",
             },
             })
-        bulitin_media.execute()
+        # 更新 self.media
+        self.medias.update(bulitin_media.execute())
         # 背景音乐队列
         BGM_queue = []
         # 初始化的背景、放置立绘、放置气泡
@@ -1076,7 +1078,7 @@ class RplGenLog(Script):
                         elif this_am not in self.medias.keys():
                             # 如果媒体名未定义
                             raise ParserError('UndefAnime', this_am, name+'.'+subtype)
-                        elif media_define.struct[this_am]['type'] not in ['Animation','GroupedAnimation','BuiltInAnimation']:
+                        elif type(self.medias[this_am]) not in [Animation,GroupedAnimation,BuiltInAnimation]:
                             # 如果媒体不是一个立绘类
                             raise ParserError('NotAnime', this_am, name+'.'+subtype)
                         else:
@@ -1123,7 +1125,7 @@ class RplGenLog(Script):
                             elif this_bb not in self.medias.keys():
                                 # 如果媒体名未定义
                                 raise ParserError('UndefBubble', this_bb, name+'.'+subtype)
-                            elif media_define.struct[this_bb]['type'] not in ['Bubble','Balloon','DynamicBubble','ChatWindow']:
+                            elif type(self.medias[this_bb]) not in [Bubble,Balloon,DynamicBubble,ChatWindow]:
                                 # 如果媒体不是一个气泡类
                                 raise ParserError('NotBubble', this_bb, name+'.'+subtype)
                             else:
@@ -1306,9 +1308,9 @@ class RplGenLog(Script):
                 try:
                     # 对象是否存在
                     this_bg:str = this_section['object']
-                    if this_bg not in self.medias.keys() and this_bg not in ['black','white']:
+                    if this_bg not in self.medias.keys():
                         raise ParserError('UndefBackGd',this_bg,str(i+1))
-                    elif media_define.struct[this_bg]['type'] != 'background':
+                    elif type(self.medias[this_bg]) is not Background:
                         raise ParserError('NotBackGd',this_bg,str(i+1))
                     else:
                         next_background = this_bg
