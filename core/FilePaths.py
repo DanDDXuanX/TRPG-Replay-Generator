@@ -80,7 +80,7 @@ class Filepath:
         if ('"' in to_format)|("'" in to_format):
             to_format = to_format.replace('"','&quot;').replace("'",'&apos;')
         if '//' in to_format:
-            path = path.replace('//','/')
+            to_format = to_format.replace('//','/') # BUG 在 mac win 虚拟机
         # 判断文件系统
         if (sys.platform == 'win32') & (to_format[1] == ':'):
             # 替换冒号

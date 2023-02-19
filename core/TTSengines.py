@@ -35,7 +35,7 @@ class Aliyun_TTS_engine:
         self.volume = int(voice_lib.loc[self.voice,'avaliable_volume'])
         self.synthesizer = nls.NlsSpeechSynthesizer(
                     url=Aliyun_TTS_engine.URL,
-                    akid=Aliyun_TTS_engine.AKID,
+                    akid=Aliyun_TTS_engine.AKID, # BUG in aliyun nls SDK v1.0.0，ak和aks不再是这个类的初始化参数，将仅支持token
                     aksecret=Aliyun_TTS_engine.AKKEY,
                     appkey=Aliyun_TTS_engine.APPKEY,
                     on_data=self.on_data,
