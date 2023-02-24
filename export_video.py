@@ -328,7 +328,7 @@ class ExportVideo:
                 if n in self.timeline.index:
                     this_frame = self.timeline.loc[n]
                     self.render(this_frame)
-                    obyte = pygame.surfarray.array3d(self.screen).tobytes()
+                    obyte = pygame.image.tostring(self.screen,'RGB')
                 else:
                     pass # 节约算力
                 self.output_engine.stdin.write(obyte) # 写入视频
@@ -362,11 +362,11 @@ class ExportVideo:
     def ffmpeg_output(self):
         self.output_engine = (
             ffmpeg
-            .input('pipe:',format='rawvideo',r=self.frame_rate,pix_fmt='rgb24', s='{0}x{1}'.format(self.Height,self.Width)) # 视频来源
+            .input('pipe:',format='rawvideo',r=self.frame_rate,pix_fmt='rgb24', s='{0}x{1}'.format(self.Width,self.Height)) # 视频来源
             .output(ffmpeg.input(self.output_path+'/'+self.stdin_name+'.mp3').audio,
                     self.output_path +'/'+ self.stdin_name+'.mp4',
                     pix_fmt='yuv420p', r=self.frame_rate, crf=self.crf,
-                    **{'loglevel':'quiet','vf':'transpose=0'}) # 输出
+                    **{'loglevel':'quiet'}) # 输出
             .overwrite_output()
             .run_async(pipe_stdin=True)
         )
