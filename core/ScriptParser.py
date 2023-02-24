@@ -933,7 +933,7 @@ class RplGenLog(Script):
         break_point = pd.Series(0,index=range(0,len(self.struct.keys())+1),dtype=int)
         # 视频+音轨 时间轴
         main_timeline = pd.DataFrame(dtype=str,columns=render_arg)
-        # 内建的媒体，主要指BIA # 保存为另外的一个Media文件
+        # 内建的媒体，主要指BIA # 保存为另外的一个Media文件 # 暂定取消这个
         # bulitin_media = MediaDef(dict_input={
         #     "black": {
         #         "type": "Background",
@@ -1449,7 +1449,50 @@ class RplGenLog(Script):
                     raise ParserError('ParErrAnime',str(i+1))
             # 放置气泡行
             elif this_section['type'] == 'bubble':
-                pass
+                # 处理上一次的
+                last_placed_index = range(break_point[last_placed_bubble_section],break_point[i])
+                this_duration = len(last_placed_index)
+                this_bb,bb_method,bb_dur,this_hd,this_tx,text_method,text_dur,bb_center = this_placed_bubble
+                # 如果place的this_duration小于切换时间，则清除动态切换效果
+                if (this_duration<(2*bb_dur+1)) & (this_bb != 'NA'):
+                    print(WarningPrint('PBbMetDrop'))
+                    bb_dur = 0
+                    bb_method = 'replace'
+                # 立绘的对象
+                main_timeline.loc[last_placed_index,'BbS'] = this_bb
+                if this_bb=='NA':
+                    # this_bb 可能为空的，需要先处理这种情况！
+                    main_timeline.loc[last_placed_index,'BbS_main'] = ''
+                    main_timeline.loc[last_placed_index,'BbS_main_e'] = 0
+                    main_timeline.loc[last_placed_index,'BbS_header'] = ''
+                    main_timeline.loc[last_placed_index,'BbS_a'] = 0
+                    main_timeline.loc[last_placed_index,'BbS_c'] = 'NA'
+                    main_timeline.loc[last_placed_index,'BbS_p'] = 'NA'
+                else:
+                    bb_method_obj = MotionMethod(bb_method,bb_dur,self.dynamic_globals['formula'],i)
+                    main_timeline.loc[last_placed_index,'BbS_a'] = bb_method_obj.alpha(this_duration,100)
+                    main_timeline.loc[last_placed_index,'BbS_c'] = bb_center
+                    main_timeline.loc[last_placed_index,'BbS_p'] = bb_method_obj.motion(this_duration)
+                    # 如果是放置正常的气泡
+                    if type(self.medias([this_bb])) in [Bubble,Balloon,DynamicBubble]:
+                        main_timeline.loc[last_placed_index,'BbS_header'] = this_hd
+                        main_timeline.loc[last_placed_index,'BbS_main'] = this_tx
+                        main_timeline.loc[last_placed_index,'Bb_main_e'] = self.tx_method_execute(
+                            content=this_tx,
+                            tx_method={'method':text_method,'method_dur':text_dur},
+                            line_limit=self.medias[this_bb].MainText.line_limit,
+                            this_duration=this_duration,
+                            i=i)
+                    # 如果是放置一个的聊天窗
+                    elif type(self.medias([this_bb])) is ChatWindow:
+                        # TODO: 实现新的放置聊天窗的功能，与之前的完全手动不同，应该实现某种意义的，添加型放置。
+                        print('<bubble>:ChatWindows is WIP!')
+                        pass
+                    else:
+                        pass
+                # 获取本次的
+                # TODO : 感觉写的太蠢了，想想怎么重构一下，关于放置对象
+                # TODO ：考虑更改background的逻辑。
             # 动态设置行
             elif this_section['type'] == 'set':
                 pass
