@@ -1487,18 +1487,134 @@ class RplGenLog(Script):
                     elif type(self.medias([this_bb])) is ChatWindow:
                         # TODO: 实现新的放置聊天窗的功能，与之前的完全手动不同，应该实现某种意义的，添加型放置。
                         print('<bubble>:ChatWindows is WIP!')
-                        pass
+                        raise Exception()
                     else:
                         pass
                 # 获取本次的
-                # TODO : 感觉写的太蠢了，想想怎么重构一下，关于放置对象
-                # TODO ：考虑更改background的逻辑。
+                try:
+                    bb_method = this_section['bb_method']
+                    bb_target = this_section['object']
+                    # 如果是设置为NA
+                    if bb_target['bubble'] == 'NA':
+                        this_placed_bubble = ('NA','replace',0,'','','all',0,'NA')
+                        last_placed_bubble_section = i
+                    else:
+                        if bb_target['bubble'] not in self.medias.keys():
+                            raise ParserError('UndefPBb',bb_target['bubble'],str(i+1))
+                        elif type(self.medias[bb_target['bubble']]) not in [Bubble,Balloon,DynamicBubble,ChatWindow]:
+                            raise ParserError("NotPBubble",bb_target['bubble'],str(i+1))
+                        else:
+                            pass
+                        # 检查，tx_method 的合法性
+                        tx_method = bb_target['tx_method']
+                        if tx_method['method'] == 'default':
+                            tx_method = self.dynamic['tx_method_default'].copy()
+                        if tx_method['method_dur'] == 'default':
+                            tx_method['method_dur'] = self.dynamic['tx_dur_default']
+                        # 如果是非法的
+                        if tx_method['method'] not in ['all','w2w','s2s','l2l','run']:
+                            raise ParserError('UnrecPBbTxM',self.method_export(tx_method['method']),str(i+1))
+                        else:
+                            this_placed_bubble = (
+                                bb_target['bubble'],
+                                bb_method['method'],
+                                bb_method['method_dur'],
+                                bb_target['header_text'],
+                                bb_target['main_text'],
+                                tx_method['method'],
+                                tx_method['method_dur'],
+                                str(self.medias[bb_target['bubble']].pos)
+                                )
+                            last_placed_bubble_section = i
+                except Exception as E:
+                    print(E)
+                    raise ParserError('ParErrBb',str(i+1))
             # 动态设置行
             elif this_section['type'] == 'set':
-                pass
+                try:
+                    # 类型1：整数型
+                    if this_section['value_type'] == 'digit':
+                        self.dynamic[this_section['target']] = this_section['value']
+                    # 类型2：method
+                    elif this_section['value_type'] == 'method':
+                        self.dynamic[this_section['target']] = this_section['value']
+                    # 类型3：BGM
+                    elif this_section['value_type'] == 'music':
+                        if this_section['value'] in self.medias.keys():
+                            if type(self.medias[this_section['value']]) is not BGM:
+                                raise ParserError("NotBGM",this_section['value'],str(i+1))
+                            else:
+                                BGM_queue.append(this_section['value'])
+                        elif os.path.isfile(this_section['value'][1:-1]):
+                            BGM_queue.append(this_section['value'])
+                        elif this_section['value'] == 'stop':
+                            BGM_queue.append(this_section['value'])
+                        else:
+                            raise ParserError('UndefBGM',this_section['value'],str(i+1))
+                    # 类型4：函数
+                    elif this_section['value_type'] == 'function':
+                        if this_section['value'] in formula_available.keys():
+                            self.dynamic['formula'] = formula_available[this_section['value']]
+                        elif this_section['value'][0:6] == 'lambda':
+                            try:
+                                self.dynamic['formula'] = eval(this_section['value'])
+                                print(WarningPrint('UseLambda',str(self.dynamic['formula'](0,1,2)),str(i+1)))                          
+                            except Exception:
+                                raise ParserError('UnspFormula',this_section['value'],str(i+1))
+                        else:
+                            raise ParserError('UnspFormula',this_section['value'],str(i+1))
+                    # 类型5：枚举
+                    elif this_section['value_type'] == 'enumerate':
+                        if this_section['value'] in ['animation','bubble','both','none']:
+                            self.dynamic[this_section['target']] = this_section['value']
+                        else:
+                            print(WarningPrint('Set2Invalid',this_section['target'],this_section['value']))
+                    # 类型6：角色表
+                    elif this_section['value_type'] == 'chartab':
+                        name = this_section['target']['name']
+                        subtype = this_section['target']['subtype']
+                        column = this_section['target']['column']
+                        if column not in self.charactors.columns:
+                            # 如果目标列不存在于角色表
+                            raise ParserError('ModUndefCol',column)
+                        elif column in ['Name','Subtype','Animation','Bubble','Voice','SpeechRate','PitchRate']:
+                            # 如果尝试修改受保护的列
+                            raise ParserError('ModProtcCol',column)
+                        elif name not in self.charactors['Name'].values:
+                            # 如果角色名不存在
+                            raise ParserError('UndefTgName',name,str(i+1))
+                        if subtype != None:
+                            # 如果指定了差分，改动差分
+                            if name + '.' + subtype not in self.charactors.index:
+                                # 如果指定了差分名，但是差分名不存在
+                                raise ParserError('UndefTgSubt',name+'.'+subtype,str(i+1))
+                            else:
+                                try:
+                                    self.charactors.loc[name+'.'+subtype,column] = this_section['value']
+                                except Exception as E:
+                                    raise ParserError('ModCTError','.'.join([name,subtype,column]),E)
+                        else:
+                            # 如果没指定差分，改动整个角色
+                            try:
+                                self.charactors.loc[self.charactors['Name']==name,column] = this_section['value']
+                            except Exception as E:
+                                raise ParserError('ModCTError','.'.join([name,column]),E)
+                    # 类型7：尚且无法定性的，例如FreePos
+                    elif this_section['value_type'] == 'unknown':
+                        # 不被支持的参数
+                        raise ParserError('UnsuppSet',this_section['target'],str(i+1))
+                        # TODO : 将重定位，做成一个新的命令！<move:>
+                except Exception as E:
+                    print(E)
+                    raise ParserError('ParErrSet',str(i+1))
             # 清除聊天窗
             elif this_section['type'] == 'clear':
-                pass
+                if this_section['object'] not in self.medias.keys():
+                    print(WarningPrint('ClearUndef',this_section['object']))
+                elif type(self.medias[this_section['object']]) is not ChatWindow:
+                    print(WarningPrint('ClearNotCW',this_section['object']))
+                else:
+                    self.medias[this_section['object']].clear()
             # 生命值内建动画
             elif this_section['type'] == 'hitpoint':
                 pass
