@@ -915,7 +915,73 @@ class RplGenLog(Script):
         this = timeline.loc[center:end-1,layer].values
         this = np.hstack([np.repeat(this[0],dur),this])
         return method.cross_mark(this,last)
-    def execute(self,media_define:MediaDef,char_table:CharTable,config:Config)->tuple:
+    def place_bubble_execute(self,this_placed_bubble:tuple,last_section:int,this_section:int)->None:
+        # 处理上一次的
+        last_placed_index = range(self.break_point[last_section],self.break_point[this_section])
+        this_duration = len(last_placed_index)
+        this_bb,bb_method,bb_dur,this_hd,this_tx,text_method,text_dur,bb_center = this_placed_bubble
+        # 如果place的this_duration小于切换时间，则清除动态切换效果
+        if (this_duration<(2*bb_dur+1)) & (this_bb != 'NA'):
+            print(WarningPrint('PBbMetDrop'))
+            bb_dur = 0
+            bb_method = 'replace'
+        # 立绘的对象
+        self.main_timeline.loc[last_placed_index,'BbS'] = this_bb
+        if this_bb=='NA':
+            # this_bb 可能为空的，需要先处理这种情况！
+            self.main_timeline.loc[last_placed_index,'BbS_main'] = ''
+            self.main_timeline.loc[last_placed_index,'BbS_main_e'] = 0
+            self.main_timeline.loc[last_placed_index,'BbS_header'] = ''
+            self.main_timeline.loc[last_placed_index,'BbS_a'] = 0
+            self.main_timeline.loc[last_placed_index,'BbS_c'] = 'NA'
+            self.main_timeline.loc[last_placed_index,'BbS_p'] = 'NA'
+        else:
+            bb_method_obj = MotionMethod(bb_method,bb_dur,self.dynamic['formula'],this_section)
+            self.main_timeline.loc[last_placed_index,'BbS_a'] = bb_method_obj.alpha(this_duration,100)
+            self.main_timeline.loc[last_placed_index,'BbS_c'] = bb_center
+            self.main_timeline.loc[last_placed_index,'BbS_p'] = bb_method_obj.motion(this_duration)
+            # 如果是放置正常的气泡
+            if type(self.medias[this_bb]) in [Bubble,Balloon,DynamicBubble]:
+                self.main_timeline.loc[last_placed_index,'BbS_header'] = this_hd
+                self.main_timeline.loc[last_placed_index,'BbS_main'] = this_tx
+                self.main_timeline.loc[last_placed_index,'Bb_main_e'] = self.tx_method_execute(
+                    content=this_tx,
+                    tx_method={'method':text_method,'method_dur':text_dur},
+                    line_limit=self.medias[this_bb].MainText.line_limit,
+                    this_duration=this_duration,
+                    i=last_section)
+            # 如果是放置一个的聊天窗
+            elif type(self.medias[this_bb]) is ChatWindow:
+                # TODO: 实现新的放置聊天窗的功能，与之前的完全手动不同，应该实现某种意义的，添加型放置。
+                print('<bubble>:ChatWindows is WIP!')
+                raise Exception()
+            else:
+                pass
+    def place_anime_execute(self,this_placed_anime:tuple,last_section:int,this_section:int)->None:
+        # 处理上一次的
+        last_placed_index = range(self.break_point[last_section],self.break_point[this_section])
+        this_duration = len(last_placed_index)
+        this_am,am_method,am_dur,am_center = this_placed_anime
+        # 如果place的this_duration小于切换时间，则清除动态切换效果
+        if (this_duration<(2*am_dur+1)) & (this_am != 'NA'):
+            print(WarningPrint('PAmMetDrop'))
+            am_dur = 0
+            am_method = 'replace'
+        # 立绘的对象
+        self.main_timeline.loc[last_placed_index,'AmS'] = this_am
+        # this_am 可能为空的，需要先处理这种情况！
+        if this_am == 'NA':
+            self.main_timeline.loc[last_placed_index,'AmS_t'] = 0
+            self.main_timeline.loc[last_placed_index,'AmS_a'] = 0
+            self.main_timeline.loc[last_placed_index,'AmS_c'] = 'NA'
+            self.main_timeline.loc[last_placed_index,'AmS_p'] = 'NA'
+        else:
+            am_method_obj = MotionMethod(am_method,am_dur,self.dynamic['formula'],this_section)
+            self.main_timeline.loc[last_placed_index,'AmS_a'] = am_method_obj.alpha(this_duration,100)
+            self.main_timeline.loc[last_placed_index,'AmS_p'] = am_method_obj.motion(this_duration)
+            self.main_timeline.loc[last_placed_index,'AmS_t'] = self.medias[this_am].get_tick(this_duration)
+            self.main_timeline.loc[last_placed_index,'AmS_c'] = am_center
+    def execute(self,media_define:MediaDef,char_table:CharTable,config:Config)->pd.DataFrame:
         # 媒体和角色
         self.medias:dict = media_define.execute().copy() # 浅复制，只复制了对象地址
         self.charactors:pd.DataFrame = char_table.execute()
@@ -930,20 +996,9 @@ class RplGenLog(Script):
         'BGM','Voice','SE'
         ]
         # 断点文件: index + 1 == section, 因为还要包含尾部，所以总长比section长1
-        break_point = pd.Series(0,index=range(0,len(self.struct.keys())+1),dtype=int)
+        self.break_point = pd.Series(0,index=range(0,len(self.struct.keys())+1),dtype=int)
         # 视频+音轨 时间轴
-        main_timeline = pd.DataFrame(dtype=str,columns=render_arg)
-        # 内建的媒体，主要指BIA # 保存为另外的一个Media文件 # 暂定取消这个
-        # bulitin_media = MediaDef(dict_input={
-        #     "black": {
-        #         "type": "Background",
-        #         "filepath": "black",
-        #     },
-        #     "white": {
-        #         "type": "Background",
-        #         "filepath": "white",
-        #     },
-        #     })
+        self.main_timeline = pd.DataFrame(dtype=str,columns=render_arg)
         # 更新 self.media
         self.medias['black'] = Background('black')
         self.medias['white'] = Background('white')
@@ -990,6 +1045,7 @@ class RplGenLog(Script):
             # 对话行内指定的方法的应用对象：animation、bubble、both、none
             'inline_method_apply' : 'both'
         }
+
         # 开始遍历
         for key in self.struct.keys():
             # 保留前一行的切换效果参数，重置当前行的参数
@@ -1000,11 +1056,11 @@ class RplGenLog(Script):
             this_section = self.struct[key]
             # 空白行
             if this_section['type'] == 'blank':
-                break_point[i+1]=break_point[i]
+                self.break_point[i+1]=self.break_point[i]
                 continue
             # 注释行
             elif this_section['type'] == 'comment':
-                break_point[i+1]=break_point[i]
+                self.break_point[i+1]=self.break_point[i]
                 continue
             # 对话行
             elif this_section['type'] == 'dialog':
@@ -1244,16 +1300,16 @@ class RplGenLog(Script):
                         this_timeline.loc[0,'BGM'] = BGM_queue.pop(0)
                     # 和主时间轴合并
                     this_timeline['section'] = i
-                    break_point[i+1]=break_point[i]+this_duration
-                    this_timeline.index = range(break_point[i],break_point[i+1])
-                    main_timeline = pd.concat([main_timeline,this_timeline],axis=0)
+                    self.break_point[i+1]=self.break_point[i]+this_duration
+                    this_timeline.index = range(self.break_point[i],self.break_point[i+1])
+                    self.main_timeline = pd.concat([self.main_timeline,this_timeline],axis=0)
                     # 交叉溶解检查：立绘的
                     if this_dialog_method['Am'].cross_check(last_dialog_method['Am']):
                         # 如果本小节的Am切换效果和前一小节通过交叉溶解检查
                         this_method_dur = this_dialog_method['Am'].method_dur
-                        cross_frame_break = break_point[i]
-                        cross_frame_begin = break_point[i]-this_method_dur
-                        cross_frame_end = break_point[i]+this_method_dur
+                        cross_frame_break = self.break_point[i]
+                        cross_frame_begin = self.break_point[i]-this_method_dur
+                        cross_frame_end = self.break_point[i]+this_method_dur
                         for k in range(1,4):
                             AK_this = this_dialog_method['A%d'%k]
                             AK_last = last_dialog_method['A%d'%k]
@@ -1264,8 +1320,8 @@ class RplGenLog(Script):
                                 cross_motion_this = this_dialog_method['Am'].cross_motion(last_dialog_method['Am'])
                             # 编辑时间轴：Am Am_t Am_c
                             for layer in ['Am%d'%k,'Am%d_t'%k,'Am%d_c'%k]:
-                                main_timeline.loc[cross_frame_begin:cross_frame_end-1,layer] = self.cross_timeline_execute(
-                                    timeline = main_timeline,
+                                self.main_timeline.loc[cross_frame_begin:cross_frame_end-1,layer] = self.cross_timeline_execute(
+                                    timeline = self.main_timeline,
                                     method = this_dialog_method['Am'],
                                     begin = cross_frame_begin,
                                     center = cross_frame_break,
@@ -1273,23 +1329,23 @@ class RplGenLog(Script):
                                     layer = layer
                                 )
                             # 编辑时间轴：Am_a，Am_p
-                            main_timeline.loc[cross_frame_begin:cross_frame_end-1,'Am%d_a'%k] = cross_alpha_this
-                            main_timeline.loc[cross_frame_begin:cross_frame_end-1,'Am%d_p'%k] = cross_motion_this
+                            self.main_timeline.loc[cross_frame_begin:cross_frame_end-1,'Am%d_a'%k] = cross_alpha_this
+                            self.main_timeline.loc[cross_frame_begin:cross_frame_end-1,'Am%d_p'%k] = cross_motion_this
                     # 交叉溶解检查：气泡的
                     if this_dialog_method['Bb'].cross_check(last_dialog_method['Bb']) is True:
                         # 气泡
                         this_method_dur = this_dialog_method['Bb'].method_dur
-                        cross_frame_break = break_point[i]
-                        cross_frame_begin = break_point[i]-this_method_dur
-                        cross_frame_end = break_point[i]+this_method_dur
+                        cross_frame_break = self.break_point[i]
+                        cross_frame_begin = self.break_point[i]-this_method_dur
+                        cross_frame_end = self.break_point[i]+this_method_dur
                         # 获取透明度和运动
                         cross_alpha_this = this_dialog_method['Bb'].cross_alpha(last_dialog_method['Bb'])
                         cross_motion_this = this_dialog_method['Bb'].cross_motion(last_dialog_method['Bb'])
                         # 替换到对应时间轴
                         # 'Bb','Bb_main','Bb_header','Bb_a','Bb_c','Bb_p',
                         for layer in ['Bb','Bb_main','Bb_header','Bb_c']:
-                            main_timeline.loc[cross_frame_begin:cross_frame_end-1,layer] = self.cross_timeline_execute(
-                                timeline = main_timeline,
+                            self.main_timeline.loc[cross_frame_begin:cross_frame_end-1,layer] = self.cross_timeline_execute(
+                                timeline = self.main_timeline,
                                 method = this_dialog_method['Bb'],
                                 begin = cross_frame_begin,
                                 center = cross_frame_break,
@@ -1297,9 +1353,9 @@ class RplGenLog(Script):
                                 layer = layer
                                 )
                         # Bb_a
-                        main_timeline.loc[cross_frame_begin:cross_frame_end-1,'Bb_a'] = cross_alpha_this
+                        self.main_timeline.loc[cross_frame_begin:cross_frame_end-1,'Bb_a'] = cross_alpha_this
                         # Bb_p
-                        main_timeline.loc[cross_frame_begin:cross_frame_end-1,'Bb_p'] = cross_motion_this
+                        self.main_timeline.loc[cross_frame_begin:cross_frame_end-1,'Bb_p'] = cross_motion_this
                     continue
                 except Exception as E:
                     print(E)
@@ -1374,42 +1430,27 @@ class RplGenLog(Script):
                         this_timeline.loc[0,'BGM'] = BGM_queue.pop(0)
                     # 时间轴延长
                     this_timeline['section'] = i
-                    break_point[i+1]=break_point[i]+len(this_timeline.index)
-                    this_timeline.index = range(break_point[i],break_point[i+1])
-                    main_timeline = pd.concat([main_timeline,this_timeline],axis=0)
+                    self.break_point[i+1]=self.break_point[i]+len(this_timeline.index)
+                    this_timeline.index = range(self.break_point[i],self.break_point[i+1])
+                    self.main_timeline = pd.concat([self.main_timeline,this_timeline],axis=0)
                     continue
                 except Exception as E:
                     print(E)
                     raise ParserError('ParErrBkGd',str(i+1))
             # 放置立绘行
             elif this_section['type'] == 'animation':
-                # 处理上一次的
-                last_placed_index = range(break_point[last_placed_animation_section],break_point[i])
-                this_duration = len(last_placed_index)
-                this_am,am_method,am_dur,am_center = this_placed_animation
-                # 如果place的this_duration小于切换时间，则清除动态切换效果
-                if (this_duration<(2*am_dur+1)) & (this_am != 'NA'):
-                    print(WarningPrint('PAmMetDrop'))
-                    am_dur = 0
-                    am_method = 'replace'
-                # 立绘的对象
-                main_timeline.loc[last_placed_index,'AmS'] = this_am
-                # this_am 可能为空的，需要先处理这种情况！
-                if this_am == 'NA':
-                    main_timeline.loc[last_placed_index,'AmS_t'] = 0
-                    main_timeline.loc[last_placed_index,'AmS_a'] = 0
-                    main_timeline.loc[last_placed_index,'AmS_c'] = 'NA'
-                    main_timeline.loc[last_placed_index,'AmS_p'] = 'NA'
-                else:
-                    am_method_obj = MotionMethod(am_method,am_dur,self.dynamic['formula'],i)
-                    main_timeline.loc[last_placed_index,'AmS_a'] = am_method_obj.alpha(this_duration,100)
-                    main_timeline.loc[last_placed_index,'AmS_p'] = am_method_obj.motion(this_duration)
-                    main_timeline.loc[last_placed_index,'AmS_t'] = self.medias[this_am].get_tick(this_duration)
-                    main_timeline.loc[last_placed_index,'AmS_c'] = am_center
+                # 前一次的
+                self.place_anime_execute(this_placed_anime=this_placed_animation,this_section=i,last_section=last_placed_animation_section)
                 # 处理本次的
                 try:
-                    method = this_section['am_method']['method']
-                    method_dur = this_section['am_method']['method_dur']
+                    # 处理默认值
+                    am_method:dict = this_section['am_method'].copy()
+                    if am_method['method'] == 'default':
+                        am_method:dict = self.dynamic['am_method_default'].copy()
+                    if am_method['method_dur'] == 'default':
+                        am_method['method_dur'] = self.dynamic['am_dur_default']
+                    method = am_method['method']
+                    method_dur = am_method['method_dur']
                     # 如果是多个立绘
                     if type(this_section['object']) is dict:
                         anime_objs = []
@@ -1439,7 +1480,7 @@ class RplGenLog(Script):
                             this_placed_animation = (am_name,method,method_dur,str(self.medias[am_name].pos))
                             last_placed_animation_section = i
                     # 如果是取消立绘
-                    elif type(this_section['object']) is None:
+                    elif this_section['object'] is None:
                         this_placed_animation = ('NA','replace',0,'(0,0)')
                         last_placed_animation_section = i
                     else:
@@ -1450,55 +1491,21 @@ class RplGenLog(Script):
             # 放置气泡行
             elif this_section['type'] == 'bubble':
                 # 处理上一次的
-                last_placed_index = range(break_point[last_placed_bubble_section],break_point[i])
-                this_duration = len(last_placed_index)
-                this_bb,bb_method,bb_dur,this_hd,this_tx,text_method,text_dur,bb_center = this_placed_bubble
-                # 如果place的this_duration小于切换时间，则清除动态切换效果
-                if (this_duration<(2*bb_dur+1)) & (this_bb != 'NA'):
-                    print(WarningPrint('PBbMetDrop'))
-                    bb_dur = 0
-                    bb_method = 'replace'
-                # 立绘的对象
-                main_timeline.loc[last_placed_index,'BbS'] = this_bb
-                if this_bb=='NA':
-                    # this_bb 可能为空的，需要先处理这种情况！
-                    main_timeline.loc[last_placed_index,'BbS_main'] = ''
-                    main_timeline.loc[last_placed_index,'BbS_main_e'] = 0
-                    main_timeline.loc[last_placed_index,'BbS_header'] = ''
-                    main_timeline.loc[last_placed_index,'BbS_a'] = 0
-                    main_timeline.loc[last_placed_index,'BbS_c'] = 'NA'
-                    main_timeline.loc[last_placed_index,'BbS_p'] = 'NA'
-                else:
-                    bb_method_obj = MotionMethod(bb_method,bb_dur,self.dynamic_globals['formula'],i)
-                    main_timeline.loc[last_placed_index,'BbS_a'] = bb_method_obj.alpha(this_duration,100)
-                    main_timeline.loc[last_placed_index,'BbS_c'] = bb_center
-                    main_timeline.loc[last_placed_index,'BbS_p'] = bb_method_obj.motion(this_duration)
-                    # 如果是放置正常的气泡
-                    if type(self.medias([this_bb])) in [Bubble,Balloon,DynamicBubble]:
-                        main_timeline.loc[last_placed_index,'BbS_header'] = this_hd
-                        main_timeline.loc[last_placed_index,'BbS_main'] = this_tx
-                        main_timeline.loc[last_placed_index,'Bb_main_e'] = self.tx_method_execute(
-                            content=this_tx,
-                            tx_method={'method':text_method,'method_dur':text_dur},
-                            line_limit=self.medias[this_bb].MainText.line_limit,
-                            this_duration=this_duration,
-                            i=i)
-                    # 如果是放置一个的聊天窗
-                    elif type(self.medias([this_bb])) is ChatWindow:
-                        # TODO: 实现新的放置聊天窗的功能，与之前的完全手动不同，应该实现某种意义的，添加型放置。
-                        print('<bubble>:ChatWindows is WIP!')
-                        raise Exception()
-                    else:
-                        pass
+                self.place_bubble_execute(this_placed_bubble=this_placed_bubble,last_section=last_placed_bubble_section,this_section=i)
                 # 获取本次的
                 try:
-                    bb_method = this_section['bb_method']
-                    bb_target = this_section['object']
+                    # 处理默认值
+                    bb_method:dict = this_section['bb_method'].copy()
+                    if bb_method['method'] == 'default':
+                        bb_method:dict = self.dynamic['bb_method_default'].copy()
+                    if bb_method['method_dur'] == 'default':
+                        bb_method['method_dur'] = self.dynamic['bb_dur_default']
                     # 如果是设置为NA
-                    if bb_target['bubble'] == 'NA':
+                    if this_section['object'] is None:
                         this_placed_bubble = ('NA','replace',0,'','','all',0,'NA')
                         last_placed_bubble_section = i
                     else:
+                        bb_target = this_section['object']
                         if bb_target['bubble'] not in self.medias.keys():
                             raise ParserError('UndefPBb',bb_target['bubble'],str(i+1))
                         elif type(self.medias[bb_target['bubble']]) not in [Bubble,Balloon,DynamicBubble,ChatWindow]:
@@ -1506,7 +1513,7 @@ class RplGenLog(Script):
                         else:
                             pass
                         # 检查，tx_method 的合法性
-                        tx_method = bb_target['tx_method']
+                        tx_method = bb_target['tx_method'].copy()
                         if tx_method['method'] == 'default':
                             tx_method = self.dynamic['tx_method_default'].copy()
                         if tx_method['method_dur'] == 'default':
@@ -1617,18 +1624,191 @@ class RplGenLog(Script):
                     self.medias[this_section['object']].clear()
             # 生命值内建动画
             elif this_section['type'] == 'hitpoint':
-                pass
+                frame_rate = config.frame_rate
+                try:
+                    this_timeline=pd.DataFrame(index=range(0,frame_rate*4),dtype=str,columns=render_arg)
+                    # 背景
+                    alpha_timeline = np.hstack([self.dynamic['formula'](0,1,frame_rate//2),np.ones(frame_rate*3-frame_rate//2),self.dynamic['formula'](1,0,frame_rate)])
+                    this_timeline['BG1'] = 'black' # 黑色背景
+                    this_timeline['BG1_a'] = alpha_timeline * 80
+                    this_timeline['BG2'] = this_background
+                    this_timeline['BG2_a'] = 100
+                    # 新建内建动画
+                    Auto_media_name = 'BIA_'+str(i+1)
+                    for layer in range(0,3):
+                        # 在媒体列表中添加内建媒体
+                        self.medias[Auto_media_name+'_'+str(layer)] = BuiltInAnimation(
+                            anime_type = 'hitpoint',
+                            anime_args = (this_section['content'],this_section['hp_max'],this_section['hp_begin'],this_section['hp_end']),
+                            screensize = (config.Width,config.Height),
+                            layer= layer
+                            )
+                    # 动画参数
+                    # 灰色框
+                    this_timeline['Am3'] = Auto_media_name+'_0'
+                    this_timeline['Am3_a'] = alpha_timeline * 100
+                    this_timeline['Am3_t'] = 0
+                    this_timeline['Am3_c'] = 'NA'
+                    this_timeline['Am3_p'] = 'NA'
+                    # 留下的血
+                    this_timeline['Am2'] = Auto_media_name+'_1'
+                    this_timeline['Am2_a'] = alpha_timeline * 100
+                    this_timeline['Am2_t'] = 0
+                    this_timeline['Am2_c'] = 'NA'
+                    this_timeline['Am2_p'] = 'NA'
+                    # 丢掉的血
+                    this_timeline['Am1'] = Auto_media_name+'_2'
+                    this_timeline['Am1_c'] = 'NA'
+                    if this_section['hp_begin'] > this_section['hp_end']:
+                        # 掉血模式
+                        this_timeline['Am1_a'] = np.hstack([self.dynamic['formula'](0,100,frame_rate//2),
+                                                            np.ones(frame_rate*2-frame_rate//2)*100,
+                                                            left(100,0,frame_rate//2),
+                                                            np.zeros(frame_rate*2-frame_rate//2)]) #0-0.5出现，2-2.5消失
+                        this_timeline['Am1_p'] = concat_xy(np.zeros(frame_rate*4),
+                                                           np.hstack([np.zeros(frame_rate*2), # 静止2秒
+                                                           left(0,-int(config.Height*0.3),frame_rate//2), # 半秒切走
+                                                           int(config.Height*0.3)*np.ones(frame_rate*2-frame_rate//2)])) #1.5秒停止
+                        this_timeline['Am1_t'] = 0
+                    else:
+                        # 回血模式
+                        this_timeline['Am1_a'] = alpha_timeline * 100 # 跟随全局血量
+                        this_timeline['Am1_p'] = 'NA' # 不移动
+                        this_timeline['Am1_t'] = np.hstack([np.zeros(frame_rate*1), # 第一秒静止
+                                                            np.arange(0,frame_rate,1), # 第二秒播放
+                                                            np.ones(frame_rate*2)*(frame_rate-1)]) # 后两秒静止
+                    # BGM
+                    if BGM_queue != []:
+                        this_timeline.loc[0,'BGM'] = BGM_queue.pop(0) #从BGM_queue里取出来一个
+                    # 时间轴延长
+                    this_timeline['section'] = i
+                    self.break_point[i+1]=self.break_point[i]+len(this_timeline.index)
+                    this_timeline.index = range(self.break_point[i],self.break_point[i+1])
+                    self.main_timeline = pd.concat([self.main_timeline,this_timeline],axis=0)
+                    continue
+                except Exception as E:
+                    print(E)
+                    raise ParserError('ParErrHit',str(i+1))
             # 骰点内建动画
             elif this_section['type'] == 'dice':
-                pass
+                frame_rate = config.frame_rate
+                width = config.Width
+                height = config.Height
+                try:
+                    # 建立小节
+                    this_timeline=pd.DataFrame(index=range(0,frame_rate*5),dtype=str,columns=render_arg) # 5s
+                    # 背景
+                    alpha_timeline = np.hstack([self.dynamic['formula'](0,1,frame_rate//2),np.ones(frame_rate*4-frame_rate//2),self.dynamic['formula'](1,0,frame_rate)])
+                    this_timeline['BG1'] = 'black' # 黑色背景
+                    this_timeline['BG1_a'] = alpha_timeline * 80
+                    this_timeline['BG2'] = this_background
+                    this_timeline['BG2_a'] = 100
+                    # 新建内建动画
+                    Auto_media_name = 'BIA_'+str(i+1)
+                    dice_args = []
+                    for idx in this_section['dice_set'].keys():
+                        this_dice = this_section['dice_set'][idx]
+                        if this_dice['check'] is None:
+                            check = -1
+                        else:
+                            check = this_dice['check']
+                        dice_args.append([
+                            this_dice['content'],
+                            this_dice['dicemax'],
+                            check,
+                            this_dice['face'],
+                        ])
+                    for layer in range(0,3):
+                        # 在媒体列表中添加内建媒体
+                        self.medias[Auto_media_name+'_'+str(layer)] = BuiltInAnimation(
+                            anime_type = 'dice',
+                            anime_args = dice_args,
+                            screensize = (config.Width,config.Height),
+                            layer = layer
+                            )
+                    # 动画参数
+                    # 文字描述
+                    this_timeline['Am3'] = Auto_media_name+'_0'
+                    this_timeline['Am3_a'] = alpha_timeline * 100
+                    this_timeline['Am3_t'] = 0
+                    this_timeline['Am3_c'] = 'NA'
+                    this_timeline['Am3_p'] = 'NA'
+                    # 滚动骰点
+                    this_timeline['Am2'] = np.hstack([np.repeat(Auto_media_name+'_1',int(frame_rate*2.5)),np.repeat('NA',frame_rate*5-int(frame_rate*2.5))]) # 2.5s
+                    this_timeline['Am2_a'] = np.hstack([self.dynamic['formula'](0,100,frame_rate//2),
+                                                        np.ones(int(frame_rate*2.5)-2*(frame_rate//2))*100,
+                                                        self.dynamic['formula'](100,0,frame_rate//2),
+                                                        np.zeros(frame_rate*5-int(frame_rate*2.5))])
+                    this_timeline['Am2_t'] = np.hstack([np.arange(0,int(frame_rate*2.5)),np.zeros(frame_rate*5-int(frame_rate*2.5))])
+                    this_timeline['Am2_c'] = 'NA'
+                    this_timeline['Am2_p'] = 'NA'
+                    # 出目显示
+                    this_timeline['Am1'] = np.hstack([np.repeat('NA',frame_rate*5-int(frame_rate*2.5)),np.repeat(Auto_media_name+'_2',int(frame_rate*2.5))])
+                    this_timeline['Am1_a'] = np.hstack([np.zeros(frame_rate*5-int(frame_rate*2.5)),
+                                                        self.dynamic['formula'](0,100,frame_rate//2),
+                                                        np.ones(int(frame_rate*2.5)-frame_rate//2-frame_rate)*100,
+                                                        self.dynamic['formula'](100,0,frame_rate)])
+                    this_timeline['Am1_t'] = 0
+                    this_timeline['Am1_c'] = 'NA'
+                    this_timeline['Am1_p'] = 'NA'
+                    # SE
+                    this_timeline.loc[frame_rate//3,'SE'] = "'./media/SE_dice.wav'"
+                    # BGM
+                    if BGM_queue != []:
+                        this_timeline.loc[0,'BGM'] = BGM_queue.pop(0) #从BGM_queue里取第一个出来 alpha 1.13.5
+                    # 时间轴延长
+                    this_timeline['section'] = i
+                    self.break_point[i+1]=self.break_point[i]+len(this_timeline.index)
+                    this_timeline.index = range(self.break_point[i],self.break_point[i+1])
+                    self.main_timeline = pd.concat([self.main_timeline,this_timeline],axis=0)
+                    continue
+                except Exception as E:
+                    print(E)
+                    raise ParserError('ParErrDice',str(i+1))
             # 暂停画面
             elif this_section['type'] == 'wait':
-                pass
+                try:
+                    # 持续指定帧，仅显示当前背景
+                    this_timeline=pd.DataFrame(index=range(0,this_section['time']),dtype=str,columns=render_arg)
+                    # 停留的帧：当前时间轴的最后一帧，不含S图层
+                    wait_frame = self.main_timeline.iloc[-1].copy()
+                    # 检查wait frame里面，有没有透明度为0，如果有则删除图层
+                    for layer in config.zorder:
+                        if wait_frame[layer+'_a'] == 0:
+                            # 以防导出xml项目异常
+                            wait_frame[layer] = 'NA'
+                    # 不应用：0：section，BGM，Voice，SE
+                    this_timeline[render_arg[1:-3]] = wait_frame[render_arg[1:-3]]
+                    # BGM
+                    if BGM_queue != []:
+                        this_timeline.loc[0,'BGM'] = BGM_queue.pop(0)
+                    # 时间轴延长
+                    this_timeline['section'] = i
+                    self.break_point[i+1]=self.break_point[i]+len(this_timeline.index)
+                    this_timeline.index = range(self.break_point[i],self.break_point[i+1])
+                    self.main_timeline = pd.concat([self.main_timeline,this_timeline],axis=0)
+                    continue
+                except Exception as E:
+                    print(E)
+                    raise ParserError('ParErrWait',str(i+1))
             else:
-                break_point[i+1]=break_point[i]
+                self.break_point[i+1]=self.break_point[i]
                 continue
-
+            self.break_point[i+1]=self.break_point[i]
+        # 处理place的末端
+        try:
+            self.place_anime_execute(this_placed_anime=this_placed_animation,last_section=last_placed_animation_section,this_section=i+1)
+            self.place_bubble_execute(this_placed_bubble=this_placed_bubble,last_section=last_placed_bubble_section,this_section=i+1)
+        except Exception as E:
+            raise ParserError('ParErrCompl')
+        # 去掉和前一帧相同的帧，节约了性能
+        self.main_timeline = self.main_timeline.fillna('NA') #假设一共10帧
+        timeline_diff = self.main_timeline.iloc[:-1].copy() #取第0-9帧
+        timeline_diff.index = timeline_diff.index+1 #设置为第1-10帧
+        timeline_diff.loc[0]='NA' #再把第0帧设置为NA
+        dropframe = (self.main_timeline == timeline_diff.sort_index()).all(axis=1) # 这样，就是原来的第10帧和第9帧在比较了
+        # 去掉重复帧
+        self.main_timeline = self.main_timeline[dropframe == False].copy()
+        self.break_point = self.break_point.astype(int)
         # 返回
-        return (main_timeline,break_point)
-
-
+        return self.main_timeline
