@@ -1637,10 +1637,15 @@ class RplGenLog(Script):
                                 value_pos = pos1 + pos2
                             else:
                                 value_pos = pos1 - pos2
-                        assert type(value_pos) in [Pos,FreePos]
-                        print(value)
+                        # 检查是否是一个Pos对象
+                        if type(value_pos) in [Pos,FreePos]:
+                            pass
+                        elif type(value_pos) in [list,tuple]:
+                            value_pos = Pos(*value_pos)
+                        else:
+                            raise ValueError('Invalid value type: {}'.format(type(value_pos)))
                     except Exception as E:
-                        raise ParserError('IvSyFrPos',...,target,E)
+                        raise ParserError('IvSyFrPos',target,E)
                     # 检查target的类型
                     if target not in self.medias.keys():
                         raise ParserError('UndefMvObj',target)

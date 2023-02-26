@@ -153,8 +153,8 @@ class ParserError(RplGenError):
         'ParErrTab'   :["Parse exception occurred in table line {}.",
                         "解析异常发生在第{}行（表格行）。"],
         # <move>
-        'IvSyFrPos'   :["Invalid Syntax '{0}' appeared while moving object '{1}', due to: {2}",
-                        "在移动对象“{1}”时，出现了无效语法“{0}”，由于：{2}"],
+        'IvSyFrPos'   :["Invalid Syntax appeared while moving object '{0}', due to: {1}",
+                        "在移动对象“{0}”时，出现了无效语法，由于：{1}"],
         'UndefMvObj'  :["The name '{}' to move is not defined.",
                         "尝试移动的对象名{}尚未定义。"],
         'CannotMvObj' :["Object '{}' cannot move.",
