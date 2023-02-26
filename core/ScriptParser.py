@@ -214,7 +214,8 @@ class MediaDef(Script):
     def instance_export(self,media_object:dict)->str:
         type_this = media_object['type']
         if type_this == 'subscript':
-            return media_object['object'] + self.list_export(media_object['index'],is_tuple=False)
+            # 要去掉对象名前的$
+            return media_object['object'][1:] + self.list_export(media_object['index'],is_tuple=False)
         elif type_this in ['Pos','FreePos']:
             return type_this + self.list_export(media_object['pos'],is_tuple=True)
         else:
@@ -568,7 +569,7 @@ class RplGenLog(Script):
                     # 类型
                     this_section['type'] = obj_type
                 except IndexError:
-                    raise ParserError('UnablePlace')
+                    raise ParserError('UnableParse',str(i+1))
                 # <效果>
                 this_section['bg_method'] = self.method_parser(obje)
                 # 对象
@@ -581,7 +582,7 @@ class RplGenLog(Script):
                     # 类型
                     this_section['type'] = obj_type
                 except IndexError:
-                    raise ParserError('UnablePlace')
+                    raise ParserError('UnableParse',str(i+1))
                 # <效果>
                 this_section['am_method'] = self.method_parser(obje)
                 # 对象
@@ -604,7 +605,7 @@ class RplGenLog(Script):
                     # 类型
                     this_section['type'] = obj_type
                 except IndexError:
-                    raise ParserError('UnablePlace')
+                    raise ParserError('UnableParse',str(i+1))
                 # <效果>
                 this_section['bb_method'] = self.method_parser(obje)
                 # 对象
@@ -615,11 +616,11 @@ class RplGenLog(Script):
             # 参数设置行，格式：<set:speech_speed>:220
             elif (text[0:5] == '<set:') & ('>:' in text):
                 try:
-                    target,args = RE_setting.findall(text)[0]
+                    set_type,target,args = RE_setting.findall(text)[0]
                 except IndexError:
-                    raise ParserError('UnableSet')
+                    raise ParserError('UnableParse',str(i+1))
                 # 类型
-                this_section['type'] = 'set'
+                this_section['type'] = set_type
                 this_section['target'] = target
                 # 类型1：整数型
                 if target in ['am_dur_default','bb_dur_default','bg_dur_default','tx_dur_default','speech_speed','asterisk_pause','secondary_alpha']:
@@ -636,10 +637,10 @@ class RplGenLog(Script):
                         this_section['value'] = self.method_parser(args)
                     except IndexError:
                         raise ParserError('SetInvMet',target,args)
-                # 类型3：BGM
-                elif target == 'BGM':
-                    this_section['value_type'] = 'music'
-                    this_section['value'] = args
+                # 类型3：BGM 禁用
+                # elif target == 'BGM':
+                #     this_section['value_type'] = 'music'
+                #     this_section['value'] = args
                 # 类型4：函数
                 elif target == 'formula':
                     this_section['value_type'] = 'function'
@@ -651,25 +652,54 @@ class RplGenLog(Script):
                 elif target == 'inline_method_apply':
                     this_section['value_type'] = 'enumerate'
                     this_section['value'] = args
-                # 类型6：角色表
-                elif '.' in target:
-                    this_section['value_type'] = 'chartab'
-                    this_target = {}
-                    target_split = target.split('.')
-                    if len(target_split) == 2:
-                        this_target['name'],this_target['column'] = target_split
-                        this_target['subtype'] = None
-                    elif len(target_split) == 3:
-                        this_target['name'],this_target['subtype'],this_target['column'] = target_split
-                    # 如果超过4个指定项目，无法解析，抛出ParserError(不被支持的参数)
-                    else:
-                        raise ParserError('UnsuppSet',target,str(i+1))
-                    this_section['target'] = this_target
-                    this_section['value'] = args
-                # 类型7：尚且无法定性的，例如FreePos
+                # 否则无法解析
                 else:
-                    this_section['value_type'] = 'unknown'
-                    this_section['value'] = args
+                    raise ParserError('UnsuppSet',target,str(i+1))
+            # 位置重设行，格式：<move:FreePos_obj>:NewPos
+            elif (text[0:6] == '<move:') & ('>:' in text):
+                try:
+                    set_type,target,args = RE_setting.findall(text)[0]
+                    expression:tuple = RE_pos_exp.findall(args)[0]
+                except IndexError:
+                    raise ParserError('UnableParse',str(i+1))
+                # 目标
+                pos_exp = {}
+                pos_exp['pos1'] = MediaDef().value_parser(expression[0])
+                if expression[1] == '':
+                    # 单纯赋值
+                    pos_exp['operator'] = None
+                    pos_exp['pos2'] = None
+                else:
+                    # 加减运算
+                    pos_exp['operator'] = expression[2]
+                    pos_exp['pos2'] = MediaDef().value_parser(expression[3])
+                # 类型
+                this_section['type'] = set_type
+                this_section['target'] = target
+                this_section['value'] = pos_exp
+            # 表格赋值行，格式：<table:Name.Subtype.Column>
+            elif (text[0:7] == '<table:') & ('>:' in text):
+                try:
+                    set_type,target,args = RE_setting.findall(text)[0]
+                except IndexError:
+                    raise ParserError('UnableParse',str(i+1))
+                this_target = {}
+                target_split = target.split('.')
+                if len(target_split) == 2:
+                    this_target['name'],this_target['column'] = target_split
+                    this_target['subtype'] = None
+                elif len(target_split) == 3:
+                    this_target['name'],this_target['subtype'],this_target['column'] = target_split
+                # 如果超过4个指定项目，无法解析，抛出ParserError(不被支持的参数)
+                else:
+                    raise ParserError('UnsuppSet',target,str(i+1))
+                this_section['type'] = set_type
+                this_section['target'] = this_target
+                this_section['value'] = args
+            # BGM 行，格式：<BGM>:
+            elif text[0:6] in ['<BGM>:','<bgm>:']:
+                this_section['type'] = 'music'
+                this_section['value'] = text[6:]
             # 清除行，仅适用于ChatWindow
             elif (text[0:8] == '<clear>:'):
                 this_section['type'] = 'clear'
@@ -763,7 +793,7 @@ class RplGenLog(Script):
             elif type_this == 'comment':
                 this_script = '#' + this_section['content']
             # 对话行
-            elif this_section['type'] == 'dialog':
+            elif type_this == 'dialog':
                 # 角色
                 charactor_set:dict = this_section['charactor_set']
                 charactor_script_list:list = []
@@ -782,11 +812,11 @@ class RplGenLog(Script):
                 SE = self.sound_export(this_section['sound_set'])
                 this_script = CR + MM + ':' + this_section['content'] + TM + SE
             # 背景
-            elif this_section['type'] == 'background':
+            elif type_this == 'background':
                 MM = self.method_export(this_section['bg_method'])
                 this_script = '<background>' + MM + ':' + this_section['object']
             # 立绘
-            elif this_section['type'] == 'animation':
+            elif type_this == 'animation':
                 MM = self.method_export(this_section['am_method'])
                 if this_section['object'] is None:
                     OB = 'NA'
@@ -796,7 +826,7 @@ class RplGenLog(Script):
                     OB = '(' + ','.join(this_section['object'].values()) + ')'
                 this_script = '<animation>' + MM + ':' + OB
             # 气泡
-            elif this_section['type'] == 'bubble':
+            elif type_this == 'bubble':
                 MM = self.method_export(this_section['bb_method'])
                 if this_section['object'] is None:
                     OB = 'NA'
@@ -809,30 +839,47 @@ class RplGenLog(Script):
                         bubble_object['main_text'],TM)
                 this_script = '<bubble>' + MM + ':' + OB
             # 设置
-            elif this_section['type'] == 'set':
+            elif type_this == 'set':
                 if this_section['value_type'] == 'digit':
                     value = str(this_section['value'])
                     target = this_section['target']
-                elif this_section['value_type'] in ['music','function','enumerate','unknown']:
+                elif this_section['value_type'] in ['function','enumerate']:
                     value = this_section['value']
                     target = this_section['target']
                 elif this_section['value_type'] == 'method':
                     value = self.method_export(this_section['value'])
                     target = this_section['target']
-                elif this_section['value_type'] == 'chartab':
-                    value = this_section['value']
-                    if this_section['target']['subtype'] is None:
-                        target = this_section['target']['name'] +'.'+ this_section['target']['column']
-                    else:
-                        target = this_section['target']['name'] +'.'+ this_section['target']['subtype'] +'.'+ this_section['target']['column']
                 else:
                     continue
                 this_script = '<set:{}>:{}'.format(target,value)
+            # 移动
+            elif type_this == 'move':
+                target = this_section['target']
+                # 重现value
+                if this_section['value']['operator'] is None:
+                    value = MediaDef().value_export(this_section['value']['pos1'])
+                else:
+                    pos1 = MediaDef().value_export(this_section['value']['pos1'])
+                    pos2 = MediaDef().value_export(this_section['value']['pos2'])
+                    value = pos1 + this_section['value']['operator'] + pos2
+                this_script = '<move:{}>:{}'.format(target,value)
+            # 表格
+            elif type_this == 'table':
+                value = this_section['value']
+                if this_section['target']['subtype'] is None:
+                    target = this_section['target']['name'] +'.'+ this_section['target']['column']
+                else:
+                    target = this_section['target']['name'] +'.'+ this_section['target']['subtype'] +'.'+ this_section['target']['column']
+                this_script = '<table:{}>:{}'.format(target,value)
+            # 音乐
+            elif type_this == 'music':
+                value = this_section['value']
+                this_script = '<bgm>:{}'.format(value)
             # 清除
-            elif this_section['type'] == 'clear':
+            elif type_this == 'clear':
                 this_script = '<clear>:' + this_section['object']
             # 生命值
-            elif this_section['type'] == 'hitpoint':
+            elif type_this == 'hitpoint':
                 this_script = '<hitpoint>:({},{},{},{})'.format(
                     this_section['content'],
                     this_section['hp_max'],
@@ -840,7 +887,7 @@ class RplGenLog(Script):
                     this_section['hp_end']
                 )
             # 骰子
-            elif this_section['type'] == 'dice':
+            elif type_this == 'dice':
                 list_of_dice_express = []
                 for key in this_section['dice_set'].keys():
                     this_dice = this_section['dice_set'][key]
@@ -855,7 +902,8 @@ class RplGenLog(Script):
                             CK,
                             this_dice['face']))
                     this_script = '<dice>:' + ','.join(list_of_dice_express)
-            elif this_section['type'] == 'wait':
+            # 停留
+            elif type_this == 'wait':
                 this_script = '<wait>:{}'.format(this_section['time'])
             else:
                 this_script = ''
@@ -1546,18 +1594,7 @@ class RplGenLog(Script):
                     elif this_section['value_type'] == 'method':
                         self.dynamic[this_section['target']] = this_section['value']
                     # 类型3：BGM
-                    elif this_section['value_type'] == 'music':
-                        if this_section['value'] in self.medias.keys():
-                            if type(self.medias[this_section['value']]) is not BGM:
-                                raise ParserError("NotBGM",this_section['value'],str(i+1))
-                            else:
-                                BGM_queue.append(this_section['value'])
-                        elif os.path.isfile(this_section['value'][1:-1]):
-                            BGM_queue.append(this_section['value'])
-                        elif this_section['value'] == 'stop':
-                            BGM_queue.append(this_section['value'])
-                        else:
-                            raise ParserError('UndefBGM',this_section['value'],str(i+1))
+                    # elif this_section['value_type'] == 'music':
                     # 类型4：函数
                     elif this_section['value_type'] == 'function':
                         if this_section['value'] in formula_available.keys():
@@ -1577,43 +1614,99 @@ class RplGenLog(Script):
                         else:
                             print(WarningPrint('Set2Invalid',this_section['target'],this_section['value']))
                     # 类型6：角色表
-                    elif this_section['value_type'] == 'chartab':
-                        name = this_section['target']['name']
-                        subtype = this_section['target']['subtype']
-                        column = this_section['target']['column']
-                        if column not in self.charactors.columns:
-                            # 如果目标列不存在于角色表
-                            raise ParserError('ModUndefCol',column)
-                        elif column in ['Name','Subtype','Animation','Bubble','Voice','SpeechRate','PitchRate']:
-                            # 如果尝试修改受保护的列
-                            raise ParserError('ModProtcCol',column)
-                        elif name not in self.charactors['Name'].values:
-                            # 如果角色名不存在
-                            raise ParserError('UndefTgName',name,str(i+1))
-                        if subtype != None:
-                            # 如果指定了差分，改动差分
-                            if name + '.' + subtype not in self.charactors.index:
-                                # 如果指定了差分名，但是差分名不存在
-                                raise ParserError('UndefTgSubt',name+'.'+subtype,str(i+1))
-                            else:
-                                try:
-                                    self.charactors.loc[name+'.'+subtype,column] = this_section['value']
-                                except Exception as E:
-                                    raise ParserError('ModCTError','.'.join([name,subtype,column]),E)
-                        else:
-                            # 如果没指定差分，改动整个角色
-                            try:
-                                self.charactors.loc[self.charactors['Name']==name,column] = this_section['value']
-                            except Exception as E:
-                                raise ParserError('ModCTError','.'.join([name,column]),E)
-                    # 类型7：尚且无法定性的，例如FreePos
-                    elif this_section['value_type'] == 'unknown':
-                        # 不被支持的参数
+                    # elif this_section['value_type'] == 'chartab':
+                    # 类型7：不被支持的参数
+                    else:
                         raise ParserError('UnsuppSet',this_section['target'],str(i+1))
-                        # TODO : 将重定位，做成一个新的命令！<move:>
                 except Exception as E:
                     print(E)
                     raise ParserError('ParErrSet',str(i+1))
+            # 移动位置行
+            elif this_section['type'] == 'move':
+                try:
+                    target = this_section['target']
+                    value = this_section['value']
+                    # 获取value对象
+                    try:
+                        if value['operator'] is None:
+                            value_pos = media_define.value_execute(value['pos1'])
+                        else:
+                            pos1 = media_define.value_execute(value['pos1'])
+                            pos2 = media_define.value_execute(value['pos2'])
+                            if value['operator'] == '+':
+                                value_pos = pos1 + pos2
+                            else:
+                                value_pos = pos1 - pos2
+                        assert type(value_pos) in [Pos,FreePos]
+                        print(value)
+                    except Exception as E:
+                        raise ParserError('IvSyFrPos',...,target,E)
+                    # 检查target的类型
+                    if target not in self.medias.keys():
+                        raise ParserError('UndefMvObj',target)
+                    elif type(self.medias[target]) is FreePos:
+                        # 自由位置对象
+                        self.medias[target].set(value_pos)
+                    elif type(self.medias[target]) in [Animation,Bubble,Balloon,DynamicBubble,Balloon,ChatWindow]:
+                        # 如果是图形类媒体
+                        self.medias[target].pos = value_pos
+                    else:
+                        raise ParserError('CannotMvObj',target)
+                except Exception as E:
+                    print(E)
+                    raise ParserError('ParErrMv')
+            # 角色表格行
+            elif this_section['type'] == 'table':
+                try:
+                    name = this_section['target']['name']
+                    subtype = this_section['target']['subtype']
+                    column = this_section['target']['column']
+                    if column not in self.charactors.columns:
+                        # 如果目标列不存在于角色表
+                        raise ParserError('ModUndefCol',column)
+                    elif column in ['Name','Subtype','Animation','Bubble','Voice','SpeechRate','PitchRate']:
+                        # 如果尝试修改受保护的列
+                        raise ParserError('ModProtcCol',column)
+                    elif name not in self.charactors['Name'].values:
+                        # 如果角色名不存在
+                        raise ParserError('UndefTgName',name,str(i+1))
+                    if subtype != None:
+                        # 如果指定了差分，改动差分
+                        if name + '.' + subtype not in self.charactors.index:
+                            # 如果指定了差分名，但是差分名不存在
+                            raise ParserError('UndefTgSubt',name+'.'+subtype,str(i+1))
+                        else:
+                            try:
+                                self.charactors.loc[name+'.'+subtype,column] = this_section['value']
+                            except Exception as E:
+                                raise ParserError('ModCTError','.'.join([name,subtype,column]),E)
+                    else:
+                        # 如果没指定差分，改动整个角色
+                        try:
+                            self.charactors.loc[self.charactors['Name']==name,column] = this_section['value']
+                        except Exception as E:
+                            raise ParserError('ModCTError','.'.join([name,column]),E)
+                except Exception as E:
+                    print(E)
+                    raise ParserError('ParErrTab',str(i+1))
+                pass
+            # 背景音乐行
+            elif this_section['type'] == 'music':
+                try:
+                    if this_section['value'] in self.medias.keys():
+                        if type(self.medias[this_section['value']]) is not BGM:
+                            raise ParserError("NotBGM",this_section['value'],str(i+1))
+                        else:
+                            BGM_queue.append(this_section['value'])
+                    elif os.path.isfile(this_section['value'][1:-1]):
+                        BGM_queue.append(this_section['value'])
+                    elif this_section['value'] == 'stop':
+                        BGM_queue.append(this_section['value'])
+                    else:
+                        raise ParserError('UndefBGM',this_section['value'],str(i+1))
+                except Exception as E:
+                    print(E)
+                    raise ParserError('ParErrBGM',str(i+1))
             # 清除聊天窗
             elif this_section['type'] == 'clear':
                 if this_section['object'] not in self.medias.keys():
@@ -1622,7 +1715,7 @@ class RplGenLog(Script):
                     print(WarningPrint('ClearNotCW',this_section['object']))
                 else:
                     self.medias[this_section['object']].clear()
-            # 生命值内建动画
+            # 生命值动画
             elif this_section['type'] == 'hitpoint':
                 frame_rate = config.frame_rate
                 try:
@@ -1689,7 +1782,7 @@ class RplGenLog(Script):
                 except Exception as E:
                     print(E)
                     raise ParserError('ParErrHit',str(i+1))
-            # 骰点内建动画
+            # 骰点动画
             elif this_section['type'] == 'dice':
                 frame_rate = config.frame_rate
                 width = config.Width
