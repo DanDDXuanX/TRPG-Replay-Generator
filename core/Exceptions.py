@@ -178,6 +178,8 @@ class ParserError(RplGenError):
                         "星标语音文件 '{}' 并不存在！"],
         'InvAster'    :["Invalid asterisk label appeared in dialogue line.",
                         "无效的星标语音框出现在对话行中！"],
+        'WaitBegin'   :["A wait command at beginning of timeline.",
+                        "在时间轴的起始点使用了暂停行命令。"],
         'ParErrWait'  :["Parse exception occurred in wait line {}.",
                         "解析异常发生在第{}行（暂停行）。"],
         'InvWaitArg'  :["Invalid argument for command <wait>: {}.",

@@ -611,7 +611,11 @@ class RplGenLog(Script):
                 # 对象
                 if objc == 'NA' or objc == 'None':
                     this_section['object'] = None
+                elif '(' not in objc and objc[-1] != ')':
+                    # 如果是一个纯对象
+                    this_section['object'] = objc
                 else:
+                    # 如果是一个Bubble表达式
                     this_section['object'] = self.bubble_parser(bubble_exp=objc,i=i)
             # 参数设置行，格式：<set:speech_speed>:220
             elif (text[0:5] == '<set:') & ('>:' in text):
@@ -830,6 +834,8 @@ class RplGenLog(Script):
                 MM = self.method_export(this_section['bb_method'])
                 if this_section['object'] is None:
                     OB = 'NA'
+                if type(this_section['object']) is str:
+                    OB = this_section['object']
                 else:
                     bubble_object = this_section['object']
                     TM = self.method_export(bubble_object['tx_method'])
@@ -973,6 +979,9 @@ class RplGenLog(Script):
         this = np.hstack([np.repeat(this[0],dur),this])
         return method.cross_mark(this,last)
     def place_bubble_execute(self,this_placed_bubble:tuple,last_section:int,this_section:int)->None:
+        if self.break_point[last_section] == self.break_point[this_section]:
+            # 如果持续时间是0，直接略过
+            return
         # 处理上一次的
         last_placed_index = range(self.break_point[last_section],self.break_point[this_section])
         this_duration = len(last_placed_index)
@@ -997,24 +1006,26 @@ class RplGenLog(Script):
             self.main_timeline.loc[last_placed_index,'BbS_a'] = bb_method_obj.alpha(this_duration,100)
             self.main_timeline.loc[last_placed_index,'BbS_c'] = bb_center
             self.main_timeline.loc[last_placed_index,'BbS_p'] = bb_method_obj.motion(this_duration)
+            self.main_timeline.loc[last_placed_index,'BbS_header'] = this_hd
+            self.main_timeline.loc[last_placed_index,'BbS_main'] = this_tx
             # 如果是放置正常的气泡
             if type(self.medias[this_bb]) in [Bubble,Balloon,DynamicBubble]:
-                self.main_timeline.loc[last_placed_index,'BbS_header'] = this_hd
-                self.main_timeline.loc[last_placed_index,'BbS_main'] = this_tx
-                self.main_timeline.loc[last_placed_index,'BbS_main_e'] = self.tx_method_execute(
-                    content=this_tx,
-                    tx_method={'method':text_method,'method_dur':text_dur},
-                    line_limit=self.medias[this_bb].MainText.line_limit,
-                    this_duration=this_duration,
-                    i=last_section)
+                line_limit_this = self.medias[this_bb].MainText.line_limit
             # 如果是放置一个的聊天窗
             elif type(self.medias[this_bb]) is ChatWindow:
-                # TODO: 实现新的放置聊天窗的功能，与之前的完全手动不同，应该实现某种意义的，添加型放置。
-                print('<bubble>:ChatWindows is WIP!')
-                raise Exception()
-            else:
-                pass
+                keyword_this = this_hd.split('|')[-1].split('#')[0]
+                line_limit_this = self.medias[this_bb].sub_Bubble[keyword_this]
+            # 切换效果
+            self.main_timeline.loc[last_placed_index,'BbS_main_e'] = self.tx_method_execute(
+                content=this_tx,
+                tx_method={'method':text_method,'method_dur':text_dur},
+                line_limit=line_limit_this,
+                this_duration=this_duration,
+                i=last_section)
     def place_anime_execute(self,this_placed_anime:tuple,last_section:int,this_section:int)->None:
+        if self.break_point[last_section] == self.break_point[this_section]:
+            # 如果持续时间是0，直接略过
+            return
         # 处理上一次的
         last_placed_index = range(self.break_point[last_section],self.break_point[this_section])
         this_duration = len(last_placed_index)
@@ -1310,8 +1321,10 @@ class RplGenLog(Script):
                                     # 更新bubble对象的历史记录
                                     this_bb_obj.append(content_text,target_text)
                                 else:
+                                    # 如果是普通气泡，记录下这个小节的历史记录
                                     this_timeline['Bb_main'] = content_text
                                     this_timeline['Bb_header'] = target_text
+                                    this_bb_obj.recode(content_text,target_text)
                                 # 文字显示效果
                                 if this_section['tx_method']['method'] == 'default':
                                     # 未指定
@@ -1558,17 +1571,39 @@ class RplGenLog(Script):
                     if bb_method['method_dur'] == 'default':
                         bb_method['method_dur'] = self.dynamic['bb_dur_default']
                     # 如果是设置为NA
-                    if this_section['object'] is None:
+                    bb_target = this_section['object']
+                    if bb_target is None:
                         this_placed_bubble = ('NA','replace',0,'','','all',0,'NA')
                         last_placed_bubble_section = i
+                        # 提前终止所必须的
+                        self.break_point[i+1]=self.break_point[i]
+                        continue
+                    elif type(bb_target) is str:
+                        bb_target_name = bb_target
                     else:
-                        bb_target = this_section['object']
-                        if bb_target['bubble'] not in self.medias.keys():
-                            raise ParserError('UndefPBb',bb_target['bubble'],str(i+1))
-                        elif type(self.medias[bb_target['bubble']]) not in [Bubble,Balloon,DynamicBubble,ChatWindow]:
-                            raise ParserError("NotPBubble",bb_target['bubble'],str(i+1))
-                        else:
-                            pass
+                        bb_target_name = bb_target['bubble']
+                    # 检查放置气泡类型
+                    if bb_target_name not in self.medias.keys():
+                        raise ParserError('UndefPBb',bb_target_name,str(i+1))
+                    elif type(self.medias[bb_target_name]) not in [Bubble,Balloon,DynamicBubble,ChatWindow]:
+                        raise ParserError("NotPBubble",bb_target_name,str(i+1))
+                    else:
+                        bb_object:Bubble = self.medias[bb_target_name]
+                    # 如果是纯气泡显示这个Bubble前一次的记录
+                    if type(bb_target) is str:
+                        this_placed_bubble = (
+                            bb_target_name,
+                            bb_method['method'],
+                            bb_method['method_dur'],
+                            bb_object.header_text,
+                            bb_object.main_text,
+                            'all', # method
+                            0, # method_dur
+                            str(bb_object.pos)
+                            )
+                        last_placed_bubble_section = i
+                    # 正常的放置气泡
+                    else:
                         # 检查，tx_method 的合法性
                         tx_method = bb_target['tx_method'].copy()
                         if tx_method['method'] == 'default':
@@ -1579,15 +1614,21 @@ class RplGenLog(Script):
                         if tx_method['method'] not in ['all','w2w','s2s','l2l','run']:
                             raise ParserError('UnrecPBbTxM',self.method_export(tx_method['method']),str(i+1))
                         else:
+                            # 如果类型是聊天窗
+                            if type(bb_object) is ChatWindow:
+                                bb_object.append(bb_target['main_text'],bb_target['header_text'])
+                            else:
+                                bb_object.recode(bb_target['main_text'],bb_target['header_text'])
+                            # append 或者 recode 之后，bb_object.header_text 正是我们需要的值
                             this_placed_bubble = (
                                 bb_target['bubble'],
                                 bb_method['method'],
                                 bb_method['method_dur'],
-                                bb_target['header_text'],
-                                bb_target['main_text'],
+                                bb_object.header_text,
+                                bb_object.main_text,
                                 tx_method['method'],
                                 tx_method['method_dur'],
-                                str(self.medias[bb_target['bubble']].pos)
+                                str(bb_object.pos)
                                 )
                             last_placed_bubble_section = i
                 except Exception as E:
@@ -1878,7 +1919,10 @@ class RplGenLog(Script):
                     # 持续指定帧，仅显示当前背景
                     this_timeline=pd.DataFrame(index=range(0,this_section['time']),dtype=str,columns=render_arg)
                     # 停留的帧：当前时间轴的最后一帧，不含S图层
-                    wait_frame = self.main_timeline.iloc[-1].copy()
+                    try:
+                        wait_frame = self.main_timeline.iloc[-1].copy()
+                    except IndexError:
+                        raise ParserError('WaitBegin')
                     # 检查wait frame里面，有没有透明度为0，如果有则删除图层
                     for layer in config.zorder:
                         if wait_frame[layer+'_a'] == 0:

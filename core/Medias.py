@@ -179,12 +179,17 @@ class Bubble(MediaObj):
             self.align = align
         else:
             raise MediaError('BadAlign',align)
+    # 主文本效果，裁切
     def tx_effect(self,main_text:str,effect:float)->str:
         # 效果
         if effect >= 0:
             return main_text[:int(effect)]
         else:
             return main_text
+    # 主文本和头文本的记录
+    def recode(self,main_text:str,header_text:str)->None:
+        self.main_text = main_text
+        self.header_text = header_text
     # 返回一个添加好文字的Bubble Surface
     def draw(self, text:str,header:str='',effect:int=-1)->tuple:
         # 底图
