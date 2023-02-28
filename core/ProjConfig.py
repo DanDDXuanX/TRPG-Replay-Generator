@@ -2,7 +2,7 @@
 # coding: utf-8
 # 项目配置参数
 
-from .Exceptions import ArgumentError,WarningPrint
+from .Exceptions import ArgumentError,WarningPrint,Print,RplGenError
 from .Motion import MotionMethod
 from .Medias import MediaObj
 
@@ -85,3 +85,12 @@ class Config:
         MotionMethod.screen_size = (self.Width,self.Height)
         MediaObj.screen_size = (self.Width,self.Height)
         MediaObj.frame_rate = self.frame_rate
+        # 修改语言
+        if self.lang == 'zh':
+            # 中文
+            Print.lang = 1 
+            RplGenError.lang = 1
+        else:
+            # 英文
+            Print.lang == 0
+            RplGenError.lang = 0
