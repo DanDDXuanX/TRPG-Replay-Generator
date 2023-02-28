@@ -162,6 +162,7 @@
 
 <set:bb_method_default>:<replace=0>
 <set:inline_method_apply>:bubble
+<set:tx_method_default>:<run=30>
 
 [伊可.聊天]<black_pass_right_1000_in=30>:如果给角色指定的气泡是聊天窗对象，那么会以这种样式显示{音效;5}
 [KP.聊天]:前一个角色说过的话，不会因为小节的结束而消失{音效;5}

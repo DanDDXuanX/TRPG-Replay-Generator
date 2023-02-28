@@ -915,6 +915,10 @@ class RplGenLog(Script):
     def tx_method_execute(self,content:str,tx_method:dict,line_limit:int,this_duration:int,i=0) -> np.ndarray:
         content_length:int = len(content)
         UF_limit_content_length:np.ufunc = np.frompyfunc(lambda x:x if x<=content_length else content_length,1,1)
+        if this_duration < tx_method['method_dur']:
+            # 小节持续时间过短，不显示任何文字效果
+            print(WarningPrint('TxMetDrop',str(i+1)))
+            return content_length*np.ones(this_duration)
         # 全部显示
         if tx_method['method'] == 'all':
             if tx_method['method_dur'] >= this_duration:
@@ -949,10 +953,15 @@ class RplGenLog(Script):
                 return UF_limit_content_length((np.arange(0,this_duration,1)//(tx_method['method_dur']*line_limit)+1)*line_limit)
         # 逐句显示
         elif tx_method['method'] == 's2s':
+            # TODO
             pass
         # 聊天窗滚动
         elif tx_method['method'] == 'run':
-            pass
+            # return [-1 ~ -0<因为不能是0，所以用-1e-10替代>]，仅在ChatWindows中是有效的，其余等价于 <all=0>
+            return np.hstack([
+                self.dynamic['formula'](-1,-1e-10,tx_method['method_dur']),
+                np.ones(this_duration-tx_method['method_dur']) * content_length
+                ])
         else:
             raise ParserError('UnrecTxMet', self.method_export(tx_method), str(i+1))
     def cross_timeline_execute(self,timeline:pd.DataFrame,method:MotionMethod,begin:int,center:int,end:int,layer:str)->np.ndarray:
@@ -992,7 +1001,7 @@ class RplGenLog(Script):
             if type(self.medias[this_bb]) in [Bubble,Balloon,DynamicBubble]:
                 self.main_timeline.loc[last_placed_index,'BbS_header'] = this_hd
                 self.main_timeline.loc[last_placed_index,'BbS_main'] = this_tx
-                self.main_timeline.loc[last_placed_index,'Bb_main_e'] = self.tx_method_execute(
+                self.main_timeline.loc[last_placed_index,'BbS_main_e'] = self.tx_method_execute(
                     content=this_tx,
                     tx_method={'method':text_method,'method_dur':text_dur},
                     line_limit=self.medias[this_bb].MainText.line_limit,

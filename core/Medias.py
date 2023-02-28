@@ -179,10 +179,10 @@ class Bubble(MediaObj):
             self.align = align
         else:
             raise MediaError('BadAlign',align)
-    def tx_effect(self,main_text:str,effect:int)->str:
+    def tx_effect(self,main_text:str,effect:float)->str:
         # 效果
         if effect >= 0:
-            return main_text[:effect]
+            return main_text[:int(effect)]
         else:
             return main_text
     # 返回一个添加好文字的Bubble Surface
@@ -216,7 +216,7 @@ class Bubble(MediaObj):
             render_pos = render_center + eval(adjust)
         # 文本效果：整数：截取字符串的前一部分
         # Bubble Surface
-        temp = self.draw(text,header,effect)
+        temp,temp_size = self.draw(text,header,effect)
         # 将Bubble blit 到 surface
         if alpha !=100:
             temp.set_alpha(alpha/100*255)
@@ -296,9 +296,10 @@ class DynamicBubble(Bubble):
     # 重载draw
     def draw(self, text:str,header:str='',effect:int=-1)->tuple:
         # 首先，需要把主文本渲染出来
-        if text == '':
-            text = ' '
         main_text = self.tx_effect(text,effect)
+        # 不能完全空白，不然main_text_list为空，无法后续执行
+        if main_text == '':
+            main_text = ' '
         main_text_list = self.MainText.draw(main_text)
         # 第一次循环：获取最大的x和最大的y
         xlim=0
@@ -485,7 +486,7 @@ class ChatWindow(Bubble):
         # 拆分主文本和头文本
         main_text_list = text.split('|')
         header_text_list = header.split('|')
-        # 应用效果
+        # 应用效果于最后一个片段的文本
         main_text_list[-1] = self.tx_effect(main_text_list[-1],effect)
         # 注意，由于w2w或者l2l的设定，main_text_list 很可能和 header_text_list 并不能完全匹配！
         # 主1|主2|主3|
@@ -499,12 +500,16 @@ class ChatWindow(Bubble):
         header_main_pair = header_main_pair[::-1]
         # 第二次循环：渲染子气泡
         y_bottom = self.sub_size[1] # 当前句子的可用y底部
-        for header_main in header_main_pair:
+        for idx,header_main in enumerate(header_main_pair):
             # 解析(键#头文本,主文本)
             bubble_header_this,main_this = header_main
             key_this,header_this = bubble_header_this.split('#')
             # 绘制子气泡
             subbubble_surface_this,subbubble_surface_size = self.sub_Bubble[key_this].draw(main_this,header_this)
+            # 如果是run：把当前的y_bottom 向下移动 effect * (这个小节的高度 + 小节见间距)，并且不渲染第一小节
+            if idx == 0 and effect < 0:
+                y_bottom = y_bottom - (subbubble_surface_size[1] + self.sub_distance) * (effect + 1)
+                continue
             if self.sub_align[key_this] == 'left':
                 # x = 0，y = 底部-子气泡的高度
                 sub_surface.blit(subbubble_surface_this,(0,y_bottom-subbubble_surface_size[1]))

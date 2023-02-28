@@ -71,6 +71,11 @@ class ReplayGenerator:
                     self.medef = MediaDef(file_input=self.media_path)
                     self.chartab = CharTable(file_input=self.char_path)
                     self.rplgenlog = RplGenLog(file_input=self.log_path)
+        # debug
+        except ArgumentError as E:
+            self.medef = MediaDef(file_input='./toy/MediaObject.txt')
+            self.chartab = CharTable(file_input='./toy/CharactorTable.tsv')
+            self.rplgenlog = RplGenLog(file_input='./toy/LogFile.rgl')
         except Exception as E:
             print(E)
             self.system_terminated('Error')
@@ -99,7 +104,8 @@ class ReplayGenerator:
                                 effect=int(cross[layer+'_main_e']),
                                 adjust=cross[layer+'_p'],center=cross[layer+'_c']
                             )
-                        except Exception:
+                        except Exception as E:
+                            print(E)
                             raise RenderError('FailRender',cross[layer],'Bubble')
                 elif layer[0:2] == 'Am':
                     cross_1 = this_frame[[layer,layer+'_a',layer+'_t',layer+'_p',layer+'_c']].replace('(.+) (->|<-) (.+)',r'\1',regex=True)
@@ -115,7 +121,8 @@ class ReplayGenerator:
                                 surface=self.screen,alpha=float(cross[layer+'_a']),frame=int(cross[layer+'_t']),
                                 adjust=cross[layer+'_p'],center=cross[layer+'_c']
                             )
-                        except Exception:
+                        except Exception as E:
+                            print(E)
                             raise RenderError('FailRender',cross[layer],'Animation')
             #或者图层的透明度小于等于0(由于fillna("NA"),出现的异常)
             elif this_frame[layer+'_a']<=0: 
@@ -131,7 +138,8 @@ class ReplayGenerator:
                         surface=self.screen,alpha=this_frame[layer+'_a'],
                         adjust=this_frame[layer+'_p'],center=this_frame[layer+'_c']
                     )
-                except Exception:
+                except Exception as E:
+                    print(E)
                     raise RenderError('FailRender',this_frame[layer],'Background')
             # 渲染立绘图层
             elif layer[0:2] == 'Am': # 兼容H_LG1(1)这种动画形式 alpha1.6.3
@@ -141,7 +149,8 @@ class ReplayGenerator:
                         surface=self.screen,alpha=this_frame[layer+'_a'],frame=this_frame[layer+'_t'],
                         adjust=this_frame[layer+'_p'],center=this_frame[layer+'_c']
                     )
-                except Exception:
+                except Exception as E:
+                    print(E)
                     raise RenderError('FailRender',this_frame[layer],'Animation')
             # 渲染气泡图层
             elif layer[0:2] == 'Bb':
@@ -150,10 +159,11 @@ class ReplayGenerator:
                     Object.display(
                         surface=self.screen,alpha=this_frame[layer+'_a'],
                         text=this_frame[layer+'_main'],header=this_frame[layer+'_header'],
-                        effect=cross[layer+'_main_e'],
+                        effect=this_frame[layer+'_main_e'],
                         adjust=this_frame[layer+'_p'],center=this_frame[layer+'_c']
                     )
-                except Exception:
+                except Exception as E:
+                    print(E)
                     raise RenderError('FailRender',this_frame[layer],'Bubble')
         # 播放音效
         for key in ['BGM','Voice','SE']:
@@ -374,7 +384,6 @@ class ReplayGenerator:
                             pygame.quit()
                             self.system_terminated('User')
                         elif event.key in [pygame.K_a,pygame.K_LEFT]:
-                            print('a')
                             # 警告：这个地方真的是要执行2次的！
                             n=self.breakpoint[(self.breakpoint-n)<0].max()
                             n=self.breakpoint[(self.breakpoint-n)<0].max()
@@ -383,7 +392,6 @@ class ReplayGenerator:
                             self.stop_SE()
                             continue
                         elif event.key in [pygame.K_d,pygame.K_RIGHT]:
-                            print('d')
                             n=self.breakpoint[(self.breakpoint-n)>0].min()
                             self.stop_SE()
                             continue

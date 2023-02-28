@@ -437,6 +437,8 @@ class WarningPrint(Print):
                         "指定给放置立绘的切换效果失效，因为小节过短的持续时间。"],
         'PBbMetDrop'  :["The switch method of placed bubble is dropped, due to short duration!",
                         "指定给放置气泡的切换效果失效，因为小节过短的持续时间。"],
+        'TxMetDrop'   :["The text display method of bubble in line {} is dropped, due to short duration!",
+                        "在第{}行中指定给气泡的文字显示效果失效，因为小节过短的持续时间。"],
         'Set2Invalid' :["Setting {} to invalid value {}, the argument will not changed.",
                         "尝试将动态变量 {} 设置为非法值 {} ，该变量将不会发生改变。"],
         'UseLambda'   :["Using lambda formula range {0} in line {1}, which may cause unstableness during displaying!",
