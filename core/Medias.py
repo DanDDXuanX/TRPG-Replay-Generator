@@ -51,7 +51,7 @@ class MediaObj:
 # 文字对象
 class Text(MediaObj):
     pygame.font.init()
-    def __init__(self,fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0,0,255),line_limit=20,label_color='Lavender'):
+    def __init__(self,fontfile:str='./media/SourceHanSansCN-Regular.otf',fontsize:int=40,color:tuple=(0,0,0,255),line_limit:int=20,label_color:str='Lavender'):
         super().__init__(filepath=fontfile,label_color=label_color)
         self.text_render = pygame.font.Font(self.filepath.exact(),fontsize)
         self.color=color
@@ -62,7 +62,9 @@ class Text(MediaObj):
         if self.color[3] < 255:
             face.set_alpha(self.color[3])
         return face
-    def draw(self,text):
+    # 返回包含了若干行字的列表
+    def draw(self,text:str)->list:
+        # 气泡的effect含义
         out_text = []
         if text == '':
             return []
@@ -177,13 +179,23 @@ class Bubble(MediaObj):
             self.align = align
         else:
             raise MediaError('BadAlign',align)
-    # 渲染一个添加文字的Bubble Surface
-    def draw(self, text, header=''):
+    def tx_effect(self,main_text:str,effect:int)->str:
+        # 效果
+        if effect >= 0:
+            return main_text[:effect]
+        else:
+            return main_text
+    # 返回一个添加好文字的Bubble Surface
+    def draw(self, text:str,header:str='',effect:int=-1)->tuple:
+        # 底图
         temp = self.media.copy()
-        if (self.Header!=None) & (header!=''):    # Header 有定义，且输入文本不为空
+        # 头文本有定义，且输入文本不为空
+        if (self.Header!=None) & (header!=''):
             temp.blit(self.Header.draw(header)[0],self.ht_pos)
+        # 主文本，应用效果
         x,y = self.mt_pos
-        for i,s in enumerate(self.MainText.draw(text)):
+        main_text = self.tx_effect(text,effect)
+        for i,s in enumerate(self.MainText.draw(main_text)):
             if self.align == 'left':
                 temp.blit(s,(x,y+i*self.MainText.size*self.line_distance))
             else: # 就只可能是center了
@@ -191,7 +203,7 @@ class Bubble(MediaObj):
                 temp.blit(s,(x+(self.MainText.size*self.MainText.line_limit - word_w)//2,y+i*self.MainText.size*self.line_distance))
         return temp,temp.get_size()
     # 将气泡对象丢上主Surface
-    def display(self, surface, text, header='', alpha=100, center='NA', adjust='NA'):
+    def display(self, surface:pygame.surface, text:str, header:str='',effect:int=999,alpha:int=100,center:str='NA',adjust:str='NA'):
         # 中心位置
         if center == 'NA':
             render_center = self.pos
@@ -202,8 +214,9 @@ class Bubble(MediaObj):
             render_pos = render_center
         else:
             render_pos = render_center + eval(adjust)
+        # 文本效果：整数：截取字符串的前一部分
         # Bubble Surface
-        temp,tempsize = self.draw(text,header)
+        temp = self.draw(text,header,effect)
         # 将Bubble blit 到 surface
         if alpha !=100:
             temp.set_alpha(alpha/100*255)
@@ -220,7 +233,7 @@ class Balloon(Bubble):
         else:
             self.header_num = len(self.Header)
     # 重载draw
-    def draw(self, text, header=''):
+    def draw(self, text:str,header:str='',effect:int=-1)->tuple:
         temp = self.media.copy()
         # 复合header用|作为分隔符
         header_texts = header.split('|')
@@ -231,8 +244,10 @@ class Balloon(Bubble):
             # 如果达到了header数量上限，多余的header_text弃用
             if i == self.header_num -1:
                 break
+        # 头文本
+        main_text = self.tx_effect(text,effect)
         x,y = self.mt_pos
-        for i,s in enumerate(self.MainText.draw(text)):
+        for i,s in enumerate(self.MainText.draw(main_text)):
             if self.align == 'left':
                 temp.blit(s,(x,y+i*self.MainText.size*self.line_distance))
             else: # 就只可能是center了
@@ -279,11 +294,12 @@ class DynamicBubble(Bubble):
         self.bubble_clip = np.array(self.bubble_clip)
         self.bubble_clip_size = np.frompyfunc(lambda x:x.get_size(),1,1)(self.bubble_clip)
     # 重载draw
-    def draw(self, text, header=''):
+    def draw(self, text:str,header:str='',effect:int=-1)->tuple:
         # 首先，需要把主文本渲染出来
         if text == '':
             text = ' '
-        main_text_list = self.MainText.draw(text)
+        main_text = self.tx_effect(text,effect)
+        main_text_list = self.MainText.draw(main_text)
         # 第一次循环：获取最大的x和最大的y
         xlim=0
         for i,text_surf in enumerate(main_text_list):
@@ -457,7 +473,7 @@ class ChatWindow(Bubble):
     def UF_add_header_text(self,header):
         return np.frompyfunc(lambda x : x if self.header_text == '' else self.header_text+'|'+x,1,1)(header)
     # 渲染气泡
-    def draw(self, text, header=''):
+    def draw(self, text:str,header:str='',effect:int=-1)->tuple:
         # 母气泡的复制品
         temp = self.media.copy()
         # 容纳子气泡的容器
@@ -469,6 +485,8 @@ class ChatWindow(Bubble):
         # 拆分主文本和头文本
         main_text_list = text.split('|')
         header_text_list = header.split('|')
+        # 应用效果
+        main_text_list[-1] = self.tx_effect(main_text_list[-1],effect)
         # 注意，由于w2w或者l2l的设定，main_text_list 很可能和 header_text_list 并不能完全匹配！
         # 主1|主2|主3|
         # 头1|头2|头3|头4|头5

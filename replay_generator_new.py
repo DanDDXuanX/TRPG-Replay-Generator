@@ -84,8 +84,8 @@ class ReplayGenerator:
             # 如果是包含了交叉溶解的图层
             elif (' <- ' in this_frame[layer]) | (' -> ' in this_frame[layer]):
                 if layer[0:2] == 'Bb':
-                    cross_1 = this_frame[[layer,layer+'_header',layer+'_main',layer+'_a',layer+'_p',layer+'_c']].replace('(.+) (->|<-) (.+)',r'\1',regex=True)
-                    cross_2 = this_frame[[layer,layer+'_header',layer+'_main',layer+'_a',layer+'_p',layer+'_c']].replace('(.+) (->|<-) (.+)',r'\3',regex=True)
+                    cross_1 = this_frame[[layer,layer+'_header',layer+'_main',layer+'_main_e',layer+'_a',layer+'_p',layer+'_c']].replace('(.+) (->|<-) (.+)',r'\1',regex=True)
+                    cross_2 = this_frame[[layer,layer+'_header',layer+'_main',layer+'_main_e',layer+'_a',layer+'_p',layer+'_c']].replace('(.+) (->|<-) (.+)',r'\3',regex=True)
                     if ' -> ' in this_frame[layer]:
                         cross_zorder = [cross_1,cross_2]
                     else:
@@ -96,6 +96,7 @@ class ReplayGenerator:
                             Object.display(
                                 surface=self.screen,alpha=float(cross[layer+'_a']),
                                 text=cross[layer+'_main'],header=cross[layer+'_header'],
+                                effect=int(cross[layer+'_main_e']),
                                 adjust=cross[layer+'_p'],center=cross[layer+'_c']
                             )
                         except Exception:
@@ -149,6 +150,7 @@ class ReplayGenerator:
                     Object.display(
                         surface=self.screen,alpha=this_frame[layer+'_a'],
                         text=this_frame[layer+'_main'],header=this_frame[layer+'_header'],
+                        effect=cross[layer+'_main_e'],
                         adjust=this_frame[layer+'_p'],center=this_frame[layer+'_c']
                     )
                 except Exception:

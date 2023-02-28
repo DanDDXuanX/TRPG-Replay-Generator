@@ -1391,7 +1391,7 @@ class RplGenLog(Script):
                         cross_motion_this = this_dialog_method['Bb'].cross_motion(last_dialog_method['Bb'])
                         # 替换到对应时间轴
                         # 'Bb','Bb_main','Bb_header','Bb_a','Bb_c','Bb_p',
-                        for layer in ['Bb','Bb_main','Bb_header','Bb_c']:
+                        for layer in ['Bb','Bb_main','Bb_header','Bb_c','Bb_main_e']:
                             self.main_timeline.loc[cross_frame_begin:cross_frame_end-1,layer] = self.cross_timeline_execute(
                                 timeline = self.main_timeline,
                                 method = this_dialog_method['Bb'],
