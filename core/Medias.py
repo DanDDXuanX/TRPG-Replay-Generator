@@ -19,12 +19,26 @@ class MediaObj:
     screen_size = (1920,1080)
     # 工程帧率
     frame_rate = 30
+    # 输出路径
+    output_path = './'
     # 色图
     cmap = {
         'black':(0,0,0,255),'white':(255,255,255,255),
         'greenscreen':(0,177,64,255),
         'notetext':(118,185,0,255),'empty':(0,0,0,0)
         }
+    # 导出PR项目相关的类变量
+    # clip_XML 模板
+    clip_tplt = open('./xml_templates/tplt_clip.xml','r',encoding='utf-8').read()
+    audio_clip_tplt = open('./xml_templates/tplt_audio_clip.xml','r',encoding='utf-8').read()
+    # PR 工程的项目参数
+    Is_NTSC = True
+    Audio_type = 'Stereo'
+    # 导出的序号
+    outtext_index  = 0 # 文本图片序号，每输出一个文件 +1
+    outanime_index = 0 # 立绘图片序号，每输出一个文件 +1
+    clip_index = 0     # 剪辑序号，每生成一个剪辑 +1
+    file_index = 0     # 文件序号，每载入一个文件 +1
     # 初始化
     def __init__(self,filepath:str,label_color:str) -> None:
         # 文件路径是非法关键字
@@ -45,6 +59,10 @@ class MediaObj:
             sizex,sizey = media.get_size()
             target_size = int(sizex * scale),int(sizey * scale)
             return pygame.transform.smoothscale(media,target_size)
+    # 处理PR的图片坐标
+    def PR_center_arg(self,obj_size,pygame_pos) -> np.ndarray:
+        screensize = np.array(self.screen_size)
+        return (pygame_pos+obj_size/2-screensize/2)/obj_size*self.scale
     # 转换媒体，仅图像媒体类需要
     def convert(self):
         pass
@@ -145,27 +163,57 @@ class StrokeText(Text):
 # 气泡
 class Bubble(MediaObj):                                   
     # 初始化
-    def __init__(self,filepath=None,scale=1,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),ht_pos=(0,0),ht_target='Name',align='left',line_distance=1.5,label_color='Lavender'):
+    def __init__(
+            self,
+            filepath:str     = None,
+            scale:float      = 1.0,
+            Main_Text:Text   = Text(),
+            Header_Text:Text = None,
+            pos:tuple        = (0,0),
+            mt_pos:tuple     = (0,0),
+            ht_pos:tuple     = (0,0),
+            ht_target:str    = 'Name',
+            align:str        = 'left',
+            line_distance:float = 1.5,
+            label_color:str  = 'Lavender'
+            ):
         # 媒体和路径
         super().__init__(filepath=filepath,label_color=label_color)
+        # 气泡底图
         if self.filepath is None:
             # 媒体设为空图
-            self.media = pygame.Surface(self.screen_size,pygame.SRCALPHA)
+            self.media:pygame.Surface = pygame.Surface(self.screen_size,pygame.SRCALPHA)
             self.media.fill(self.cmap['empty'])
+            # 其他参数
+            self.scale:float = 1.0
+            self.xmlpath = None
+            self.filename = None
+            self.file_index = None
+            self.size:tuple = self.screen_size
+            self.origin_size:tuple = self.size
         else:
-            self.media = self.zoom(pygame.image.load(self.filepath.exact()),scale=scale)
-            self.scale = scale
-        # 位置
+            # 读取图片文件
+            origin_media = pygame.image.load(self.filepath.exact())
+            self.origin_size:tuple = origin_media.get_size()
+            self.media:pygame.Surface = self.zoom(origin_media,scale=scale)
+            self.size:tuple = self.media.get_size()
+            # 其他参数
+            self.scale:float  = scale
+            self.xmlpath:str  = self.filepath.xml_reformated()
+            self.filename:str = self.filepath.name()
+            self.fileindex:str = 'BBfile_' + '%d'% MediaObj.file_index
+            MediaObj.file_index = MediaObj.file_index + 1
+        # 底图位置
         if type(pos) in [Pos,FreePos]:
             self.pos = pos
         else:
             self.pos = Pos(*pos)
         # 主文本和头文本
-        self.MainText = Main_Text
-        self.mt_pos = mt_pos # 只可以是tuple
-        self.Header = Header_Text
-        self.ht_pos = ht_pos # 只可以是tuple or list tuple
-        self.target = ht_target
+        self.MainText:Text = Main_Text
+        self.mt_pos:tuple  = mt_pos # 只可以是tuple
+        self.Header:Text   = Header_Text
+        self.ht_pos:tuple  = ht_pos # 只可以是tuple or list tuple
+        self.target:str    = ht_target
         # 主文本行距
         if line_distance >= 1:
             self.line_distance = line_distance
@@ -190,10 +238,11 @@ class Bubble(MediaObj):
     def recode(self,main_text:str,header_text:str)->None:
         self.main_text = main_text
         self.header_text = header_text
-    # 返回一个添加好文字的Bubble Surface
-    def draw(self, text:str,header:str='',effect:int=-1)->tuple:
-        # 底图
-        temp = self.media.copy()
+    # (气泡:surface, 文本:surface, size:tuple)
+    def draw(self, text:str, header:str='',effect:int=-1)->tuple:
+        # 文本画板:和底图相同的大小
+        temp =  pygame.Surface(self.size,pygame.SRCALPHA)
+        temp.fill(self.cmap['empty'])
         # 头文本有定义，且输入文本不为空
         if (self.Header!=None) & (header!=''):
             temp.blit(self.Header.draw(header)[0],self.ht_pos)
@@ -206,7 +255,7 @@ class Bubble(MediaObj):
             else: # 就只可能是center了
                 word_w,word_h = s.get_size()
                 temp.blit(s,(x+(self.MainText.size*self.MainText.line_limit - word_w)//2,y+i*self.MainText.size*self.line_distance))
-        return temp,temp.get_size()
+        return (self.media.copy(), temp, self.size)
     # 将气泡对象丢上主Surface
     def display(self, surface:pygame.surface, text:str, header:str='',effect:int=999,alpha:int=100,center:str='NA',adjust:str='NA'):
         # 中心位置
@@ -221,25 +270,103 @@ class Bubble(MediaObj):
             render_pos = render_center + eval(adjust)
         # 文本效果：整数：截取字符串的前一部分
         # Bubble Surface
-        temp,temp_size = self.draw(text,header,effect)
+        bubble_draw,text_draw,bubble_size = self.draw(text,header,effect)
+        bubble_draw.blit(text_draw,(0,0))
         # 将Bubble blit 到 surface
         if alpha !=100:
-            temp.set_alpha(alpha/100*255)
-        surface.blit(temp,render_pos.get())
+            bubble_draw.set_alpha(alpha/100*255)
+        surface.blit(bubble_draw,render_pos.get())
+    # 导出PR序列：tuple(str|None, str)
+    def export(self, begin:int, end:int, text:str, header:str='', center='NA') -> tuple:
+        # PR 中的位置
+        if center == 'NA':
+            self.PRpos = self.PR_center_arg(np.array(self.size),np.array(self.pos.get()))
+        else:
+            self.PRpos = self.PR_center_arg(np.array(self.size),np.array(Pos(*eval(center)).get()))
+        # 渲染画面
+        bubble_draw,text_draw,bubble_size = self.draw(text,header,effect=-1)
+        # 气泡序列
+        width,height = self.origin_size
+        pr_horiz,pr_vert = self.PRpos
+        if self.xmlpath is None:
+            clip_bubble = None
+        else:
+            clip_bubble = self.clip_tplt.format(**{
+                'clipid'    : 'BB_clip_%d'%MediaObj.clip_index,
+                'clipname'  : self.filename,
+                'timebase'  : '%d'%self.frame_rate,
+                'ntsc'      : self.Is_NTSC,
+                'start'     : '%d'%begin,
+                'end'       : '%d'%end,
+                'in'        : '%d'%90000,
+                'out'       : '%d'%(90000+end-begin),
+                'fileid'    : self.fileindex,
+                'filename'  : self.filename,
+                'filepath'  : self.xmlpath,
+                'filewidth' : '%d'%width,
+                'fileheight': '%d'%height,
+                'horiz'     : '%.5f'%pr_horiz,
+                'vert'      : '%.5f'%pr_vert,
+                'scale'     : '%.2f'%(self.scale*100),
+                'colorlabel': self.label_color
+                })
+        # 文本序列:导出文件
+        text_ofile:str = self.output_path+'/auto_TX_%d'%MediaObj.outtext_index+'.png'
+        pygame.image.save(surface=text_draw,filename=text_ofile)
+        clip_text = self.clip_tplt.format(**{
+            'clipid'    : 'TX_clip_%d'%MediaObj.clip_index,
+            'clipname'  : 'auto_TX_%d.png'%MediaObj.outtext_index,
+            'timebase'  : '%d'%self.frame_rate,
+            'ntsc'      : self.Is_NTSC,
+            'start'     : '%d'%begin,
+            'end'       : '%d'%end,
+            'in'        : '%d'%90000,
+            'out'       : '%d'%(90000+end-begin),
+            'fileid'    : 'auto_TX_%d'%MediaObj.outtext_index,
+            'filename'  : 'auto_TX_%d.png'%MediaObj.outtext_index,
+            'filepath'  : Filepath(text_ofile).xml_reformated(),
+            'filewidth' : '%d'%width,
+            'fileheight': '%d'%height,
+            'horiz'     : '%.5f'%pr_horiz,
+            'vert'      : '%.5f'%pr_vert,
+            'scale'     : 100,
+            'colorlabel': self.MainText.label_color})
+        # 更新序号
+        MediaObj.outtext_index = MediaObj.outtext_index + 1
+        MediaObj.clip_index = MediaObj.clip_index + 1
+        # 返回
+        return (clip_bubble, clip_text)
     # 转换媒体对象
     def convert(self):
         self.media = self.media.convert_alpha()
 # 气球
 class Balloon(Bubble):
-    def __init__(self,filepath=None,scale=1,Main_Text=Text(),Header_Text=[None],pos=(0,0),mt_pos=(0,0),ht_pos=[(0,0)],ht_target=['Name'],align='left',line_distance=1.5,label_color='Lavender'):
+    def __init__(
+            self,
+            filepath:str     = None,
+            scale:float      = 1.0,
+            Main_Text:Text   = Text(),
+            Header_Text:list = [None],
+            pos:tuple        = (0,0),
+            mt_pos:tuple     = (0,0),
+            ht_pos:list      = [(0,0)],
+            ht_target:list   = ['Name'],
+            align:str        = 'left',
+            line_distance:float = 1.5,
+            label_color:str  = 'Lavender'
+            ):
+        # 继承Bubble
         super().__init__(filepath=filepath,scale=scale,Main_Text=Main_Text,Header_Text=Header_Text,pos=pos,mt_pos=mt_pos,ht_pos=ht_pos,ht_target=ht_target,align=align,line_distance=line_distance,label_color=label_color)
+        # 检查头文本列表长度是否匹配
         if len(self.Header)!=len(self.ht_pos) or len(self.Header)!=len(self.target):
             raise MediaError('BnHead')
         else:
             self.header_num = len(self.Header)
-    # 重载draw
-    def draw(self, text:str,header:str='',effect:int=-1)->tuple:
-        temp = self.media.copy()
+    # 重载draw: -> (气泡:surface, 文本:surface, size:tuple)
+    def draw(self, text:str, header:str='', effect:int=-1)->tuple: 
+        # 文本画板:和底图相同的大小
+        temp =  pygame.Surface(self.size,pygame.SRCALPHA)
+        temp.fill(self.cmap['empty'])
         # 复合header用|作为分隔符
         header_texts = header.split('|')
         for i,header_text_this in enumerate(header_texts):
@@ -258,18 +385,34 @@ class Balloon(Bubble):
             else: # 就只可能是center了
                 word_w,word_h = s.get_size()
                 temp.blit(s,(x+(self.MainText.size*self.MainText.line_limit - word_w)//2,y+i*self.MainText.size*self.line_distance))
-        return temp,temp.get_size()
+        return (self.media.copy(), temp, self.size)
 # 自适应气泡
 class DynamicBubble(Bubble):
-    def __init__(self,filepath=None,scale=1,Main_Text=Text(),Header_Text=None,pos=(0,0),mt_pos=(0,0),mt_end=(0,0),ht_pos=(0,0),ht_target='Name',fill_mode='stretch',fit_axis='free',line_distance=1.5,label_color='Lavender'):
-        # align 只能为left
+    def __init__(
+            self,
+            filepath:str     = None,
+            scale:float      = 1.0,
+            Main_Text:Text   = Text(),
+            Header_Text:Text = None,
+            pos:tuple        = (0,0),
+            mt_pos:tuple     = (0,0),
+            mt_end:tuple     = (0,0),
+            ht_pos:tuple     = (0,0),
+            ht_target:str    = 'Name',
+            fill_mode:str    = 'stretch',
+            fit_axis:str     = 'free',
+            line_distance:float = 1.5,
+            label_color:str  = 'Lavender'
+            ):
+        # 继承：Bubble
         super().__init__(filepath=filepath,scale=scale,Main_Text=Main_Text,Header_Text=Header_Text,pos=pos,mt_pos=mt_pos,ht_pos=ht_pos,ht_target=ht_target,line_distance=line_distance,label_color=label_color)
+        # 检查气泡分割位置的合法性
         if (mt_pos[0] >= mt_end[0]) | (mt_pos[1] >= mt_end[1]) | (mt_end[0] > self.media.get_size()[0]) | (mt_end[1] > self.media.get_size()[1]):
             raise MediaError('InvSep','mt_end')
         elif (mt_pos[0] < 0) | (mt_pos[1] < 0):
             raise MediaError('InvSep','mt_pos')
         else:
-            self.mt_end = mt_end
+            self.mt_end:tuple = mt_end
         # fill_mode 只能是 stretch 或者 collage
         if fill_mode in ['stretch','collage']:
             self.fill_mode = fill_mode
@@ -281,25 +424,26 @@ class DynamicBubble(Bubble):
         else:
             raise MediaError('InvFit',fit_axis)
         # x,y轴上的四条分割线
-        self.x_tick = [0,self.mt_pos[0],self.mt_end[0],self.media.get_size()[0]]
-        self.y_tick = [0,self.mt_pos[1],self.mt_end[1],self.media.get_size()[1]]
+        self.x_tick:list = [0,self.mt_pos[0],self.mt_end[0],self.size[0]]
+        self.y_tick:list = [0,self.mt_pos[1],self.mt_end[1],self.size[1]]
+        # 以np.array的形式存储气泡的9个切片
         self.bubble_clip = []
         # 0 3 6
         # 1 4 7
         # 2 5 8
         for i in range(0,3):
             for j in range(0,3):
-                self.bubble_clip.append(self.media.subsurface((self.x_tick[i],self.y_tick[j],
-                                                               self.x_tick[i+1]-self.x_tick[i],
-                                                               self.y_tick[j+1]-self.y_tick[j]
-                                                               )))
-        # 以np array 的形式存储气泡碎片
+                self.bubble_clip.append(self.media.subsurface((
+                    self.x_tick[i],
+                    self.y_tick[j],
+                    self.x_tick[i+1]-self.x_tick[i],
+                    self.y_tick[j+1]-self.y_tick[j]
+                    )))
+        self.bubble_clip:np.ndarray = np.array(self.bubble_clip)
         # 注意，这9个碎片有的尺寸有可能为0！这种情况是能够兼容的。
-
-        self.bubble_clip = np.array(self.bubble_clip)
-        self.bubble_clip_size = np.frompyfunc(lambda x:x.get_size(),1,1)(self.bubble_clip)
+        self.bubble_clip_size:np.ndarray = np.frompyfunc(lambda x:x.get_size(),1,1)(self.bubble_clip)
     # 重载draw
-    def draw(self, text:str,header:str='',effect:int=-1)->tuple:
+    def draw(self, text:str, header:str='', effect:int=-1) -> tuple:
         # 首先，需要把主文本渲染出来
         main_text = self.tx_effect(text,effect)
         # 不能完全空白，不然main_text_list为空，无法后续执行
@@ -322,8 +466,10 @@ class DynamicBubble(Bubble):
         # 建立变形后的气泡
         temp_size_x = xlim + self.x_tick[1] + self.x_tick[3] - self.x_tick[2]
         temp_size_y = ylim + self.y_tick[1] + self.y_tick[3] - self.y_tick[2]
-        temp = pygame.Surface((temp_size_x,temp_size_y),pygame.SRCALPHA)
-        temp.fill((0,0,0,0))
+        # 
+        bubble_temp = pygame.Surface((temp_size_x,temp_size_y),pygame.SRCALPHA)
+        bubble_temp.fill((0,0,0,0))
+        text_temp = bubble_temp.copy()
         # 气泡碎片的渲染位置
         bubble_clip_pos = {
             0:(0,0),
@@ -353,10 +499,10 @@ class DynamicBubble(Bubble):
                 continue
             else:
                 if bubble_clip_scale[i] == False:
-                    temp.blit(self.bubble_clip[i],bubble_clip_pos[i])
+                    bubble_temp.blit(self.bubble_clip[i],bubble_clip_pos[i])
                 else:
                     if self.fill_mode == 'stretch':
-                        temp.blit(pygame.transform.scale(self.bubble_clip[i],bubble_clip_scale[i]),bubble_clip_pos[i])
+                        bubble_temp.blit(pygame.transform.scale(self.bubble_clip[i],bubble_clip_scale[i]),bubble_clip_pos[i])
                     elif self.fill_mode == 'collage':
                         # 新建拼贴图层，尺寸为气泡碎片的目标大小
                         collage = pygame.Surface(bubble_clip_scale[i],pygame.SRCALPHA)
@@ -368,10 +514,10 @@ class DynamicBubble(Bubble):
                                 collage.blit(self.bubble_clip[i],(col_x,col_y))
                                 col_x = col_x + self.bubble_clip_size[i][0]
                             col_y = col_y + self.bubble_clip_size[i][1]
-                        temp.blit(collage,bubble_clip_pos[i])
+                        bubble_temp.blit(collage,bubble_clip_pos[i])
         # 第二次循环：把主文本blit到临时容器
         for i,text_surf in enumerate(main_text_list):
-            temp.blit(text_surf,(self.x_tick[1],self.y_tick[1]+i*self.MainText.size*self.line_distance))
+            text_temp.blit(text_surf,(self.x_tick[1],self.y_tick[1]+i*self.MainText.size*self.line_distance))
         # 头文本
         if (self.Header!=None) & (header!=''):    # Header 有定义，且输入文本不为空
             if self.ht_pos[0] > self.x_tick[2]:
@@ -382,8 +528,71 @@ class DynamicBubble(Bubble):
                 ht_renderpos_y = self.ht_pos[1] - self.y_tick[2] + self.y_tick[1] + ylim
             else:
                 ht_renderpos_y = self.ht_pos[1]
-            temp.blit(self.Header.draw(header)[0],(ht_renderpos_x,ht_renderpos_y))
-        return temp,(temp_size_x,temp_size_y)
+            text_temp.blit(self.Header.draw(header)[0],(ht_renderpos_x,ht_renderpos_y))
+        return (bubble_temp, text_temp, (temp_size_x,temp_size_y))
+    # 导出PR序列：
+    def export(self, begin: int, end: int, text: str, header: str = '', center='NA') -> tuple:
+        # 渲染画面
+        bubble_draw,text_draw,bubble_size = self.draw(text,header,effect=-1)
+        # 获取动态气泡的参数
+        width,height = bubble_size
+        # PR 中的位置
+        if center == 'NA':
+            self.PRpos = self.PR_center_arg(np.array(bubble_size),np.array(self.pos.get()))
+        else:
+            self.PRpos = self.PR_center_arg(np.array(bubble_size),np.array(Pos(*eval(center)).get()))
+        pr_horiz,pr_vert = self.PRpos
+        # 气泡序列
+        if self.xmlpath is None:
+            clip_bubble = None
+        else:
+            bubble_ofile:str = self.output_path+'/auto_BB_%d'%MediaObj.outtext_index+'.png'
+            pygame.image.save(surface=bubble_draw,filename=bubble_ofile)
+            clip_bubble = self.clip_tplt.format(**{
+                'clipid'    : 'BB_clip_%d'%MediaObj.clip_index,
+                'clipname'  : 'auto_BB_%d.png'%MediaObj.outtext_index,
+                'timebase'  : '%d'%self.frame_rate,
+                'ntsc'      : self.Is_NTSC,
+                'start'     : '%d'%begin,
+                'end'       : '%d'%end,
+                'in'        : '%d'%90000,
+                'out'       : '%d'%(90000+end-begin),
+                'fileid'    : 'auto_BB_%d'%MediaObj.outtext_index,
+                'filename'  : 'auto_BB_%d.png'%MediaObj.outtext_index,
+                'filepath'  : Filepath(bubble_ofile).xml_reformated(),
+                'filewidth' : '%d'%width,
+                'fileheight': '%d'%height,
+                'horiz'     : '%.5f'%pr_horiz,
+                'vert'      : '%.5f'%pr_vert,
+                'scale'     : 100,
+                'colorlabel': self.label_color
+                })
+        # 文本序列:导出文件
+        text_ofile:str = self.output_path+'/auto_TX_%d'%MediaObj.outtext_index+'.png'
+        pygame.image.save(surface=text_draw,filename=text_ofile)
+        clip_text = self.clip_tplt.format(**{
+            'clipid'    : 'TX_clip_%d'%MediaObj.clip_index,
+            'clipname'  : 'auto_TX_%d.png'%MediaObj.outtext_index,
+            'timebase'  : '%d'%self.frame_rate,
+            'ntsc'      : self.Is_NTSC,
+            'start'     : '%d'%begin,
+            'end'       : '%d'%end,
+            'in'        : '%d'%90000,
+            'out'       : '%d'%(90000+end-begin),
+            'fileid'    : 'auto_TX_%d'%MediaObj.outtext_index,
+            'filename'  : 'auto_TX_%d.png'%MediaObj.outtext_index,
+            'filepath'  : Filepath(text_ofile).xml_reformated(),
+            'filewidth' : '%d'%width,
+            'fileheight': '%d'%height,
+            'horiz'     : '%.5f'%pr_horiz,
+            'vert'      : '%.5f'%pr_vert,
+            'scale'     : 100,
+            'colorlabel': self.MainText.label_color})
+        # 更新序号
+        MediaObj.outtext_index = MediaObj.outtext_index + 1
+        MediaObj.clip_index = MediaObj.clip_index + 1
+        # 返回
+        return (clip_bubble, clip_text)
     def convert(self): # 和Animation类相同的convert
         super().convert()
         self.bubble_clip = np.frompyfunc(lambda x:x.convert_alpha(),1,1)(self.bubble_clip)
@@ -453,7 +662,7 @@ class ChatWindow(Bubble):
         self.main_text = ''
         self.header_text = ''
         # 测试子气泡尺寸，基于第一个子气泡对象，渲染一个最小子气泡图层
-        test_subsurface_size = self.sub_Bubble[sub_key[0]].draw(' ')[1]
+        test_subsurface_size = self.sub_Bubble[sub_key[0]].draw(' ')[2]
         # 按照最小子气泡图层的高度 + sub_distance 作为一个单位长度
         self.max_recode = np.ceil(self.sub_size[1]/(test_subsurface_size[1] + self.sub_distance))
     # 给聊天窗添加记录
