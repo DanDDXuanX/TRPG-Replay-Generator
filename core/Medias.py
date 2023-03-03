@@ -182,7 +182,7 @@ class Bubble(MediaObj):
         # 气泡底图
         if self.filepath is None:
             # 媒体设为空图
-            self.media:pygame.Surface = pygame.Surface(self.screen_size,pygame.SRCALPHA)
+            self.media = pygame.Surface(self.screen_size,pygame.SRCALPHA)
             self.media.fill(self.cmap['empty'])
             # 其他参数
             self.scale:float = 1.0
@@ -228,7 +228,7 @@ class Bubble(MediaObj):
         else:
             raise MediaError('BadAlign',align)
     # 主文本效果，裁切
-    def tx_effect(self,main_text:str,effect:float)->str:
+    def tx_effect(self,main_text:str,effect:float=np.nan)->str:
         # 效果
         if effect >= 0:
             return main_text[:int(effect)]
@@ -239,9 +239,9 @@ class Bubble(MediaObj):
         self.main_text = main_text
         self.header_text = header_text
     # (气泡:surface, 文本:surface, size:tuple)
-    def draw(self, text:str, header:str='',effect:int=-1)->tuple:
+    def draw(self, text:str, header:str='',effect:float=np.nan)->tuple:
         # 文本画板:和底图相同的大小
-        temp =  pygame.Surface(self.size,pygame.SRCALPHA)
+        temp = pygame.Surface(self.size,pygame.SRCALPHA)
         temp.fill(self.cmap['empty'])
         # 头文本有定义，且输入文本不为空
         if (self.Header!=None) & (header!=''):
@@ -257,7 +257,7 @@ class Bubble(MediaObj):
                 temp.blit(s,(x+(self.MainText.size*self.MainText.line_limit - word_w)//2,y+i*self.MainText.size*self.line_distance))
         return (self.media.copy(), temp, self.size)
     # 将气泡对象丢上主Surface
-    def display(self, surface:pygame.surface, text:str, header:str='',effect:int=999,alpha:int=100,center:str='NA',adjust:str='NA'):
+    def display(self, surface:pygame.surface, text:str, header:str='',effect:float=np.nan,alpha:int=100,center:str='NA',adjust:str='NA'):
         # 中心位置
         if center == 'NA':
             render_center = self.pos
@@ -284,7 +284,7 @@ class Bubble(MediaObj):
         else:
             self.PRpos = self.PR_center_arg(np.array(self.size),np.array(Pos(*eval(center)).get()))
         # 渲染画面
-        bubble_draw,text_draw,bubble_size = self.draw(text,header,effect=-1)
+        bubble_draw,text_draw,bubble_size = self.draw(text,header,effect=np.nan)
         # 气泡序列
         width,height = self.origin_size
         pr_horiz,pr_vert = self.PRpos
@@ -363,7 +363,7 @@ class Balloon(Bubble):
         else:
             self.header_num = len(self.Header)
     # 重载draw: -> (气泡:surface, 文本:surface, size:tuple)
-    def draw(self, text:str, header:str='', effect:int=-1)->tuple: 
+    def draw(self, text:str, header:str='', effect:float=np.nan)->tuple: 
         # 文本画板:和底图相同的大小
         temp =  pygame.Surface(self.size,pygame.SRCALPHA)
         temp.fill(self.cmap['empty'])
@@ -443,7 +443,7 @@ class DynamicBubble(Bubble):
         # 注意，这9个碎片有的尺寸有可能为0！这种情况是能够兼容的。
         self.bubble_clip_size:np.ndarray = np.frompyfunc(lambda x:x.get_size(),1,1)(self.bubble_clip)
     # 重载draw
-    def draw(self, text:str, header:str='', effect:int=-1) -> tuple:
+    def draw(self, text:str, header:str='', effect:float=np.nan) -> tuple:
         # 首先，需要把主文本渲染出来
         main_text = self.tx_effect(text,effect)
         # 不能完全空白，不然main_text_list为空，无法后续执行
@@ -533,7 +533,7 @@ class DynamicBubble(Bubble):
     # 导出PR序列：
     def export(self, begin: int, end: int, text: str, header: str = '', center='NA') -> tuple:
         # 渲染画面
-        bubble_draw,text_draw,bubble_size = self.draw(text,header,effect=-1)
+        bubble_draw,text_draw,bubble_size = self.draw(text,header,effect=np.nan)
         # 获取动态气泡的参数
         width,height = bubble_size
         # PR 中的位置
@@ -598,16 +598,48 @@ class DynamicBubble(Bubble):
         self.bubble_clip = np.frompyfunc(lambda x:x.convert_alpha(),1,1)(self.bubble_clip)
 # 聊天窗
 class ChatWindow(Bubble):
-    def __init__(self,filepath=None,scale=1,sub_key=['Key1'],sub_Bubble=[Bubble()],sub_Anime=[],sub_align=['left'],pos=(0,0),sub_pos=(0,0),sub_end=(0,0),am_left=0,am_right=0,sub_distance=50,label_color='Lavender'):
+    def __init__(
+            self,
+            filepath:str     = None,
+            scale:float      = 1.0,
+            sub_key:list     = ['Key1'],
+            sub_Bubble:list  = [Bubble()],
+            sub_Anime:list   = [None],
+            sub_align:list   = ['left'],
+            pos:tuple        = (0,0),
+            sub_pos:tuple    = (0,0),
+            sub_end:tuple    = (0,0),
+            am_left:int      = 0,
+            am_right:int     = 0,
+            sub_distance:int = 50,
+            label_color:str  = 'Lavender'
+            ):
         # 媒体和路径
         MediaObj.__init__(self,filepath=filepath,label_color=label_color)
+        # 气泡底图
         if self.filepath is None: # 支持气泡图缺省
             # 媒体设为空图
             self.media = pygame.Surface(self.screen_size,pygame.SRCALPHA)
             self.media.fill(self.cmap['empty'])
+            # 其他参数
+            self.scale:float = 1.0
+            self.xmlpath = None
+            self.filename = None
+            self.file_index = None
+            self.size:tuple = self.screen_size
+            self.origin_size:tuple = self.size
         else:
-            self.media = self.zoom(pygame.image.load(self.filepath.exact()),scale=scale)
-            self.scale = scale
+            # 读取图片文件
+            origin_media = pygame.image.load(self.filepath.exact())
+            self.origin_size:tuple = origin_media.get_size()
+            self.media:pygame.Surface = self.zoom(origin_media,scale=scale)
+            self.size:tuple = self.media.get_size()
+            # 其他参数
+            self.scale:float  = scale
+            self.xmlpath:str  = self.filepath.xml_reformated()
+            self.filename:str = self.filepath.name()
+            self.fileindex:str = 'BBfile_' + '%d'% MediaObj.file_index
+            MediaObj.file_index = MediaObj.file_index + 1
         # 位置
         if type(pos) in [Pos,FreePos]:
             self.pos = pos
@@ -665,6 +697,8 @@ class ChatWindow(Bubble):
         test_subsurface_size = self.sub_Bubble[sub_key[0]].draw(' ')[2]
         # 按照最小子气泡图层的高度 + sub_distance 作为一个单位长度
         self.max_recode = np.ceil(self.sub_size[1]/(test_subsurface_size[1] + self.sub_distance))
+        # 留下一个MainText 以供 labelcolor 参考
+        self.MainText = self.sub_Bubble[sub_key[0]].MainText
     # 给聊天窗添加记录
     def append(self, text, header):
         if self.main_text == '':
@@ -688,9 +722,10 @@ class ChatWindow(Bubble):
     def UF_add_header_text(self,header):
         return np.frompyfunc(lambda x : x if self.header_text == '' else self.header_text+'|'+x,1,1)(header)
     # 渲染气泡
-    def draw(self, text:str,header:str='',effect:int=-1)->tuple:
-        # 母气泡的复制品
-        temp = self.media.copy()
+    def draw(self, text:str,header:str='',effect:float=np.nan)->tuple:
+        # 文本画板:和底图相同的大小
+        temp = pygame.Surface(self.size,pygame.SRCALPHA)
+        temp.fill(self.cmap['empty'])
         # 容纳子气泡的容器
         sub_surface = pygame.Surface(self.sub_size,pygame.SRCALPHA)
         sub_surface.fill((0,0,0,0))
@@ -742,18 +777,43 @@ class ChatWindow(Bubble):
         # 将子气泡容器渲染到母气泡容器
         temp.blit(sub_surface,self.sub_pos)
         temp.blit(sub_groupam,(self.am_left,self.sub_pos[1]))
-        return temp,temp.get_size()
+        return (self.media.copy(), temp, self.size)
 # 背景
 class Background(MediaObj):
-    def __init__(self,filepath,scale=1,pos = (0,0),label_color='Lavender'):
+    def __init__(
+            self,
+            filepath:str     ,
+            scale:float      = 1.0,
+            pos:tuple        = (0,0),
+            label_color:str  = 'Lavender'
+            ):
         # 文件和路径
         super().__init__(filepath=filepath,label_color=label_color)
         if filepath in self.cmap.keys():
-            self.media = pygame.Surface(self.screen_size)
+            # 填充纯色
+            self.media = pygame.Surface(self.screen_size,pygame.SRCALPHA)
             self.media.fill(self.cmap[filepath])
+            # 保存纯色背景图片为文件
+            ofile = self.output_path+'/auto_BG_'+filepath+'.png'
+            self.filepath = Filepath(ofile)
+            pygame.image.save(surface=self.media,filename=ofile)
+            # 其他参数
+            self.scale:float = 1.0
+            self.size:tuple  = self.screen_size
+            self.origin_size:tuple = self.size
         else:
-            self.media = self.zoom(pygame.image.load(self.filepath.exact()),scale=scale)
-            self.scale = scale
+            # 读取图片文件
+            origin_media = pygame.image.load(self.filepath.exact())
+            self.origin_size:tuple = origin_media.get_size()
+            self.media:pygame.Surface = self.zoom(origin_media,scale=scale)
+            self.size:tuple = self.media.get_size()
+            # 其他参数
+            self.scale:float  = scale
+        # 路径
+        self.xmlpath:str  = self.filepath.xml_reformated()
+        self.filename:str = self.filepath.name()
+        self.fileindex:str = 'BGfile_' + '%d'% MediaObj.file_index
+        MediaObj.file_index = MediaObj.file_index + 1
         # 位置
         if type(pos) in [Pos,FreePos]:
             self.pos = pos
@@ -774,26 +834,75 @@ class Background(MediaObj):
             surface.blit(temp,render_pos.get())
         else:
             surface.blit(self.media,render_pos.get())
+    def export(self, begin:int, end:int, center='NA') -> str:
+        # PR 中的位置
+        if center == 'NA':
+            self.PRpos = self.PR_center_arg(np.array(self.size),np.array(self.pos.get()))
+        else:
+            self.PRpos = self.PR_center_arg(np.array(self.size),np.array(Pos(*eval(center)).get()))
+        # 气泡序列
+        width,height = self.origin_size
+        pr_horiz,pr_vert = self.PRpos
+        clip_this = self.clip_tplt.format(**{
+            'clipid'    : 'BG_clip_%d'%MediaObj.clip_index,
+            'clipname'  : self.filename,
+            'timebase'  : '%d'%self.frame_rate,
+            'ntsc'      : self.Is_NTSC,
+            'start'     : '%d'%begin,
+            'end'       : '%d'%end,
+            'in'        : '%d'%90000,
+            'out'       : '%d'%(90000+end-begin),
+            'fileid'    : self.fileindex,
+            'filename'  : self.filename,
+            'filepath'  : self.xmlpath,
+            'filewidth' : '%d'%width,
+            'fileheight': '%d'%height,
+            'horiz'     : '%.5f'%pr_horiz,
+            'vert'      : '%.5f'%pr_vert,
+            'scale'     : '%.2f'%(self.scale*100),
+            'colorlabel': self.label_color
+            })
+        # 更新序号
+        MediaObj.clip_index = MediaObj.clip_index+1
+        # 返回
+        return clip_this
     def convert(self):
         self.media = self.media.convert_alpha()
 # 立绘
 class Animation(MediaObj):
-    def __init__(self,filepath,scale=1,pos = (0,0),tick=1,loop=True,label_color='Lavender'):
+    def __init__(
+            self,
+            filepath:str,
+            scale:float      = 1.0,
+            pos:tuple        = (0,0),
+            tick:int         = 1,
+            loop:bool        = True,
+            label_color:str  = 'Lavender'
+            ) -> None:
         # 文件和路径
         super().__init__(filepath=filepath,label_color=label_color)
-        self.length = len(self.filepath.list())
-        # self.media -> np.ndarray(Surface)
+        # 立绘图像
+        self.length:int = len(self.filepath.list())
         self.media:np.ndarray = np.frompyfunc(lambda x:self.zoom(pygame.image.load(x),scale=scale),1,1)(self.filepath.list())
-        self.scale = scale
+        # 尺寸是第一张图的尺寸
+        self.size:tuple = self.media[0].get_size()
+        self.origin_size:tuple = pygame.image.load(self.filepath.list()[0]).get_size()
+        # 其他参数
+        self.scale:float   = scale
+        self.xmlpath:str   = self.filepath.xml_reformated()
+        self.filename:str  = self.filepath.name()
+        self.fileindex:str = 'AMfile_%d'% MediaObj.file_index
+        MediaObj.file_index = MediaObj.file_index + 1
+        # 位置
         if type(pos) in [Pos,FreePos]:
             self.pos = pos
         else:
             self.pos = Pos(*pos)
         # 动画循环参数
-        self.loop = loop
-        self.this = 0
-        self.tick = tick
-    def display(self,surface,alpha=100,center='NA',adjust='NA',frame=0):
+        self.loop:bool = loop
+        self.tick:int = tick
+        self.this:int = 0
+    def display(self,surface:pygame.Surface,alpha:float=100,center:str='NA',adjust:str='NA',frame:int=0)->None:
         self.this = frame
         if center == 'NA':
             render_center = self.pos
@@ -809,20 +918,59 @@ class Animation(MediaObj):
             surface.blit(temp,render_pos.get())
         else:
             surface.blit(self.media[int(self.this)],render_pos.get())
-    def get_tick(self,duration): # 1.8.0
-        if self.length > 1: # 如果length > 1 说明是多帧的动画！
-            tick_lineline = (np.arange(0,duration if self.loop else self.length,1/self.tick)[0:duration]%(self.length))
+    def export(self,begin:int,end:int,center:str='NA')->str:
+        # PR 中的位置
+        if center == 'NA':
+            self.PRpos = self.PR_center_arg(np.array(self.size),np.array(self.pos.get()))
+        else:
+            self.PRpos = self.PR_center_arg(np.array(self.size),np.array(Pos(*eval(center)).get()))
+        # 立绘序列
+        width,height = self.origin_size
+        pr_horiz,pr_vert = self.PRpos
+        clip_this = self.clip_tplt.format(**{
+            'clipid'    : 'AM_clip_%d'%MediaObj.clip_index,
+            'clipname'  : self.filename,
+            'timebase'  : '%d'%self.frame_rate,
+            'ntsc'      : self.Is_NTSC,
+            'start'     : '%d'%begin,
+            'end'       : '%d'%end,
+            'in'        : '%d'%90000,
+            'out'       : '%d'%(90000+end-begin),
+            'fileid'    : self.fileindex,
+            'filename'  : self.filename,
+            'filepath'  : self.xmlpath,
+            'filewidth' : '%d'%width,
+            'fileheight': '%d'%height,
+            'horiz'     : '%.5f'%pr_horiz,
+            'vert'      : '%.5f'%pr_vert,
+            'scale'     : '%.2f'%(self.scale*100),
+            'colorlabel': self.label_color
+            })
+        MediaObj.clip_index = MediaObj.clip_index+1
+        return clip_this
+    def get_tick(self,duration:int)->np.ndarray: # 1.8.0
+        if self.length > 1:
+            # 如果length > 1 说明是多帧的动画！
+            tick_lineline = np.arange(0,duration if self.loop else self.length,1/self.tick)[0:duration]%(self.length)
             tick_lineline = np.hstack([tick_lineline,(self.length-1)*np.ones(duration-len(tick_lineline))]).astype(int)
         else:
+            # 如果是静态立绘，返回0
             tick_lineline = np.zeros(duration).astype(int)
         return tick_lineline
     def convert(self):
         self.media = np.frompyfunc(lambda x:x.convert_alpha(),1,1)(self.media)
 # 组合立绘
 class GroupedAnimation(Animation):
-    def __init__(self,subanimation_list,subanimation_current_pos=None,label_color='Mango'):
-        # 新建画板，尺寸为全屏
-        canvas_surface = pygame.Surface(self.screen_size,pygame.SRCALPHA)
+    def __init__(
+            self,
+            subanimation_list:list,
+            subanimation_current_pos=None,
+            label_color='Mango'
+            ):
+        # 颜色标签
+        self.label_color:str = label_color
+        # 新建空白画板，尺寸为全屏
+        canvas_surface:pygame.Surface = pygame.Surface(self.screen_size,pygame.SRCALPHA)
         canvas_surface.fill(self.cmap['empty'])
         # 如果外部未指定位置参数，则使用子Animation类的自身的pos
         if subanimation_current_pos is None:
@@ -835,14 +983,14 @@ class GroupedAnimation(Animation):
             # 越后面的位于越上层的图层
             # [zhang,drink_left] [(0,0),(0,0)] # list of Animation/str | list of tuple/str
             for am_name,am_pos in zip(subanimation_list,subanimation_current_pos):
-                try:
-                    if type(am_name) in [Animation,BuiltInAnimation,GroupedAnimation]:
-                        subanimation = am_name
-                    else: # type(am_name) is str
-                        subanimation = eval(am_name)
-                except NameError as E:
+                # 对象类型检查
+                if type(am_name) in [Animation,BuiltInAnimation,GroupedAnimation]:
+                    subanimation:Animation = am_name
+                else:
                     raise MediaError('Undef2GA',am_name)
+                # 检查立绘可用性
                 if subanimation.length > 1:
+                    # 动态立绘是不可用的！
                     raise MediaError('DA2GA',am_name)
                 else:
                     if am_pos is None:
@@ -855,14 +1003,28 @@ class GroupedAnimation(Animation):
                         # 如果BIA的参数中没有包括每个子Animation的准确位置，就会一律使用初始化位置
                         # （因为导出模块没有parser，FreePos类都停留在初始化位置）
                         subanimation.display(canvas_surface,center=str(am_pos)) # am_pos = "(0,0)"
-        # 初始化
-        self.length = 1
-        self.media = np.array([canvas_surface])
+        # 初始化立绘图像
+        self.length:int = 1
+        self.media:np.ndarray = np.array([canvas_surface])
+        # 保存为文件
+        ofile = self.output_path+'/auto_GA_%d'%MediaObj.outanime_index+'.png'
+        self.filepath = Filepath(ofile)
+        pygame.image.save(surface=self.media[0],filename=ofile)
+        # 尺寸
+        self.scale:float   = 1.0
+        self.size:tuple    = self.screen_size
+        self.origin_size:tuple = self.size
+        # 路径
+        self.xmlpath:str   = self.filepath.xml_reformated()
+        self.filename:str  = self.filepath.name()
+        self.fileindex:str = 'AMfile_%d'% MediaObj.file_index
+        MediaObj.file_index = MediaObj.file_index + 1
+        # 位置
         self.pos = Pos(0,0)
-        self.loop = 0
-        self.this = 0
-        self.tick = 1
-        self.label_color = label_color
+        # 动画参数
+        self.loop:bool = False
+        self.this:int  = 0
+        self.tick:int  = 1
 # 内建动画
 class BuiltInAnimation(Animation):
     def __init__(self,anime_type='hitpoint',anime_args=('0',0,0,0),screensize = (1920,1080),layer=0,label_color='Mango'):
