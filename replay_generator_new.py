@@ -81,7 +81,7 @@ class ReplayGenerator:
             self.system_terminated('Error')
         self.main()
     # 渲染单帧
-    def render(self,this_frame):
+    def render(self,surface:pygame.Surface,this_frame:pd.Series):
         for layer in self.config.zorder:
             # 不渲染的条件：图层为"Na"，或者np.nan
             if (this_frame[layer]=='NA')|(this_frame[layer]!=this_frame[layer]):
@@ -99,7 +99,7 @@ class ReplayGenerator:
                         try:
                             Object = self.rplgenlog.medias[cross[layer]]
                             Object.display(
-                                surface=self.screen,alpha=float(cross[layer+'_a']),
+                                surface=surface,alpha=float(cross[layer+'_a']),
                                 text=cross[layer+'_main'],header=cross[layer+'_header'],
                                 effect=int(cross[layer+'_main_e']),
                                 adjust=cross[layer+'_p'],center=cross[layer+'_c']
@@ -118,7 +118,7 @@ class ReplayGenerator:
                         try:
                             Object = self.rplgenlog.medias[cross[layer]]
                             Object.display(
-                                surface=self.screen,alpha=float(cross[layer+'_a']),frame=int(cross[layer+'_t']),
+                                surface=surface,alpha=float(cross[layer+'_a']),frame=int(cross[layer+'_t']),
                                 adjust=cross[layer+'_p'],center=cross[layer+'_c']
                             )
                         except Exception as E:
@@ -135,7 +135,7 @@ class ReplayGenerator:
                 try:
                     Object = self.rplgenlog.medias[this_frame[layer]]
                     Object.display(
-                        surface=self.screen,alpha=this_frame[layer+'_a'],
+                        surface=surface,alpha=this_frame[layer+'_a'],
                         adjust=this_frame[layer+'_p'],center=this_frame[layer+'_c']
                     )
                 except Exception as E:
@@ -146,7 +146,7 @@ class ReplayGenerator:
                 try:
                     Object = self.rplgenlog.medias[this_frame[layer]]
                     Object.display(
-                        surface=self.screen,alpha=this_frame[layer+'_a'],frame=this_frame[layer+'_t'],
+                        surface=surface,alpha=this_frame[layer+'_a'],frame=this_frame[layer+'_t'],
                         adjust=this_frame[layer+'_p'],center=this_frame[layer+'_c']
                     )
                 except Exception as E:
@@ -157,7 +157,7 @@ class ReplayGenerator:
                 try:
                     Object = self.rplgenlog.medias[this_frame[layer]]
                     Object.display(
-                        surface=self.screen,alpha=this_frame[layer+'_a'],
+                        surface=surface,alpha=this_frame[layer+'_a'],
                         text=this_frame[layer+'_main'],header=this_frame[layer+'_header'],
                         effect=this_frame[layer+'_main_e'],
                         adjust=this_frame[layer+'_p'],center=this_frame[layer+'_c']
@@ -309,9 +309,14 @@ class ReplayGenerator:
         pygame.init()
         pygame.display.set_caption('TRPG Replay Generator '+EDITION)
         fps_clock=pygame.time.Clock()
-        self.screen = pygame.display.set_mode((self.config.Width,self.config.Height))
+        self.screen = pygame.display.set_mode(size=(self.config.Width,self.config.Height),flags=pygame.SHOWN)
+        self.display_size = (self.config.Width,self.config.Height)
         pygame.display.set_icon(pygame.image.load('./media/icon.png'))
+        # 用来写注释的文本
         self.note_text = pygame.freetype.Font('./media/SourceHanSansCN-Regular.otf')
+        # 建立图形轨道
+        self.image = pygame.Surface((self.config.Width,self.config.Height))
+        self.annot = pygame.Surface((self.config.Width,self.config.Height),pygame.SRCALPHA)
         # 建立音频轨道
         self.VOICE = pygame.mixer.Channel(1)
         self.SOUEFF = pygame.mixer.Channel(2)
@@ -400,11 +405,12 @@ class ReplayGenerator:
                             window = Window.from_display_module()
                             resize_screen = 1 - resize_screen
                             if resize_screen == 1:
-                                self.screen_resized = pygame.display.set_mode((self.config.Width//2,self.config.Height//2))
-                                self.screen = pygame.Surface((self.config.Width,self.config.Height),pygame.SRCALPHA)
+                                self.screen = pygame.display.set_mode((self.config.Width//2,self.config.Height//2),flags=pygame.RESIZABLE)
+                                self.display_size = (self.config.Width//2,self.config.Height//2)
                                 window.position = (100,100)
                             else:
-                                self.screen = pygame.display.set_mode((self.config.Width,self.config.Height))
+                                self.screen = pygame.display.set_mode((self.config.Width,self.config.Height),flags=pygame.SHOWN)
+                                self.display_size = (self.config.Width,self.config.Height)
                                 window.position = (0,0)
                             pygame.display.update()
                         elif event.key in [pygame.K_F5, pygame.K_i]: # 详细信息
@@ -435,46 +441,55 @@ class ReplayGenerator:
                                 pass
                         else:
                             pass
+                    elif event.type == pygame.VIDEORESIZE:
+                        self.display_size = (event.w,event.h)
                 # 渲染画面
                 if n in self.timeline.index:
                     this_frame = self.timeline.loc[n]
                     # 渲染！
-                    self.render(this_frame)
-                    # 显示进度条
-                    self.screen.blit(progress_bar,(0,self.config.Height-self.config.Height//60))
-                    # 显示进度条箭头
-                    self.screen.blit(triangular,(
-                        n/timeline_len*self.config.Width-self.config.Height//120, # x
-                        self.config.Height-self.config.Height//30) # y
-                        )
-                    # 小节数显示
-                    section_display = self.note_text.render('%d'%(this_frame['section']+1),fgcolor=MediaObj.cmap['white'],size=0.02*self.config.Height)[0]
-                    self.screen.blit(section_display,(
-                            n/timeline_len*self.config.Width-section_display.get_size()[0]/2,
-                            self.config.Height-self.config.Height//30-self.config.Height//50
-                        ))
-                    # 如果正在暂停
-                    if forward == 0:
-                        self.screen.blit(self.note_text.render('Press space to continue.',fgcolor=MediaObj.cmap['notetext'],size=0.0278*self.config.Height)[0],(0.410*self.config.Width,0.926*self.config.Height)) # pause
-                    # 显示详情模式
-                    if show_detail_info == 1:
-                        self.screen.blit(self.note_text.render(detail_info[0],fgcolor=MediaObj.cmap['notetext'],size=0.0185*self.config.Height)[0],(10,10))
-                        self.screen.blit(self.note_text.render(detail_info[2].format(n,this_frame['section']+1),fgcolor=MediaObj.cmap['notetext'],size=0.0185*self.config.Height)[0],(10,10+0.0666*self.config.Height))
-                        # self.screen.blit(self.note_text.render(detail_info[3].format(self.rplgenlog.export[this_frame['section']]),fgcolor=MediaObj.cmap['notetext'],size=0.0185*self.config.Height)[0],(10,10+0.1*self.config.Height))
-                        self.screen.blit(self.note_text.render(detail_info[4],fgcolor=MediaObj.cmap['notetext'],size=0.0185*self.config.Height)[0],(10,10+0.1333*self.config.Height))
-                        self.screen.blit(self.note_text.render(detail_info[5].format(this_frame['BG1'],this_frame['BG2']),fgcolor=MediaObj.cmap['notetext'],size=0.0185*self.config.Height)[0],(10,10+0.1666*self.config.Height))
-                        self.screen.blit(self.note_text.render(detail_info[6].format(this_frame['Am1'],this_frame['Am2'],this_frame['Am3'],this_frame['AmS']),fgcolor=MediaObj.cmap['notetext'],size=0.0185*self.config.Height)[0],(10,10+0.2*self.config.Height))
-                        self.screen.blit(self.note_text.render(detail_info[7].format(this_frame['Bb'],this_frame['Bb_header'],this_frame['Bb_main']),fgcolor=MediaObj.cmap['notetext'],size=0.0185*self.config.Height)[0],(10,10+0.2333*self.config.Height))
-                        self.screen.blit(self.note_text.render(detail_info[8].format(this_frame['BbS'],this_frame['BbS_header'],this_frame['BbS_main']),fgcolor=MediaObj.cmap['notetext'],size=0.0185*self.config.Height)[0],(10,10+0.2666*self.config.Height))
-                        self.screen.blit(self.note_text.render(detail_info[1].format(int(1/(time.time()-ct+1e-4))),fgcolor=MediaObj.cmap['notetext'],size=0.0185*self.config.Height)[0],(10,10+0.0333*self.config.Height))
-                    # 仅显示帧率
-                    else:
-                        self.screen.blit(self.note_text.render('%d'%(1//(time.time()-ct+1e-4)),fgcolor=MediaObj.cmap['notetext'],size=0.0278*self.config.Height)[0],(10,10)) ##render rate +1e-4 to avoid float divmod()
-                    # 如果缩放到一半大小
-                    if resize_screen == 1:
-                        self.screen_resized.blit(pygame.transform.scale(self.screen,(self.config.Width//2,self.config.Height//2)),(0,0))
+                    self.render(self.image,this_frame)
                 else:
-                    pass # 节约算力
+                    pass
+                # 显示进度条
+                self.annot.fill([0,0,0,0])
+                self.annot.blit(progress_bar,(0,self.config.Height-self.config.Height//60))
+                # 显示进度条箭头
+                self.annot.blit(triangular,(
+                    n/timeline_len*self.config.Width-self.config.Height//120, # x
+                    self.config.Height-self.config.Height//30) # y
+                    )
+                # 小节数显示
+                section_display = self.note_text.render('%d'%(this_frame['section']+1),fgcolor=MediaObj.cmap['white'],size=0.02*self.config.Height)[0]
+                self.annot.blit(section_display,(
+                        n/timeline_len*self.config.Width-section_display.get_size()[0]/2,
+                        self.config.Height-self.config.Height//30-self.config.Height//50
+                    ))
+                # 如果正在暂停
+                if forward == 0:
+                    self.annot.blit(self.note_text.render('Press space to continue.',fgcolor=MediaObj.cmap['notetext'],size=0.0278*self.config.Height)[0],(0.410*self.config.Width,0.926*self.config.Height)) # pause
+                # 显示详情模式
+                if show_detail_info == 1:
+                    self.annot.blit(self.note_text.render(detail_info[0],fgcolor=MediaObj.cmap['notetext'],size=0.0185*self.config.Height)[0],(10,10))
+                    self.annot.blit(self.note_text.render(detail_info[2].format(n,this_frame['section']+1),fgcolor=MediaObj.cmap['notetext'],size=0.0185*self.config.Height)[0],(10,10+0.0666*self.config.Height))
+                    # self.screen.blit(self.note_text.render(detail_info[3].format(self.rplgenlog.export[this_frame['section']]),fgcolor=MediaObj.cmap['notetext'],size=0.0185*self.config.Height)[0],(10,10+0.1*self.config.Height))
+                    self.annot.blit(self.note_text.render(detail_info[4],fgcolor=MediaObj.cmap['notetext'],size=0.0185*self.config.Height)[0],(10,10+0.1333*self.config.Height))
+                    self.annot.blit(self.note_text.render(detail_info[5].format(this_frame['BG1'],this_frame['BG2']),fgcolor=MediaObj.cmap['notetext'],size=0.0185*self.config.Height)[0],(10,10+0.1666*self.config.Height))
+                    self.annot.blit(self.note_text.render(detail_info[6].format(this_frame['Am1'],this_frame['Am2'],this_frame['Am3'],this_frame['AmS']),fgcolor=MediaObj.cmap['notetext'],size=0.0185*self.config.Height)[0],(10,10+0.2*self.config.Height))
+                    self.annot.blit(self.note_text.render(detail_info[7].format(this_frame['Bb'],this_frame['Bb_header'],this_frame['Bb_main']),fgcolor=MediaObj.cmap['notetext'],size=0.0185*self.config.Height)[0],(10,10+0.2333*self.config.Height))
+                    self.annot.blit(self.note_text.render(detail_info[8].format(this_frame['BbS'],this_frame['BbS_header'],this_frame['BbS_main']),fgcolor=MediaObj.cmap['notetext'],size=0.0185*self.config.Height)[0],(10,10+0.2666*self.config.Height))
+                    self.annot.blit(self.note_text.render(detail_info[1].format(int(1/(time.time()-ct+1e-4))),fgcolor=MediaObj.cmap['notetext'],size=0.0185*self.config.Height)[0],(10,10+0.0333*self.config.Height))
+                # 仅显示帧率
+                else:
+                    self.annot.blit(self.note_text.render('%d'%(1//(time.time()-ct+1e-4)),fgcolor=MediaObj.cmap['notetext'],size=0.0278*self.config.Height)[0],(10,10)) ##render rate +1e-4 to avoid float divmod()
+                # 显示到屏幕
+                if resize_screen == 1:
+                    # 如果缩放尺寸
+                    self.screen.blit(pygame.transform.smoothscale(self.image,self.display_size),(0,0))
+                    self.screen.blit(pygame.transform.smoothscale(self.annot,self.display_size),(0,0))
+                else:
+                    # 如果不缩放
+                    self.screen.blit(self.image,(0,0))
+                    self.screen.blit(self.annot,(0,0))
                 pygame.display.update()
                 n = n + forward #下一帧
                 fps_clock.tick(self.config.frame_rate)
