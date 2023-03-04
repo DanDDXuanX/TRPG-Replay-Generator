@@ -17,146 +17,45 @@ import pandas as pd
 import numpy as np
 import re
 import pickle
+import time
 # 媒体路径
 from core.FilePaths import Filepath
 # 媒体导入
 from core.FreePos import Pos,FreePos,PosGrid
-from core.PrClips import PrMediaClip
-from core.PrClips import Text,StrokeText
-from core.PrClips import Bubble,Balloon,DynamicBubble,ChatWindow
-from core.PrClips import Background
-from core.PrClips import Animation,GroupedAnimation,BuiltInAnimation
-from core.PrClips import Audio,BGM
+from core.Medias import MediaObj
+from core.Medias import Text,StrokeText
+from core.Medias import Bubble,Balloon,DynamicBubble,ChatWindow
+from core.Medias import Background
+from core.Medias import Animation,GroupedAnimation,BuiltInAnimation
+from core.Medias import Audio,BGM
 # 正则
 from core.Regexs import RE_mediadef
+
+from core.ScriptParser import MediaDef,CharTable,RplGenLog
+from core.ProjConfig import Config
 
 # 导出PR项目模块
 class ExportXML:
     # 初始化模块功能，载入外部参数
-    def __init__(self,args):
-        # 外部输入参数
-        self.media_obj = args.MediaObjDefine #媒体对象定义文件的路径
-        self.char_tab = args.CharacterTable #角色和媒体对象的对应关系文件的路径
-        self.stdin_log = args.TimeLine #log路径
-        self.output_path = args.OutputPath #保存的时间轴，断点文件的目录
-        self.screen_size = (args.Width,args.Height) #显示的分辨率
-        self.frame_rate = args.FramePerSecond #帧率 单位fps
-        self.zorder = args.Zorder.split(',') #渲染图层顺序
-        self.force_split_clip = args.ForceSplitClip # 是否强制在断点处拆分序列
-        # 初始化日志打印
-        if args.Language == 'zh':
-            # 中文
-            Print.lang = 1 
-            RplGenError.lang = 1
-        else:
-            # 英文
-            Print.lang == 0
-            RplGenError.lang = 0
-        # 外部参数合法性检定
-        try:
-            for path in [self.stdin_log,self.media_obj]:
-                if path is None:
-                    raise ArgumentError('MissInput')
-                if os.path.isfile(path) == False:
-                    raise ArgumentError('FileNotFound',path)
-
-            if self.output_path is None:
-                pass 
-            elif os.path.isdir(self.output_path) == False:
-                try:
-                    os.makedirs(self.output_path)
-                except Exception:
-                    raise ArgumentError('MkdirErr',self.output_path)
-            self.output_path = self.output_path.replace('\\','/')
-
-            # FPS
-            if self.frame_rate <= 0:
-                raise ArgumentError('FrameRate',str(self.frame_rate))
-            elif self.frame_rate>30:
-                print(WarningPrint('HighFPS',str(self.frame_rate))) 
-
-            if (self.screen_size[0]<=0) | (self.screen_size[1]<=0):
-                raise ArgumentError('Resolution',str(self.screen_size))
-            if self.screen_size[0]*self.screen_size[1] > 3e6:
-                print(WarningPrint('HighRes')) 
-        except Exception as E:
-            print(E)
-            sys.exit(1)
+    def __init__(self,rplgenlog:RplGenLog,config:Config,output_path):
+        # 载入项目
+        self.timeline:pd.DataFrame = rplgenlog.main_timeline
+        self.break_point:pd.Series = rplgenlog.break_point
+        self.medias:dict           = rplgenlog.medias
+        self.config:Config         = config
         # 全局变量
-        self.Is_NTSC = str(self.frame_rate % 30 == 0)
-        self.Audio_type = 'Stereo'
-        self.stdin_name = self.stdin_log.replace('\\','/').split('/')[-1]
-        self.occupied_variable_name = open('./media/occupied_variable_name.list','r',encoding='utf8').read().split('\n')
-        # 载入工程文件
-        timeline_ifile = open(self.stdin_log,'rb')
-        self.timeline,self.break_point,self.bulitin_media = pickle.load(timeline_ifile)
-        timeline_ifile.close()
-        # 项目配置参数的初始化
-        Filepath.Mediapath = os.path.dirname(self.media_obj.replace('\\','/'))
-        PrMediaClip.screen_size = self.screen_size
-        PrMediaClip.output_path = self.output_path
-        PrMediaClip.frame_rate = self.frame_rate
-        PrMediaClip.Is_NTSC = self.Is_NTSC
-        PrMediaClip.Audio_type = self.Audio_type
+        self.Is_NTSC:bool    = self.config.frame_rate % 30 == 0
+        self.Audio_type:str  = 'Stereo'
+        self.stdin_name:str  = '%d'%time.time()
+        self.output_path:str = output_path
+        # 是否强制切割序列，默认是False
+        self.force_split_clip:bool = False
+        # 初始化媒体
+        MediaObj.Is_NTSC = self.Is_NTSC
         # 开始执行主程序
         self.main()
     # 载入媒体定义文件和bulitintimeline
-    def load_medias(self):
-        try:
-            object_define_text = open(self.media_obj,'r',encoding='utf-8').read()#.split('\n')
-        except UnicodeDecodeError as E:
-            print(DecodeError('DecodeErr', E))
-            sys.exit(1)
-        if object_define_text[0] == '\ufeff': # 139 debug
-            print(WarningPrint('UFT8BOM'))
-            object_define_text = object_define_text[1:]
-        object_define_text = object_define_text.split('\n')
-        # 媒体名列表
-        self.media_list = []
-        # self.MediaObjects = pd.Series(dtype=object)
-        for i,text in enumerate(object_define_text):
-            if text == '':
-                continue
-            elif text[0] == '#':
-                continue
-            try:
-                # 尝试解析媒体定义文件
-                obj_name,obj_type,obj_args = RE_mediadef.findall(text)[0]
-            except:
-                # 格式不合格的行直接略过
-                continue
-            else:
-                # 格式合格的行开始解析
-                try:
-                    # instantiation = obj_type + obj_args
-                    if obj_name in self.occupied_variable_name:
-                        raise SyntaxsError('OccName')
-                    elif (len(re.findall('\w+',obj_name))==0)|(obj_name[0].isdigit()):
-                        raise SyntaxsError('InvaName')
-                    else:
-                        #对象实例化
-                        # self.MediaObjects[obj_name] = eval(instantiation)
-                        exec('global {}; '.format(obj_name) + text)
-                        self.media_list.append(obj_name) #记录新增对象名称
-                except Exception as E:
-                    print(E)
-                    print(SyntaxsError('MediaDef',text,str(i+1)))
-                    sys.exit(1)
-        # self.MediaObjects['black'] = Background('black')
-        # self.MediaObjects['white'] = Background('white')
-        global black ; black = Background('black')
-        global white ; white = Background('white')
-        self.media_list.append('black')
-        self.media_list.append('white')
-        # alpha 1.6.5 载入导出的内建媒体
-        for key,values in self.bulitin_media.iteritems():
-            # 更新：改写内建媒体的value,只需要保留 instantiation 就行了
-            exec(values)
-            # obj_name = key
-            # obj_name,obj_type,obj_args = RE_mediadef.findall(values.split(';')[-1])[0]
-            # instantiation = obj_type + obj_args
-            # self.MediaObjects[obj_name] = eval(instantiation) 
-            self.media_list.append(key)
+    # def load_medias(self):
     # 处理bg 和 am 的parser
     def parse_timeline_anime(self,layer) -> list:
         break_at_breakpoint = ((layer[0:2]!='BG') & (layer[-1]!='S')) | self.force_split_clip
@@ -284,17 +183,20 @@ class ExportXML:
         video_tracks = []
         audio_tracks = []
         # 逐图层生成轨道
-        for layer in self.zorder + ['SE','Voice']:
+        for layer in self.config.zorder + ['SE','Voice']:
             # 气泡图层
             if layer[0:2] == 'Bb':
                 track_items = self.parse_timeline_bubble(layer)
                 bubble_clip_list = []
                 text_clip_list = []
                 for item in track_items:
-                    # bubble_this,text_this = self.MediaObjects[item[0]].display(begin=item[3],end=item[4],text=item[1],header=item[2])
-                    # bubble_this,text_this = eval('{0}.display(begin ={1},end={2},text="{3}",header="{4}")'
-                    #                             .format(item[0],item[3],item[4],item[1],item[2]))
-                    bubble_this,text_this = eval(item[0]).display(text=item[1],header=item[2],begin=(item[3]),end=item[4],center=item[5])
+                    bubble_this,text_this = self.medias[item[0]].export(
+                        text   = item[1],
+                        header = item[2],
+                        begin  = item[3],
+                        end    = item[4],
+                        center = item[5]
+                        )
                     if bubble_this is not None:
                         # 气泡的返回值可能为空！
                         bubble_clip_list.append(bubble_this)
@@ -307,13 +209,11 @@ class ExportXML:
                 track_items = self.parse_timeline_audio(layer)
                 clip_list = []
                 for item in track_items:
-                    if item[0] in self.media_list:
-                        # clip_list.append(eval('{0}.display(begin={1})'.format(item[0],item[1])))
-                        # clip_list.append(self.MediaObjects[item[0]].display(begin=item[1]))
-                        clip_list.append(eval(item[0]).display(begin=item[1]))
+                    if item[0] in self.medias.keys():
+                        clip_list.append(self.medias[item[0]].export(begin=item[1]))
                     elif os.path.isfile(item[0][1:-1]) == True: # 注意这个位置的item[0]首尾应该有个引号
                         temp = Audio(item[0][1:-1])
-                        clip_list.append(temp.display(begin=item[1]))
+                        clip_list.append(temp.export(begin=item[1]))
                     else:
                         print(WarningPrint('BadAuFile',item[0]))
                 audio_tracks.append(audio_track_tplt.format(**{'type':self.Audio_type,'clips':'\n'.join(clip_list)}))
@@ -322,18 +222,22 @@ class ExportXML:
                 track_items = self.parse_timeline_anime(layer)
                 clip_list = []
                 for item in track_items:
-                    # clip_list.append(self.MediaObjects[item[0]].display(begin=item[1],end=item[2]))
-                    # clip_list.append(eval('{0}.display(begin={1},end={2})'.format(item[0],item[1],item[2])))
-                    clip_list.append(eval(item[0]).display(begin=item[1],end=item[2],center=item[3]))
+                    clip_list.append(self.medias[item[0]].export(
+                        begin=item[1],
+                        end=item[2],
+                        center=item[3]
+                        ))
                 video_tracks.append(track_tplt.format(**{'targeted':'False','clips':'\n'.join(clip_list)}))
 
-        main_output = project_tplt.format(**{'timebase':'%d'%self.frame_rate,
-                            'ntsc':self.Is_NTSC,
-                            'sequence_name':self.stdin_name,
-                            'screen_width':'%d'%self.screen_size[0],
-                            'screen_height':'%d'%self.screen_size[1],
-                            'tracks_vedio':'\n'.join(video_tracks),
-                            'tracks_audio':'\n'.join(audio_tracks)})
+        main_output = project_tplt.format(**{
+            'timebase'     : '%d'%self.config.frame_rate,
+            'ntsc'         : self.Is_NTSC,
+            'sequence_name': self.stdin_name,
+            'screen_width' : '%d'%self.config.Width,
+            'screen_height': '%d'%self.config.Height,
+            'tracks_vedio' : '\n'.join(video_tracks),
+            'tracks_audio' : '\n'.join(audio_tracks)
+            })
         return main_output
     # 主流程
     def main(self):
@@ -341,7 +245,7 @@ class ExportXML:
         print(PrxmlPrint('Welcome',EDITION))
         print(PrxmlPrint('SaveAt',self.output_path))
         # 载入od文件
-        self.load_medias()
+        # self.load_medias()
         # 开始生成
         print(PrxmlPrint('ExpBegin'))
         main_output = self.bulid_sequence()
@@ -353,27 +257,28 @@ class ExportXML:
 
 # 入口
 if __name__ == '__main__':
-    import argparse
-    # 外部输入参数
-    ap = argparse.ArgumentParser(description="Export Premiere Pro XML from timeline file.")
-    ap.add_argument("-l", "--TimeLine", help='Timeline (and break_point with same name), which was generated by replay_generator.py.',type=str)
-    ap.add_argument("-d", "--MediaObjDefine", help='Definition of the media elements, using real python code.',type=str)
-    ap.add_argument("-t", "--CharacterTable", help='This program do not need CharacterTable.',type=str)
-    ap.add_argument("-o", "--OutputPath", help='Choose the destination directory to save the project timeline and break_point file.',type=str,default=None)
-    # 导出选项
-    ap.add_argument("-F", "--FramePerSecond", help='Set the FPS of display, default is 30 fps, larger than this may cause lag.',type=int,default=30)
-    ap.add_argument("-W", "--Width", help='Set the resolution of display, default is 1920, larger than this may cause lag.',type=int,default=1920)
-    ap.add_argument("-H", "--Height", help='Set the resolution of display, default is 1080, larger than this may cause lag.',type=int,default=1080)
-    ap.add_argument("-Z", "--Zorder", help='Set the display order of layers, not recommended to change the values unless necessary!',type=str,
-                    default='BG2,BG1,Am3,Am2,Am1,AmS,Bb,BbS')
-    # Flag
-    ap.add_argument("--ForceSplitClip", help='Force to separate clips at breakpoints while exporting PR sequence.',action='store_true' )
-    # 语言
-    ap.add_argument("--Language",help='Choose the language of running log',default='en',type=str)
-    args = ap.parse_args()
-    # 主
-    try:
-        ExportXML(args=args)
-    except:
-        from traceback import print_exc
-        print_exc()
+    pass
+    # import argparse
+    # # 外部输入参数
+    # ap = argparse.ArgumentParser(description="Export Premiere Pro XML from timeline file.")
+    # ap.add_argument("-l", "--TimeLine", help='Timeline (and break_point with same name), which was generated by replay_generator.py.',type=str)
+    # ap.add_argument("-d", "--MediaObjDefine", help='Definition of the media elements, using real python code.',type=str)
+    # ap.add_argument("-t", "--CharacterTable", help='This program do not need CharacterTable.',type=str)
+    # ap.add_argument("-o", "--OutputPath", help='Choose the destination directory to save the project timeline and break_point file.',type=str,default=None)
+    # # 导出选项
+    # ap.add_argument("-F", "--FramePerSecond", help='Set the FPS of display, default is 30 fps, larger than this may cause lag.',type=int,default=30)
+    # ap.add_argument("-W", "--Width", help='Set the resolution of display, default is 1920, larger than this may cause lag.',type=int,default=1920)
+    # ap.add_argument("-H", "--Height", help='Set the resolution of display, default is 1080, larger than this may cause lag.',type=int,default=1080)
+    # ap.add_argument("-Z", "--Zorder", help='Set the display order of layers, not recommended to change the values unless necessary!',type=str,
+    #                 default='BG2,BG1,Am3,Am2,Am1,AmS,Bb,BbS')
+    # # Flag
+    # ap.add_argument("--ForceSplitClip", help='Force to separate clips at breakpoints while exporting PR sequence.',action='store_true' )
+    # # 语言
+    # ap.add_argument("--Language",help='Choose the language of running log',default='en',type=str)
+    # args = ap.parse_args()
+    # # 主
+    # try:
+    #     ExportXML(args=args)
+    # except:
+    #     from traceback import print_exc
+    #     print_exc()

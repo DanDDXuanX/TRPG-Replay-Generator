@@ -48,7 +48,7 @@ class ReplayGenerator:
             self.log_path = args.LogFile
             self.media_path = args.MediaObjDefine
             self.char_path = args.CharacterTable
-            # self.output_path = args.OutputPath
+            self.output_path = args.OutputPath
             self.json_path = args.Json
             # 配置
             if self.json_path != None:
@@ -76,6 +76,7 @@ class ReplayGenerator:
             self.medef = MediaDef(file_input='./toy/MediaObject.txt')
             self.chartab = CharTable(file_input='./toy/CharactorTable.tsv')
             self.rplgenlog = RplGenLog(file_input='./toy/LogFile.rgl')
+            self.output_path = './test_output'
         except Exception as E:
             print(E)
             self.system_terminated('Error')
@@ -201,6 +202,8 @@ class ReplayGenerator:
     # def flag_export(self) -> None:
     # 执行输入文件
     def execute_input(self):
+        MediaObj.export_xml = True
+        MediaObj.output_path = self.output_path
         # log
         try:
             self.timeline = self.rplgenlog.execute(media_define=self.medef,char_table=self.chartab,config=self.config)
@@ -528,7 +531,9 @@ class ReplayGenerator:
         #     self.flag_export()
         self.execute_input()
         # 开始预览播放
-        self.preview_display()
+        # self.preview_display()
+        from export_xml import ExportXML
+        ExportXML(rplgenlog=self.rplgenlog,config=self.config,output_path=self.output_path)
 
 if __name__ == '__main__':
     import argparse

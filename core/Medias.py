@@ -20,7 +20,7 @@ class MediaObj:
     # 工程帧率
     frame_rate = 30
     # 输出路径
-    output_path = './'
+    output_path = '.'
     # 色图
     cmap = {
         'black':(0,0,0,255),'white':(255,255,255,255),
@@ -323,7 +323,7 @@ class Bubble(MediaObj):
                 })
         # 文本序列:导出文件
         text_ofile:str = self.output_path+'/auto_TX_%d'%MediaObj.outtext_index+'.png'
-        pygame.image.save(surface=text_draw,filename=text_ofile)
+        pygame.image.save(text_draw,text_ofile)
         clip_text = self.clip_tplt.format(**{
             'clipid'    : 'TX_clip_%d'%MediaObj.clip_index,
             'clipname'  : 'auto_TX_%d.png'%MediaObj.outtext_index,
@@ -559,7 +559,7 @@ class DynamicBubble(Bubble):
         else:
             # 自适应气泡不采用 self.fileindex
             bubble_ofile:str = self.output_path+'/auto_BB_%d'%MediaObj.outtext_index+'.png'
-            pygame.image.save(surface=bubble_draw,filename=bubble_ofile)
+            pygame.image.save(bubble_draw,bubble_ofile)
             clip_bubble = self.clip_tplt.format(**{
                 'clipid'    : 'BB_clip_%d'%MediaObj.clip_index,
                 'clipname'  : 'auto_BB_%d.png'%MediaObj.outtext_index,
@@ -581,7 +581,7 @@ class DynamicBubble(Bubble):
                 })
         # 文本序列:导出文件
         text_ofile:str = self.output_path+'/auto_TX_%d'%MediaObj.outtext_index+'.png'
-        pygame.image.save(surface=text_draw,filename=text_ofile)
+        pygame.image.save(text_draw,text_ofile)
         clip_text = self.clip_tplt.format(**{
             'clipid'    : 'TX_clip_%d'%MediaObj.clip_index,
             'clipname'  : 'auto_TX_%d.png'%MediaObj.outtext_index,
@@ -813,7 +813,7 @@ class Background(MediaObj):
             self.size:tuple = self.media.get_size()
             self.scale:float  = scale
         # 路径
-        self.PR_init('BGfile_%d',filepath)
+        self.PR_init(filepath,'BGfile_%d')
         # 位置
         if type(pos) in [Pos,FreePos]:
             self.pos = pos
@@ -826,8 +826,8 @@ class Background(MediaObj):
         # 如果没有输入文件，而是输入的颜色标签，则将纯色背景保存为文件
         elif self.filepath is None:
             ofile = self.output_path+'/auto_BG_'+imgfile+'.png'
+            pygame.image.save(self.media,ofile)
             self.filepath = Filepath(ofile)
-            pygame.image.save(surface=self.media,filename=ofile)
         else:
             pass
         return super().PR_init(file_index)
@@ -980,8 +980,9 @@ class BuiltInAnimation(Animation):
         else:
             # 保存为文件
             ofile = self.output_path+'/auto_BIA_%d'%MediaObj.outanime_index+'.png'
+            pygame.image.save(self.media[0],ofile)
             self.filepath = Filepath(ofile)
-            pygame.image.save(surface=self.media[0],filename=ofile)
+            MediaObj.outanime_index = MediaObj.outanime_index+1
         # 继承
         return super().PR_init(file_index)
 
