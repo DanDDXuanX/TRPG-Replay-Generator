@@ -32,13 +32,15 @@ class MediaObj:
     clip_tplt = open('./xml_templates/tplt_clip.xml','r',encoding='utf-8').read()
     audio_clip_tplt = open('./xml_templates/tplt_audio_clip.xml','r',encoding='utf-8').read()
     # PR 工程的项目参数
-    Is_NTSC = True
-    Audio_type = 'Stereo'
+    Is_NTSC:bool = True
+    Audio_type:str = 'Stereo'
     # 导出的序号
-    outtext_index  = 0 # 文本图片序号，每输出一个文件 +1
-    outanime_index = 0 # 立绘图片序号，每输出一个文件 +1
-    clip_index = 0     # 剪辑序号，每生成一个剪辑 +1
-    file_index = 0     # 文件序号，每载入一个文件 +1
+    outtext_index:int  = 0 # 文本图片序号，每输出一个文件 +1
+    outanime_index:int = 0 # 立绘图片序号，每输出一个文件 +1
+    clip_index:int     = 0     # 剪辑序号，每生成一个剪辑 +1
+    file_index:int     = 0     # 文件序号，每载入一个文件 +1
+    # 是否导出PR项目素材
+    export_xml:bool = False # PR序列是否初始化
     # 初始化
     def __init__(self,filepath:str,label_color:str) -> None:
         # 文件路径是非法关键字
@@ -59,6 +61,19 @@ class MediaObj:
             sizex,sizey = media.get_size()
             target_size = int(sizex * scale),int(sizey * scale)
             return pygame.transform.smoothscale(media,target_size)
+    # 初始化为PR序列
+    def PR_init(self,file_index:str='None') -> None:
+        if self.export_xml ==  False:
+            pass
+        elif file_index == 'None':
+            self.xmlpath:str = None
+            self.filename:str = None
+            self.fileindex = None
+        else:
+            self.xmlpath:str = self.filepath.xml_reformated()
+            self.filename:str = self.filepath.name()
+            self.fileindex = file_index % MediaObj.file_index
+            MediaObj.file_index = MediaObj.file_index + 1
     # 处理PR的图片坐标
     def PR_center_arg(self,obj_size,pygame_pos) -> np.ndarray:
         screensize = np.array(self.screen_size)
@@ -184,25 +199,21 @@ class Bubble(MediaObj):
             # 媒体设为空图
             self.media = pygame.Surface(self.screen_size,pygame.SRCALPHA)
             self.media.fill(self.cmap['empty'])
-            # 其他参数
+            # 尺寸和缩放
             self.scale:float = 1.0
-            self.xmlpath = None
-            self.filename = None
-            self.file_index = None
             self.size:tuple = self.screen_size
             self.origin_size:tuple = self.size
+            # PR项目
+            self.PR_init('None')
         else:
             # 读取图片文件
             origin_media = pygame.image.load(self.filepath.exact())
             self.origin_size:tuple = origin_media.get_size()
             self.media:pygame.Surface = self.zoom(origin_media,scale=scale)
             self.size:tuple = self.media.get_size()
-            # 其他参数
             self.scale:float  = scale
-            self.xmlpath:str  = self.filepath.xml_reformated()
-            self.filename:str = self.filepath.name()
-            self.fileindex:str = 'BBfile_' + '%d'% MediaObj.file_index
-            MediaObj.file_index = MediaObj.file_index + 1
+            # 其他参数
+            self.PR_init(file_index='BBfile_%d')
         # 底图位置
         if type(pos) in [Pos,FreePos]:
             self.pos = pos
@@ -546,6 +557,7 @@ class DynamicBubble(Bubble):
         if self.xmlpath is None:
             clip_bubble = None
         else:
+            # 自适应气泡不采用 self.fileindex
             bubble_ofile:str = self.output_path+'/auto_BB_%d'%MediaObj.outtext_index+'.png'
             pygame.image.save(surface=bubble_draw,filename=bubble_ofile)
             clip_bubble = self.clip_tplt.format(**{
@@ -623,11 +635,9 @@ class ChatWindow(Bubble):
             self.media.fill(self.cmap['empty'])
             # 其他参数
             self.scale:float = 1.0
-            self.xmlpath = None
-            self.filename = None
-            self.file_index = None
             self.size:tuple = self.screen_size
             self.origin_size:tuple = self.size
+            self.PR_init('None')
         else:
             # 读取图片文件
             origin_media = pygame.image.load(self.filepath.exact())
@@ -636,10 +646,7 @@ class ChatWindow(Bubble):
             self.size:tuple = self.media.get_size()
             # 其他参数
             self.scale:float  = scale
-            self.xmlpath:str  = self.filepath.xml_reformated()
-            self.filename:str = self.filepath.name()
-            self.fileindex:str = 'BBfile_' + '%d'% MediaObj.file_index
-            MediaObj.file_index = MediaObj.file_index + 1
+            self.PR_init('BBfile_%d')
         # 位置
         if type(pos) in [Pos,FreePos]:
             self.pos = pos
@@ -754,7 +761,8 @@ class ChatWindow(Bubble):
             bubble_header_this,main_this = header_main
             key_this,header_this = bubble_header_this.split('#')
             # 绘制子气泡
-            subbubble_surface_this,subbubble_surface_size = self.sub_Bubble[key_this].draw(main_this,header_this)
+            subbubble_surface_this,subtext_surface,subbubble_surface_size = self.sub_Bubble[key_this].draw(main_this,header_this)
+            subbubble_surface_this.blit(subtext_surface,(0,0))
             # 如果是run：把当前的y_bottom 向下移动 effect * (这个小节的高度 + 小节见间距)，并且不渲染第一小节
             if idx == 0 and effect < 0:
                 y_bottom = y_bottom - (subbubble_surface_size[1] + self.sub_distance) * (effect + 1)
@@ -793,10 +801,6 @@ class Background(MediaObj):
             # 填充纯色
             self.media = pygame.Surface(self.screen_size,pygame.SRCALPHA)
             self.media.fill(self.cmap[filepath])
-            # 保存纯色背景图片为文件
-            ofile = self.output_path+'/auto_BG_'+filepath+'.png'
-            self.filepath = Filepath(ofile)
-            pygame.image.save(surface=self.media,filename=ofile)
             # 其他参数
             self.scale:float = 1.0
             self.size:tuple  = self.screen_size
@@ -807,18 +811,26 @@ class Background(MediaObj):
             self.origin_size:tuple = origin_media.get_size()
             self.media:pygame.Surface = self.zoom(origin_media,scale=scale)
             self.size:tuple = self.media.get_size()
-            # 其他参数
             self.scale:float  = scale
         # 路径
-        self.xmlpath:str  = self.filepath.xml_reformated()
-        self.filename:str = self.filepath.name()
-        self.fileindex:str = 'BGfile_' + '%d'% MediaObj.file_index
-        MediaObj.file_index = MediaObj.file_index + 1
+        self.PR_init('BGfile_%d',filepath)
         # 位置
         if type(pos) in [Pos,FreePos]:
             self.pos = pos
         else:
             self.pos = Pos(*pos)
+    def PR_init(self,imgfile:str,file_index: str = 'None') -> None:
+        # 如果不导出PR项目，那么什么都不做
+        if self.export_xml == False:
+            pass
+        # 如果没有输入文件，而是输入的颜色标签，则将纯色背景保存为文件
+        elif self.filepath is None:
+            ofile = self.output_path+'/auto_BG_'+imgfile+'.png'
+            self.filepath = Filepath(ofile)
+            pygame.image.save(surface=self.media,filename=ofile)
+        else:
+            pass
+        return super().PR_init(file_index)
     def display(self,surface,alpha=100,center='NA',adjust='NA'):
         if center == 'NA':
             render_center = self.pos
@@ -887,12 +899,9 @@ class Animation(MediaObj):
         # 尺寸是第一张图的尺寸
         self.size:tuple = self.media[0].get_size()
         self.origin_size:tuple = pygame.image.load(self.filepath.list()[0]).get_size()
-        # 其他参数
         self.scale:float   = scale
-        self.xmlpath:str   = self.filepath.xml_reformated()
-        self.filename:str  = self.filepath.name()
-        self.fileindex:str = 'AMfile_%d'% MediaObj.file_index
-        MediaObj.file_index = MediaObj.file_index + 1
+        # 初始化PR
+        self.PR_init(file_index='AMfile_%d')
         # 位置
         if type(pos) in [Pos,FreePos]:
             self.pos = pos
@@ -959,8 +968,25 @@ class Animation(MediaObj):
         return tick_lineline
     def convert(self):
         self.media = np.frompyfunc(lambda x:x.convert_alpha(),1,1)(self.media)
+
+# 内建动画的基类：不可以直接使用
+class BuiltInAnimation(Animation):
+    BIA_text = Text('./media/SourceHanSerifSC-Heavy.otf',fontsize=int(0.0521*MediaObj.screen_size[0]),color=(255,255,255,255),line_limit=10)
+    # 所有的内建动画，在导出PR项目初始化的时候，将图像存储为一个文件
+    def PR_init(self, file_index: str = 'None') -> None:
+        # 如果不导出PR项目，那么什么都不做
+        if self.export_xml == False:
+            pass
+        else:
+            # 保存为文件
+            ofile = self.output_path+'/auto_BIA_%d'%MediaObj.outanime_index+'.png'
+            self.filepath = Filepath(ofile)
+            pygame.image.save(surface=self.media[0],filename=ofile)
+        # 继承
+        return super().PR_init(file_index)
+
 # 组合立绘
-class GroupedAnimation(Animation):
+class GroupedAnimation(BuiltInAnimation):
     def __init__(
             self,
             subanimation_list:list,
@@ -1006,266 +1032,349 @@ class GroupedAnimation(Animation):
         # 初始化立绘图像
         self.length:int = 1
         self.media:np.ndarray = np.array([canvas_surface])
-        # 保存为文件
-        ofile = self.output_path+'/auto_GA_%d'%MediaObj.outanime_index+'.png'
-        self.filepath = Filepath(ofile)
-        pygame.image.save(surface=self.media[0],filename=ofile)
         # 尺寸
         self.scale:float   = 1.0
         self.size:tuple    = self.screen_size
         self.origin_size:tuple = self.size
-        # 路径
-        self.xmlpath:str   = self.filepath.xml_reformated()
-        self.filename:str  = self.filepath.name()
-        self.fileindex:str = 'AMfile_%d'% MediaObj.file_index
-        MediaObj.file_index = MediaObj.file_index + 1
+        # PR项目
+        self.PR_init(file_index='AMfile_%d')
         # 位置
         self.pos = Pos(0,0)
         # 动画参数
         self.loop:bool = False
         self.this:int  = 0
         self.tick:int  = 1
-# 内建动画
-class BuiltInAnimation(Animation):
-    def __init__(self,anime_type='hitpoint',anime_args=('0',0,0,0),screensize = (1920,1080),layer=0,label_color='Mango'):
-        BIA_text = Text('./media/SourceHanSerifSC-Heavy.otf',fontsize=int(0.0521*screensize[0]),color=(255,255,255,255),line_limit=10)
+
+# 血条
+class HitPoint(BuiltInAnimation):
+    def __init__(
+        self,
+        describe:str    = '',
+        heart_max:int   = 0,
+        heart_begin:int = 0,
+        heart_end:int   = 0,
+        layer:int       = 0,
+        label_color:str = 'Mango'
+        ):
+        # 项目参数
+        screensize = self.screen_size
         frame_rate = self.frame_rate
         self.label_color = label_color
-        if anime_type == 'hitpoint': # anime_args=('0',0,0,0)
-            # 载入图片
-            heart = pygame.image.load('./media/heart.png')
-            heart_shape = pygame.image.load('./media/heart_shape.png')
+        # 载入图片
+        heart = pygame.image.load('./media/heart.png')
+        heart_shape = pygame.image.load('./media/heart_shape.png')
+        hx,hy = heart.get_size()
+        # 重设图片尺寸，根据screensize[0]
+        if screensize[0]!=1920:
+            multip = screensize[0]/1920
+            heart = pygame.transform.scale(heart,(int(hx*multip),int(hy*multip)))
+            heart_shape = pygame.transform.scale(heart_shape,(int(hx*multip),int(hy*multip)))
             hx,hy = heart.get_size()
-            # 重设图片尺寸，根据screensize[0]
-            if screensize[0]!=1920:
-                multip = screensize[0]/1920
-                heart = pygame.transform.scale(heart,(int(hx*multip),int(hy*multip)))
-                heart_shape = pygame.transform.scale(heart_shape,(int(hx*multip),int(hy*multip)))
-                hx,hy = heart.get_size()
-            # 动画参数
-            name_tx,heart_max,heart_begin,heart_end = anime_args
-
-            if (heart_end==heart_begin)|(heart_max<max(heart_begin,heart_end)):
-                raise MediaError('InvHPArg',','.join([str(name_tx),str(heart_max),str(heart_begin),str(heart_end)]))
-            elif heart_end > heart_begin: # 如果是生命恢复
-                temp = heart_end
-                heart_end = heart_begin
-                heart_begin = temp # 则互换顺序 确保 begin一定是小于end的
-                heal_heart = True
+        # 动画参数:检查合法性
+        if (heart_end==heart_begin)|(heart_max<max(heart_begin,heart_end)):
+            raise MediaError('InvHPArg',','.join([str(describe),str(heart_max),str(heart_begin),str(heart_end)]))
+        elif heart_end > heart_begin: # 如果是生命恢复
+            temp = heart_end
+            heart_end = heart_begin
+            heart_begin = temp # 则互换顺序 确保 begin一定是小于end的
+            heal_heart = True
+        else:
+            heal_heart = False
+        # 心与心之间的距离
+        distance = int(0.026*screensize[0]) # 50
+        # 画布的尺寸
+        total_heart = int(heart_max/2 * hx + max(0,np.ceil(heart_max/2-1)) * distance) #画布总长
+        left_heart = int(heart_end/2 * hx + max(0,np.ceil(heart_end/2-1)) * distance) #画布总长
+        lost_heart = int((heart_begin-heart_end)/2 * hx + np.floor((heart_begin-heart_end)/2) * distance)
+        # 名牌的尺寸
+        nametx_surf = self.BIA_text.draw(describe)[0] # 名牌
+        nx,ny = nametx_surf.get_size() # 名牌尺寸
+        # 开始制图
+        # 底层 阴影图
+        if layer==0:
+            self.pos = Pos((screensize[0]-max(nx,total_heart))/2,(4/5*screensize[1]-hy-ny)/2)
+            canvas = pygame.Surface((max(nx,total_heart),hy+ny+screensize[1]//5),pygame.SRCALPHA)
+            canvas.fill((0,0,0,0))
+            if nx > total_heart:
+                canvas.blit(nametx_surf,(0,0))
+                posx = (nx-total_heart)//2
             else:
-                heal_heart = False
-
-            distance = int(0.026*screensize[0]) # default = 50
-
-            total_heart = int(heart_max/2 * hx + max(0,np.ceil(heart_max/2-1)) * distance) #画布总长
-            left_heart = int(heart_end/2 * hx + max(0,np.ceil(heart_end/2-1)) * distance) #画布总长
-            lost_heart = int((heart_begin-heart_end)/2 * hx + np.floor((heart_begin-heart_end)/2) * distance)
-
-            nametx_surf = BIA_text.draw(name_tx)[0] # 名牌
-            nx,ny = nametx_surf.get_size() # 名牌尺寸
-            # 开始制图
-            if layer==0: # 底层 阴影图
-                self.pos = Pos((screensize[0]-max(nx,total_heart))/2,(4/5*screensize[1]-hy-ny)/2)
-                canvas = pygame.Surface((max(nx,total_heart),hy+ny+screensize[1]//5),pygame.SRCALPHA)
-                canvas.fill((0,0,0,0))
-                if nx > total_heart:
-                    canvas.blit(nametx_surf,(0,0))
-                    posx = (nx-total_heart)//2
+                canvas.blit(nametx_surf,((total_heart-nx)//2,0))
+                posx = 0
+            posy = ny+screensize[1]//5
+            for i in range(1,heart_max+1): # 偶数，低于最终血量
+                if i%2 == 0:
+                    canvas.blit(heart_shape,(posx,posy))
+                    posx = posx + hx + distance
                 else:
-                    canvas.blit(nametx_surf,((total_heart-nx)//2,0))
-                    posx = 0
-                posy = ny+screensize[1]//5
-                self.tick = 1
-                self.loop = 1
-                for i in range(1,heart_max+1): # 偶数，低于最终血量
-                    if i%2 == 0:
-                        canvas.blit(heart_shape,(posx,posy))
-                        posx = posx + hx + distance
-                    else:
-                        pass
-                if heart_max%2 == 1: # max是奇数
-                    left_heart_shape = heart_shape.subsurface((0,0,int(hx/2),hy))
-                    canvas.blit(left_heart_shape,(total_heart-int(hx/2),posy))
-            elif layer==1: # 剩余的血量
-                self.pos = Pos((screensize[0]-total_heart)/2,3/5*screensize[1]+ny/2-hy/2)
-                canvas = pygame.Surface((left_heart,hy),pygame.SRCALPHA)
-                canvas.fill((0,0,0,0))
-                posx,posy = 0,0
-                self.tick = 1
-                self.loop = 1
-                for i in range(1,heart_end+1): # 偶数，低于最终血量
-                    if i%2 == 0:
-                        canvas.blit(heart,(posx,posy))
-                        posx = posx + hx + distance
-                    else:
-                        pass
-                if heart_end%2 == 1: # end是奇数
+                    pass
+            if heart_max%2 == 1: # max是奇数
+                left_heart_shape = heart_shape.subsurface((0,0,int(hx/2),hy))
+                canvas.blit(left_heart_shape,(total_heart-int(hx/2),posy))
+            # 媒体
+            self.media:np.ndarray = np.array([canvas])
+        # 剩余的血量
+        elif layer==1: 
+            self.pos = Pos((screensize[0]-total_heart)/2,3/5*screensize[1]+ny/2-hy/2)
+            canvas = pygame.Surface((left_heart,hy),pygame.SRCALPHA)
+            canvas.fill((0,0,0,0))
+            posx,posy = 0,0
+            for i in range(1,heart_end+1): # 偶数，低于最终血量
+                if i%2 == 0:
+                    canvas.blit(heart,(posx,posy))
+                    posx = posx + hx + distance
+                else:
+                    pass
+            # 如果剩余的血量是奇数
+            if heart_end%2 == 1:
+                half_heart = heart.subsurface((0,0,int(hx/2),hy))
+                canvas.blit(half_heart,(heart_end//2*(hx + distance),0))
+            # 媒体
+            self.media:np.ndarray = np.array([canvas])
+        # 损失/恢复的血量
+        elif layer==2:
+            self.pos = Pos(heart_end//2*(hx + distance)+(heart_end%2)*int(hx/2)+(screensize[0]-total_heart)/2,3/5*screensize[1]+ny/2-hy/2)
+            canvas = pygame.Surface((lost_heart,hy),pygame.SRCALPHA)
+            canvas.fill((0,0,0,0))
+            posx,posy = 0,0
+            for i in range(1,heart_begin-heart_end+1): 
+                if (i == 1)&(heart_end%2 == 1): # 如果end是奇数，先来半个右边
+                    right_heart = heart.subsurface((int(hx/2),0,int(hx/2),hy))
+                    canvas.blit(right_heart,(posx,posy))
+                    posx = posx + int(hx/2) + distance
+                elif ((i - heart_end%2)%2 == 0): # 如果和end的差值是
+                    canvas.blit(heart,(posx,posy))
+                    posx = posx + hx + distance
+                elif (i == heart_begin-heart_end)&(heart_begin%2 == 1): # 如果最右边边也是半个心
                     left_heart = heart.subsurface((0,0,int(hx/2),hy))
-                    canvas.blit(left_heart,(heart_end//2*(hx + distance),0))
-            elif layer==2: # 损失/恢复的血量
-                self.pos = Pos(heart_end//2*(hx + distance)+(heart_end%2)*int(hx/2)+(screensize[0]-total_heart)/2,3/5*screensize[1]+ny/2-hy/2)
-                canvas = pygame.Surface((lost_heart,hy),pygame.SRCALPHA)
-                canvas.fill((0,0,0,0))
-                posx,posy = 0,0
-                self.tick = 1
-                self.loop = 1
-                for i in range(1,heart_begin-heart_end+1): 
-                    if (i == 1)&(heart_end%2 == 1): # 如果end是奇数，先来半个右边
-                        right_heart = heart.subsurface((int(hx/2),0,int(hx/2),hy))
-                        canvas.blit(right_heart,(posx,posy))
-                        posx = posx + int(hx/2) + distance
-                    elif ((i - heart_end%2)%2 == 0): # 如果和end的差值是
-                        canvas.blit(heart,(posx,posy))
-                        posx = posx + hx + distance
-                    elif (i == heart_begin-heart_end)&(heart_begin%2 == 1): # 如果最右边边也是半个心
-                        left_heart = heart.subsurface((0,0,int(hx/2),hy))
-                        canvas.blit(left_heart,(posx,posy))
-                    else:
-                        pass
-            else:
-                pass
-            if (heal_heart == True)&(layer == 2): # 恢复动画
+                    canvas.blit(left_heart,(posx,posy))
+                else:
+                    pass
+            if heart_end%2 == 1: # end是奇数
+                left_heart = heart.subsurface((0,0,int(hx/2),hy))
+                canvas.blit(left_heart,(heart_end//2*(hx + distance),0))
+            # 恢复的动画
+            if heal_heart == True:
                 crop_timeline = sigmoid(0,lost_heart,frame_rate).astype(int) # 裁剪时间线
-                self.media = np.frompyfunc(lambda x:canvas.subsurface(0,0,x,hy),1,1)(crop_timeline) # 裁剪动画
+                self.media:np.ndarray = np.frompyfunc(lambda x:canvas.subsurface(0,0,x,hy),1,1)(crop_timeline)
             else:
-                self.media=np.array([canvas]) # 正常的输出，单帧
-            #剩下的需要定义的
-            self.this = 0
-            self.length=len(self.media)
-        if anime_type == 'dice': # anime_args=('name',max,check,face) #骰子
-            def get_possible_digit(dice_max):
-                dice_max = 10**(int(np.log10(dice_max))+1)-1
-                possible = {}
-                for i in range(0,100):
-                    if dice_max//(10**i)>=10:
-                        possible[i] = list(range(0,10))
-                    elif dice_max//(10**i)>=1:
-                        possible[i] = list(range(0,1+dice_max//(10**i)))
-                    else:
-                        break
-                dice_value = np.repeat('',10)
-                for i in possible.keys():
-                    digit = np.array(possible[i])
-                    np.random.shuffle(digit) # 乱序
-                    if len(digit)<10:
-                        digit = np.hstack([digit,np.repeat('',10-len(digit))])
-                    dice_value = np.frompyfunc(lambda x,y:x+y,2,1)(digit.astype(str),dice_value)
-                return max(possible.keys())+1,dice_value
-            # 动画参数
-            # 检查参数合法性
-            for die in anime_args:
-                try:
-                    # 转换为int类型，NA转换为-1
-                    name_tx,dice_max,dice_check,dice_face = die
-                    dice_max,dice_face,dice_check = map(lambda x:-1 if x=='NA' else int(x),(dice_max,dice_face,dice_check))
-                except ValueError as E: #too many values to unpack,not enough values to unpack
-                    raise MediaError('InvDCSytx',str(die),E)
-                if (dice_face>dice_max)|(dice_check<-1)|(dice_check>dice_max)|(dice_face<0)|(dice_max<=0):
-                    raise MediaError('InvDCArg', ','.join([str(name_tx),str(dice_max),str(dice_check),str(dice_face)]))
-            # 最多4个
-            N_dice = len(anime_args)
-            if N_dice > 4:
-                N_dice=4
-                anime_args = anime_args[0:4]# 最多4个
-            #y_anchor = {4:180,3:270,2:360,1:450}[N_dice] # sep=180 x[600,1400]
-            y_anchor = {4:int(0.1667*screensize[1]),3:int(0.25*screensize[1]),2:int(0.3333*screensize[1]),1:int(0.4167*screensize[1])}[N_dice]
-            y_unit = int(0.1667*screensize[1])
-            if layer==0: # 底层 名字 /检定
-                canvas = pygame.Surface(screensize,pygame.SRCALPHA)
-                for i,die in enumerate(anime_args): 
-                    name_tx,dice_max,dice_check,dice_face = die
-                    dice_max,dice_face,dice_check = map(lambda x:-1 if x=='NA' else int(x),(dice_max,dice_face,dice_check))
-                    # 渲染
-                    name_surf = BIA_text.render(name_tx)
-                    nx,ny = name_surf.get_size()
-                    canvas.blit(name_surf,(int(0.3125*screensize[0])-nx//2,y_anchor+i*y_unit+(y_unit-ny)//2)) # 0.3125*screensize[0] = 600
-                    if dice_check != -1:
-                        check_surf = BIA_text.render('/%d'%dice_check)
-                        cx,cy = check_surf.get_size()
-                        canvas.blit(check_surf,(int(0.7292*screensize[0]),y_anchor+i*y_unit+(y_unit-cy)//2)) # 0.7292*screensize[0] = 1400
-                self.media = np.array([canvas])
-                self.pos = Pos(0,0)
-                self.tick = 1
-                self.loop = 1
-            elif layer==1:
-                #画布
-                canvas = []
+                self.media:np.ndarray = np.array([canvas])
+        else:
+            pass
+        # 尺寸和缩放
+        self.size:tuple        = self.media[0].get_size()
+        self.origin_size:tuple = self.size
+        self.scale:float       = 1.0
+        # 其他参数
+        self.tick       = 1
+        self.loop       = False # TODO：原来是True，但是感觉应该是False才对！
+        self.this:int   = 0
+        self.length:int = len(self.media)
+        # PR序列
+        self.PR_init(file_index='AMfile_%d')
+
+# 骰子
+class Dice(BuiltInAnimation):
+    dice_cmap = {
+        3:(124,191,85,255),  # 大成功
+        1:(94,188,235,255),  # 成功
+        0:(245,192,90,255),  # 失败
+        2:(233,86,85,255),   # 大失败
+        -1:(255,255,255,255) # 中性的
+        }
+    significant = 0.05 # 大成功大失败阈值
+    def __init__(
+        self,
+        dice_set:dict  = {},
+        layer:int       = 0,
+        label_color:str = 'Mango'
+        ):
+        screensize:tuple = self.screen_size
+        frame_rate:int = self.frame_rate
+        self.label_color = label_color
+        # 检查参数合法性：
+        for idx in dice_set.keys():
+            dice = dice_set[idx]
+            # 类型是否合法
+            try:
+                describe = dice['content']
+                dice_face = dice['face']
+                dice_max = dice['dicemax']
+                dice_check = dice['check']
+                dice_max,dice_face,dice_check = map(lambda x:-1 if x==None else int(x),(dice_max,dice_face,dice_check))
+            except ValueError as E:
+                raise MediaError('InvDCSytx',','.join([str(describe),str(dice_max),str(dice_check),str(dice_face)]),E)
+            # 值是否合法
+            if (dice_face>dice_max)|(dice_check<-1)|(dice_check>dice_max)|(dice_face<0)|(dice_max<=0):
+                raise MediaError('InvDCArg', ','.join([str(describe),str(dice_max),str(dice_check),str(dice_face)]))
+        # 最多4个
+        N_dice:int = len(dice_set.keys())
+        if N_dice > 4:
+            N_dice=4
+        #y_anchor = {4:180,3:270,2:360,1:450}[N_dice] # sep=180 x[600,1400]
+        y_anchor:int = {
+            4:int(0.1667*screensize[1]),
+            3:int(0.25*screensize[1]),
+            2:int(0.3333*screensize[1]),
+            1:int(0.4167*screensize[1])
+            }[N_dice]
+        y_unit:int = int(0.1667*screensize[1])
+        # 底层： 名字 检定
+        if layer == 0:
+            canvas = pygame.Surface(screensize,pygame.SRCALPHA)
+            for idx in dice_set.keys(): 
+                i = int(idx)
+                dice = dice_set[idx]
+                # 渲染
+                name_surf = self.BIA_text.render(dice['content'])
+                nx,ny = name_surf.get_size()
+                canvas.blit(name_surf,(int(0.3125*screensize[0])-nx//2,y_anchor+i*y_unit+(y_unit-ny)//2)) # 0.3125*screensize[0] = 600
+                if dice['check'] is not None:
+                    check_surf = self.BIA_text.render('/%d'%dice['check'])
+                    cx,cy = check_surf.get_size()
+                    canvas.blit(check_surf,(int(0.7292*screensize[0]),y_anchor+i*y_unit+(y_unit-cy)//2)) # 0.7292*screensize[0] = 1400
+            # 媒体和位置
+            self.media = np.array([canvas])
+            self.pos = Pos(0,0)
+        # 滚动的老虎机
+        elif layer == 1:
+            #画布
+            canvas = []
+            for i in range(0,int(2.5*frame_rate)):
+                canvas_frame = pygame.Surface((int(0.1458*screensize[0]),y_unit*N_dice),pygame.SRCALPHA) # 0.1458*screensize[0] = 280
+                canvas.append(canvas_frame)
+            # 骰子
+            for idx in dice_set.keys():
+                D = int(idx)
+                dice = dice_set[idx]
+                cols,possible_digit = self.get_possible_digit(dice['dicemax'])
+                dx,dy = self.BIA_text.render('0'*cols).get_size()
+                # running cols
+                run_surf = pygame.Surface((dx,dy*len(possible_digit)),pygame.SRCALPHA)
+                for i,digit in enumerate(possible_digit):
+                    for j,char in enumerate(digit): # alpha 1.8.4 兼容非等宽数字，比如思源宋体
+                        char_this = self.BIA_text.render(char)
+                        run_surf.blit(char_this,(j*(dx//cols),dy*i))
+                run_cols = np.frompyfunc(lambda x:run_surf.subsurface(x*(dx//cols),0,dx//cols,dy*10),1,1)(np.arange(0,cols))
+                # range
+                slot_surf = []
                 for i in range(0,int(2.5*frame_rate)):
-                    canvas_frame = pygame.Surface((int(0.1458*screensize[0]),y_unit*N_dice),pygame.SRCALPHA) # 0.1458*screensize[0] = 280
-                    canvas.append(canvas_frame)
-                # 骰子
-                for l,die in enumerate(anime_args): 
-                    name_tx,dice_max,dice_check,dice_face = die
-                    dice_max,dice_face,dice_check = map(lambda x:-1 if x=='NA' else int(x),(dice_max,dice_face,dice_check))
-                    cols,possible_digit = get_possible_digit(dice_max)
-                    dx,dy = BIA_text.render('0'*cols).get_size()
-                    # running cols
-                    run_surf = pygame.Surface((dx,dy*len(possible_digit)),pygame.SRCALPHA)
-                    for i,digit in enumerate(possible_digit):
-                        for j,char in enumerate(digit): # alpha 1.8.4 兼容非等宽数字，比如思源宋体
-                            char_this = BIA_text.render(char)
-                            run_surf.blit(char_this,(j*(dx//cols),dy*i))
-                    run_cols = np.frompyfunc(lambda x:run_surf.subsurface(x*(dx//cols),0,dx//cols,dy*10),1,1)(np.arange(0,cols))
-                    # range
-                    slot_surf = []
-                    for i in range(0,int(2.5*frame_rate)):
-                        slot_frame = pygame.Surface((dx,dy),pygame.SRCALPHA)
-                        slot_surf.append(slot_frame)
-                    for i in range(0,cols):
-                        if cols == 1:
-                            speed_multiplier = 1
-                        else:
-                            speed_multiplier = np.linspace(2,1,cols)[i]
-                        speed = speed_multiplier*dy*11/2.5/frame_rate
-                        for t in range(0,int(2.5*frame_rate/speed_multiplier)):
-                            slot_surf[t].blit(run_cols[i],(i*dx//cols,int(dy-t*speed)))
-                    for t in range(0,int(2.5*frame_rate/speed_multiplier)):
-                        #canvas[t].blit(slot_surf[t],(int(0.1458*screensize[0]-dx-0.0278*screensize[1]),(l+1)*y_unit-dy-int(0.0278*screensize[1]))) #0.0278*screensize[1] = 30
-                        canvas[t].blit(slot_surf[t],(int(0.1458*screensize[0]-dx-0.0278*screensize[1]),l*y_unit+(y_unit-dy)//2))
-                self.media = np.array(canvas)
-                self.pos = Pos(int(0.5833*screensize[0]),y_anchor)
-                self.tick = 1
-                self.loop = 1
-            elif layer==2:
-                dice_cmap={3:(124,191,85,255),1:(94,188,235,255),0:(245,192,90,255),2:(233,86,85,255),-1:(255,255,255,255)}
-                canvas = pygame.Surface((int(0.1458*screensize[0]),y_unit*N_dice),pygame.SRCALPHA)
-                for i,die in enumerate(anime_args): 
-                    name_tx,dice_max,dice_check,dice_face = die
-                    dice_max,dice_face,dice_check = map(lambda x:-1 if x=='NA' else int(x),(dice_max,dice_face,dice_check))
-                    # 渲染 0.0651
-                    significant = 0.05 # 大成功失败阈值
-                    if dice_check == -1:
-                        color_flag = -1
+                    slot_frame = pygame.Surface((dx,dy),pygame.SRCALPHA)
+                    slot_surf.append(slot_frame)
+                for i in range(0,cols):
+                    if cols == 1:
+                        speed_multiplier = 1
                     else:
-                        color_flag = ((dice_face/dice_max<=significant)|(dice_face/dice_max>(1-significant)))*2 + (dice_face<=dice_check)
-                    BIA_color_Text = Text('./media/SourceHanSerifSC-Heavy.otf',fontsize=int(0.0651*screensize[0]),color=dice_cmap[color_flag],line_limit=10) # 1.25
-                    face_surf = BIA_color_Text.render(str(dice_face))
-                    fx,fy = face_surf.get_size()
-                    #canvas.blit(face_surf,(int(0.1458*screensize[0]-fx-0.0278*screensize[1]),(i+1)*y_unit-fy-int(0.0278*screensize[1])))
-                    canvas.blit(face_surf,(int(0.1458*screensize[0]-fx-0.0278*screensize[1]),i*y_unit+(y_unit-fy)//2))
-                self.media = np.array([canvas])
-                self.pos = Pos(int(0.5833*screensize[0]),y_anchor) # 0.5833*screensize[0] = 1120
-                self.tick = 1
-                self.loop = 1
+                        speed_multiplier = np.linspace(2,1,cols)[i]
+                    speed = speed_multiplier*dy*11/2.5/frame_rate
+                    for t in range(0,int(2.5*frame_rate/speed_multiplier)):
+                        slot_surf[t].blit(run_cols[i],(i*dx//cols,int(dy-t*speed)))
+                for t in range(0,int(2.5*frame_rate/speed_multiplier)):
+                    #canvas[t].blit(slot_surf[t],(int(0.1458*screensize[0]-dx-0.0278*screensize[1]),(l+1)*y_unit-dy-int(0.0278*screensize[1]))) #0.0278*screensize[1] = 30
+                    canvas[t].blit(slot_surf[t],(int(0.1458*screensize[0]-dx-0.0278*screensize[1]),D*y_unit+(y_unit-dy)//2))
+            # 媒体和位置
+            self.media = np.array(canvas)
+            self.pos = Pos(int(0.5833*screensize[0]),y_anchor)
+        # 出目
+        elif layer == 2:
+            canvas = pygame.Surface((int(0.1458*screensize[0]),y_unit*N_dice),pygame.SRCALPHA)
+            for idx in dice_set.keys():
+                i = int(idx)
+                dice = dice_set[idx]
+                # 渲染 0.0651
+                if dice['check'] is None:
+                    color_flag = -1
+                else:
+                    face_rate = dice['face']/dice['dicemax']
+                    color_flag = ((face_rate <=self.significant)|(face_rate>(1-self.significant)))*2 + (dice['face']<=dice['check'])
+                # 有颜色的字体
+                BIA_color_Text = Text('./media/SourceHanSerifSC-Heavy.otf',fontsize=int(0.0651*screensize[0]),color=self.dice_cmap[color_flag],line_limit=10)
+                face_surf = BIA_color_Text.render(str(dice['face']))
+                fx,fy = face_surf.get_size()
+                #canvas.blit(face_surf,(int(0.1458*screensize[0]-fx-0.0278*screensize[1]),(i+1)*y_unit-fy-int(0.0278*screensize[1])))
+                canvas.blit(face_surf,(int(0.1458*screensize[0]-fx-0.0278*screensize[1]),i*y_unit+(y_unit-fy)//2))
+            # 媒体和位置
+            self.media = np.array([canvas])
+            self.pos = Pos(int(0.5833*screensize[0]),y_anchor) # 0.5833*screensize[0] = 1120
+        else:
+            pass
+        # 尺寸和缩放
+        self.size:tuple        = self.media[0].get_size()
+        self.origin_size:tuple = self.size
+        self.scale:float       = 1.0
+        # 其他参数
+        self.tick       = 1
+        self.loop       = False
+        self.this:int   = 0
+        self.length:int = len(self.media)
+        # PR序列
+        self.PR_init(file_index='AMfile_%d')
+    # 获取所有的骰子可能出现的值，用来生成随机的老虎机样式
+    def get_possible_digit(self,dice_max:int) -> tuple:
+        dice_max = 10**(int(np.log10(dice_max))+1)-1
+        possible = {}
+        for i in range(0,100):
+            if dice_max//(10**i)>=10:
+                possible[i] = list(range(0,10))
+            elif dice_max//(10**i)>=1:
+                possible[i] = list(range(0,1+dice_max//(10**i)))
             else:
-                pass
-            self.this = 0
-            self.length=len(self.media)
+                break
+        dice_value = np.repeat('',10)
+        for i in possible.keys():
+            digit = np.array(possible[i])
+            np.random.shuffle(digit) # 乱序
+            if len(digit)<10:
+                digit = np.hstack([digit,np.repeat('',10-len(digit))])
+            dice_value = np.frompyfunc(lambda x,y:x+y,2,1)(digit.astype(str),dice_value)
+        return max(possible.keys())+1,dice_value
+
 # 音效
 class Audio(MediaObj):
     pygame.mixer.init()
     def __init__(self,filepath,label_color='Caribbean'):
         # 文件路径
         super().__init__(filepath=filepath,label_color=label_color)
+        # 载入音频
         try:
             self.media = pygame.mixer.Sound(self.filepath.exact())
         except Exception as E:
             raise MediaError('BadAudio',filepath)
+        # 音频时长：单位是帧！
+        try:
+            self.length:int = int(self.media.get_length()*self.frame_rate)
+        except Exception as E:
+            print(WarningPrint('BadAuLen',self.filepath.exact(),E))
+            self.length:int = 0
+        # PR 项目
+        self.PR_init(file_index='AUfile_%d')
     def display(self,channel,volume=100):
         channel.set_volume(volume/100)
         channel.play(self.media)
-    def get_length(self):
-        return self.media.get_length()
+    def export(self,begin:int)->str:
+        clip_this = self.audio_clip_tplt.format(**{
+            'clipid'    : 'AU_clip_%d'%MediaObj.clip_index,
+            'type'      : self.Audio_type,
+            'clipname'  : self.filename,
+            'audiolen'  : '%d'%self.length,
+            'timebase'  : '%d'%self.frame_rate,
+            'ntsc'      : self.Is_NTSC,
+            'start'     : '%d'%begin,
+            'end'       : '%d'%(begin+self.length),
+            'in'        : '0',
+            'out'       : '%d'%self.length,
+            'fileid'    : self.fileindex,
+            'filename'  : self.filename,
+            'filepath'  : self.xmlpath,
+            'colorlabel': self.label_color
+            })
+        MediaObj.clip_index = MediaObj.clip_index+1
+        return clip_this
+    # 添加了BGM的片段
+    def recode(self)->pydub.AudioSegment:
+        if self.audioseg is None:
+            self.audioseg = pydub.AudioSegment.from_file(self.filepath.exact())
+        return self.audioseg
 # 背景音乐
 class BGM(MediaObj):
     def __init__(self,filepath,volume=100,loop=True,label_color='Caribbean'):
@@ -1273,12 +1382,10 @@ class BGM(MediaObj):
         super().__init__(filepath=filepath,label_color=label_color)
         self.media = self.filepath.exact()
         self.volume = volume/100
-        if loop == True:
-            self.loop = -1 #大概是不可能能放完的
-        else:
-            self.loop = 0
+        self.loop:bool = loop
         if self.filepath.type() not in ['ogg']:#建议的格式
             print(WarningPrint('BadBGMFmt',filepath.split('.')[-1]))
+        self.audioseg = None
     def display(self):
         if pygame.mixer.music.get_busy() == True: #如果已经在播了
             pygame.mixer.music.stop() #停止
@@ -1286,18 +1393,22 @@ class BGM(MediaObj):
         else:
             pass
         pygame.mixer.music.load(self.media) #进碟
-        pygame.mixer.music.play(loops=self.loop) #开始播放
+        pygame.mixer.music.play(loops={False:0,True:-1}[self.loop]) #开始播放
         pygame.mixer.music.set_volume(self.volume) #设置音量
-
-# 导出视频模块 export video
-# 音效
-class Audio_Video(MediaObj):
-    def __init__(self,filepath,label_color='Caribbean'):
-        super().__init__(filepath=filepath,label_color=label_color)
-        self.media = pydub.AudioSegment.from_file(self.filepath.exact())
-# 背景音乐
-class BGM_Video(MediaObj):
-    def __init__(self,filepath,volume=100,loop=True,label_color='Caribbean'):
-        super().__init__(filepath=filepath,label_color=label_color)
-        self.media = pydub.AudioSegment.from_file(self.filepath.exact()) + np.log10(volume/100) * 20 # 调整音量
-        self.loop = loop
+    # 导出视频时的音频操作
+    def recode(self,begin:int,end:int)->pydub.AudioSegment:
+        # 如果还没初始化
+        if self.audioseg is None:
+            # 载入文件，调整音量
+            self.audioseg = pydub.AudioSegment.from_file(self.filepath.exact()) + np.log10(self.volume)*20
+        # 无声的片段
+        clip_empty = pydub.AudioSegment.silent(
+            duration=int((end-begin)/self.frame_rate*1000),
+            frame_rate=48000
+            )
+        # 添加了BGM的片段
+        clip_this = clip_empty.overlay(
+            seg = self.audioseg,
+            loop= self.loop,
+        )
+        return clip_this

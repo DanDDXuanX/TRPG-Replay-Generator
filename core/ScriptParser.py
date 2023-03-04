@@ -11,7 +11,7 @@ import json
 from .Exceptions import DecodeError,ParserError,WarningPrint,SyntaxsError
 from .Regexs import *
 from .Formulas import *
-from .Medias import Text,StrokeText,Bubble,Balloon,DynamicBubble,ChatWindow,Animation,GroupedAnimation,BuiltInAnimation,Background,BGM,Audio
+from .Medias import Text,StrokeText,Bubble,Balloon,DynamicBubble,ChatWindow,Animation,GroupedAnimation,Dice,HitPoint,Background,BGM,Audio
 from .FreePos import Pos,FreePos,PosGrid
 from .FilePaths import Filepath
 from .ProjConfig import Config
@@ -25,7 +25,7 @@ class Script:
         'Pos':Pos,'FreePos':FreePos,'PosGrid':PosGrid,
         'Text':Text,'StrokeText':StrokeText,
         'Bubble':Bubble,'Balloon':Balloon,'DynamicBubble':DynamicBubble,'ChatWindow':ChatWindow,
-        'Animation':Animation,'GroupedAnimation':GroupedAnimation,'BuiltInAnimation':BuiltInAnimation,
+        'Animation':Animation,'GroupedAnimation':GroupedAnimation,'HitPoint':HitPoint,'Dice':Dice,
         'Background':Background,
         'BGM':BGM,'Audio':Audio
         }
@@ -1203,7 +1203,7 @@ class RplGenLog(Script):
                         elif this_am not in self.medias.keys():
                             # 如果媒体名未定义
                             raise ParserError('UndefAnime', this_am, name+'.'+subtype)
-                        elif type(self.medias[this_am]) not in [Animation,GroupedAnimation,BuiltInAnimation]:
+                        elif type(self.medias[this_am]) not in [Animation,GroupedAnimation,Dice,HitPoint]:
                             # 如果媒体不是一个立绘类
                             raise ParserError('NotAnime', this_am, name+'.'+subtype)
                         else:
@@ -1530,7 +1530,7 @@ class RplGenLog(Script):
                             am_name = this_section['object'][idx]
                             if am_name not in self.medias.keys():
                                 raise ParserError('UndefPAnime',am_name,str(i+1))
-                            elif type(self.medias[am_name]) not in [Animation,BuiltInAnimation,GroupedAnimation]:
+                            elif type(self.medias[am_name]) not in [Animation,Dice,HitPoint,GroupedAnimation]:
                                 raise ParserError('NotPAnime',am_name,str(i+1))
                             else:
                                 anime_objs.append(self.medias[am_name])
@@ -1544,7 +1544,7 @@ class RplGenLog(Script):
                     # 如果是单个立绘
                     elif this_section['object'] in self.medias.keys():
                         am_name = this_section['object']
-                        if type(self.medias[am_name]) not in [Animation,BuiltInAnimation,GroupedAnimation]:
+                        if type(self.medias[am_name]) not in [Animation,Dice,HitPoint,GroupedAnimation]:
                             raise ParserError('NotPAnime',am_name,str(i+1))
                         else: # 如果type 不是 Animation 类，也 UndefPAnime
                             this_placed_animation = (am_name,method,method_dur,str(self.medias[am_name].pos))
@@ -1785,10 +1785,11 @@ class RplGenLog(Script):
                     Auto_media_name = 'BIA_'+str(i+1)
                     for layer in range(0,3):
                         # 在媒体列表中添加内建媒体
-                        self.medias[Auto_media_name+'_'+str(layer)] = BuiltInAnimation(
-                            anime_type = 'hitpoint',
-                            anime_args = (this_section['content'],this_section['hp_max'],this_section['hp_begin'],this_section['hp_end']),
-                            screensize = (config.Width,config.Height),
+                        self.medias[Auto_media_name+'_'+str(layer)] = HitPoint(
+                            describe   = this_section['content'],
+                            heart_max  = this_section['hp_max'],
+                            heart_begin= this_section['hp_begin'],
+                            heart_end  = this_section['hp_end'],
                             layer= layer
                             )
                     # 动画参数
@@ -1853,25 +1854,10 @@ class RplGenLog(Script):
                     this_timeline['BG2_a'] = 100
                     # 新建内建动画
                     Auto_media_name = 'BIA_'+str(i+1)
-                    dice_args = []
-                    for idx in this_section['dice_set'].keys():
-                        this_dice = this_section['dice_set'][idx]
-                        if this_dice['check'] is None:
-                            check = -1
-                        else:
-                            check = this_dice['check']
-                        dice_args.append([
-                            this_dice['content'],
-                            this_dice['dicemax'],
-                            check,
-                            this_dice['face'],
-                        ])
                     for layer in range(0,3):
                         # 在媒体列表中添加内建媒体
-                        self.medias[Auto_media_name+'_'+str(layer)] = BuiltInAnimation(
-                            anime_type = 'dice',
-                            anime_args = dice_args,
-                            screensize = (config.Width,config.Height),
+                        self.medias[Auto_media_name+'_'+str(layer)] = Dice(
+                            dice_set = this_section['dice_set'],
                             layer = layer
                             )
                     # 动画参数
