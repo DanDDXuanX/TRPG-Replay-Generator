@@ -1347,6 +1347,7 @@ class Audio(MediaObj):
         except Exception as E:
             print(WarningPrint('BadAuLen',self.filepath.exact(),E))
             self.length:int = 0
+        self.audioseg = None
         # PR 项目
         self.PR_init(file_index='AUfile_%d')
     def display(self,channel,volume=100):

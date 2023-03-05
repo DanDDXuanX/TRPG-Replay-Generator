@@ -1050,9 +1050,9 @@ class RplGenLog(Script):
             self.main_timeline.loc[last_placed_index,'AmS_t'] = self.medias[this_am].get_tick(this_duration)
             self.main_timeline.loc[last_placed_index,'AmS_c'] = am_center
     def execute(self,media_define:MediaDef,char_table:CharTable,config:Config)->pd.DataFrame:
-        # 媒体和角色
-        self.medias:dict = media_define.execute().copy() # 浅复制，只复制了对象地址
-        self.charactors:pd.DataFrame = char_table.execute()
+        # 媒体和角色 # 浅复制，只复制了对象地址
+        self.medias:dict = media_define.Medias.copy()
+        self.charactors:pd.DataFrame = char_table.export().copy()
         # section:小节号, BG: 背景，Am：立绘，Bb：气泡，BGM：背景音乐，Voice：语音，SE：音效
         render_arg = [
         'section',
