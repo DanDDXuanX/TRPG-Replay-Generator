@@ -33,6 +33,7 @@ class ReplayGenerator:
                 # 如果是json输入
                 input_json = Script(json_input=self.json_input)
                 self.config = Config(dict_input=input_json.struct['config'])
+                self.config.execute()
                 # 读取输入工程结构
                 self.medef = MediaDef(dict_input=input_json.struct['medef'])
                 self.chartab = CharTable(dict_input=input_json.struct['chartab'])
@@ -40,6 +41,7 @@ class ReplayGenerator:
             else:
                 # 通过args输入
                 self.config = Config(argparse_input=args)
+                self.config.execute()
                 # 检查输入文件可用性
                 for path in [self.log_path,self.media_path,self.char_path]:
                     if path is None:
@@ -61,7 +63,8 @@ class ReplayGenerator:
         self.main()
    # 执行输入文件
     def execute_input(self):
-        MediaObj.export_xml = True
+        # TODO：把这个对类对象的操作，想个办法封装起来
+        MediaObj.export_xml = False
         MediaObj.output_path = self.output_path
         # log
         try:

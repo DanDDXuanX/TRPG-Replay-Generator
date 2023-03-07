@@ -971,7 +971,6 @@ class Animation(MediaObj):
 
 # 内建动画的基类：不可以直接使用
 class BuiltInAnimation(Animation):
-    BIA_text = Text('./media/SourceHanSerifSC-Heavy.otf',fontsize=int(0.0521*MediaObj.screen_size[0]),color=(255,255,255,255),line_limit=10)
     # 所有的内建动画，在导出PR项目初始化的时候，将图像存储为一个文件
     def PR_init(self, file_index: str = 'None') -> None:
         # 如果不导出PR项目，那么什么都不做
@@ -1057,10 +1056,13 @@ class HitPoint(BuiltInAnimation):
         layer:int       = 0,
         label_color:str = 'Mango'
         ):
+        # 颜色标签
+        self.label_color:str = label_color
+        # 主要字体
+        self.BIA_text = Text('./media/SourceHanSerifSC-Heavy.otf',fontsize=int(0.0521*MediaObj.screen_size[0]),color=(255,255,255,255),line_limit=10)
         # 项目参数
         screensize = self.screen_size
         frame_rate = self.frame_rate
-        self.label_color = label_color
         # 载入图片
         heart = pygame.image.load('./media/heart.png')
         heart_shape = pygame.image.load('./media/heart_shape.png')
@@ -1190,9 +1192,13 @@ class Dice(BuiltInAnimation):
         layer:int       = 0,
         label_color:str = 'Mango'
         ):
+        # 颜色标签
+        self.label_color:str = label_color
+        # 主要字体
+        self.BIA_text = Text('./media/SourceHanSerifSC-Heavy.otf',fontsize=int(0.0521*MediaObj.screen_size[0]),color=(255,255,255,255),line_limit=10)
+        # 屏幕参数
         screensize:tuple = self.screen_size
         frame_rate:int = self.frame_rate
-        self.label_color = label_color
         # 检查参数合法性：
         for idx in dice_set.keys():
             dice = dice_set[idx]

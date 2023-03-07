@@ -514,8 +514,9 @@ class PreviewDisplay(OutputMediaType):
                     this_frame = self.timeline.loc[n]
                     # 渲染！
                     self.render(self.image,this_frame)
+                    et = int(1/(time.time()-ct+1e-4))
                 else:
-                    pass
+                    et = '-'
                 # 显示进度条
                 self.annot.fill([0,0,0,0])
                 self.annot.blit(progress_bar,(0,self.config.Height-self.config.Height//60))
@@ -543,10 +544,10 @@ class PreviewDisplay(OutputMediaType):
                     self.annot.blit(self.note_text.render(detail_info[6].format(this_frame['Am1'],this_frame['Am2'],this_frame['Am3'],this_frame['AmS']),fgcolor=MediaObj.cmap['notetext'],size=0.0185*self.config.Height)[0],(10,10+0.2*self.config.Height))
                     self.annot.blit(self.note_text.render(detail_info[7].format(this_frame['Bb'],this_frame['Bb_header'],this_frame['Bb_main']),fgcolor=MediaObj.cmap['notetext'],size=0.0185*self.config.Height)[0],(10,10+0.2333*self.config.Height))
                     self.annot.blit(self.note_text.render(detail_info[8].format(this_frame['BbS'],this_frame['BbS_header'],this_frame['BbS_main']),fgcolor=MediaObj.cmap['notetext'],size=0.0185*self.config.Height)[0],(10,10+0.2666*self.config.Height))
-                    self.annot.blit(self.note_text.render(detail_info[1].format(int(1/(time.time()-ct+1e-4))),fgcolor=MediaObj.cmap['notetext'],size=0.0185*self.config.Height)[0],(10,10+0.0333*self.config.Height))
+                    self.annot.blit(self.note_text.render(detail_info[1].format(et),fgcolor=MediaObj.cmap['notetext'],size=0.0185*self.config.Height)[0],(10,10+0.0333*self.config.Height))
                 # 仅显示帧率
                 else:
-                    self.annot.blit(self.note_text.render('%d'%(1//(time.time()-ct+1e-4)),fgcolor=MediaObj.cmap['notetext'],size=0.0278*self.config.Height)[0],(10,10)) ##render rate +1e-4 to avoid float divmod()
+                    self.annot.blit(self.note_text.render(str(et),fgcolor=MediaObj.cmap['notetext'],size=0.0278*self.config.Height)[0],(10,10)) ##render rate +1e-4 to avoid float divmod()
                 # 显示到屏幕
                 if resize_screen == 1:
                     # 如果缩放尺寸
@@ -737,9 +738,6 @@ class ExportXML(OutputMediaType):
         self.Audio_type:str  = 'Stereo'
         # 是否强制切割序列，默认是False
         self.force_split_clip:bool = False
-        # 初始化媒体
-        MediaObj.Is_NTSC = self.Is_NTSC
-        MediaObj.Audio_type = self.Audio_type
         # 开始执行主程序
         self.main()
     # 构建序列

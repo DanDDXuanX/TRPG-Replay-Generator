@@ -6,6 +6,7 @@ from .Exceptions import ArgumentError,WarningPrint,Print,RplGenError
 from .Motion import MotionMethod
 from .Medias import MediaObj
 
+# 项目设置
 class Config:
     def __init__(self,dict_input=None,argparse_input=None) -> None:
         if dict_input is not None:
@@ -27,8 +28,6 @@ class Config:
                 self.service_region:str = dict_input['ServRegion']
                 # 导出视频时：视频质量
                 self.crf:int = dict_input['ServRegion']
-                # 导出PR时：是否强制在断点处拆分序列
-                self.force_split_clip:bool = dict_input['ForceSplitClip']
             except:
                 raise ArgumentError('InvDict')
         elif argparse_input is not None:
@@ -49,8 +48,6 @@ class Config:
             self.service_region:str = argparse_input.ServRegion
             # 导出视频时：视频质量
             self.crf:int = argparse_input.Quality
-            # 导出PR时：是否强制在断点处拆分序列
-            self.force_split_clip:bool = argparse_input.ForceSplitClip
         else:
             # 分辨率参数
             self.Width = 1920
@@ -69,8 +66,6 @@ class Config:
             self.service_region:str = 'eastasia'
             # 导出视频时：视频质量
             self.crf:int = 24
-            # 导出PR时：是否强制在断点处拆分序列
-            self.force_split_clip:bool = False
         # 检查：帧率
         if self.frame_rate <= 0:
             raise ArgumentError('FrameRate',str(self.frame_rate))
@@ -81,10 +76,14 @@ class Config:
             raise ArgumentError('Resolution',str((self.Width,self.Height)))
         if self.Width*self.Height > 3e6:
             print(WarningPrint('HighRes'))
-        # 修改其他类的配置项
-        MotionMethod.screen_size = (self.Width,self.Height)
-        MediaObj.screen_size = (self.Width,self.Height)
-        MediaObj.frame_rate = self.frame_rate
+    def execute(self):
+        # 动态效果
+        MotionMethod.screen_size:tuple = (self.Width,self.Height)
+        # 媒体
+        MediaObj.screen_size:tuple     = (self.Width,self.Height)
+        MediaObj.frame_rate:int        = self.frame_rate
+        MediaObj.Is_NTSC:bool          = self.frame_rate % 30 == 0 
+        MediaObj.Audio_type:str        = 'Audio_type'
         # 修改语言
         if self.lang == 'zh':
             # 中文
@@ -94,3 +93,28 @@ class Config:
             # 英文
             Print.lang == 0
             RplGenError.lang = 0
+
+# 程序设置
+class Preference:
+    def __init__(self,dict_input) -> None:
+        # 媒体
+        # 内建动画的字体文件
+        self.BIA_font:str = './media/SourceHanSerifSC-Heavy.otf'
+        # 内建动画的字体大小
+        self.BIA_font_size:float = 0.0521 # W
+        # 生命动画的前景图
+        self.heart_pic:str = './media/heart.png'
+        # 生命动画的背景图
+        self.heart_shape:str = './media/heart_shape.png'
+        # 心与心的距离
+        self.heart_distance:float = 0.026 # W
+        # 预览
+        # theme # light, dark
+        self.theme:str = 'light'
+        # 进度条样式 # color ,black ,disable
+        self.progress_bar_style:str = 'color'
+        # 帧率显示器开启
+        self.framerate_counter:bool = True
+        # 导出PR
+        # 是否强制在断点处拆分序列
+        self.force_split_clip:bool = dict_input['ForceSplitClip']

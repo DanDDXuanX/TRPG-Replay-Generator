@@ -93,9 +93,11 @@ class MediaDef(Script):
         super().__init__(string_input, dict_input, file_input, json_input)
         # 媒体的相对位置@
         if file_input is not None:
-            Filepath.Mediapath = os.path.dirname(file_input.replace('\\','/'))
+            self.media_path = os.path.dirname(file_input.replace('\\','/'))
         elif json_input is not None:
-            Filepath.Mediapath = os.path.dirname(json_input.replace('\\','/'))
+            self.media_path = os.path.dirname(json_input.replace('\\','/'))
+        else:
+            self.media_path = Filepath.RplGenpath
     # MDF -> struct
     def list_parser(self,list_str:str)->list:
         # 列表，元组，不包含外括号
@@ -340,6 +342,9 @@ class MediaDef(Script):
         except KeyError:
             raise SyntaxsError('UndefName',reference_name[1:])
     def execute(self) -> dict:
+        # 执行媒体类的类变量变更
+        Filepath.Mediapath = self.media_path
+        # 媒体对象的容器
         self.Medias = {}
         # 每一个媒体类
         for i,obj_name in enumerate(self.struct.keys()):
