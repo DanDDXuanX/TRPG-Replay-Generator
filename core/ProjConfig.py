@@ -5,6 +5,7 @@
 from .Exceptions import ArgumentError,WarningPrint,Print,RplGenError
 from .Motion import MotionMethod
 from .Medias import MediaObj
+from .TTSengines import Aliyun_TTS_engine,Azure_TTS_engine
 
 # 项目设置
 class Config:
@@ -93,6 +94,13 @@ class Config:
             # 英文
             Print.lang == 0
             RplGenError.lang = 0
+        # 阿里云语音合成key
+        Aliyun_TTS_engine.AKID = self.accesskey
+        Aliyun_TTS_engine.AKKEY = self.accesskey_secret
+        Aliyun_TTS_engine.APPKEY = self.appkey
+        # Azure语音合成key
+        Azure_TTS_engine.AZUKEY = self.azurekey
+        Azure_TTS_engine.service_region = self.service_region
 
 # 程序设置
 class Preference:

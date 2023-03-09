@@ -473,6 +473,8 @@ class WarningPrint(Print):
                         "未给角色“{}”指定一个有效的发音人名。"],
         'SynthFail'   :["Synthesis failed in line {}({}), due to: {}",
                         "第{}行（尝试次数：{}）语音合成失败，由于：{}"],
+        'EmptyText'   :["No word to synthesis in dialog line {}, asterisk mark in this line will be dropped automatically!",
+                        "第{}行（对话行）中无有效的待合成文本，待合成星标将被自动移除！"],
         'BadSpeaker'  :["Unsupported speaker name '{}'.",
                         "不支持的发音人名：“{}”"],
         'PrevFail'    :["Synthesis failed in preview, due to: {}",
