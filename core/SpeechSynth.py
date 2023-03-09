@@ -40,8 +40,6 @@ class SpeechSynthesizer:
         self.medias:dict = mediadef.Medias
         # log文件
         self.rgl:RplGenLog = rplgenlog
-        # 开始执行主流程：主流程将在外部调用，而非初始化时启用。
-        # self.main()
     # 建立语音合成对象
     def bulid_tts_engine(self) -> pd.Series:
         # TTS engines 对象的容器
@@ -114,11 +112,11 @@ class SpeechSynthesizer:
                     print(SynthesisError('FatalError'))
                     return False
                 elif result == 'Empty':
-                    # 小节无有效的文字，移除本小节的待合成星标
-                    this_section['sound_set'].pop('{*}')
-                    continue
+                    # 小节无有效的文字，改为停留1秒
+                    this_asterisk_synth['sound'] = 'NA'
+                    this_asterisk_synth['time'] = 1.0
                 else:
-                    this_asterisk_synth['sound'] = result
+                    this_asterisk_synth['sound'] = "'" + result + "'"
                     this_audio_obj = Audio(result)
                     this_asterisk_synth['time'] = round(this_audio_obj.media.get_length(),2)
             else:
@@ -140,7 +138,7 @@ class SpeechSynthesizer:
         # 输出文件
         ofile = self.output_path +'/'+'auto_AU_%d'%i+'_'+mod62_timestamp()+'.wav'
         # 检查，是不是空文件
-        if re.match('\w+',content) is None:
+        if re.findall('\w+',content) == []:
             print(WarningPrint('EmptyText', str(i)))
             return 'Empty'
         for time_retry in range(1,6):

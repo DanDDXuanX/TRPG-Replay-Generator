@@ -1,14 +1,8 @@
 #ct D:/GitHub/TRPG-Replay-Generator/toy/CharactorTable.tsv
 #md D:/GitHub/TRPG-Replay-Generator/toy/MediaObject.txt
 
-<background><cross=30>:背景1
-<bubble>:聊天窗("伊可#","测试性的说点话吧"<run=30>)
-<wait>:100
-<bubble>:聊天窗("伊可#","再来一句话。"<run=30>)
-<wait>:100
-<bubble>:NA
-[KP.聊天]:以发言行的形式，正常的加入一个句子<run=30>
-# 只放置一个聊天窗，显示历史记录
-<move:聊天窗>:(0,0)
-<bubble>:聊天窗
-<wait>:100
+[张安翔]:摸摸伊可{*}
+[伊可]:这好像不属于我的工作内容吧！{*}
+[张安翔.害怕]:对伊可拳打脚踢{*}
+[伊可.聊天]:（反手就把张安翔按倒在地）{*}
+[KP]:。。。。{*}

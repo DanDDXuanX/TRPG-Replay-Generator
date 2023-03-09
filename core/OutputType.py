@@ -25,7 +25,7 @@ from .Utils import EDITION
 # 输出媒体的基类
 class OutputMediaType:
     # 初始化模块功能，载入外部参数
-    def __init__(self,rplgenlog:RplGenLog,config:Config,output_path):
+    def __init__(self,rplgenlog:RplGenLog,config:Config,output_path:str):
         # 载入项目
         self.timeline:pd.DataFrame = rplgenlog.main_timeline
         self.breakpoint:pd.Series  = rplgenlog.break_point
@@ -252,7 +252,7 @@ class OutputMediaType:
 
 # 以前台预览的形式播放
 class PreviewDisplay(OutputMediaType):
-    def __init__(self, rplgenlog: RplGenLog, config: Config, output_path):
+    def __init__(self, rplgenlog: RplGenLog, config: Config, output_path:str='.'):
         super().__init__(rplgenlog, config, output_path)
         self.main()
     # 重载render，继承显示画面的同时，播放声音
