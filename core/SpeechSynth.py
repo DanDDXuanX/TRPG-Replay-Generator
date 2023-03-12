@@ -7,15 +7,18 @@ import os
 import re
 
 from .ScriptParser import RplGenLog,CharTable,MediaDef
-from .TTSengines import Aliyun_TTS_engine,Azure_TTS_engine
-from .Exceptions import WarningPrint,RplGenError,SynthesisError,SynthPrint
+from .ProjConfig import Config
+from .TTSengines import Aliyun_TTS_engine,Azure_TTS_engine,Beats_engine
+from .Exceptions import WarningPrint,RplGenError,SynthesisError,SynthPrint,ParserError
 from .Medias import Audio
 
 from .Utils import mod62_timestamp,EDITION
 
 class SpeechSynthesizer:
     # 初始化
-    def __init__(self,rplgenlog:RplGenLog,chartab:CharTable,mediadef:MediaDef,output_path:str) -> None:
+    def __init__(self,rplgenlog:RplGenLog,chartab:CharTable,mediadef:MediaDef,output_path:str,config:Config=Config()) -> None:
+        # 项目配置
+        self.config = config
         # 输出路径
         self.output_path = output_path
         # 角色表
@@ -52,10 +55,27 @@ class SpeechSynthesizer:
                     TTS[key] = None
                 # 阿里云模式：如果音源名在音源表内
                 elif value.Voice in Aliyun_TTS_engine.voice_list:
-                    TTS[key] = Aliyun_TTS_engine(name=key, voice=value.Voice, speech_rate=int(value.SpeechRate), pitch_rate=int(value.PitchRate))
+                    TTS[key] = Aliyun_TTS_engine(
+                        name=key,
+                        voice=value.Voice,
+                        speech_rate=int(value.SpeechRate),
+                        pitch_rate=int(value.PitchRate)
+                        )
                 # Azure 模式：如果音源名以 'Azure::' 作为开头
                 elif value.Voice[0:7] == 'Azure::':
-                    TTS[key] = Azure_TTS_engine(name=key, voice=value.Voice[7:], speech_rate=int(value.SpeechRate), pitch_rate=int(value.PitchRate))
+                    TTS[key] = Azure_TTS_engine(
+                        name=key,
+                        voice=value.Voice[7:], 
+                        speech_rate=int(value.SpeechRate),
+                        pitch_rate=int(value.PitchRate)
+                        )
+                # Beats 模式：如果音源名以 'Beats::' 作为开头
+                elif value.Voice[0:7] == 'Beats::':
+                    TTS[key] = Beats_engine(
+                        name=key,
+                        voice=value.Voice[7:],
+                        frame_rate=self.config.frame_rate
+                        )
                 # 否则，是非法的音源名
                 else:
                     print(WarningPrint('BadSpeaker',value.Voice))
@@ -70,12 +90,23 @@ class SpeechSynthesizer:
         return TTS
     # 对log文件施加语音合成: 成功走完流程：True，FatalBreak : False
     def execute(self)->bool:
+        # 为了 Beats，处理遍历log的时候，遍历set行
+        tx_method_default = {'method':'all','method_dur':0}
+        tx_dur_default = 5,
+        # 开始遍历log文件
         for section in self.rgl.struct.keys():
             i = int(section) + 1
             # 当前小节
             this_section:dict = self.rgl.struct[section]
-            # 仅对对话行进行操作
-            if this_section['type'] != 'dialog':
+            # 如果是改变：tx_method 的设置行
+            if this_section['type'] == 'set':
+                if this_section['target'] == 'tx_method_default':
+                    tx_method_default = this_section['value']
+                elif this_section['target'] == 'tx_dur_default':
+                    tx_dur_default = int(this_section['value'])
+                continue
+            # 如果也不是对话行
+            elif this_section['type'] != 'dialog':
                 continue
             # 检查是否需要执行语音合成
             if '{*}' not in this_section['sound_set'].keys():
@@ -100,11 +131,24 @@ class SpeechSynthesizer:
                     print(WarningPrint('UndefChar',this_name_key))
                     continue
                 # 语音合成对象
-                this_TTS_engine:Aliyun_TTS_engine = self.charactor_table.loc[this_name_key,'TTS']
+                this_TTS_engine = self.charactor_table.loc[this_name_key,'TTS']
+                # 非法的语音合成对象
                 if this_TTS_engine is None:
-                    # 非法的语音合成对象
                     print(WarningPrint('CharNoVoice',this_name_key))
                     continue
+                # 如果是节奏音
+                elif type(this_TTS_engine) is Beats_engine:
+                    # 检查，tx_method 的合法性
+                    tx_method = this_section['tx_method'].copy()
+                    if tx_method['method'] == 'default':
+                        tx_method = tx_method_default.copy()
+                    if tx_method['method_dur'] == 'default':
+                        tx_method['method_dur'] = tx_dur_default
+                    # 如果是非法的
+                    if tx_method['method'] not in ['all','w2w','s2s','l2l','run']:
+                        raise ParserError('UnrecPBbTxM',tx_method['method'],str(i+1))
+                    # 更新单位小节时长
+                    this_TTS_engine.tx_method_specify(tx_method)
                 # 输出对象
                 result = self.synthesizer(this_TTS_engine, content=this_content, i=i)
                 if result == 'Fatal':

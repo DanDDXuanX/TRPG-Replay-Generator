@@ -925,7 +925,7 @@ class RplGenLog(Script):
     # 执行解析 -> (timeline:pd.DF,breakpoint:pd.Ser,builtin_media:dict?<方便在其他模块实例化>
     def tx_method_execute(self,content:str,tx_method:dict,line_limit:int,this_duration:int,i=0) -> np.ndarray:
         content_length:int = len(content)
-        UF_limit_content_length:np.ufunc = np.frompyfunc(lambda x:x if x<=content_length else content_length,1,1)
+        UF_limit_content_length:np.ufunc = np.frompyfunc(lambda x:int(x) if x<=content_length else content_length,1,1)
         if this_duration < tx_method['method_dur']:
             # 小节持续时间过短，不显示任何文字效果
             print(WarningPrint('TxMetDrop',str(i+1)))
@@ -942,7 +942,11 @@ class RplGenLog(Script):
             return main_text_eff.astype(int)
         # 逐字显示
         elif tx_method['method'] == 'w2w':
-            return UF_limit_content_length(np.arange(0,this_duration,1)//tx_method['method_dur'])
+            # 在asterisk_pause/2 时间开始显示第一个字
+            delay = int(self.dynamic['asterisk_pause']/2)
+            delay_timeline = np.zeros(delay,dtype=int)
+            w2w_timeline = np.arange(0,this_duration-delay,1)//tx_method['method_dur'] + 1
+            return UF_limit_content_length(np.hstack([delay_timeline,w2w_timeline]))
         # 逐行显示
         elif tx_method['method'] == 'l2l':
             if ((content[0]=='^')|('#' in content)): #如果是手动换行的列
@@ -1617,7 +1621,7 @@ class RplGenLog(Script):
                             tx_method['method_dur'] = self.dynamic['tx_dur_default']
                         # 如果是非法的
                         if tx_method['method'] not in ['all','w2w','s2s','l2l','run']:
-                            raise ParserError('UnrecPBbTxM',self.method_export(tx_method['method']),str(i+1))
+                            raise ParserError('UnrecPBbTxM',tx_method['method'],str(i+1))
                         else:
                             # 如果类型是聊天窗
                             if type(bb_object) is ChatWindow:

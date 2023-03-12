@@ -184,3 +184,52 @@ class Azure_TTS_engine:
             # 删除文件
             # os.remove(ofile)
             raise SynthesisError('AzuErrRetu',cancellation_details.reason)
+
+# 节奏音 alpha 1.22
+class Beats_engine:
+    voice_list = {
+        'dadada': './media/beats/da.wav',
+        'dududu': './media/beats/dang.wav',
+        'kakaka': './media/beats/ka.wav',
+        'zizizi': './media/beats/zi.wav',
+    }
+    def __init__(self,name='unnamed',voice='dadada',aformat='wav',frame_rate:int=30) -> None:
+        # 初始化的参数
+        self.ID = name
+        self.voice = voice
+        self.aformat = aformat
+        # 项目画面的帧率
+        self.frame_rate:int = frame_rate
+        # 载入文件
+        self.unit:pydub.AudioSegment = pydub.AudioSegment.from_file(self.voice_list[self.voice])
+    # 指定一个文字显示效果，重设单位时间
+    def tx_method_specify(self, tx_method:dict)->None:
+        # 通过文字显示方法，获取单个字的时长
+        if tx_method['method'] != 'w2w':
+            print('warning')
+        if tx_method['method_dur'] == 0:
+            print('error')
+        # 单位时间，单位为秒
+        self.time_unit:float = tx_method['method_dur']/self.frame_rate
+    # 开始语音合成
+    def start(self,text:str, ofile:str):
+        self.ofile = ofile
+        # 逐个字遍历text：
+        this_Track = pydub.AudioSegment.silent(
+            duration=int(len(text)*self.time_unit*1000 + 1), # 持续时间=文本时间+1
+            frame_rate=48000
+            )
+        for idx,word in enumerate(text):
+            # 如果是中文、数字、英文，则附加一次单位音频
+            if word.isalnum():
+                this_Track = this_Track.overlay(
+                    seg = self.unit,
+                    position = int(idx*self.time_unit*1000)
+                )
+        # 保存为文件
+        if len(text) >= 5:
+            print_text = text[0:5]+'...'
+        else:
+            print_text = text
+        print("[{0}({1})]: {2} -> '{3}'".format(self.ID,self.voice,print_text,ofile))            
+        this_Track.export(ofile,format='wav')

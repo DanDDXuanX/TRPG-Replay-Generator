@@ -4,7 +4,9 @@ KP	聊天	果汁_聊天窗位置	聊天窗:KP	zhitian	120	-30	Init	Init
 KP	运动	KP头像	气泡右	zhitian	120	-30	Init	Init
 伊可	default	伊可头像	自适应蓝	Azure::zh-CN-YunxiNeural:assistant:1.0:Boy	0	-70	Init	Init
 伊可	聊天	伊可	聊天窗:伊可	Azure::zh-CN-YunxiNeural:assistant:1.0:Boy	0	-70	Init	Init
+伊可	哒哒	伊可	气泡左	Beats::zizizi	0	-70	Init	Init
 张安翔	default	张安翔	气泡左	kenny	100	50	Init	━━━━━━━━━━ 10
 张安翔	害怕	面露难色	气泡左	kenny	100	50	Init	━━━━━━━━━━ 10
 张安翔	血条	张安翔	气球左	kenny	100	50	Init	━━━━━━━━━━ 10
+张安翔	咔咔	张安翔	气泡左	Beats::dududu	100	50	Init	━━━━━━━━━━ 10
 大字	default	NA	全屏大字	NA	NA	NA	Init	Init
