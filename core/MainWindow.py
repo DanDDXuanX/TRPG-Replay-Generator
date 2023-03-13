@@ -28,17 +28,13 @@ class RplGenStudioMainWindow(ttk.Window):
             # overrideredirect,
             alpha=1)
         self.style.configure("TFrame", foreground="black", background="gray")
-        self.root = ttk.Frame(master=self,style='TFrame',borderwidth=3)
-        self.root.pack(fill=tkinter.BOTH)
         # 导航栏
-        self.navigate_bar = NavigateBar(master=self.root,style='TFrame')
-        self.navigate_bar.pack(fill=tkinter.Y,expand=True)
+        self.navigate_bar = NavigateBar(master=self,style='TFrame')
+        self.navigate_bar.pack(fill=tkinter.Y,expand=True,anchor='w')
         # 文字
-        title = ttk.Label(master=self.root, text="litera", font="-size 24 -weight bold")
-        title.pack(side=tkinter.LEFT)
         # 主要循环
         self.mainloop()
 
 class NavigateBar(ttk.Frame):
     def __init__(self,master,style) -> None:
-        super().__init__(master,padding=(10,10,10,0),style=style)
+        super().__init__(master,padding=(10,10,10,0),style=style,width=100)
