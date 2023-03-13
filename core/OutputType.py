@@ -247,8 +247,7 @@ class OutputMediaType:
             try:
                 self.medias[media].convert()
             except Exception as E:
-                print(MediaError('ErrCovert',media,E))
-                sys.exit(1)
+                raise MediaError('ErrCovert',media,E)
 
 # 以前台预览的形式播放
 class PreviewDisplay(OutputMediaType):
@@ -366,8 +365,8 @@ class PreviewDisplay(OutputMediaType):
             width=3
             )
         return (progress_bar_surface,triangular_surface)
-    # 初始化播放窗口
-    def display_init(self)->None:
+    # 初始化播放窗口：异常0，正常1
+    def display_init(self)->int:
         # 修复缩放错误
         # if self.fix_screen == True:
         if True:
@@ -393,9 +392,15 @@ class PreviewDisplay(OutputMediaType):
         self.SOUEFF = pygame.mixer.Channel(2)
         self.channel_list = {'Voice':self.VOICE,'SE':self.SOUEFF}
         # 转换媒体对象
-        self.convert_media_init()
-    # 欢迎界面
-    def welcome(self) -> None:
+        try:
+            self.convert_media_init()
+        except MediaError as E:
+            print(E)
+            return 0
+        # 正常结束
+        return 1
+    # 欢迎界面：2退出、1开始
+    def welcome(self) -> int:
         self.medias['white'].display(self.screen)
         self.screen.blit(pygame.transform.scale(pygame.image.load('./media/icon.png'),(self.config.Height//5,self.config.Height//5)),(0.01*self.config.Height,0.79*self.config.Height))
         self.screen.blit(self.note_text.render('Welcome to TRPG Replay Generator!',fgcolor=(150,150,150,255),size=0.0315*self.config.Width)[0],(0.230*self.config.Width,0.460*self.config.Height)) # for 1080p
@@ -407,17 +412,18 @@ class PreviewDisplay(OutputMediaType):
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
-                    sys.exit(0)
+                    return 2
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         pygame.time.delay(1000)
                         pygame.quit()
-                        sys.exit(0)
+                        return 2
                     elif event.key == pygame.K_SPACE:
                         begin = True
                         break
-    # 播放窗口
-    def preview_display(self) -> None:
+        return 1
+    # 播放窗口：异常0，正常退出1，手动终止2
+    def preview_display(self) -> int:
         # 预览播放参数
         timeline_len = self.breakpoint.max() # 时间轴总长度
         n=0 # 当前帧
@@ -446,14 +452,14 @@ class PreviewDisplay(OutputMediaType):
                     # 关闭窗口事件
                     if event.type == pygame.QUIT:
                         pygame.quit()
-                        sys.exit(0)
+                        return 2
                     # 键盘事件
                     elif event.type == pygame.KEYDOWN:
                         if event.key == pygame.K_ESCAPE:
                             self.stop_SE()
                             pygame.time.delay(1000)
                             pygame.quit()
-                            sys.exit(0)
+                            return 2
                         elif event.key in [pygame.K_a,pygame.K_LEFT]:
                             # 警告：这个地方真的是要执行2次的！
                             n=self.breakpoint[(self.breakpoint-n)<0].max()
@@ -564,19 +570,26 @@ class PreviewDisplay(OutputMediaType):
                 print(E)
                 print(RenderError('BreakFrame',n))
                 pygame.quit()
-                sys.exit(1)
+                return 0
         pygame.quit()
-        sys.exit(0)
-    # 主流程
-    def main(self):
-        # 初始化窗口
-        self.display_init()
-        # 显示欢迎页
-        self.welcome()
-        # 开始播放
-        self.preview_display()
-        # 终止
-        sys.exit(0)
+        return 1
+    # 主流程：异常：0，正常退出：1，手动退出：2
+    def main(self)->int:
+        try:
+            # 初始化窗口
+            flag = self.display_init()
+            if flag == 0:
+                return 0
+            # 显示欢迎页
+            flag = self.welcome()
+            if flag == 2:
+                return 2
+            # 开始播放
+            flag = self.preview_display()
+            return flag
+        except Exception as E:
+            print(E)
+            return 0
 
 # 导出为MP4视频
 class ExportVideo(OutputMediaType):
@@ -639,8 +652,8 @@ class ExportVideo(OutputMediaType):
         main_Track.export(ofile,format='mp3',codec='mp3',bitrate='256k')
         self.audio_path = ofile
         return self.audio_path
-    # 渲染视频流
-    def build_video(self):
+    # 渲染视频流，异常0，正常1
+    def build_video(self)->int:
         # 初始化pygame，建立一个不显示的主画面
         pygame.init()
         self.screen = pygame.display.set_mode((self.config.Width,self.config.Height),pygame.HIDDEN)
@@ -667,7 +680,7 @@ class ExportVideo(OutputMediaType):
                 print(RenderError('BreakFrame',n))
                 self.output_engine.stdin.close()
                 pygame.quit()
-                sys.exit(1)
+                return 0
             if n%self.config.frame_rate == 1:
                 finish_rate = n/self.breakpoint.values.max()
                 used_time = time.time()-begin_time
@@ -687,6 +700,8 @@ class ExportVideo(OutputMediaType):
         print(VideoPrint('CostTime', time.strftime("%H:%M:%S", time.gmtime(used_time))))
         print(VideoPrint('RendSpeed', '%.2f'%(self.breakpoint.max()/used_time)))
         print(VideoPrint('Done',self.output_path+'/'+self.stdin_name+'.mp4'))
+        # 正常退出
+        return 1
     # ffmepg 导出视频的接口
     def ffmpeg_output(self):
         self.vidio_path = self.output_path +'/'+ self.stdin_name+'.mp4'
@@ -712,21 +727,27 @@ class ExportVideo(OutputMediaType):
         )
         return self.vidio_path
     # 主流程
-    def main(self):
-        # 欢迎
-        print(VideoPrint('Welcome',EDITION))
-        print(VideoPrint('SaveAt',self.output_path))
-        # 载入外部输入文件
-        # self.load_medias()
-        # 合成音轨
-        print(VideoPrint('VideoBegin'))
-        self.bulid_audio()
-        print(VideoPrint('AudioDone'))
-        # 导出视频
-        print(VideoPrint('EncoStart'))
-        self.build_video()
-        # 终止
-        sys.exit(0)
+    def main(self)->int:
+        try:
+            # 欢迎
+            print(VideoPrint('Welcome',EDITION))
+            print(VideoPrint('SaveAt',self.output_path))
+            # 载入外部输入文件
+            # self.load_medias()
+            # 合成音轨
+            print(VideoPrint('VideoBegin'))
+            self.bulid_audio()
+            print(VideoPrint('AudioDone'))
+            # 导出视频
+            print(VideoPrint('EncoStart'))
+            flag = self.build_video()
+            if flag == 0:
+                return 0
+        except Exception as E:
+            print(E)
+            return 0
+        # 正常结束
+        return 1
 
 # 导出PR项目
 class ExportXML(OutputMediaType):

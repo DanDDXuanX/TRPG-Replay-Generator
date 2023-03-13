@@ -104,7 +104,7 @@ class Config:
 
 # 程序设置
 class Preference:
-    def __init__(self,dict_input) -> None:
+    def __init__(self,dict_input:dict=None) -> None:
         # 媒体
         # 内建动画的字体文件
         self.BIA_font:str = './media/SourceHanSerifSC-Heavy.otf'
@@ -125,4 +125,4 @@ class Preference:
         self.framerate_counter:bool = True
         # 导出PR
         # 是否强制在断点处拆分序列
-        self.force_split_clip:bool = dict_input['ForceSplitClip']
+        self.force_split_clip:bool = False

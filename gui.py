@@ -3,6 +3,6 @@
 
 # gui的入口
 
-from gui2.GuiInit import RplGenStudioMainWindow
+from core.MainWindow import RplGenStudioMainWindow
 
 RplGenStudioMainWindow()
