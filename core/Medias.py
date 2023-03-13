@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# RplGenCore 涉及的所有媒体类定义
+# 媒体类定义
 
 import numpy as np
 import pygame
@@ -13,6 +13,7 @@ from .Exceptions import MediaError, WarningPrint
 from .Formulas import sigmoid
 
 # 主程序 replay_generator
+
 # 媒体对象，所有媒体类的基类
 class MediaObj:
     # 工程分辨率
@@ -81,6 +82,7 @@ class MediaObj:
     # 转换媒体，仅图像媒体类需要
     def convert(self):
         pass
+
 # 文字对象
 class Text(MediaObj):
     pygame.font.init()
@@ -114,6 +116,7 @@ class Text(MediaObj):
         else:
             out_text = [self.render(text)]
         return out_text
+
 # 描边文本
 class StrokeText(Text):
     pygame.font.init()
@@ -175,6 +178,7 @@ class StrokeText(Text):
             min_alpha = min(self.color[3],self.edge_color[3])
             canvas.set_alpha(min_alpha)
         return canvas
+
 # 气泡
 class Bubble(MediaObj):                                   
     # 初始化
@@ -350,6 +354,7 @@ class Bubble(MediaObj):
     # 转换媒体对象
     def convert(self):
         self.media = self.media.convert_alpha()
+
 # 气球
 class Balloon(Bubble):
     def __init__(
@@ -397,6 +402,7 @@ class Balloon(Bubble):
                 word_w,word_h = s.get_size()
                 temp.blit(s,(x+(self.MainText.size*self.MainText.line_limit - word_w)//2,y+i*self.MainText.size*self.line_distance))
         return (self.media.copy(), temp, self.size)
+
 # 自适应气泡
 class DynamicBubble(Bubble):
     def __init__(
@@ -608,6 +614,7 @@ class DynamicBubble(Bubble):
     def convert(self): # 和Animation类相同的convert
         super().convert()
         self.bubble_clip = np.frompyfunc(lambda x:x.convert_alpha(),1,1)(self.bubble_clip)
+
 # 聊天窗
 class ChatWindow(Bubble):
     def __init__(
@@ -786,6 +793,7 @@ class ChatWindow(Bubble):
         temp.blit(sub_surface,self.sub_pos)
         temp.blit(sub_groupam,(self.am_left,self.sub_pos[1]))
         return (self.media.copy(), temp, self.size)
+
 # 背景
 class Background(MediaObj):
     def __init__(
@@ -880,6 +888,7 @@ class Background(MediaObj):
         return clip_this
     def convert(self):
         self.media = self.media.convert_alpha()
+
 # 立绘
 class Animation(MediaObj):
     def __init__(
@@ -971,6 +980,32 @@ class Animation(MediaObj):
 
 # 内建动画的基类：不可以直接使用
 class BuiltInAnimation(Animation):
+    # BIA初始化：需要在media确定之后！
+    def __init__(
+        self,
+        media:np.ndarray,
+        pos:Pos          = Pos(0,0),
+        BIA_type:str     = 'BIA',
+        label_color:str  = 'Mango') -> None:
+        # 类型
+        self.BIA_type:str = BIA_type
+        # 颜色标签
+        self.label_color:str = label_color
+        # 初始化立绘图像
+        self.media:np.ndarray = media
+        self.length:int = len(self.media)
+        # 位置
+        self.pos = pos
+        # 尺寸
+        self.size:tuple        = self.media[0].get_size()
+        self.origin_size:tuple = self.size
+        self.scale:float       = 1.0
+        # 动画参数
+        self.tick       = 1
+        self.loop       = False
+        self.this:int   = 0
+        # PR序列
+        self.PR_init(file_index='AMfile_%d')
     # 所有的内建动画，在导出PR项目初始化的时候，将图像存储为一个文件
     def PR_init(self, file_index: str = 'None') -> None:
         # 如果不导出PR项目，那么什么都不做
@@ -978,7 +1013,8 @@ class BuiltInAnimation(Animation):
             pass
         else:
             # 保存为文件
-            ofile = self.output_path+'/auto_BIA_%d'%MediaObj.outanime_index+'.png'
+            filename = '/auto_{}_%d.png'.format(self.BIA_type) % MediaObj.outanime_index
+            ofile = self.output_path + filename
             pygame.image.save(self.media[0],ofile)
             self.filepath = Filepath(ofile)
             MediaObj.outanime_index = MediaObj.outanime_index+1
@@ -993,8 +1029,6 @@ class GroupedAnimation(BuiltInAnimation):
             subanimation_current_pos=None,
             label_color='Mango'
             ):
-        # 颜色标签
-        self.label_color:str = label_color
         # 新建空白画板，尺寸为全屏
         canvas_surface:pygame.Surface = pygame.Surface(self.screen_size,pygame.SRCALPHA)
         canvas_surface.fill(self.cmap['empty'])
@@ -1029,21 +1063,13 @@ class GroupedAnimation(BuiltInAnimation):
                         # 如果BIA的参数中没有包括每个子Animation的准确位置，就会一律使用初始化位置
                         # （因为导出模块没有parser，FreePos类都停留在初始化位置）
                         subanimation.display(canvas_surface,center=str(am_pos)) # am_pos = "(0,0)"
-        # 初始化立绘图像
-        self.length:int = 1
-        self.media:np.ndarray = np.array([canvas_surface])
-        # 尺寸
-        self.scale:float   = 1.0
-        self.size:tuple    = self.screen_size
-        self.origin_size:tuple = self.size
-        # PR项目
-        self.PR_init(file_index='AMfile_%d')
-        # 位置
-        self.pos = Pos(0,0)
-        # 动画参数
-        self.loop:bool = False
-        self.this:int  = 0
-        self.tick:int  = 1
+        # 初始化
+        super().__init__(
+            media       = np.array([canvas_surface]),
+            pos         = Pos(0,0),
+            BIA_type    = 'GA',
+            label_color = label_color
+            )
 
 # 血条
 class HitPoint(BuiltInAnimation):
@@ -1056,6 +1082,8 @@ class HitPoint(BuiltInAnimation):
         layer:int       = 0,
         label_color:str = 'Mango'
         ):
+        # 类型
+        self.BIA_type = 'HP'
         # 颜色标签
         self.label_color:str = label_color
         # 主要字体
@@ -1164,17 +1192,13 @@ class HitPoint(BuiltInAnimation):
                 self.media:np.ndarray = np.array([canvas])
         else:
             pass
-        # 尺寸和缩放
-        self.size:tuple        = self.media[0].get_size()
-        self.origin_size:tuple = self.size
-        self.scale:float       = 1.0
-        # 其他参数
-        self.tick       = 1
-        self.loop       = False # TODO：原来是True，但是感觉应该是False才对！
-        self.this:int   = 0
-        self.length:int = len(self.media)
-        # PR序列
-        self.PR_init(file_index='AMfile_%d')
+        # 初始化
+        super().__init__(
+            media       = self.media,
+            pos         = self.pos,
+            BIA_type    = 'HP',
+            label_color = label_color
+            )
 
 # 骰子
 class Dice(BuiltInAnimation):
@@ -1192,8 +1216,6 @@ class Dice(BuiltInAnimation):
         layer:int       = 0,
         label_color:str = 'Mango'
         ):
-        # 颜色标签
-        self.label_color:str = label_color
         # 主要字体
         self.BIA_text = Text('./media/SourceHanSerifSC-Heavy.otf',fontsize=int(0.0521*MediaObj.screen_size[0]),color=(255,255,255,255),line_limit=10)
         # 屏幕参数
@@ -1305,17 +1327,13 @@ class Dice(BuiltInAnimation):
             self.pos = Pos(int(0.5833*screensize[0]),y_anchor) # 0.5833*screensize[0] = 1120
         else:
             pass
-        # 尺寸和缩放
-        self.size:tuple        = self.media[0].get_size()
-        self.origin_size:tuple = self.size
-        self.scale:float       = 1.0
-        # 其他参数
-        self.tick       = 1
-        self.loop       = False
-        self.this:int   = 0
-        self.length:int = len(self.media)
-        # PR序列
-        self.PR_init(file_index='AMfile_%d')
+        # 初始化
+        super().__init__(
+            media       = self.media,
+            pos         = self.pos,
+            BIA_type    = 'DC',
+            label_color = label_color
+            )
     # 获取所有的骰子可能出现的值，用来生成随机的老虎机样式
     def get_possible_digit(self,dice_max:int) -> tuple:
         dice_max = 10**(int(np.log10(dice_max))+1)-1
@@ -1383,6 +1401,7 @@ class Audio(MediaObj):
         if self.audioseg is None:
             self.audioseg = pydub.AudioSegment.from_file(self.filepath.exact())
         return self.audioseg
+
 # 背景音乐
 class BGM(MediaObj):
     def __init__(self,filepath,volume=100,loop=True,label_color='Caribbean'):
