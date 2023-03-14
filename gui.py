@@ -5,4 +5,5 @@
 
 from core.MainWindow import RplGenStudioMainWindow
 
-RplGenStudioMainWindow()
+root = RplGenStudioMainWindow()
+root.mainloop()
