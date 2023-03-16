@@ -5,9 +5,11 @@ import sys
 
 import tkinter as tk
 import ttkbootstrap as ttk
+from ttkbootstrap.scrolled import ScrolledFrame
 from PIL import Image, ImageTk
 
 from .ProjConfig import Preference
+from .ScriptParser import RplGenLog,CharTable,MediaDef
 from .Utils import EDITION
 
 class RplGenStudioMainWindow(ttk.Window):
@@ -23,6 +25,8 @@ class RplGenStudioMainWindow(ttk.Window):
         )
         # 样式
         self.style.configure('secondary.TButton',anchor='w',font="-family 微软雅黑 -size 20 -weight bold",compound='left',padding=(3,0,0,0))
+        self.style.configure('head.TLabel',anchor='w',font="-family 微软雅黑 -size 14 -weight bold",padding=(5,0,5,0))
+        self.style.configure('main.TLabel',anchor='w',font="-family 微软雅黑 -size 10",padding=(5,0,5,0))
         # 导航栏
         self.navigate_bar = NavigateBar(master=self)
         self.navigate_bar.place(x=0,y=0,width=100,relheight=1)
@@ -120,7 +124,7 @@ class ProjectView(ttk.Frame):
         super().__init__(master,borderwidth=0,bootstyle='light')
         self.file_manager  = FileManager(master=self)
         self.page_notebook = PageNotes(master=self)
-        self.page_view     = ttk.Frame(master=self,bootstyle='secondary')
+        self.page_view     = RGLPage(master=self,rgl=RplGenLog(file_input='./toy/LogFile.rgl'))
         self.file_manager.place(x=0,y=0,width=300,relheight=1)
         self.page_notebook.place(x=300,y=0,height=30,relwidth=1,width=-300)
         self.page_view.place(x=300,y=30,relheight=1,height=-30,relwidth=1,width=-300)
@@ -181,7 +185,96 @@ class PageNotes(ttk.Frame):
     def update_item(self):
         for idx,key in enumerate(self.active_page):
             page_label:ttk.Button = self.active_page[key]
-            page_label.pack(fill='y',padx=3,side='left',pady=0)
+            page_label.pack(fill='y',padx=1,side='left',pady=0)
+# 页面视图：Log文件
+class RGLPage(ttk.Frame):
+    def __init__(self,master,rgl:RplGenLog):
+        super().__init__(master,borderwidth=0,bootstyle='primary')
+        # 容器
+        self.container = Container(master=self,content=rgl)
+
+        self.container.place(x=0,y=0,relwidth=0.5,relheight=1)
+
+# 容纳内容的滚动Frame
+class Container(ScrolledFrame):
+    def __init__(self,master,content:RplGenLog):
+        # 初始化基类
+        super().__init__(master=master, padding=3, bootstyle='light', autohide=True,width=500)
+        self.vscroll.config(bootstyle='primary-round')
+        # 滚动条容器的内容物
+        self.content = content
+        # 根据内容物，调整容器总高度
+        self.config(height=100*len(self.content.struct))
+        # 容器内的元件
+        self.element = {}
+        # 遍历内容物，新建元件
+        for key in self.content.struct:
+            this_section = self.content.struct[key]
+            self.element[key] = SectionElememt(master=self,bootstyle='primary',text=key,section=this_section)
+        # 将内容物元件显示出来
+        self.update_item()
+    def update_item(self):
+        for idx,key in enumerate(self.element):
+            this_section_frame:ttk.LabelFrame = self.element[key]
+            this_section_frame.place(x=0,y=idx*100,width=-10,height=95,relwidth=1)
+# 容器中的每个小节
+class SectionElememt(ttk.LabelFrame):
+    def __init__(self,master,bootstyle,text,section:dict):
+        super().__init__(master=master,bootstyle=bootstyle,text=text)
+        if section['type'] == 'blank':
+            self.header = '空行'
+            self.main = ''
+        elif section['type'] == 'comment':
+            self.header = '# 注释'
+            self.main = section['content']
+        elif section['type'] == 'dialog':
+            self.header = section['charactor_set']['0']['name'] + '.' + section['charactor_set']['0']['subtype']
+            self.main = section['content']
+        elif section['type'] == 'background':
+            self.header = '放置气泡：'
+            self.main = section['object']
+        elif section['type'] == 'animation':
+            self.header = '放置立绘：'
+            self.main = str(section['object']) # TODO
+        elif section['type'] == 'bubble':
+            self.header = '放置气泡：'
+            self.main = str(section['object']) # TODO
+        elif section['type'] == 'set':
+            self.header = '设置：' + section['target']
+            self.main = str(section['value']) # TODO
+        elif section['type'] == 'move':
+            self.header = '移动：' + section['target']
+            self.main = str(section['value'])
+        elif section['type'] == 'table':
+            self.header = '表格操作：'
+            self.main = str(section['value'])
+        elif section['type'] == 'music':
+            self.header = '背景音乐：'
+            self.main = str(section['value'])
+        elif section['type'] == 'clear':
+            self.header = '清除'
+            self.main = section['object']
+        elif section['type'] == 'hitpoint':
+            self.header = '生命动画：'
+            self.main = 'WIP'
+        elif section['type'] == 'dice':
+            self.header = '骰子动画：'
+            self.main = 'WIP'
+        elif section['type'] == 'wait':
+            self.header = '停顿：'
+            self.main = str(section['time']) + '帧'
+        
+        self.items = {
+            'head' : ttk.Label(master=self,text=self.header,anchor='w',style='head.TLabel'),
+            'sep'  : ttk.Separator(master=self),
+            'main' : ttk.Label(master=self,text=self.main,anchor='w',style='main.TLabel'),
+        }
+        self.update_item()
+    def update_item(self):
+        for idx,key in enumerate(self.items):
+            this_item:ttk.Label = self.items[key]
+            this_item.pack(fill='x',anchor='w',side='top')
+
 # 脚本视图
 class ScriptView(ttk.Frame):
     pass
