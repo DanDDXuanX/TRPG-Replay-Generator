@@ -16,11 +16,13 @@ class RplGenStudioMainWindow(ttk.Window):
     def __init__(
             self,preference:Preference = Preference()
             )->None:
+        # 系统缩放比例
+        self.screenzoom = self.get_screenzoom()
         super().__init__(
             title       = '回声工坊' + EDITION,
             themename   = 'litera',
             iconphoto   = './media/icon.png',
-            size        = (1500,800),
+            size        = (int(1500*self.screenzoom),int(800*self.screenzoom)),
             resizable   = (True,True),
         )
         # 样式
@@ -28,8 +30,8 @@ class RplGenStudioMainWindow(ttk.Window):
         self.style.configure('head.TLabel',anchor='w',font="-family 微软雅黑 -size 14 -weight bold",padding=(5,0,5,0))
         self.style.configure('main.TLabel',anchor='w',font="-family 微软雅黑 -size 10",padding=(5,0,5,0))
         # 导航栏
-        self.navigate_bar = NavigateBar(master=self)
-        self.navigate_bar.place(x=0,y=0,width=100,relheight=1)
+        self.navigate_bar = NavigateBar(master=self,screenzoom=self.screenzoom)
+        self.navigate_bar.place(x=0,y=0,width=100*self.screenzoom,relheight=1)
         # event
         self.navigate_bar.bind('<ButtonRelease-1>', self.navigateBar_get_click)
         # 视图
@@ -40,21 +42,36 @@ class RplGenStudioMainWindow(ttk.Window):
     # 当导航栏被点击时
     def navigateBar_get_click(self,event):
         is_wide = not self.navigate_bar.is_wide
-        navigate_bar_width = {True:220,False:100}[is_wide]
+        navigate_bar_width = {True:220,False:100}[is_wide] * self.screenzoom
         self.navigate_bar.place_widgets(is_wide)
         self.navigate_bar.place_configure(width=navigate_bar_width)
         self.view[self.show].place_configure(x=navigate_bar_width,width=-navigate_bar_width)
     # 显示指定的视图
     def view_show(self,show:str):
-        navigate_bar_width = {True:220,False:100}[self.navigate_bar.is_wide]
+        navigate_bar_width = {True:220,False:100}[self.navigate_bar.is_wide] * self.screenzoom
         self.view[show].place_forget()
-        self.view[show].place(x=navigate_bar_width,y=0,relwidth=1,relheight=1,width=-navigate_bar_width)
+        self.view[show].place(x=navigate_bar_width,y=0,relwidth=1,relheight=1,width=-navigate_bar_width*self.screenzoom)
         self.show = show
+    # 获取系统的缩放比例
+    def get_screenzoom(self)->float:
+        if 'win32' in sys.platform:
+            from win32.win32gui import GetDC
+            from win32.win32print import GetDeviceCaps
+            from win32.lib.win32con import DESKTOPHORZRES
+            from win32.win32api import GetSystemMetrics
+            hDC = GetDC(0)
+            W = GetDeviceCaps(hDC,DESKTOPHORZRES)
+            w = GetSystemMetrics(0)
+            return W / w
+        else:
+            print(sys.platform)
+            return 1.0
 
 class NavigateBar(ttk.Frame):
-    def __init__(self,master) -> None:
-        super().__init__(master,borderwidth=10,bootstyle='secondary')
-        icon_size = [70,70]
+    def __init__(self,master,screenzoom) -> None:
+        self.screenzoom = screenzoom
+        super().__init__(master,borderwidth=10*self.screenzoom,bootstyle='secondary')
+        icon_size = [int(70*self.screenzoom),int(70*self.screenzoom)]
         self.master = master
         self.is_wide = False
         # 图形
@@ -89,33 +106,35 @@ class NavigateBar(ttk.Frame):
             width = 200
         else:
             width = 80
+        width = int(width*self.screenzoom)
+        distance = int(100 * self.screenzoom)
         # self.titles
         for idx,key in enumerate(self.titles.keys()):
             button = self.titles[key]
             if len(button.place_info())==0:
-                button.place(width=width,height=80,x=0,y=idx*100)
+                button.place(width=width,height=width,x=0,y=idx*distance)
             else:
                 button.place_configure(width=width)
         # ----------
         if len(self.separator.place_info()) == 0:
-            self.separator.place(width=width,x=0,y= idx*100+100)
+            self.separator.place(width=width,x=0,y= (idx+1)*distance)
         else:
             self.separator.place_configure(width=width)
-        y_this = idx*100 + 120
+        y_this = idx*distance + int(120 * self.screenzoom)
         # self.buttons
         for idx,key in enumerate(self.buttons.keys()):
             button = self.buttons[key]
             if len(button.place_info())==0:
-                button.place(width=width,height=80,x=0, y= y_this + idx*100)
+                button.place(width=width,height=width,x=0, y= y_this + idx*distance)
             else:
                 button.place_configure(width=width)
     # 点击按键的绑定事件
     def press_button(self,botton):
         position = {'setting':100,'project':220,'script':320,'console':420}[botton]
         if len(self.choice.place_info()) == 0:
-            self.choice.place(width=5,height=80,x=-5,y= position)
+            self.choice.place(width=5,height=80,x=-5,y= position*self.screenzoom)
         else:
-            self.choice.place_configure(y=position)
+            self.choice.place_configure(y=position*self.screenzoom)
         self.master.view_show(botton)
 
 # 项目视图
