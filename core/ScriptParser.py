@@ -790,6 +790,51 @@ class RplGenLog(Script):
                 else: # {sound}
                     sound_script_list.append('{' + str(sound_obj['sound']) + '}')
         return ''.join(sound_script_list)
+    def anime_export(self,anime_obj:dict)->str:
+        if anime_obj is None:
+            OB = 'NA'
+        elif type(anime_obj) is str:
+            OB =  anime_obj
+        else:
+            OB = '(' + ','.join(anime_obj.values()) + ')'
+        return OB
+    def bubble_export(self,bubble_obj:dict)->str:
+        if bubble_obj is None:
+            OB = 'NA'
+        elif type(bubble_obj) is str:
+            OB = bubble_obj
+        else:
+            bubble_object = bubble_obj
+            TM = self.method_export(bubble_object['tx_method'])
+            OB = '{}("{}","{}"{})'.format(
+                bubble_object['bubble'],
+                bubble_object['header_text'],
+                bubble_object['main_text'],TM)
+        return OB
+    def move_export(self,pos_value:dict)->str:
+        # 重现value
+        if pos_value['operator'] is None:
+            value = MediaDef().value_export(pos_value['pos1'])
+        else:
+            pos1 = MediaDef().value_export(pos_value['pos1'])
+            pos2 = MediaDef().value_export(pos_value['pos2'])
+            value = pos1 + pos_value['operator'] + pos2
+        return value
+    def dice_export(self,dice_obj:dict)->str:
+        list_of_dice_express = []
+        for key in dice_obj.keys():
+            this_dice = dice_obj[key]
+            if this_dice['check'] is None:
+                CK = 'NA'
+            else:
+                CK = int(this_dice['check'])
+            list_of_dice_express.append(
+                '({},{},{},{})'.format(
+                    this_dice['content'],
+                    this_dice['dicemax'],
+                    CK,
+                    this_dice['face']))
+        return ','.join(list_of_dice_express)
     def export(self) -> str:
         list_of_scripts = []
         for key in self.struct.keys():
@@ -827,52 +872,30 @@ class RplGenLog(Script):
             # 立绘
             elif type_this == 'animation':
                 MM = self.method_export(this_section['am_method'])
-                if this_section['object'] is None:
-                    OB = 'NA'
-                elif type(this_section['object']) is str:
-                    OB =  this_section['object']
-                else:
-                    OB = '(' + ','.join(this_section['object'].values()) + ')'
+                OB = self.anime_export(this_section['object'])
                 this_script = '<animation>' + MM + ':' + OB
             # 气泡
             elif type_this == 'bubble':
                 MM = self.method_export(this_section['bb_method'])
-                if this_section['object'] is None:
-                    OB = 'NA'
-                if type(this_section['object']) is str:
-                    OB = this_section['object']
-                else:
-                    bubble_object = this_section['object']
-                    TM = self.method_export(bubble_object['tx_method'])
-                    OB = '{}("{}","{}"{})'.format(
-                        bubble_object['bubble'],
-                        bubble_object['header_text'],
-                        bubble_object['main_text'],TM)
+                OB = self.bubble_export(this_section['object'])
                 this_script = '<bubble>' + MM + ':' + OB
             # 设置
             elif type_this == 'set':
                 if this_section['value_type'] == 'digit':
                     value = str(this_section['value'])
-                    target = this_section['target']
                 elif this_section['value_type'] in ['function','enumerate']:
                     value = this_section['value']
-                    target = this_section['target']
                 elif this_section['value_type'] == 'method':
                     value = self.method_export(this_section['value'])
-                    target = this_section['target']
                 else:
                     continue
+                target = this_section['target']
                 this_script = '<set:{}>:{}'.format(target,value)
             # 移动
             elif type_this == 'move':
                 target = this_section['target']
                 # 重现value
-                if this_section['value']['operator'] is None:
-                    value = MediaDef().value_export(this_section['value']['pos1'])
-                else:
-                    pos1 = MediaDef().value_export(this_section['value']['pos1'])
-                    pos2 = MediaDef().value_export(this_section['value']['pos2'])
-                    value = pos1 + this_section['value']['operator'] + pos2
+                value = self.move_export(this_section['value'])
                 this_script = '<move:{}>:{}'.format(target,value)
             # 表格
             elif type_this == 'table':
@@ -899,20 +922,7 @@ class RplGenLog(Script):
                 )
             # 骰子
             elif type_this == 'dice':
-                list_of_dice_express = []
-                for key in this_section['dice_set'].keys():
-                    this_dice = this_section['dice_set'][key]
-                    if this_dice['check'] is None:
-                        CK = 'NA'
-                    else:
-                        CK = int(this_dice['check'])
-                    list_of_dice_express.append(
-                        '({},{},{},{})'.format(
-                            this_dice['content'],
-                            this_dice['dicemax'],
-                            CK,
-                            this_dice['face']))
-                    this_script = '<dice>:' + ','.join(list_of_dice_express)
+                this_script = '<dice>:' + self.dice_export(this_section['dice_set'])
             # 停留
             elif type_this == 'wait':
                 this_script = '<wait>:{}'.format(this_section['time'])

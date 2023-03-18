@@ -20,17 +20,31 @@ class RplGenStudioMainWindow(ttk.Window):
         self.sz = self.get_screenzoom()
         super().__init__(
             title       = '回声工坊 ' + EDITION,
-            themename   = 'litera',
+            themename   = 'lumen',
             iconphoto   = './media/icon.png',
             size        = (int(1500*self.sz),int(800*self.sz)),
             resizable   = (True,True),
         )
         # 样式
+        # 导航栏的按钮
         self.style.configure('secondary.TButton',anchor='w',font="-family 微软雅黑 -size 20 -weight bold",compound='left',padding=(3,0,0,0))
-        self.style.configure('head.TLabel',anchor='w',font="-family 微软雅黑 -size 14 -weight bold",padding=(5,0,5,0))
-        self.style.configure('main.TLabel',anchor='w',font="-family 微软雅黑 -size 10",padding=(5,0,5,0))
+        self.style.configure('output.TButton',compound='left',font="-family 微软雅黑 -size 14 -weight bold")
+        # 显示内容的头文本
+        self.style.configure('comment.TLabel',anchor='w',font="-family 微软雅黑 -size 12 -weight bold",padding=(5,0,5,0),foreground='#bfbfbf') # 浅灰色
+        self.style.configure('dialog.TLabel',anchor='w',font="-family 微软雅黑 -size 12 -weight bold",padding=(5,0,5,0),foreground='#0066cc') # 蓝色的
+        self.style.configure('setdync.TLabel',anchor='w',font="-family 微软雅黑 -size 12 -weight bold",padding=(5,0,5,0),foreground='#008000') # 绿色的
+        self.style.configure('place.TLabel',anchor='w',font="-family 微软雅黑 -size 12 -weight bold",padding=(5,0,5,0),foreground='#e60074') # 品红
+        self.style.configure('invasterisk.TLabel',anchor='w',font="-family 微软雅黑 -size 12 -weight bold",padding=(5,0,5,0),foreground='#cc0000') # 红色的
+        # 显示内容的主文本
+        self.style.configure('main.TLabel',anchor='w',font="-family 微软雅黑 -size 10",padding=(5,0,5,0)) # 黑色的
+        self.style.configure('ingore.TLabel',anchor='w',font="-family 微软雅黑 -size 10",padding=(5,0,5,0),foreground='#bfbfbf') # 浅灰色
+        self.style.configure('method.TLabel',anchor='w',font="-family 微软雅黑 -size 10 -weight bold",padding=(5,0,5,0),foreground='#bf8000') # 橙色的
+        self.style.configure('digit.TLabel',anchor='w',font="-family 微软雅黑 -size 10 -weight bold",padding=(5,0,5,0),foreground='#6600cc') # 紫色的
+        self.style.configure('fuction.TLabel',anchor='w',font="-family 微软雅黑 -size 10 -weight bold",padding=(5,0,5,0),foreground='#009898') # 蓝色的
+        self.style.configure('object.TLabel',anchor='w',font="-family 微软雅黑 -size 10 -weight bold",padding=(5,0,5,0),foreground='#303030') # 深灰色
+        self.style.configure('exception.TLabel',anchor='w',font="-family 微软雅黑 -size 10 -weight bold",padding=(5,0,5,0),foreground='#cc0000') # 红色的
+        # 预览窗体
         self.style.configure('preview.TLabel',anchor='nw',background='#000000',borderwidth=0)
-        self.style.configure('note.TLabel',anchor='w',background='#00000000')
         # 导航栏
         self.navigate_bar = NavigateBar(master=self,screenzoom=self.sz)
         self.navigate_bar.place(x=0,y=0,width=100*self.sz,relheight=1)
@@ -168,7 +182,7 @@ class ProjectView(ttk.Frame):
         # 子元件
         self.file_manager  = FileManager(master=self, screenzoom=self.sz)
         self.page_notebook = PageNotes(master=self, screenzoom=self.sz)
-        self.page_view     = RGLPage(master=self, screenzoom=self.sz, rgl = RplGenLog(file_input='./toy/LogFile.rgl'))
+        self.page_view     = RGLPage(master=self, screenzoom=self.sz, rgl = RplGenLog(file_input=r"E:\Data\20220419_星尘的研究\project\Research-of-Stardust\Log_20.rgl"))
         # 摆放子元件
         self.update_item()
     def update_item(self):
@@ -332,12 +346,19 @@ class OutPutCommand(ttk.Frame):
         # 缩放尺度
         self.sz = screenzoom
         super().__init__(master,borderwidth=0,bootstyle='light')
+        icon_size = [int(30*self.sz),int(30*self.sz)]
+        self.image = {
+            'display'   : ImageTk.PhotoImage(name='display',image=Image.open('./media/icon/display.png').resize(icon_size)),
+            'exportpr'    : ImageTk.PhotoImage(name='exportpr', image=Image.open('./media/icon/premiere.png').resize(icon_size)),
+            'recode'   : ImageTk.PhotoImage(name='recode',image=Image.open('./media/icon/ffmpeg.png').resize(icon_size)),
+        }
         self.buttons = {
-            'display' : ttk.Button(master=self,text='播放预览',bootstyle='primary'),
-            'export'  : ttk.Button(master=self,text='导出PR工程',bootstyle='info'),
-            'recode'  : ttk.Button(master=self,text='导出视频',bootstyle='danger'),
+            'display' : ttk.Button(master=self,image='display',text='播放预览',compound='left',style='output.TButton'),
+            'export'  : ttk.Button(master=self,image='exportpr',text='导出PR工程',compound='left',style='output.TButton'),
+            'recode'  : ttk.Button(master=self,image='recode',text='导出视频',compound='left',style='output.TButton'),
         }
         self.update_item()
+        
     def update_item(self):
         for key in self.buttons:
             item:ttk.Button = self.buttons[key]
@@ -349,82 +370,224 @@ class Container(ScrolledFrame):
         self.sz = screenzoom
         super().__init__(master=master, padding=3, bootstyle='light', autohide=True)
         self.vscroll.config(bootstyle='primary-round')
+        self.container.config(bootstyle='light')
         # 滚动条容器的内容物
         self.content = content
         # 根据内容物，调整容器总高度
-        self.config(height=int(80*self.sz)*len(self.content.struct))
+        self.config(height=int(60*self.sz)*len(self.content.struct))
         # 容器内的元件
         self.element = {}
+        # 按键绑定
+        self.bind('Ctrl-a',lambda event:self.select_all(event)) # BUG 现在是无法生效的，因为事件绑定的focus问题
         # 遍历内容物，新建元件
         for key in self.content.struct:
             this_section = self.content.struct[key]
-            self.element[key] = SectionElememt(master=self,bootstyle='primary',text=key,section=this_section)
+            self.element[key] = SectionElememt(
+                master=self,
+                bootstyle='primary',
+                text=key,
+                section=this_section,
+                screenzoom=self.sz)
+        # 当前选中的对象
+        self.selected:list = []
         # 将内容物元件显示出来
         self.update_item()
     def update_item(self):
-        SZ_80 = int(self.sz * 80)
-        SZ_75 = int(self.sz * 75)
+        SZ_80 = int(self.sz * 60)
+        SZ_75 = int(self.sz * 55)
         sz_10 = int(self.sz * 10)
         for idx,key in enumerate(self.element):
             this_section_frame:ttk.LabelFrame = self.element[key]
             this_section_frame.place(x=0,y=idx*SZ_80,width=-sz_10,height=SZ_75,relwidth=1)
+    def select_item(self,event,index,add=False):
+        # 根据点击的y，定位本次选中的
+        selected_idx = index
+        if selected_idx in self.element.keys():
+            if add is not True:
+                # 先清空选中的列表
+                for idx in self.selected:
+                    self.element[idx].drop_select()
+                self.selected.clear()
+            # 添加本次选中的
+            self.element[selected_idx].get_select()
+            self.selected.append(selected_idx)
+    def select_all(self,event):
+        print(event)
+        # 选中所有的
+        for idx in self.element:
+            self.select_item(event=event,index=idx,add=True)
+
 # 容器中的每个小节
 class SectionElememt(ttk.LabelFrame):
-    def __init__(self,master,bootstyle,text,section:dict):
-        super().__init__(master=master,bootstyle=bootstyle,text=text)
-        if section['type'] == 'blank':
+    RGLscript = RplGenLog()
+    def __init__(self,master,bootstyle,text,section:dict,screenzoom):
+        self.sz = screenzoom
+        self.line_type = section['type']
+        self.idx = text # 序号
+        super().__init__(master=master,bootstyle=bootstyle,text=text,labelanchor='e')
+        # 从小节中获取文本
+        self.update_text_from_section(section=section)
+        self.items = {
+            'head' : ttk.Label(master=self,text=self.header,anchor='w',style=self.hstyle+'.TLabel'),
+            'sep'  : ttk.Separator(master=self),
+            'main' : ttk.Label(master=self,text=self.main,anchor='w',style=self.mstyle+'.TLabel'),
+        }
+        self.select_symbol = ttk.Frame(master=self,bootstyle='primary')
+        self.update_item()
+    def update_text_from_section(self,section):
+        # 确认显示内容
+        if   self.line_type == 'blank':
             self.header = '空行'
             self.main = ''
-        elif section['type'] == 'comment':
+            self.hstyle = 'comment'
+            self.mstyle = 'ingore'
+        elif self.line_type == 'comment':
             self.header = '# 注释'
             self.main = section['content']
-        elif section['type'] == 'dialog':
-            self.header = section['charactor_set']['0']['name'] + '.' + section['charactor_set']['0']['subtype']
+            self.hstyle = 'comment'
+            self.mstyle = 'ingore'
+        elif self.line_type == 'dialog':
+            # 如果是默认，那么仅显示名字
+            if section['charactor_set']['0']['subtype'] == 'default':
+                self.header = '[{}]'.format(
+                    section['charactor_set']['0']['name']
+                )
+            else:
+                self.header = '[{}.{}]'.format(
+                    section['charactor_set']['0']['name'],
+                    section['charactor_set']['0']['subtype']
+                    )
+            # 主文本
             self.main = section['content']
-        elif section['type'] == 'background':
-            self.header = '放置气泡：'
+            self.hstyle = 'dialog'
+            self.mstyle = 'main'
+            # 显示星标
+            if '*' in section['sound_set'].keys():
+                self.header = self.header + '\t★' 
+            elif '{*}' in section['sound_set'].keys():
+                self.header = self.header + '\t★'
+                self.hstyle = 'invasterisk'
+            else:
+                self.mstyle = 'main'
+        elif self.line_type == 'background':
+            self.header = '<放置背景>'
             self.main = section['object']
-        elif section['type'] == 'animation':
-            self.header = '放置立绘：'
-            self.main = str(section['object']) # TODO
-        elif section['type'] == 'bubble':
-            self.header = '放置气泡：'
-            self.main = str(section['object']) # TODO
-        elif section['type'] == 'set':
-            self.header = '设置：' + section['target']
-            self.main = str(section['value']) # TODO
-        elif section['type'] == 'move':
-            self.header = '移动：' + section['target']
+            self.hstyle = 'place'
+            self.mstyle = 'object'
+        elif self.line_type == 'animation':
+            self.header = '<放置立绘>'
+            self.main = self.RGLscript.anime_export(section['object'])
+            self.hstyle = 'place'
+            self.mstyle = 'object'
+        elif self.line_type == 'bubble':
+            self.header = '<放置气泡>'
+            self.main = self.RGLscript.bubble_export(section['object'])
+            self.hstyle = 'place'
+            self.mstyle = 'object'
+        elif self.line_type == 'set':
+            target,unit = {
+                #默认切换效果（立绘）
+                'am_method_default' : ['默认切换效果-立绘',''],
+                #默认切换效果持续时间（立绘）
+                'am_dur_default'    : ['默认切换时间-立绘',' 帧'],
+                #默认切换效果（文本框）
+                'bb_method_default' : ['默认切换效果-气泡',''],
+                #默认切换效果持续时间（文本框）
+                'bb_dur_default'    : ['默认切换时间-气泡',' 帧'],
+                #默认切换效果（背景）
+                'bg_method_default' : ['默认切换效果-背景',''],
+                #默认切换时间（背景）
+                'bg_dur_default'    : ['默认切换时间-背景',' 帧'],
+                #默认文本展示方式
+                'tx_method_default' : ['默认文本展示效果',''],
+                #默认单字展示时间参数
+                'tx_dur_default'    : ['默认单字时间',' 帧/字'],
+                #语速，单位word per minute
+                'speech_speed'      : ['缺省星标时的语速',' 字/分钟'],
+                #默认的曲线函数
+                'formula'           : ['动画函数的曲线',''],
+                # 星标音频的句间间隔 a1.4.3，单位是帧，通过处理delay
+                'asterisk_pause'    : ['星标小节的间距时间',' 帧'],
+                # a 1.8.8 次要立绘的默认透明度
+                'secondary_alpha'   : ['次要角色立绘的默认透明度',' %'],
+                # 对话行内指定的方法的应用对象：animation、bubble、both、none
+                'inline_method_apply' : ['对话行内效果的应用范围','']
+            }[section['target']]
+            self.header = '<设置：' + target + '>'
+            if section['value_type'] == 'digit':
+                value = str(section['value'])
+                self.mstyle = 'digit'
+            elif section['value_type'] in ['function','enumerate']:
+                value = section['value']
+                self.mstyle = 'fuction'
+            elif section['value_type'] == 'method':
+                value = self.RGLscript.method_export(section['value'])
+                self.mstyle = 'method'
+            else:
+                value = '错误'
+                self.mstyle = 'exception'
+            self.main = value + unit
+            # 判断类型
+            self.hstyle = 'setdync'
+        elif self.line_type == 'move':
+            self.header = '<移动：' + section['target'] + '>'
+            self.main = self.RGLscript.move_export(section['value'])
+            self.hstyle = 'setdync'
+            self.mstyle = 'object'
+        elif self.line_type == 'table':
+            if section['target']['subtype'] is None:
+                target = section['target']['name'] +'.'+ section['target']['column']
+            else:
+                target = section['target']['name'] +'.'+ section['target']['subtype'] +'.'+ section['target']['column']
+            self.header = '<表格：' + target + '>'
             self.main = str(section['value'])
-        elif section['type'] == 'table':
-            self.header = '表格操作：'
+            self.hstyle = 'setdync'
+            self.mstyle = 'main'
+        elif self.line_type == 'music':
+            self.header = '<背景音乐>'
             self.main = str(section['value'])
-        elif section['type'] == 'music':
-            self.header = '背景音乐：'
-            self.main = str(section['value'])
-        elif section['type'] == 'clear':
-            self.header = '清除'
+            self.hstyle = 'setdync'
+            self.mstyle = 'object'
+        elif self.line_type == 'clear':
+            self.header = '<清除>'
             self.main = section['object']
-        elif section['type'] == 'hitpoint':
-            self.header = '生命动画：'
-            self.main = 'WIP'
-        elif section['type'] == 'dice':
-            self.header = '骰子动画：'
-            self.main = 'WIP'
-        elif section['type'] == 'wait':
-            self.header = '停顿：'
-            self.main = str(section['time']) + '帧'
-        
-        self.items = {
-            'head' : ttk.Label(master=self,text=self.header,anchor='w',style='head.TLabel'),
-            'sep'  : ttk.Separator(master=self),
-            'main' : ttk.Label(master=self,text=self.main,anchor='w',style='main.TLabel'),
-        }
-        self.update_item()
+            self.hstyle = 'place'
+            self.mstyle = 'object'
+        elif self.line_type == 'hitpoint':
+            self.header = '<生命动画>'
+            self.main = '({},{},{},{})'.format(
+                section['content'],
+                section['hp_max'],
+                section['hp_begin'],
+                section['hp_end']
+                )
+            self.hstyle = 'place'
+            self.mstyle = 'object'
+        elif self.line_type == 'dice':
+            self.header = '<骰子动画>'
+            self.main = self.RGLscript.dice_export(section['dice_set'])
+            self.hstyle = 'place'
+            self.mstyle = 'object'
+        elif self.line_type == 'wait':
+            self.header = '<停顿>'
+            self.main = str(section['time']) + ' 帧'
+            self.hstyle = 'place'
+            self.mstyle = 'digit'
     def update_item(self):
+        SZ_25 = int(self.sz * 25)
         for idx,key in enumerate(self.items):
             this_item:ttk.Label = self.items[key]
             this_item.pack(fill='x',anchor='w',side='top')
+            # 按键点击事件
+            this_item.bind('<Button-1>',lambda event:self.master.select_item(event,index=self.idx,add=False))
+            this_item.bind('<Shift-Button-1>',lambda event:self.master.select_item(event,index=self.idx,add=True))
+
+    def get_select(self):
+        SZ_5 = int(self.sz * 5)
+        self.select_symbol.place(x=0,y=0,width=SZ_5,relheight=1)
+    def drop_select(self):
+        self.select_symbol.place_forget()
+
 # 预览窗
 class PreviewCanvas(ttk.LabelFrame):
     def __init__(self,master,screenzoom):
@@ -432,7 +595,7 @@ class PreviewCanvas(ttk.LabelFrame):
         self.sz = screenzoom
         super().__init__(master=master,bootstyle='primary',text='预览窗')
         # 预览图像
-        self.canvas = Image.open('./media/canvas.png')
+        self.canvas = Image.open('./toy/media/bg2.jpg')
         self.canvas_zoom = tk.DoubleVar(master=self,value=0.4)
         self.image = ImageTk.PhotoImage(
             image=self.canvas.resize([
@@ -446,6 +609,7 @@ class PreviewCanvas(ttk.LabelFrame):
             'zoomlb': ttk.Label(master=self,text='缩放'),
             'zoomcb': ttk.Spinbox(master=self,from_=0.1,to=1.0,increment=0.01,textvariable=self.canvas_zoom,width=5,command=self.update_zoom),
         }
+        self.items['zoomcb'].bind('<Return>',lambda event:self.update_zoom())
         self.update_item()
     def update_item(self):
         SZ_40 = int(self.sz * 40)
@@ -471,7 +635,7 @@ class EditWindow(ttk.LabelFrame):
         # 小节的数据
        # self.section = section
        # # 根据小节类型
-       # if self.section['type'] == 'dialog':
+       # if self.self.line_type == 'dialog':
        #     pass
 # 脚本视图
 class ScriptView(ttk.Frame):

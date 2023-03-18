@@ -6,7 +6,7 @@
 
 <set:bg_method_default>:<cross=30>
 <set:formula>:sincurve
-<BGM>:背景音乐
+<BGM>:'./toy/media/BGM.ogg'
 
 <background>:black
 [大字]<black=30>:序：基本介绍
