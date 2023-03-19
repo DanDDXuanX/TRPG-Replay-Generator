@@ -3,6 +3,7 @@
 
 import sys
 
+import numpy as np
 import tkinter as tk
 import ttkbootstrap as ttk
 from ttkbootstrap.scrolled import ScrolledFrame
@@ -11,6 +12,8 @@ from PIL import Image, ImageTk
 from .ProjConfig import Preference
 from .ScriptParser import RplGenLog,CharTable,MediaDef
 from .Utils import EDITION
+from .FilePaths import Filepath
+from .Medias import MediaObj
 
 class RplGenStudioMainWindow(ttk.Window):
     def __init__(
@@ -29,6 +32,23 @@ class RplGenStudioMainWindow(ttk.Window):
         # 导航栏的按钮
         self.style.configure('secondary.TButton',anchor='w',font="-family 微软雅黑 -size 20 -weight bold",compound='left',padding=(3,0,0,0))
         self.style.configure('output.TButton',compound='left',font="-family 微软雅黑 -size 14 -weight bold")
+        # 媒体定义的颜色标签
+        self.style.configure('Violet.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=(5,0,5,0),foreground='#ffffff',background='#a690e0')
+        self.style.configure('Iris.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=(5,0,5,0),foreground='#ffffff',background='#729acc')
+        self.style.configure('Caribbean.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=(5,0,5,0),foreground='#ffffff',background='#29d698')
+        self.style.configure('Lavender.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=(5,0,5,0),foreground='#ffffff',background='#e384e3')
+        self.style.configure('Cerulean.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=(5,0,5,0),foreground='#ffffff',background='#2fbfde')
+        self.style.configure('Forest.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=(5,0,5,0),foreground='#ffffff',background='#51b858')
+        self.style.configure('Rose.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=(5,0,5,0),foreground='#ffffff',background='#f76fa4')
+        self.style.configure('Mango.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=(5,0,5,0),foreground='#ffffff',background='#eda63b')
+        self.style.configure('Purple.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=(5,0,5,0),foreground='#ffffff',background='#970097')
+        self.style.configure('Blue.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=(5,0,5,0),foreground='#ffffff',background='#3c3cff')
+        self.style.configure('Teal.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=(5,0,5,0),foreground='#ffffff',background='#008080')
+        self.style.configure('Magenta.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=(5,0,5,0),foreground='#ffffff',background='#e732e7')
+        self.style.configure('Tan.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=(5,0,5,0),foreground='#ffffff',background='#cec195')
+        self.style.configure('Green.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=(5,0,5,0),foreground='#ffffff',background='#1d7021')
+        self.style.configure('Brown.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=(5,0,5,0),foreground='#ffffff',background='#8b4513')
+        self.style.configure('Yellow.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=(5,0,5,0),foreground='#ffffff',background='#e2e264')
         # 显示内容的头文本
         self.style.configure('comment.TLabel',anchor='w',font="-family 微软雅黑 -size 12 -weight bold",padding=(5,0,5,0),foreground='#bfbfbf') # 浅灰色
         self.style.configure('dialog.TLabel',anchor='w',font="-family 微软雅黑 -size 12 -weight bold",padding=(5,0,5,0),foreground='#0066cc') # 蓝色的
@@ -182,7 +202,9 @@ class ProjectView(ttk.Frame):
         # 子元件
         self.file_manager  = FileManager(master=self, screenzoom=self.sz)
         self.page_notebook = PageNotes(master=self, screenzoom=self.sz)
-        self.page_view     = RGLPage(master=self, screenzoom=self.sz, rgl = RplGenLog(file_input=r"E:\Data\20220419_星尘的研究\project\Research-of-Stardust\Log_20.rgl"))
+        # self.page_view     = RGLPage(master=self, screenzoom=self.sz, rgl = RplGenLog(file_input=r"E:\Data\20220419_星尘的研究\project\Research-of-Stardust\Log_20.rgl"))
+        # self.page_view = MDFPage(master=self, screenzoom=self.sz ,mdf=MediaDef(file_input=r"E:\Data\20220419_星尘的研究\project\Research-of-Stardust\medef.txt"),media_type='Audio')
+        self.page_view = MDFPage(master=self, screenzoom=self.sz ,mdf=MediaDef(file_input="./toy/MediaObject.txt"),media_type='Bubble')
         # 摆放子元件
         self.update_item()
     def update_item(self):
@@ -293,17 +315,41 @@ class RGLPage(ttk.Frame):
         # 缩放尺度
         self.sz = screenzoom
         super().__init__(master,borderwidth=0,bootstyle='primary')
-        # 容器
+        # 元件
         self.searchbar = SearchBar(master=self,screenzoom=self.sz)
-        self.container = Container(master=self,content=rgl,screenzoom=self.sz)
+        self.container = RGLContainer(master=self,content=rgl,screenzoom=self.sz)
         self.outputcommand = OutPutCommand(master=self,screenzoom=self.sz)
         self.preview = PreviewCanvas(master=self,screenzoom=self.sz)
-        self.edit = EditWindow(master=self,screenzoom=self.sz,section=rgl.struct['10'])
+        self.edit = EditWindow(master=self,screenzoom=self.sz,section=rgl.struct['0'])
         # 放置元件
         SZ_40 = int(self.sz * 40)
         self.searchbar.place(x=0,y=0,relwidth=0.5,height=SZ_40)
         self.container.place(x=0,y=SZ_40,relwidth=0.5,relheight=1,height=-2*SZ_40)
         self.outputcommand.place(x=0,y=-SZ_40,rely=1,relwidth=0.5,height=SZ_40)
+        self.preview.place(relx=0.5,rely=0,relwidth=0.5,relheight=0.5)
+        self.edit.place(relx=0.5,rely=0.5,relwidth=0.5,relheight=0.5)
+# 页面视图：媒体定义文件
+class MDFPage(ttk.Frame):
+    categroy_dict = {
+        'Pos'       : ['Pos','FreePos','PosGrid'],
+        'Animation' : ['Animation'],
+        'Bubble'    : ['Bubble','Balloon','DynamicBubble','ChatWindow'],
+        'Background': ['Background'],
+        'Audio'     : ['Audio','BGM'],
+    }
+    def __init__(self,master,screenzoom,mdf:MediaDef,media_type='Animation'):
+        # 缩放尺度
+        self.sz = screenzoom
+        super().__init__(master,borderwidth=0,bootstyle='primary')
+        # 元件
+        self.searchbar = SearchBar(master=self,screenzoom=self.sz)
+        self.container = MDFContainer(master=self,content=mdf,typelist=self.categroy_dict[media_type],screenzoom=self.sz)
+        self.preview = PreviewCanvas(master=self,screenzoom=self.sz)
+        self.edit = EditWindow(master=self,screenzoom=self.sz,section=mdf.struct['0'])
+        # 放置元件
+        SZ_40 = int(self.sz * 40)
+        self.searchbar.place(x=0,y=0,relwidth=0.5,height=SZ_40)
+        self.container.place(x=0,y=SZ_40,relwidth=0.5,relheight=1,height=-SZ_40)
         self.preview.place(relx=0.5,rely=0,relwidth=0.5,relheight=0.5)
         self.edit.place(relx=0.5,rely=0.5,relwidth=0.5,relheight=0.5)
 # 搜索窗口
@@ -364,25 +410,25 @@ class OutPutCommand(ttk.Frame):
             item:ttk.Button = self.buttons[key]
             item.pack(fill='both',side='left',expand=True,pady=0)
 # 容纳内容的滚动Frame
-class Container(ScrolledFrame):
+class RGLContainer(ScrolledFrame):
     def __init__(self,master,content:RplGenLog,screenzoom):
         # 初始化基类
         self.sz = screenzoom
         super().__init__(master=master, padding=3, bootstyle='light', autohide=True)
         self.vscroll.config(bootstyle='primary-round')
         self.container.config(bootstyle='light',takefocus=True)
+        # 按键绑定
+        self.container.bind('<Control-Key-a>',lambda event:self.select_range(event,index=False),"+")
         # 滚动条容器的内容物
         self.content = content
         # 根据内容物，调整容器总高度
         self.config(height=int(60*self.sz)*len(self.content.struct))
         # 容器内的元件
         self.element = {}
-        # 按键绑定
-        self.container.bind('<Control-Key-a>',lambda event:self.select_range(event,index=False),"+")
         # 遍历内容物，新建元件
         for key in self.content.struct:
             this_section = self.content.struct[key]
-            self.element[key] = SectionElememt(
+            self.element[key] = RGLSectionElement(
                 master=self,
                 bootstyle='primary',
                 text=key,
@@ -393,12 +439,12 @@ class Container(ScrolledFrame):
         # 将内容物元件显示出来
         self.update_item()
     def update_item(self):
-        SZ_80 = int(self.sz * 60)
-        SZ_75 = int(self.sz * 55)
+        SZ_60 = int(self.sz * 60)
+        SZ_55 = int(self.sz * 55)
         sz_10 = int(self.sz * 10)
         for idx,key in enumerate(self.element):
             this_section_frame:ttk.LabelFrame = self.element[key]
-            this_section_frame.place(x=0,y=idx*SZ_80,width=-sz_10,height=SZ_75,relwidth=1)
+            this_section_frame.place(x=0,y=idx*SZ_60,width=-sz_10,height=SZ_55,relwidth=1)
     def select_item(self,event,index,add=False):
         self.container.focus_set()
         # 根据点击的y，定位本次选中的
@@ -425,9 +471,71 @@ class Container(ScrolledFrame):
             effect_range = range(this_selected_idx,last_selected_idx,{True:1,False:-1}[last_selected_idx>=this_selected_idx])
         for idx in effect_range:
             self.select_item(event=event,index=str(idx),add=True)
-
+class MDFContainer(ScrolledFrame):
+    def __init__(self,master,content:MediaDef,typelist:list,screenzoom):
+        # 初始化基类
+        self.sz = screenzoom
+        super().__init__(master=master, padding=3, bootstyle='light', autohide=True)
+        self.vscroll.config(bootstyle='primary-round')
+        self.container.config(bootstyle='light',takefocus=True)
+        # 按键绑定
+        self.container.bind('<Control-Key-a>',lambda event:self.select_range(event,index=False),"+")
+        # 滚动条容器的内容物
+        self.content = content
+        # 根据内容物，调整容器总高度
+        # 容器内的元件
+        self.element = {}
+        # 遍历内容物，新建元件
+        for key in self.content.struct:
+            this_section = self.content.struct[key]
+            if this_section['type'] not in typelist:
+                continue
+            self.element[key] = MDFSectionElement(
+                master=self,
+                bootstyle='secondary',
+                text=key,
+                section=this_section,
+                screenzoom=self.sz)
+        self.config(height=int(200*self.sz*np.ceil(len(self.element)/3)))
+        # 当前选中的对象
+        self.selected:list = []
+        # 将内容物元件显示出来
+        self.update_item()
+    def update_item(self):
+        SZ_100 = int(self.sz * 200)
+        SZ_95 = int(self.sz * 190)
+        sz_10 = int(self.sz * 10)
+        for idx,key in enumerate(self.element):
+            this_section_frame:ttk.LabelFrame = self.element[key]
+            this_section_frame.place(relx=idx%3 * 0.33,y=idx//3*SZ_100,width=-sz_10,height=SZ_95,relwidth=0.33)
+    def select_item(self,event,index,add=False):
+        self.container.focus_set()
+        # 根据点击的y，定位本次选中的
+        selected_idx = index
+        if selected_idx in self.element.keys():
+            if add is not True:
+                # 先清空选中的列表
+                for idx in self.selected:
+                    self.element[idx].drop_select()
+                self.selected.clear()
+            # 添加本次选中的
+            self.element[selected_idx].get_select()
+            self.selected.append(selected_idx)
+    def select_range(self,event,index:str):
+        self.container.focus_set()
+        if index == False:
+            effect_range = self.element.keys()
+        else:
+            # 上一个选中的，数字序号
+            last_selected_idx:int = int(self.selected[-1]) # 最后一个
+            # 本次选中的，数字序号
+            this_selected_idx:int = int(index)
+            # 正序或是倒序
+            effect_range = range(this_selected_idx,last_selected_idx,{True:1,False:-1}[last_selected_idx>=this_selected_idx])
+        for idx in effect_range:
+            self.select_item(event=event,index=str(idx),add=True)
 # 容器中的每个小节
-class SectionElememt(ttk.LabelFrame):
+class RGLSectionElement(ttk.LabelFrame):
     RGLscript = RplGenLog()
     def __init__(self,master,bootstyle,text,section:dict,screenzoom):
         self.sz = screenzoom
@@ -583,7 +691,6 @@ class SectionElememt(ttk.LabelFrame):
             self.hstyle = 'place'
             self.mstyle = 'digit'
     def update_item(self):
-        SZ_25 = int(self.sz * 25)
         for idx,key in enumerate(self.items):
             this_item:ttk.Label = self.items[key]
             this_item.pack(fill='x',anchor='w',side='top')
@@ -591,13 +698,87 @@ class SectionElememt(ttk.LabelFrame):
             this_item.bind('<Button-1>',lambda event:self.master.select_item(event,index=self.idx,add=False))
             this_item.bind('<Control-Button-1>',lambda event:self.master.select_item(event,index=self.idx,add=True))
             this_item.bind('<Shift-Button-1>',lambda event:self.master.select_range(event,index=self.idx))
-
     def get_select(self):
         SZ_5 = int(self.sz * 5)
         self.select_symbol.place(x=0,y=0,width=SZ_5,relheight=1)
     def drop_select(self):
         self.select_symbol.place_forget()
-
+class MDFSectionElement(ttk.Frame):
+    MDFscript = MediaDef()
+    thumbnail_image = {}
+    thumbnail_name = {}
+    thumbnail_idx = 0
+    def __init__(self,master,bootstyle,text,section:dict,screenzoom):
+        self.sz = screenzoom
+        self.line_type = section['type']
+        self.name = text # 序号
+        super().__init__(master=master,bootstyle=bootstyle,borderwidth=int(1*self.sz))
+        # 颜色标签
+        if 'label_color' not in section.keys():
+            self.labelcolor = 'Lavender'
+        elif section['label_color'] is None:
+            self.labelcolor = 'Lavender'
+        else:
+            self.labelcolor = section['label_color']
+        # 从小节中获取缩略图
+        self.update_image_from_section(section=section)
+        self.items = {
+            'head' : ttk.Label(master=self,text=self.name,anchor='center',style=self.labelcolor+'.TLabel'),
+            'thumbnail' : ttk.Label(master=self,image=self.thumb,anchor='center')
+        }
+        # 被选中的标志
+        self.select_symbol = ttk.Frame(master=self,bootstyle='primary')
+        self.update_item()
+    def update_image_from_section(self,section):
+        icon_size= int(160*self.sz)
+        # 确认显示内容:image
+        if   self.line_type in ['Animation','Bubble','Balloon','DynamicBubble','ChatWindow','Background']:
+            if section['filepath'] in self.thumbnail_name.keys():
+                self.thumb = self.thumbnail_name[section['filepath']]
+            else:
+                # 新建一个缩略图
+                if section['filepath'] in [None,'None']:
+                    image = Image.new(mode='RGBA',size=(icon_size,icon_size),color=(0,0,0,0))
+                elif section['filepath'] in MediaObj.cmap.keys():
+                    image = Image.new(mode='RGBA',size=(icon_size,icon_size),color=MediaObj.cmap[filepath])
+                else:
+                    filepath = Filepath(filepath=section['filepath']).exact()
+                    image = Image.open(filepath)
+                # 尺寸
+                origin_w,origin_h = image.size
+                if origin_w > origin_h:
+                    icon_width = icon_size
+                    icon_height = int(origin_h/origin_w * icon_size)
+                else:
+                    icon_height = icon_size
+                    icon_width = int(origin_w/origin_h * icon_size)
+                # 缩略名
+                thumbnail_name_this = 'thumbnail%d'%self.thumbnail_idx
+                MDFSectionElement.thumbnail_idx += 1
+                # 应用
+                self.thumbnail_name[section['filepath']] = thumbnail_name_this
+                self.thumbnail_image[section['filepath']] = ImageTk.PhotoImage(name=thumbnail_name_this,image=image.resize([icon_width,icon_height]))
+                self.thumb = thumbnail_name_this
+        elif self.line_type in ['Audio','BGM']:
+            if self.line_type not in self.thumbnail_name.keys():
+                MDFSectionElement.thumbnail_image['Audio'] = ImageTk.PhotoImage(name='Audio', image=Image.open('./media/icon/audio.png').resize([icon_size,icon_size]))
+                MDFSectionElement.thumbnail_image['BGM']   = ImageTk.PhotoImage(name='BGM',   image=Image.open('./media/icon/bgm.png').resize([icon_size,icon_size]))
+                self.thumbnail_name['Audio'] = 'Audio'
+                self.thumbnail_name['BGM'] = 'BGM'
+            self.thumb = self.line_type
+    def update_item(self):
+        for idx,key in enumerate(self.items):
+            this_item:ttk.Label = self.items[key]
+            this_item.pack(fill='both',anchor='w',side='top',expand={'head':False,'thumbnail':True}[key])
+            # 按键点击事件
+            this_item.bind('<Button-1>',lambda event:self.master.select_item(event,index=self.name,add=False))
+            this_item.bind('<Control-Button-1>',lambda event:self.master.select_item(event,index=self.name,add=True))
+            this_item.bind('<Shift-Button-1>',lambda event:self.master.select_range(event,index=self.name)) # BUG: 这个现在是不可用的
+    def get_select(self):
+        SZ_5 = int(self.sz * 5)
+        self.select_symbol.place(x=0,y=0,width=SZ_5,relheight=1)
+    def drop_select(self):
+        self.select_symbol.place_forget()
 # 预览窗
 class PreviewCanvas(ttk.LabelFrame):
     def __init__(self,master,screenzoom):
@@ -649,10 +830,11 @@ class EditWindow(ttk.LabelFrame):
         self.elements = {
             'type' : KeyValueDescribe(self,self.sz,key='小节类型',value={'type':'str','style':'combox','value':section['type']},describe={'type':'text','text':'（选择）'})
         }
+        self.update_item()
     def update_item(self):
         for key in self.elements:
             item:KeyValueDescribe = self.elements[key]
-            item.pack(side='top',anchor='nw')
+            item.pack(side='top',anchor='n',fill='x')
         # 根据小节类型
         # if self.
         # if self.line_type == 'dialog':
@@ -663,7 +845,7 @@ class KeyValueDescribe(ttk.Frame):
         self.sz = screenzoom
         super().__init__(master=master)
         # 关键字
-        self.key = ttk.Label(master=master,text=key)
+        self.key = ttk.Label(master=self,text=key)
         # 数值类型
         if value['type'] == 'int':
             self.value = tk.IntVar(master=self,value=value['value'])
@@ -675,22 +857,26 @@ class KeyValueDescribe(ttk.Frame):
             self.value = tk.StringVar(master=self,value=value['value'])
         # 容器
         if value['style'] == 'entry':
-            self.container = ttk.Entry(master=self,textvariable=self.value,width=30)
+            self.input = ttk.Entry(master=self,textvariable=self.value,width=30)
         elif value['type'] == 'spine':
-            self.container = ttk.Spinbox(master=self,textvariable=self.value,width=30)
+            self.input = ttk.Spinbox(master=self,textvariable=self.value,width=30)
         elif value['type'] == 'combox':
-            self.container = ttk.Combobox(master=self,textvariable=self.value,width=30)
+            self.input = ttk.Combobox(master=self,textvariable=self.value,width=30)
         else:
-            self.container = ttk.Entry(master=self,textvariable=self.value,width=30)
+            self.input = ttk.Entry(master=self,textvariable=self.value,width=30)
         # 描述
         if describe['type'] == 'text':
             self.describe = ttk.Label(master=self,text=describe['text'])
         else:
             self.describe = ttk.Button(master=self,text=describe['text'])
+        # 显示
+        self.update_item()
+    def update_item(self):
+        SZ_5 = int(self.sz * 5)
         # 放置
-        self.key.pack(fill='none',side='left')
-        self.container.pack(fill='none',side='left')
-        self.describe.pack(fill='none',side='left')
+        self.key.pack(fill='none',side='left',padx=SZ_5)
+        self.input.pack(fill='x',side='left',padx=SZ_5,expand=True)
+        self.describe.pack(fill='none',side='left',padx=SZ_5)
 # 脚本视图
 class ScriptView(ttk.Frame):
     pass

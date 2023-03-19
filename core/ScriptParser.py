@@ -98,6 +98,8 @@ class MediaDef(Script):
             self.media_path = os.path.dirname(json_input.replace('\\','/'))
         else:
             self.media_path = Filepath.RplGenpath
+        # 执行媒体类的类变量变更
+        Filepath.Mediapath = self.media_path
     # MDF -> struct
     def list_parser(self,list_str:str)->list:
         # 列表，元组，不包含外括号
@@ -342,8 +344,6 @@ class MediaDef(Script):
         except KeyError:
             raise SyntaxsError('UndefName',reference_name[1:])
     def execute(self) -> dict:
-        # 执行媒体类的类变量变更
-        Filepath.Mediapath = self.media_path
         # 媒体对象的容器
         self.Medias = {}
         # 每一个媒体类
