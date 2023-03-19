@@ -298,7 +298,7 @@ class RGLPage(ttk.Frame):
         self.container = Container(master=self,content=rgl,screenzoom=self.sz)
         self.outputcommand = OutPutCommand(master=self,screenzoom=self.sz)
         self.preview = PreviewCanvas(master=self,screenzoom=self.sz)
-        self.edit = EditWindow(master=self,screenzoom=self.sz)
+        self.edit = EditWindow(master=self,screenzoom=self.sz,section=rgl.struct['10'])
         # 放置元件
         SZ_40 = int(self.sz * 40)
         self.searchbar.place(x=0,y=0,relwidth=0.5,height=SZ_40)
@@ -370,7 +370,7 @@ class Container(ScrolledFrame):
         self.sz = screenzoom
         super().__init__(master=master, padding=3, bootstyle='light', autohide=True)
         self.vscroll.config(bootstyle='primary-round')
-        self.container.config(bootstyle='light')
+        self.container.config(bootstyle='light',takefocus=True)
         # 滚动条容器的内容物
         self.content = content
         # 根据内容物，调整容器总高度
@@ -378,7 +378,7 @@ class Container(ScrolledFrame):
         # 容器内的元件
         self.element = {}
         # 按键绑定
-        self.bind('Ctrl-a',lambda event:self.select_all(event)) # BUG 现在是无法生效的，因为事件绑定的focus问题
+        self.container.bind('<Control-Key-a>',lambda event:self.select_range(event,index=False),"+")
         # 遍历内容物，新建元件
         for key in self.content.struct:
             this_section = self.content.struct[key]
@@ -400,6 +400,7 @@ class Container(ScrolledFrame):
             this_section_frame:ttk.LabelFrame = self.element[key]
             this_section_frame.place(x=0,y=idx*SZ_80,width=-sz_10,height=SZ_75,relwidth=1)
     def select_item(self,event,index,add=False):
+        self.container.focus_set()
         # 根据点击的y，定位本次选中的
         selected_idx = index
         if selected_idx in self.element.keys():
@@ -411,11 +412,19 @@ class Container(ScrolledFrame):
             # 添加本次选中的
             self.element[selected_idx].get_select()
             self.selected.append(selected_idx)
-    def select_all(self,event):
-        print(event)
-        # 选中所有的
-        for idx in self.element:
-            self.select_item(event=event,index=idx,add=True)
+    def select_range(self,event,index:str):
+        self.container.focus_set()
+        if index == False:
+            effect_range = self.element.keys()
+        else:
+            # 上一个选中的，数字序号
+            last_selected_idx:int = int(self.selected[-1]) # 最后一个
+            # 本次选中的，数字序号
+            this_selected_idx:int = int(index)
+            # 正序或是倒序
+            effect_range = range(this_selected_idx,last_selected_idx,{True:1,False:-1}[last_selected_idx>=this_selected_idx])
+        for idx in effect_range:
+            self.select_item(event=event,index=str(idx),add=True)
 
 # 容器中的每个小节
 class SectionElememt(ttk.LabelFrame):
@@ -463,9 +472,9 @@ class SectionElememt(ttk.LabelFrame):
             self.mstyle = 'main'
             # 显示星标
             if '*' in section['sound_set'].keys():
-                self.header = self.header + '\t★' 
+                self.header = '★ ' + self.header
             elif '{*}' in section['sound_set'].keys():
-                self.header = self.header + '\t★'
+                self.header = '★ ' + self.header
                 self.hstyle = 'invasterisk'
             else:
                 self.mstyle = 'main'
@@ -580,7 +589,8 @@ class SectionElememt(ttk.LabelFrame):
             this_item.pack(fill='x',anchor='w',side='top')
             # 按键点击事件
             this_item.bind('<Button-1>',lambda event:self.master.select_item(event,index=self.idx,add=False))
-            this_item.bind('<Shift-Button-1>',lambda event:self.master.select_item(event,index=self.idx,add=True))
+            this_item.bind('<Control-Button-1>',lambda event:self.master.select_item(event,index=self.idx,add=True))
+            this_item.bind('<Shift-Button-1>',lambda event:self.master.select_range(event,index=self.idx))
 
     def get_select(self):
         SZ_5 = int(self.sz * 5)
@@ -628,15 +638,59 @@ class PreviewCanvas(ttk.LabelFrame):
         self.items['canvas'].config(image=self.image)
 # 编辑窗
 class EditWindow(ttk.LabelFrame):
-    def __init__(self,master,screenzoom):
+    def __init__(self,master,section,screenzoom):
         # 初始化基类
         self.sz = screenzoom
         super().__init__(master=master,bootstyle='primary',text='编辑区')
         # 小节的数据
-       # self.section = section
-       # # 根据小节类型
-       # if self.self.line_type == 'dialog':
-       #     pass
+        self.section = section
+        self.line_type = self.section['type']
+        # 组件
+        self.elements = {
+            'type' : KeyValueDescribe(self,self.sz,key='小节类型',value={'type':'str','style':'combox','value':section['type']},describe={'type':'text','text':'（选择）'})
+        }
+    def update_item(self):
+        for key in self.elements:
+            item:KeyValueDescribe = self.elements[key]
+            item.pack(side='top',anchor='nw')
+        # 根据小节类型
+        # if self.
+        # if self.line_type == 'dialog':
+        #     pass
+# 一个键、值、描述的最小单位。
+class KeyValueDescribe(ttk.Frame):
+    def __init__(self,master,screenzoom:float,key:str,value:dict,describe:dict):
+        self.sz = screenzoom
+        super().__init__(master=master)
+        # 关键字
+        self.key = ttk.Label(master=master,text=key)
+        # 数值类型
+        if value['type'] == 'int':
+            self.value = tk.IntVar(master=self,value=value['value'])
+        elif value['type'] == 'float':
+            self.value = tk.DoubleVar(master=self,value=value['value'])
+        elif value['type'] == 'bool':
+            self.value = tk.BooleanVar(master=self,value=value['value'])
+        else:
+            self.value = tk.StringVar(master=self,value=value['value'])
+        # 容器
+        if value['style'] == 'entry':
+            self.container = ttk.Entry(master=self,textvariable=self.value,width=30)
+        elif value['type'] == 'spine':
+            self.container = ttk.Spinbox(master=self,textvariable=self.value,width=30)
+        elif value['type'] == 'combox':
+            self.container = ttk.Combobox(master=self,textvariable=self.value,width=30)
+        else:
+            self.container = ttk.Entry(master=self,textvariable=self.value,width=30)
+        # 描述
+        if describe['type'] == 'text':
+            self.describe = ttk.Label(master=self,text=describe['text'])
+        else:
+            self.describe = ttk.Button(master=self,text=describe['text'])
+        # 放置
+        self.key.pack(fill='none',side='left')
+        self.container.pack(fill='none',side='left')
+        self.describe.pack(fill='none',side='left')
 # 脚本视图
 class ScriptView(ttk.Frame):
     pass
