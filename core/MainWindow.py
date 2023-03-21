@@ -29,42 +29,45 @@ class RplGenStudioMainWindow(ttk.Window):
             resizable   = (True,True),
         )
         # 样式
+        SZ_3 = int(3 * self.sz)
+        SZ_5 = int(5 * self.sz)
+        text_label_pad = (SZ_5,0,SZ_5,0)
         # 导航栏的按钮
-        self.style.configure('secondary.TButton',anchor='w',font="-family 微软雅黑 -size 20 -weight bold",compound='left',padding=(3,0,0,0))
+        self.style.configure('secondary.TButton',anchor='w',font="-family 微软雅黑 -size 20 -weight bold",compound='left',padding=(SZ_3,0,0,0))
         self.style.configure('output.TButton',compound='left',font="-family 微软雅黑 -size 14 -weight bold")
         # 媒体定义的颜色标签
-        self.style.configure('Violet.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=(5,0,5,0),foreground='#ffffff',background='#a690e0')
-        self.style.configure('Iris.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=(5,0,5,0),foreground='#ffffff',background='#729acc')
-        self.style.configure('Caribbean.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=(5,0,5,0),foreground='#ffffff',background='#29d698')
-        self.style.configure('Lavender.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=(5,0,5,0),foreground='#ffffff',background='#e384e3')
-        self.style.configure('Cerulean.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=(5,0,5,0),foreground='#ffffff',background='#2fbfde')
-        self.style.configure('Forest.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=(5,0,5,0),foreground='#ffffff',background='#51b858')
-        self.style.configure('Rose.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=(5,0,5,0),foreground='#ffffff',background='#f76fa4')
-        self.style.configure('Mango.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=(5,0,5,0),foreground='#ffffff',background='#eda63b')
-        self.style.configure('Purple.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=(5,0,5,0),foreground='#ffffff',background='#970097')
-        self.style.configure('Blue.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=(5,0,5,0),foreground='#ffffff',background='#3c3cff')
-        self.style.configure('Teal.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=(5,0,5,0),foreground='#ffffff',background='#008080')
-        self.style.configure('Magenta.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=(5,0,5,0),foreground='#ffffff',background='#e732e7')
-        self.style.configure('Tan.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=(5,0,5,0),foreground='#ffffff',background='#cec195')
-        self.style.configure('Green.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=(5,0,5,0),foreground='#ffffff',background='#1d7021')
-        self.style.configure('Brown.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=(5,0,5,0),foreground='#ffffff',background='#8b4513')
-        self.style.configure('Yellow.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=(5,0,5,0),foreground='#ffffff',background='#e2e264')
+        self.style.configure('Violet.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#ffffff',background='#a690e0')
+        self.style.configure('Iris.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#ffffff',background='#729acc')
+        self.style.configure('Caribbean.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#ffffff',background='#29d698')
+        self.style.configure('Lavender.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#ffffff',background='#e384e3')
+        self.style.configure('Cerulean.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#ffffff',background='#2fbfde')
+        self.style.configure('Forest.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#ffffff',background='#51b858')
+        self.style.configure('Rose.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#ffffff',background='#f76fa4')
+        self.style.configure('Mango.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#ffffff',background='#eda63b')
+        self.style.configure('Purple.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#ffffff',background='#970097')
+        self.style.configure('Blue.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#ffffff',background='#3c3cff')
+        self.style.configure('Teal.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#ffffff',background='#008080')
+        self.style.configure('Magenta.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#ffffff',background='#e732e7')
+        self.style.configure('Tan.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#ffffff',background='#cec195')
+        self.style.configure('Green.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#ffffff',background='#1d7021')
+        self.style.configure('Brown.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#ffffff',background='#8b4513')
+        self.style.configure('Yellow.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#ffffff',background='#e2e264')
         # 显示内容的头文本
-        self.style.configure('comment.TLabel',anchor='w',font="-family 微软雅黑 -size 12 -weight bold",padding=(5,0,5,0),foreground='#bfbfbf') # 浅灰色
-        self.style.configure('dialog.TLabel',anchor='w',font="-family 微软雅黑 -size 12 -weight bold",padding=(5,0,5,0),foreground='#0066cc') # 蓝色的
-        self.style.configure('setdync.TLabel',anchor='w',font="-family 微软雅黑 -size 12 -weight bold",padding=(5,0,5,0),foreground='#008000') # 绿色的
-        self.style.configure('place.TLabel',anchor='w',font="-family 微软雅黑 -size 12 -weight bold",padding=(5,0,5,0),foreground='#e60074') # 品红
-        self.style.configure('invasterisk.TLabel',anchor='w',font="-family 微软雅黑 -size 12 -weight bold",padding=(5,0,5,0),foreground='#cc0000') # 红色的
+        self.style.configure('comment.TLabel',anchor='w',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#bfbfbf') # 浅灰色
+        self.style.configure('dialog.TLabel',anchor='w',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#0066cc') # 蓝色的
+        self.style.configure('setdync.TLabel',anchor='w',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#008000') # 绿色的
+        self.style.configure('place.TLabel',anchor='w',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#e60074') # 品红
+        self.style.configure('invasterisk.TLabel',anchor='w',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#cc0000') # 红色的
         # 显示内容的主文本
-        self.style.configure('main.TLabel',anchor='w',font="-family 微软雅黑 -size 10",padding=(5,0,5,0)) # 黑色的
-        self.style.configure('ingore.TLabel',anchor='w',font="-family 微软雅黑 -size 10",padding=(5,0,5,0),foreground='#bfbfbf') # 浅灰色
-        self.style.configure('method.TLabel',anchor='w',font="-family 微软雅黑 -size 10 -weight bold",padding=(5,0,5,0),foreground='#bf8000') # 橙色的
-        self.style.configure('digit.TLabel',anchor='w',font="-family 微软雅黑 -size 10 -weight bold",padding=(5,0,5,0),foreground='#6600cc') # 紫色的
-        self.style.configure('fuction.TLabel',anchor='w',font="-family 微软雅黑 -size 10 -weight bold",padding=(5,0,5,0),foreground='#009898') # 蓝色的
-        self.style.configure('object.TLabel',anchor='w',font="-family 微软雅黑 -size 10 -weight bold",padding=(5,0,5,0),foreground='#303030') # 深灰色
-        self.style.configure('exception.TLabel',anchor='w',font="-family 微软雅黑 -size 10 -weight bold",padding=(5,0,5,0),foreground='#cc0000') # 红色的
+        self.style.configure('main.TLabel',anchor='w',font="-family 微软雅黑 -size 10",padding=text_label_pad) # 黑色的
+        self.style.configure('ingore.TLabel',anchor='w',font="-family 微软雅黑 -size 10",padding=text_label_pad,foreground='#bfbfbf') # 浅灰色
+        self.style.configure('method.TLabel',anchor='w',font="-family 微软雅黑 -size 10 -weight bold",padding=text_label_pad,foreground='#bf8000') # 橙色的
+        self.style.configure('digit.TLabel',anchor='w',font="-family 微软雅黑 -size 10 -weight bold",padding=text_label_pad,foreground='#6600cc') # 紫色的
+        self.style.configure('fuction.TLabel',anchor='w',font="-family 微软雅黑 -size 10 -weight bold",padding=text_label_pad,foreground='#009898') # 蓝色的
+        self.style.configure('object.TLabel',anchor='w',font="-family 微软雅黑 -size 10 -weight bold",padding=text_label_pad,foreground='#303030') # 深灰色
+        self.style.configure('exception.TLabel',anchor='w',font="-family 微软雅黑 -size 10 -weight bold",padding=text_label_pad,foreground='#cc0000') # 红色的
         # 预览窗体
-        self.style.configure('preview.TLabel',anchor='nw',background='#000000',borderwidth=0)
+        self.style.configure('preview.TLabel',anchor='center',background='#000000',borderwidth=0)
         # 导航栏
         self.navigate_bar = NavigateBar(master=self,screenzoom=self.sz)
         self.navigate_bar.place(x=0,y=0,width=100*self.sz,relheight=1)
@@ -78,27 +81,21 @@ class RplGenStudioMainWindow(ttk.Window):
     # 当导航栏被点击时
     def navigateBar_get_click(self,event):
         is_wide = not self.navigate_bar.is_wide
-        navigate_bar_width = {True:180,False:80}[is_wide] * self.sz
+        navigate_bar_width = int({True:180,False:80}[is_wide] * self.sz)
         self.navigate_bar.place_widgets(is_wide)
         self.navigate_bar.place_configure(width=navigate_bar_width)
         self.view[self.show].place_configure(x=navigate_bar_width,width=-navigate_bar_width)
     # 显示指定的视图
     def view_show(self,show:str):
-        navigate_bar_width = {True:180,False:80}[self.navigate_bar.is_wide] * self.sz
+        navigate_bar_width = int({True:180,False:80}[self.navigate_bar.is_wide] * self.sz)
         self.view[show].place_forget()
-        self.view[show].place(x=navigate_bar_width,y=0,relwidth=1,relheight=1,width=-navigate_bar_width*self.sz)
+        self.view[show].place(x=navigate_bar_width,y=0,relwidth=1,relheight=1,width=-navigate_bar_width)
         self.show = show
     # 获取系统的缩放比例
     def get_screenzoom(self)->float:
         if 'win32' in sys.platform:
-            from win32.win32gui import GetDC
-            from win32.win32print import GetDeviceCaps
-            from win32.lib.win32con import DESKTOPHORZRES
-            from win32.win32api import GetSystemMetrics
-            hDC = GetDC(0)
-            W = GetDeviceCaps(hDC,DESKTOPHORZRES)
-            w = GetSystemMetrics(0)
-            return W / w
+            from ctypes import windll
+            return windll.shcore.GetScaleFactorForDevice(0) / 100
         else:
             print(sys.platform)
             return 1.0
@@ -202,9 +199,9 @@ class ProjectView(ttk.Frame):
         # 子元件
         self.file_manager  = FileManager(master=self, screenzoom=self.sz)
         self.page_notebook = PageNotes(master=self, screenzoom=self.sz)
-        # self.page_view     = RGLPage(master=self, screenzoom=self.sz, rgl = RplGenLog(file_input=r"E:\Data\20220419_星尘的研究\project\Research-of-Stardust\Log_20.rgl"))
+        self.page_view     = RGLPage(master=self, screenzoom=self.sz, rgl = RplGenLog(file_input=r"./toy/LogFile.rgl"))
         # self.page_view = MDFPage(master=self, screenzoom=self.sz ,mdf=MediaDef(file_input=r"E:\Data\20220419_星尘的研究\project\Research-of-Stardust\medef.txt"),media_type='Audio')
-        self.page_view = MDFPage(master=self, screenzoom=self.sz ,mdf=MediaDef(file_input="./toy/MediaObject.txt"),media_type='Bubble')
+        # self.page_view = MDFPage(master=self, screenzoom=self.sz ,mdf=MediaDef(file_input="./toy/MediaObject.txt"),media_type='Bubble')
         # 摆放子元件
         self.update_item()
     def update_item(self):
@@ -693,7 +690,7 @@ class RGLSectionElement(ttk.LabelFrame):
     def update_item(self):
         for idx,key in enumerate(self.items):
             this_item:ttk.Label = self.items[key]
-            this_item.pack(fill='x',anchor='w',side='top')
+            this_item.pack(fill='x',anchor='w',side='top',expand={'head':False,'sep':False,'main':True}[key])
             # 按键点击事件
             this_item.bind('<Button-1>',lambda event:self.master.select_item(event,index=self.idx,add=False))
             this_item.bind('<Control-Button-1>',lambda event:self.master.select_item(event,index=self.idx,add=True))
@@ -773,7 +770,7 @@ class MDFSectionElement(ttk.Frame):
             # 按键点击事件
             this_item.bind('<Button-1>',lambda event:self.master.select_item(event,index=self.name,add=False))
             this_item.bind('<Control-Button-1>',lambda event:self.master.select_item(event,index=self.name,add=True))
-            this_item.bind('<Shift-Button-1>',lambda event:self.master.select_range(event,index=self.name)) # BUG: 这个现在是不可用的
+            # this_item.bind('<Shift-Button-1>',lambda event:self.master.select_range(event,index=self.name)) # BUG: 这个现在是不可用的
     def get_select(self):
         SZ_5 = int(self.sz * 5)
         self.select_symbol.place(x=0,y=0,width=SZ_5,relheight=1)
