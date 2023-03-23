@@ -3,7 +3,7 @@
 
 # gui的入口
 
-from core.MainWindow import RplGenStudioMainWindow
+from core.GUI_MainWindow import RplGenStudioMainWindow
 
 root = RplGenStudioMainWindow()
 root.mainloop()
