@@ -358,6 +358,15 @@ class MDFSectionElement(ttk.Frame):
                 self.thumbnail_name['Audio'] = 'Audio'
                 self.thumbnail_name['BGM'] = 'BGM'
             self.thumb = self.line_type
+        elif self.line_type in ['Pos','PosGrid','FreePos']:
+            if self.line_type not in self.thumbnail_name.keys():
+                MDFSectionElement.thumbnail_image['Pos']        = ImageTk.PhotoImage(name='Pos',    image=Image.open('./media/icon/Pos.png').resize([icon_size,icon_size]))
+                MDFSectionElement.thumbnail_image['PosGrid']    = ImageTk.PhotoImage(name='PosGrid',image=Image.open('./media/icon/PosGrid.png').resize([icon_size,icon_size]))
+                MDFSectionElement.thumbnail_image['FreePos']    = ImageTk.PhotoImage(name='FreePos',image=Image.open('./media/icon/FreePos.png').resize([icon_size,icon_size]))
+                self.thumbnail_name['Pos'] = 'Pos'
+                self.thumbnail_name['PosGrid'] = 'PosGrid'
+                self.thumbnail_name['FreePos'] = 'FreePos'
+            self.thumb = self.line_type
     def update_item(self):
         for idx,key in enumerate(self.items):
             this_item:ttk.Label = self.items[key]

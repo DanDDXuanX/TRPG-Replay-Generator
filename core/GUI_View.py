@@ -32,8 +32,8 @@ class ProjectView(ttk.Frame):
         self.page_notebook = PageNotes(master=self, screenzoom=self.sz)
         # self.page_view     = RGLPage(master=self, screenzoom=self.sz, rgl = RplGenLog(file_input=r"./toy/LogFile.rgl"))
         # elf.page_view = MDFPage(master=self, screenzoom=self.sz ,mdf=MediaDef(file_input=r"E:\Data\20220419_星尘的研究\project\Research-of-Stardust\medef.txt"),media_type='Animation')
-        # self.page_view = MDFPage(master=self, screenzoom=self.sz ,mdf=MediaDef(file_input="./toy/MediaObject.txt"),media_type='Bubble')
-        self.page_view = CTBPage(master=self, screenzoom=self.sz, ctb = CharTable(file_input=r"./toy/CharactorTable.tsv"),name='张安翔')
+        self.page_view = MDFPage(master=self, screenzoom=self.sz ,mdf=MediaDef(file_input="./toy/MediaObject.txt"),media_type='Pos')
+        # self.page_view = CTBPage(master=self, screenzoom=self.sz, ctb = CharTable(file_input=r"./toy/CharactorTable.tsv"),name='张安翔')
         # 摆放子元件
         self.update_item()
     def update_item(self):
