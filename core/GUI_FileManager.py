@@ -8,7 +8,39 @@ from PIL import Image, ImageTk
 import ttkbootstrap as ttk
 import tkinter as tk
 from ttkbootstrap.scrolled import ScrolledFrame
-from .ScriptParser import MediaDef, CharTable, RplGenLog
+from .ScriptParser import MediaDef, CharTable, RplGenLog, Script
+from .ProjConfig import Config
+# 项目视图-文件管理器-RGPJ
+class RplGenProJect(Script):
+    def __init__(self, json_input=None) -> None:
+        # 新建空白工程
+        if json_input is None:
+            self.struct = {
+                'mediadef':{
+                    'Text'      :MediaDef(),
+                    'Pos'       :MediaDef(),
+                    'Animation' :MediaDef(),
+                    'Bubble'    :MediaDef(),
+                    'Audio'     :MediaDef(),
+                },
+                'chartab':{},
+                'logfile':{},
+                'config' :Config()
+            }
+        # 载入json工程文件
+        else:
+            super().__init__(None, None, None, json_input)
+            # media
+            for key in self.struct['mediadef'].keys():
+                self.struct['mediadef'][key] = MediaDef(dict_input=self.struct['mediadef'][key])
+            # chartab
+            for key in self.struct['chartab'].keys():
+                self.struct['chartab'][key] = CharTable(dict_input=self.struct['chartab'][key])
+            # logfile
+            for key in self.struct['logfile'].keys():
+                self.struct['logfile'][key] = RplGenLog(dict_input=self.struct['logfile'][key])
+            # config
+            self.struct['config'] = Config(dict_input=self.struct['config'])
 
 # 项目视图-文件管理器
 class FileManager(ttk.Frame):
