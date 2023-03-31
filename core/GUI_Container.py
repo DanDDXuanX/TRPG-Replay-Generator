@@ -9,6 +9,7 @@ from PIL import Image, ImageTk
 import ttkbootstrap as ttk
 import tkinter as tk
 from ttkbootstrap.scrolled import ScrolledFrame
+import pygame
 
 from .GUI_Util import thumbnail
 from .ScriptParser import MediaDef, CharTable, RplGenLog
@@ -351,6 +352,42 @@ class MDFSectionElement(ttk.Frame):
                 self.thumbnail_name[section['filepath']] = thumbnail_name_this
                 self.thumbnail_image[section['filepath']] = ImageTk.PhotoImage(name=thumbnail_name_this,image=thumbnail(image=image,icon_size=icon_size))
                 self.thumb = thumbnail_name_this
+        elif self.line_type in ['Text','StrokeText']:
+            # 新建一个缩略图
+            text_obj = self.MDFscript.instance_execute(section)
+            temp_canvas = pygame.Surface(size=(icon_size,icon_size))
+            # 背景图的颜色
+            if self.line_type == 'StrokeText':
+                if np.mean(text_obj.edge_color) > 230:
+                    temp_canvas.fill('black')
+                else:
+                    temp_canvas.fill('white')
+            else:
+                if np.mean(text_obj.color) > 230:
+                    temp_canvas.fill('black')
+                else:
+                    temp_canvas.fill('white')
+            # 渲染预览字体
+            test_text = {'Text':'字体#Text','StrokeText':'描边#Stroke'}[self.line_type]
+            for idx,text in enumerate(text_obj.draw(text=test_text)):
+                text:pygame.Surface
+                w,h = text.get_size()
+                temp_canvas.blit(
+                    text,
+                    [
+                        int( icon_size/2 - w/2 ),
+                        int( icon_size/2 - (1 - idx) * text_obj.size )
+                    ]
+                )
+            # 转为Image
+            image = Image.frombytes(mode='RGB',size=(icon_size,icon_size),data=pygame.image.tostring(temp_canvas,'RGB'))
+            # 缩略名
+            thumbnail_name_this = 'thumbnail%d'%self.thumbnail_idx
+            MDFSectionElement.thumbnail_idx += 1
+            # 应用
+            self.thumbnail_name[thumbnail_name_this] = thumbnail_name_this
+            self.thumbnail_image[thumbnail_name_this] = ImageTk.PhotoImage(name=thumbnail_name_this,image=thumbnail(image=image,icon_size=icon_size))
+            self.thumb = thumbnail_name_this
         elif self.line_type in ['Audio','BGM']:
             if self.line_type not in self.thumbnail_name.keys():
                 MDFSectionElement.thumbnail_image['Audio'] = ImageTk.PhotoImage(name='Audio', image=Image.open('./media/icon/audio.png').resize([icon_size,icon_size]))
