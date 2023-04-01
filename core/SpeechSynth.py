@@ -23,20 +23,6 @@ class SpeechSynthesizer:
         self.output_path = output_path
         # 角色表
         self.charactor_table = chartab.execute()
-        # 填补角色表的缺失值
-        if 'Voice' not in self.charactor_table.columns:
-            self.charactor_table['Voice'] = 'NA'
-        else:
-            self.charactor_table['Voice'] = self.charactor_table['Voice'].fillna('NA')
-        # 填补语速和语调列，并把缺失值处理为0
-        if 'SpeechRate' not in self.charactor_table.columns:
-            self.charactor_table['SpeechRate'] = 0
-        else:
-            self.charactor_table['SpeechRate'] = self.charactor_table['SpeechRate'].replace(to_replace='NA',value=0).astype(int)
-        if 'PitchRate' not in self.charactor_table.columns:
-            self.charactor_table['PitchRate'] = 0
-        else:
-            self.charactor_table['PitchRate'] = self.charactor_table['PitchRate'].replace(to_replace='NA',value=0).astype(int)
         # 建立 TTS 对象
         self.charactor_table['TTS'] = self.bulid_tts_engine()
         # 媒体定义

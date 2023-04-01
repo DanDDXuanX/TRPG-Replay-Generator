@@ -397,10 +397,23 @@ class CharTable(Script):
             else:
                 # 是tsv
                 charactor_table:pd.DataFrame = pd.read_csv(filepath,sep='\t',dtype = str).fillna('NA')
+            # 用 'NA' 填补角色表的缺失值 ['Animation','Bubble','Voice']
+            for colname in ['Animation','Bubble','Voice']:
+                if colname not in charactor_table.columns:
+                    charactor_table[colname] = 'NA'
+                else:
+                    charactor_table[colname] = charactor_table[colname].fillna('NA')
+            # 用 0 填补语速和语调列
+            for colname in ['SpeechRate','PitchRate']:
+                if colname not in charactor_table.columns:
+                    charactor_table[colname] = 0
+                else:
+                    charactor_table[colname] = charactor_table[colname].fillna(0).astype(int)
+            # key，必须要unique
             charactor_table.index = charactor_table['Name']+'.'+charactor_table['Subtype']
             if charactor_table.index.is_unique == False:
                 duplicate_subtype_name = charactor_table.index[charactor_table.index.duplicated()][0]
-                raise ParserError('DupSubtype',duplicate_subtype_name)
+                raise SyntaxsError('DupSubtype',duplicate_subtype_name)
         except Exception as E:
             raise SyntaxsError('CharTab',E)
         # 如果角色表缺省关键列
@@ -415,7 +428,10 @@ class CharTable(Script):
     # 将 dict 转为 DataFrame
     def export(self)->pd.DataFrame:
         # dict -> 转为 DataFrame，把潜在的缺失值处理为'NA'
-        return pd.DataFrame(self.struct).T.fillna('NA')
+        chartab = pd.DataFrame(self.struct).T.fillna('NA')
+        if len(chartab) == 0:
+            chartab = pd.DataFrame(columns=['Name','Subtype','Animation','Bubble','Voice','SpeechRate','PitchRate'])
+        return chartab
     # 保存为文本文件 (tsv)
     def dump_file(self,filepath:str)->None:
         charactor_table = self.export()

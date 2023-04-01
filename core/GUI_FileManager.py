@@ -4,6 +4,7 @@
 # 项目资源管理器，项目视图的元素之一。
 # 包含：标题图，项目管理按钮，媒体、角色、剧本的可折叠容器
 
+import json
 from PIL import Image, ImageTk
 import ttkbootstrap as ttk
 import tkinter as tk
@@ -15,32 +16,39 @@ class RplGenProJect(Script):
     def __init__(self, json_input=None) -> None:
         # 新建空白工程
         if json_input is None:
-            self.struct = {
-                'mediadef':{
-                    'Text'      :MediaDef(),
-                    'Pos'       :MediaDef(),
-                    'Animation' :MediaDef(),
-                    'Bubble'    :MediaDef(),
-                    'Audio'     :MediaDef(),
-                },
-                'chartab':{},
-                'logfile':{},
-                'config' :Config()
-            }
+            self.config     = Config()
+            self.mediadef   = MediaDef()
+            self.chartab    = CharTable()
+            self.logfile    = {'空白剧本' : RplGenLog()}
         # 载入json工程文件
         else:
             super().__init__(None, None, None, json_input)
-            # media
-            for key in self.struct['mediadef'].keys():
-                self.struct['mediadef'][key] = MediaDef(dict_input=self.struct['mediadef'][key])
-            # chartab
-            for key in self.struct['chartab'].keys():
-                self.struct['chartab'][key] = CharTable(dict_input=self.struct['chartab'][key])
-            # logfile
-            for key in self.struct['logfile'].keys():
-                self.struct['logfile'][key] = RplGenLog(dict_input=self.struct['logfile'][key])
             # config
-            self.struct['config'] = Config(dict_input=self.struct['config'])
+            self.config     = Config(dict_input=self.struct['config'])
+            # media
+            self.mediadef   = MediaDef(dict_input=self.struct['mediadef'])
+            # chartab
+            self.chartab    = CharTable(dict_input=self.struct['chartab'])
+            # logfile
+            self.logfile    = {}
+            for key in self.struct['logfile'].keys():
+                self.logfile[key] = RplGenLog(dict_input=self.struct['logfile'][key])
+    def dump_json(self, filepath: str) -> None:
+        logfile_dict = {}
+        for key in self.logfile.keys():
+            logfile_dict[key] = self.logfile[key].struct
+        with open(filepath,'w',encoding='utf-8') as of:
+            of.write(
+                json.dumps(
+                    {
+                        'config'  : self.config.get_struct(),
+                        'mediadef': self.mediadef.struct,
+                        'chartab' : self.chartab.struct,
+                        'logfile' : logfile_dict,
+                    }
+                    ,indent=4
+                )
+            )
 
 # 项目视图-文件管理器
 class FileManager(ttk.Frame):
@@ -75,17 +83,19 @@ class FileManager(ttk.Frame):
             buttons:ttk.Button = self.buttons[key]
             buttons.pack(expand=True,fill='x',side='left',anchor='se',padx=0,pady=0)
         self.project_title.pack(fill='x',side='top',padx=0,pady=0,ipadx=0,ipady=0)
+        # 文件管理器的项目对象
+        self.project:RplGenProJect = RplGenProJect()
         # 文件内容
-        self.project_contene = ScrolledFrame(master=self,borderwidth=0,bootstyle='light',autohide=True)
-        self.project_contene.vscroll.config(bootstyle='warning-round')
+        self.project_content = ScrolledFrame(master=self,borderwidth=0,bootstyle='light',autohide=True)
+        self.project_content.vscroll.config(bootstyle='warning-round')
         self.items = {
-            'mediadef'  : MDFCollapsing(master=self.project_contene,screenzoom=self.sz,content=MediaDef()),
-            'chartab'   : CTBCollapsing(master=self.project_contene,screenzoom=self.sz,content=CharTable(file_input = './toy/CharactorTable.tsv')),
-            'rplgenlog' : RGLCollapsing(master=self.project_contene,screenzoom=self.sz,content=RplGenLog()),
+            'mediadef'  : MDFCollapsing(master=self.project_content,screenzoom=self.sz,content=self.project.mediadef),
+            'chartab'   : CTBCollapsing(master=self.project_content,screenzoom=self.sz,content=self.project.chartab),
+            'rplgenlog' : RGLCollapsing(master=self.project_content,screenzoom=self.sz,content=self.project.logfile),
         }
         # 放置
         self.update_item()
-        self.project_contene.pack(fill='both',expand=True,side='top')
+        self.project_content.pack(fill='both',expand=True,side='top')
     def update_item(self):
         for idx,key in enumerate(self.items):
             fileitem:ttk.Button = self.items[key]
@@ -119,7 +129,7 @@ class FileCollapsing(ttk.Frame):
             self.expand:bool = True
 # 项目视图-可折叠类容器-媒体类
 class MDFCollapsing(FileCollapsing):
-    def __init__(self, master, screenzoom: float, content):
+    def __init__(self, master, screenzoom: float, content:MediaDef):
         super().__init__(master, screenzoom, 'mediadef', content)
         self.items = {
             'Pos'       :   ttk.Button(master=self.content_frame,text='位置 (Pos)',bootstyle='light',padding=self.button_padding,compound='left'),
@@ -147,7 +157,7 @@ class CTBCollapsing(FileCollapsing):
         self.update_item()
 # 项目视图-可折叠类容器-剧本类
 class RGLCollapsing(FileCollapsing):
-    def __init__(self, master, screenzoom: float, content:RplGenLog):
+    def __init__(self, master, screenzoom: float, content:dict):
         super().__init__(master, screenzoom, 'rplgenlog', content)
         SZ_10 = int(self.sz * 10)
         SZ_5  = int(self.sz * 5 )
@@ -156,9 +166,8 @@ class RGLCollapsing(FileCollapsing):
         # 新建按钮
         self.add_button = ttk.Button(master=self.collapbutton,text='新增+',bootstyle='warning',padding=0)
         self.add_button.pack(side='right',padx=SZ_10,pady=SZ_5,ipady=SZ_1,ipadx=SZ_3)
-        self.items = {
-            '1'     :   ttk.Button(master=self.content_frame,text='第1集',bootstyle='light',padding=self.button_padding,compound='left'),
-            '2'     :   ttk.Button(master=self.content_frame,text='第2集',bootstyle='light',padding=self.button_padding,compound='left'),
-            '3'     :   ttk.Button(master=self.content_frame,text='第3集',bootstyle='light',padding=self.button_padding,compound='left'),
-        }
+        # 内容
+        self.items = {}
+        for key in content.keys():
+            self.items[key] = ttk.Button(master=self.content_frame,text=key,bootstyle='light',padding=self.button_padding,compound='left')
         self.update_item()
