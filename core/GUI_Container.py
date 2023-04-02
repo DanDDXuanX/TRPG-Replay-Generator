@@ -109,9 +109,11 @@ class MDFContainer(Container):
             this_section_frame:ttk.LabelFrame = self.element[key]
             this_section_frame.place(relx=idx%3 * 0.33,y=idx//3*SZ_100,width=-sz_10,height=SZ_95,relwidth=0.33)
 class CTBContainer(Container):
-    def __init__(self,master,content:MediaDef,name:str,screenzoom):
+    def __init__(self,master,content:CharTable,name:str,screenzoom):
         # 初始化基类
         super().__init__(master=master,content=content,screenzoom=screenzoom)
+        # 可引用对象
+        self.ref_medef = self.master.master.ref_medef
         # 遍历内容物，新建元件
         for key in self.content.struct:
             this_section = self.content.struct[key]
@@ -136,8 +138,92 @@ class CTBContainer(Container):
             this_section_frame:ttk.LabelFrame = self.element[key]
             this_section_frame.place(x=0,y=idx*SZ_100,width=-sz_10,height=SZ_95,relwidth=1)
 # 容器中的每个小节
-class RGLSectionElement(ttk.LabelFrame):
+class SectionElement:
+    MDFscript = MediaDef()
     RGLscript = RplGenLog()
+    CTBscript = CharTable()
+    def get_select(self):
+        SZ_5 = int(self.sz * 5)
+        self.select_symbol.place(x=0,y=0,width=SZ_5,relheight=1)
+    def drop_select(self):
+        self.select_symbol.place_forget()
+    def update_image_from_section(self,section,icon_size:int,thumbname='%d'):
+        # icon_size= int(160*self.sz)
+        # 确认显示内容:image
+        if   section['type'] in ['Animation','Bubble','Balloon','DynamicBubble','ChatWindow','Background']:
+            if section['filepath'] in self.thumbnail_name.keys():
+                self.thumb = self.thumbnail_name[section['filepath']]
+            else:
+                # 新建一个缩略图
+                if section['filepath'] in [None,'None']:
+                    image = Image.new(mode='RGBA',size=(icon_size,icon_size),color=(0,0,0,0))
+                elif section['filepath'] in MediaObj.cmap.keys():
+                    image = Image.new(mode='RGBA',size=(icon_size,icon_size),color=MediaObj.cmap[filepath])
+                else:
+                    filepath = Filepath(filepath=section['filepath']).exact()
+                    image = Image.open(filepath)
+                # 缩略名
+                thumbnail_name_this = thumbname%self.thumbnail_idx
+                self.__class__.thumbnail_idx += 1
+                # 应用
+                self.thumbnail_name[section['filepath']] = thumbnail_name_this
+                self.thumbnail_image[section['filepath']] = ImageTk.PhotoImage(name=thumbnail_name_this,image=thumbnail(image=image,icon_size=icon_size))
+                self.thumb = thumbnail_name_this
+        elif self.line_type in ['Text','StrokeText']:
+            # 新建一个缩略图
+            text_obj = self.MDFscript.instance_execute(section)
+            temp_canvas = pygame.Surface(size=(icon_size,icon_size))
+            # 背景图的颜色
+            if self.line_type == 'StrokeText':
+                if np.mean(text_obj.edge_color) > 230:
+                    temp_canvas.fill('black')
+                else:
+                    temp_canvas.fill('white')
+            else:
+                if np.mean(text_obj.color) > 230:
+                    temp_canvas.fill('black')
+                else:
+                    temp_canvas.fill('white')
+            # 渲染预览字体
+            test_text = {'Text':'字体#Text','StrokeText':'描边#Stroke'}[self.line_type]
+            for idx,text in enumerate(text_obj.draw(text=test_text)):
+                text:pygame.Surface
+                w,h = text.get_size()
+                temp_canvas.blit(
+                    text,
+                    [
+                        int( icon_size/2 - w/2 ),
+                        int( icon_size/2 - (1 - idx) * text_obj.size )
+                    ]
+                )
+            # 转为Image
+            image = Image.frombytes(mode='RGB',size=(icon_size,icon_size),data=pygame.image.tostring(temp_canvas,'RGB'))
+            # 缩略名
+            thumbnail_name_this = 'thumbnail%d'%self.thumbnail_idx
+            self.__class__.thumbnail_idx += 1
+            # 应用
+            self.thumbnail_name[thumbnail_name_this] = thumbnail_name_this
+            self.thumbnail_image[thumbnail_name_this] = ImageTk.PhotoImage(name=thumbnail_name_this,image=thumbnail(image=image,icon_size=icon_size))
+            self.thumb = thumbnail_name_this
+        elif self.line_type in ['Audio','BGM']:
+            if self.line_type not in self.thumbnail_name.keys():
+                self.__class__.thumbnail_image['Audio'] = ImageTk.PhotoImage(name='Audio', image=Image.open('./media/icon/audio.png').resize([icon_size,icon_size]))
+                self.__class__.thumbnail_image['BGM']   = ImageTk.PhotoImage(name='BGM',   image=Image.open('./media/icon/bgm.png').resize([icon_size,icon_size]))
+                self.thumbnail_name['Audio'] = 'Audio'
+                self.thumbnail_name['BGM'] = 'BGM'
+            self.thumb = self.line_type
+        elif self.line_type in ['Pos','PosGrid','FreePos']:
+            if self.line_type not in self.thumbnail_name.keys():
+                self.__class__.thumbnail_image['Pos']        = ImageTk.PhotoImage(name='Pos',    image=Image.open('./media/icon/Pos.png').resize([icon_size,icon_size]))
+                self.__class__.thumbnail_image['PosGrid']    = ImageTk.PhotoImage(name='PosGrid',image=Image.open('./media/icon/PosGrid.png').resize([icon_size,icon_size]))
+                self.__class__.thumbnail_image['FreePos']    = ImageTk.PhotoImage(name='FreePos',image=Image.open('./media/icon/FreePos.png').resize([icon_size,icon_size]))
+                self.thumbnail_name['Pos'] = 'Pos'
+                self.thumbnail_name['PosGrid'] = 'PosGrid'
+                self.thumbnail_name['FreePos'] = 'FreePos'
+            self.thumb = self.line_type
+        return self.thumb
+
+class RGLSectionElement(ttk.LabelFrame,SectionElement):
     def __init__(self,master,bootstyle,text,section:dict,screenzoom):
         self.sz = screenzoom
         self.line_type = section['type']
@@ -299,12 +385,7 @@ class RGLSectionElement(ttk.LabelFrame):
             this_item.bind('<Button-1>',lambda event:self.master.select_item(event,index=self.idx,add=False))
             this_item.bind('<Control-Button-1>',lambda event:self.master.select_item(event,index=self.idx,add=True))
             this_item.bind('<Shift-Button-1>',lambda event:self.master.select_range(event,index=self.idx))
-    def get_select(self):
-        SZ_5 = int(self.sz * 5)
-        self.select_symbol.place(x=0,y=0,width=SZ_5,relheight=1)
-    def drop_select(self):
-        self.select_symbol.place_forget()
-class MDFSectionElement(ttk.Frame):
+class MDFSectionElement(ttk.Frame,SectionElement):
     MDFscript = MediaDef()
     thumbnail_image = {}
     thumbnail_name = {}
@@ -332,78 +413,7 @@ class MDFSectionElement(ttk.Frame):
         self.update_item()
     def update_image_from_section(self,section):
         icon_size= int(160*self.sz)
-        # 确认显示内容:image
-        if   self.line_type in ['Animation','Bubble','Balloon','DynamicBubble','ChatWindow','Background']:
-            if section['filepath'] in self.thumbnail_name.keys():
-                self.thumb = self.thumbnail_name[section['filepath']]
-            else:
-                # 新建一个缩略图
-                if section['filepath'] in [None,'None']:
-                    image = Image.new(mode='RGBA',size=(icon_size,icon_size),color=(0,0,0,0))
-                elif section['filepath'] in MediaObj.cmap.keys():
-                    image = Image.new(mode='RGBA',size=(icon_size,icon_size),color=MediaObj.cmap[filepath])
-                else:
-                    filepath = Filepath(filepath=section['filepath']).exact()
-                    image = Image.open(filepath)
-                # 缩略名
-                thumbnail_name_this = 'thumbnail%d'%self.thumbnail_idx
-                MDFSectionElement.thumbnail_idx += 1
-                # 应用
-                self.thumbnail_name[section['filepath']] = thumbnail_name_this
-                self.thumbnail_image[section['filepath']] = ImageTk.PhotoImage(name=thumbnail_name_this,image=thumbnail(image=image,icon_size=icon_size))
-                self.thumb = thumbnail_name_this
-        elif self.line_type in ['Text','StrokeText']:
-            # 新建一个缩略图
-            text_obj = self.MDFscript.instance_execute(section)
-            temp_canvas = pygame.Surface(size=(icon_size,icon_size))
-            # 背景图的颜色
-            if self.line_type == 'StrokeText':
-                if np.mean(text_obj.edge_color) > 230:
-                    temp_canvas.fill('black')
-                else:
-                    temp_canvas.fill('white')
-            else:
-                if np.mean(text_obj.color) > 230:
-                    temp_canvas.fill('black')
-                else:
-                    temp_canvas.fill('white')
-            # 渲染预览字体
-            test_text = {'Text':'字体#Text','StrokeText':'描边#Stroke'}[self.line_type]
-            for idx,text in enumerate(text_obj.draw(text=test_text)):
-                text:pygame.Surface
-                w,h = text.get_size()
-                temp_canvas.blit(
-                    text,
-                    [
-                        int( icon_size/2 - w/2 ),
-                        int( icon_size/2 - (1 - idx) * text_obj.size )
-                    ]
-                )
-            # 转为Image
-            image = Image.frombytes(mode='RGB',size=(icon_size,icon_size),data=pygame.image.tostring(temp_canvas,'RGB'))
-            # 缩略名
-            thumbnail_name_this = 'thumbnail%d'%self.thumbnail_idx
-            MDFSectionElement.thumbnail_idx += 1
-            # 应用
-            self.thumbnail_name[thumbnail_name_this] = thumbnail_name_this
-            self.thumbnail_image[thumbnail_name_this] = ImageTk.PhotoImage(name=thumbnail_name_this,image=thumbnail(image=image,icon_size=icon_size))
-            self.thumb = thumbnail_name_this
-        elif self.line_type in ['Audio','BGM']:
-            if self.line_type not in self.thumbnail_name.keys():
-                MDFSectionElement.thumbnail_image['Audio'] = ImageTk.PhotoImage(name='Audio', image=Image.open('./media/icon/audio.png').resize([icon_size,icon_size]))
-                MDFSectionElement.thumbnail_image['BGM']   = ImageTk.PhotoImage(name='BGM',   image=Image.open('./media/icon/bgm.png').resize([icon_size,icon_size]))
-                self.thumbnail_name['Audio'] = 'Audio'
-                self.thumbnail_name['BGM'] = 'BGM'
-            self.thumb = self.line_type
-        elif self.line_type in ['Pos','PosGrid','FreePos']:
-            if self.line_type not in self.thumbnail_name.keys():
-                MDFSectionElement.thumbnail_image['Pos']        = ImageTk.PhotoImage(name='Pos',    image=Image.open('./media/icon/Pos.png').resize([icon_size,icon_size]))
-                MDFSectionElement.thumbnail_image['PosGrid']    = ImageTk.PhotoImage(name='PosGrid',image=Image.open('./media/icon/PosGrid.png').resize([icon_size,icon_size]))
-                MDFSectionElement.thumbnail_image['FreePos']    = ImageTk.PhotoImage(name='FreePos',image=Image.open('./media/icon/FreePos.png').resize([icon_size,icon_size]))
-                self.thumbnail_name['Pos'] = 'Pos'
-                self.thumbnail_name['PosGrid'] = 'PosGrid'
-                self.thumbnail_name['FreePos'] = 'FreePos'
-            self.thumb = self.line_type
+        return super().update_image_from_section(section=section,icon_size=icon_size,thumbname='MDFthumb%d')
     def update_item(self):
         for idx,key in enumerate(self.items):
             this_item:ttk.Label = self.items[key]
@@ -412,33 +422,31 @@ class MDFSectionElement(ttk.Frame):
             this_item.bind('<Button-1>',lambda event:self.master.select_item(event,index=self.name,add=False))
             this_item.bind('<Control-Button-1>',lambda event:self.master.select_item(event,index=self.name,add=True))
             # this_item.bind('<Shift-Button-1>',lambda event:self.master.select_range(event,index=self.name)) # BUG: 这个现在是不可用的
-    def get_select(self):
-        SZ_5 = int(self.sz * 5)
-        self.select_symbol.place(x=0,y=0,width=SZ_5,relheight=1)
-    def drop_select(self):
-        self.select_symbol.place_forget()
-class CTBSectionElement(ttk.Frame):
-    CTBscript = CharTable()
+class CTBSectionElement(ttk.Frame,SectionElement):
+    thumbnail_image = {}
+    thumbnail_name = {}
+    thumbnail_idx = 0
     def __init__(self,master,bootstyle,text,section:dict,screenzoom):
         self.sz = screenzoom
         icon_size = int(self.sz * 93)
         self.name = text # 序号
         super().__init__(master=master,bootstyle=bootstyle,borderwidth=int(1*self.sz))
         self.section = section
+        # 媒体定义对象
+        self.ref_medef:MediaDef = self.master.ref_medef
         # 容器
         self.table = ttk.Frame(master=self,bootstyle=bootstyle,borderwidth=0)
         self.thumbnail = ttk.Frame(master=self,bootstyle=bootstyle,borderwidth=0)
-        self.image = {
-            'AMThB' : ImageTk.PhotoImage(name='AMThB',image=thumbnail(image=Image.open('./toy/media/am1.png'),icon_size=icon_size)),
-            'BBThB' : ImageTk.PhotoImage(name='BBThB',image=thumbnail(image=Image.open('./toy/media/bubble.png'),icon_size=icon_size)),
-        }
+        # 缩略图
+        am_thumbname = self.update_image_from_section(media_name=section['Animation'])
+        bb_thumbname = self.update_image_from_section(media_name=section['Bubble'])
         self.items = {
             'head'  : ttk.Label(master=self.table,text=self.name,style='CharHead.TLabel'),
             'anime' : ttk.Label(master=self.table,text='立绘：'+self.section['Animation'],style='main.TLabel'),
             'bubble': ttk.Label(master=self.table,text='气泡：'+self.section['Bubble'],style='main.TLabel'),
-            'voice' : ttk.Label(master=self.table,text='语音：'+self.section['Voice']+'|'+self.section['SpeechRate']+'|'+self.section['PitchRate'],style='main.TLabel'),
-            'AMThB' : ttk.Label(master=self.thumbnail,image='AMThB',anchor='center',padding=0),
-            'BBThB' : ttk.Label(master=self.thumbnail,image='BBThB',anchor='center',padding=0)
+            'voice' : ttk.Label(master=self.table,text='语音：'+self.section['Voice']+'|'+str(self.section['SpeechRate'])+'|'+str(self.section['PitchRate']),style='main.TLabel'),
+            'AMThB' : ttk.Label(master=self.thumbnail,image=am_thumbname,anchor='center',padding=0),
+            'BBThB' : ttk.Label(master=self.thumbnail,image=bb_thumbname,anchor='center',padding=0)
         }
         # 被选中的标志
         self.select_symbol = ttk.Frame(master=self,bootstyle='primary')
@@ -462,8 +470,23 @@ class CTBSectionElement(ttk.Frame):
             this_item.bind('<Button-1>',lambda event:self.master.select_item(event,index=self.name,add=False))
             this_item.bind('<Control-Button-1>',lambda event:self.master.select_item(event,index=self.name,add=True))
             # this_item.bind('<Shift-Button-1>',lambda event:self.master.select_range(event,index=self.idx))
-    def get_select(self):
-        SZ_5 = int(self.sz * 5)
-        self.select_symbol.place(x=0,y=0,width=SZ_5,relheight=1)
-    def drop_select(self):
-        self.select_symbol.place_forget()
+    def update_image_from_section(self,media_name:str)->str:
+        # 图标大小
+        icon_size = int(self.sz * 93)
+        # 媒体名是":"前面的部分
+        media_name = media_name.split(':')[0]
+        # 是否存在
+        if media_name == 'NA':
+            if 'NA' not in self.thumbnail_name.keys():
+                self.thumbnail_image['NA'] = ImageTk.PhotoImage(name='NA', image=Image.open('./media/icon/NA.png').resize([icon_size,icon_size]))
+                self.thumbnail_name['NA'] = 'NA'
+            return 'NA'
+        if media_name not in self.ref_medef.struct.keys():
+            return 'MediaNotFound' # TODO : 给这个错误情况来一个图标（伊可的）
+        else:
+            section_this:dict = self.ref_medef.struct[media_name]
+        # 是否是Am或者Bb
+        if section_this['type'] not in ['Animation','Bubble','Balloon','DynamicBubble','ChatWindow']:
+            return 'MediaNotFound'
+        else:
+            return super().update_image_from_section(section=section_this,icon_size=icon_size,thumbname='CTBthumb%d')

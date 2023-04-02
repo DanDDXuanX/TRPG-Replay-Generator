@@ -99,7 +99,8 @@ class MediaDef(Script):
         else:
             self.media_path = Filepath.RplGenpath
         # 执行媒体类的类变量变更
-        Filepath.Mediapath = self.media_path
+        # Filepath.Mediapath = self.media_path # 因为MediaDef()用的太多了，不能在初始化的时候这样用了！
+        # raise Exception()
     # MDF -> struct
     def list_parser(self,list_str:str)->list:
         # 列表，元组，不包含外括号
@@ -408,7 +409,7 @@ class CharTable(Script):
                 if colname not in charactor_table.columns:
                     charactor_table[colname] = 0
                 else:
-                    charactor_table[colname] = charactor_table[colname].fillna(0).astype(int)
+                    charactor_table[colname] = charactor_table[colname].replace('NA',0).fillna(0).astype(int)
             # key，必须要unique
             charactor_table.index = charactor_table['Name']+'.'+charactor_table['Subtype']
             if charactor_table.index.is_unique == False:

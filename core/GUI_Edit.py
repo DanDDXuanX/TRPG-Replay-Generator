@@ -14,11 +14,15 @@ class EditWindow(ttk.LabelFrame):
         super().__init__(master=master,bootstyle='primary',text='编辑区')
         # 小节的数据
         self.section = section
-        self.line_type = self.section['type']
         # 组件
-        self.elements = {
-            'type' : KeyValueDescribe(self,self.sz,key='小节类型',value={'type':'str','style':'combox','value':section['type']},describe={'type':'text','text':'（选择）'})
-        }
+        if self.section == None:
+            self.line_type = 'no_selection'
+            self.elements = {}
+        else:
+            self.line_type = self.section['type']
+            self.elements = {
+                'type' : KeyValueDescribe(self,self.sz,key='小节类型',value={'type':'str','style':'combox','value':section['type']},describe={'type':'text','text':'（选择）'})
+            }
         self.update_item()
     def update_item(self):
         for key in self.elements:
