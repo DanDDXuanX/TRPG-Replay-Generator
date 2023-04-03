@@ -124,16 +124,19 @@ class FileCollapsing(ttk.Frame):
         self.collapbutton = ttk.Button(master=self,text=self.class_text,command=self.update_toggle,bootstyle='warning')
         self.content_frame = ttk.Frame(master=self)
         self.button_padding = (SZ_5,SZ_2,SZ_5,SZ_2)
-        # 内容
+        # 内容，正常来说，self.items的key应该正好等于Button的text
         self.content = content
         self.items = {}
     def update_item(self):
-        for idx in self.items:
-            this_button = self.items[idx]
-            this_button.pack(fill='x',side='top')
+        self.update_filelist()
         self.collapbutton.pack(fill='x',side='top')
         self.expand:bool = False
         self.update_toggle()
+    def update_filelist(self):
+        for idx in self.items:
+            this_button:ttk.Button = self.items[idx]
+            this_button.pack_forget()
+            this_button.pack(fill='x',side='top')
     def update_toggle(self):
         if self.expand:
             self.content_frame.pack_forget()
@@ -141,12 +144,55 @@ class FileCollapsing(ttk.Frame):
         else:
             self.content_frame.pack(fill='x',side='top')
             self.expand:bool = True
+    def right_click_menu(self,event,keyword):
+        menu = ttk.Menu(master=self.content_frame,tearoff=0)
+        menu.add_command(label="重命名",command=lambda:self.rename_item(keyword))
+        menu.add_command(label="删除")
+        # 显示菜单
+        menu.post(event.x_root, event.y_root)
     def add_item(self):
         pass
     def delete_item(self):
         pass
-    def rename_item(self):
-        pass
+    def rename_item(self,keyword):
+        # 原来的按钮
+        self.button_2_rename:ttk.Button = self.items[keyword]
+        self.re_name = tk.StringVar(master=self,value=keyword)
+        # 新建输入框
+        rename_entry:ttk.Entry = ttk.Entry(master=self.content_frame,textvariable=self.re_name,bootstyle='light',justify='center',)
+        rename_entry.bind("<Return>",lambda event:self.rename_item_done(True))
+        rename_entry.bind("<FocusOut>",lambda event:self.rename_item_done(False))
+        rename_entry.bind("<Escape>",lambda event:self.rename_item_done(False))
+        # 放置元件
+        self.items[keyword] = rename_entry
+        # 更新
+        self.button_2_rename.pack_forget()
+        self.update_filelist()
+    def rename_item_done(self,enter:bool):
+        origin_keyword = self.button_2_rename.cget('text')
+        self.items[origin_keyword].destroy()
+        if enter:
+            # TODO: 检查是否是合法的名字 
+
+            # 新的关键字
+            new_keyword = self.re_name.get()
+            # 删除原来的关键字
+            self.items.pop(origin_keyword)
+            # 修改Button的text
+            command  = self.closure_button_commands(new_keyword,'press')
+            self.button_2_rename.config(text=self.re_name.get(),command=command)
+            # 更新self.items
+            self.items[new_keyword] = self.button_2_rename
+            # 检查是否是当前激活的页面
+            pass
+            # 返回值：是否会变更项目
+            return True
+        else:
+            # 删除Entry，复原Button
+            self.items[origin_keyword].destroy()
+            self.items[origin_keyword] = self.button_2_rename
+            return False
+        self.update_filelist()
     def open_item_as_page(self,keyword,file_type,file_index):
         # 检查是否是Page_frame中的活跃页
         if keyword not in self.page_frame.page_dict.keys():
@@ -160,10 +206,17 @@ class FileCollapsing(ttk.Frame):
         else:
             # 如果是活动页，切换到活跃页
             self.page_frame.goto_page(name=keyword)
-    def closure_open_item_as_page(self,file_index:str):
-        def open_the_pressed_file():
-            self.open_item_as_page(file_index=str(file_index))
-        return open_the_pressed_file
+    def closure_button_commands(self,file_index:str,command_type='press'):
+        # 鼠标按下
+        if command_type == 'press':
+            def open_the_pressed_file():
+                self.open_item_as_page(file_index=str(file_index))
+            return open_the_pressed_file
+        # 鼠标右键
+        elif command_type == 'right':
+            def open_menu_by_right(event):
+                self.right_click_menu(event=event,keyword=file_index)
+            return open_menu_by_right
 # 项目视图-可折叠类容器-媒体类
 class MDFCollapsing(FileCollapsing):
     media_type_name = {
@@ -177,7 +230,7 @@ class MDFCollapsing(FileCollapsing):
     def __init__(self, master, screenzoom: float, content:MediaDef, page_frame:PageFrame):
         super().__init__(master, screenzoom, 'mediadef', content, page_frame)
         for mediatype in ['Pos', 'Text', 'Bubble', 'Animation', 'Background', 'Audio']:
-            command  = self.closure_open_item_as_page(mediatype)
+            command  = self.closure_button_commands(mediatype,'press')
             filename = self.media_type_name[mediatype]
             showname = "{} ({})".format(filename,mediatype)
             self.items[mediatype] = ttk.Button(
@@ -210,7 +263,8 @@ class CTBCollapsing(FileCollapsing):
         self.table = self.content.export()
         # 内容
         for name in self.table['Name'].unique():
-            command  = self.closure_open_item_as_page(name)
+            command  = self.closure_button_commands(name,'press')
+            menu = self.closure_button_commands(name,'right')
             self.items[name] = ttk.Button(
                 master      = self.content_frame,
                 text        = name,
@@ -219,13 +273,20 @@ class CTBCollapsing(FileCollapsing):
                 compound    = 'left',
                 command     = command
                 )
+            self.items[name].bind("<Button-3>",menu)
         self.update_item()
+    def rename_item_done(self,enter:bool):
+        edit_CTB = super().rename_item_done(enter=enter)
+        # TODO: 如果需要变更角色名
+        if edit_CTB:
+            # this_CTB:CharTable = self.master.project.chartab
+            pass
     def open_item_as_page(self,file_index:str):
         super().open_item_as_page(
             keyword     = '角色-'+file_index,
             file_type   = 'CTB',
             file_index  = file_index
-            ) 
+            )
 # 项目视图-可折叠类容器-剧本类
 class RGLCollapsing(FileCollapsing):
     def __init__(self, master, screenzoom: float, content:dict, page_frame:PageFrame):
@@ -239,7 +300,8 @@ class RGLCollapsing(FileCollapsing):
         self.add_button.pack(side='right',padx=SZ_10,pady=SZ_5,ipady=SZ_1,ipadx=SZ_3)
         # 内容
         for key in self.content.keys():
-            command  = self.closure_open_item_as_page(key)
+            command  = self.closure_button_commands(key,'press')
+            menu = self.closure_button_commands(key,'right')
             self.items[key] = ttk.Button(
                 master      = self.content_frame,
                 text        = key,
@@ -248,6 +310,7 @@ class RGLCollapsing(FileCollapsing):
                 compound    = 'left',
                 command     = command
                 )
+            self.items[key].bind("<Button-3>",menu)
         self.update_item()
     def open_item_as_page(self,file_index:str):
         super().open_item_as_page(
