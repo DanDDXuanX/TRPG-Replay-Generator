@@ -28,6 +28,8 @@ class RplGenStudioMainWindow(ttk.Window):
             size        = (int(1500*self.sz),int(800*self.sz)),
             resizable   = (True,True),
         )
+        # 关闭
+        self.protocol('WM_DELETE_WINDOW',self.on_close)
         # 样式
         SZ_3 = int(3 * self.sz)
         SZ_5 = int(5 * self.sz)
@@ -80,6 +82,11 @@ class RplGenStudioMainWindow(ttk.Window):
             'project': ProjectView(master=self,screenzoom=self.sz)
             }
         self.view_show('project')
+    # 当关闭窗口时
+    def on_close(self):
+        project_view:ProjectView = self.view['project']
+        project_view.file_manager.project.dump_json('./test_project.json')
+        self.destroy()
     # 当导航栏被点击时
     def navigateBar_get_click(self,event):
         is_wide = not self.navigate_bar.is_wide

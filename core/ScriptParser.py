@@ -440,6 +440,12 @@ class CharTable(Script):
     # 执行：角色表哪儿有需要执行的哦，直接返回自己的表就行了
     def execute(self) -> pd.DataFrame:
         return self.export().copy()
+    # 变动角色名
+    def rename(self,to_rename:str,new_name:str):
+        chartable:pd.DataFrame = self.export()
+        chartable['Name'] = chartable['Name'].replace(to_rename,new_name)
+        chartable.index = chartable['Name']+'.'+chartable['Subtype']
+        self.struct = self.parser(chartable)
 
 # log文件
 class RplGenLog(Script):

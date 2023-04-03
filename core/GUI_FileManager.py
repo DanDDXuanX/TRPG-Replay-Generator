@@ -5,10 +5,12 @@
 # 包含：标题图，项目管理按钮，媒体、角色、剧本的可折叠容器
 
 import json
+import re
 from PIL import Image, ImageTk
 import ttkbootstrap as ttk
 import tkinter as tk
 from ttkbootstrap.scrolled import ScrolledFrame
+from ttkbootstrap.dialogs import Messagebox
 from .ScriptParser import MediaDef, CharTable, RplGenLog, Script
 from .FilePaths import Filepath
 from .ProjConfig import Config
@@ -144,7 +146,9 @@ class FileCollapsing(ttk.Frame):
         else:
             self.content_frame.pack(fill='x',side='top')
             self.expand:bool = True
-    def right_click_menu(self,event,keyword):
+    def right_click_menu(self,event):
+        # 获取关键字
+        keyword = event.widget.cget('text')
         menu = ttk.Menu(master=self.content_frame,tearoff=0)
         menu.add_command(label="重命名",command=lambda:self.rename_item(keyword))
         menu.add_command(label="删除")
@@ -158,8 +162,9 @@ class FileCollapsing(ttk.Frame):
         # 原来的按钮
         self.button_2_rename:ttk.Button = self.items[keyword]
         self.re_name = tk.StringVar(master=self,value=keyword)
+        self.in_rename:bool = True
         # 新建输入框
-        rename_entry:ttk.Entry = ttk.Entry(master=self.content_frame,textvariable=self.re_name,bootstyle='light',justify='center',)
+        rename_entry:ttk.Entry = ttk.Entry(master=self.content_frame,textvariable=self.re_name,bootstyle='warning',justify='center',)
         rename_entry.bind("<Return>",lambda event:self.rename_item_done(True))
         rename_entry.bind("<FocusOut>",lambda event:self.rename_item_done(False))
         rename_entry.bind("<Escape>",lambda event:self.rename_item_done(False))
@@ -168,31 +173,52 @@ class FileCollapsing(ttk.Frame):
         # 更新
         self.button_2_rename.pack_forget()
         self.update_filelist()
+        # 设置焦点
+        rename_entry.focus_set()
+    def rename_item_failed(self,origin_keyword):
+        self.items[origin_keyword].destroy()
+        self.items[origin_keyword] = self.button_2_rename
+        self.update_filelist()
     def rename_item_done(self,enter:bool):
         origin_keyword = self.button_2_rename.cget('text')
-        self.items[origin_keyword].destroy()
-        if enter:
-            # TODO: 检查是否是合法的名字 
-
+        # 每次rename，done只能触发一次！
+        if self.in_rename:
+            self.in_rename = False
+        else:
+            return False
+        try:
+            if enter is False:
+                # 删除Entry，复原Button
+                self.rename_item_failed(origin_keyword)
+                raise Exception('没有按回车键')
             # 新的关键字
             new_keyword = self.re_name.get()
+            if re.match('^[\w\ ]+$',new_keyword) is None:
+                self.rename_item_failed(origin_keyword)
+                Messagebox().show_warning(
+                    message = '非法的角色名：{}\n角色名只能包含中文、英文、数字、下划线和空格！'.format(new_keyword),
+                    title   = '失败的重命名'
+                    )
+                raise Exception('非法的角色名')
+            if new_keyword in self.items.keys() and new_keyword != origin_keyword:
+                self.rename_item_failed(origin_keyword)
+                Messagebox().show_warning(
+                    message = '重复的角色名：{}\n！',
+                    title   = '失败的重命名'
+                    )
+                raise Exception('重复的角色名')
             # 删除原来的关键字
+            self.items[origin_keyword].destroy()
             self.items.pop(origin_keyword)
             # 修改Button的text
-            command  = self.closure_button_commands(new_keyword,'press')
-            self.button_2_rename.config(text=self.re_name.get(),command=command)
+            self.button_2_rename.config(text=self.re_name.get())
             # 更新self.items
             self.items[new_keyword] = self.button_2_rename
-            # 检查是否是当前激活的页面
-            pass
+            self.update_filelist()
             # 返回值：是否会变更项目
             return True
-        else:
-            # 删除Entry，复原Button
-            self.items[origin_keyword].destroy()
-            self.items[origin_keyword] = self.button_2_rename
+        except Exception as E:
             return False
-        self.update_filelist()
     def open_item_as_page(self,keyword,file_type,file_index):
         # 检查是否是Page_frame中的活跃页
         if keyword not in self.page_frame.page_dict.keys():
@@ -206,17 +232,6 @@ class FileCollapsing(ttk.Frame):
         else:
             # 如果是活动页，切换到活跃页
             self.page_frame.goto_page(name=keyword)
-    def closure_button_commands(self,file_index:str,command_type='press'):
-        # 鼠标按下
-        if command_type == 'press':
-            def open_the_pressed_file():
-                self.open_item_as_page(file_index=str(file_index))
-            return open_the_pressed_file
-        # 鼠标右键
-        elif command_type == 'right':
-            def open_menu_by_right(event):
-                self.right_click_menu(event=event,keyword=file_index)
-            return open_menu_by_right
 # 项目视图-可折叠类容器-媒体类
 class MDFCollapsing(FileCollapsing):
     media_type_name = {
@@ -230,7 +245,6 @@ class MDFCollapsing(FileCollapsing):
     def __init__(self, master, screenzoom: float, content:MediaDef, page_frame:PageFrame):
         super().__init__(master, screenzoom, 'mediadef', content, page_frame)
         for mediatype in ['Pos', 'Text', 'Bubble', 'Animation', 'Background', 'Audio']:
-            command  = self.closure_button_commands(mediatype,'press')
             filename = self.media_type_name[mediatype]
             showname = "{} ({})".format(filename,mediatype)
             self.items[mediatype] = ttk.Button(
@@ -239,11 +253,14 @@ class MDFCollapsing(FileCollapsing):
                 bootstyle   = 'light',
                 padding     = self.button_padding,
                 compound    = 'left',
-                command     = command
                 )
+            self.items[mediatype].bind("<Button-1>",self.open_item_as_page)
         self.update_item()
-    def open_item_as_page(self,file_index:str):
-        filename = self.media_type_name[file_index]
+    def open_item_as_page(self,event):
+        # 获取点击按钮的关键字
+        keyword = event.widget.cget('text')
+        filename,file_index = keyword.split(' ') # 前两个字
+        file_index = file_index[1:-1] # 去除括号
         super().open_item_as_page(
             keyword     = '媒体-' + filename, # '媒体-立绘'
             file_type   = 'MDF',
@@ -263,29 +280,45 @@ class CTBCollapsing(FileCollapsing):
         self.table = self.content.export()
         # 内容
         for name in self.table['Name'].unique():
-            command  = self.closure_button_commands(name,'press')
-            menu = self.closure_button_commands(name,'right')
             self.items[name] = ttk.Button(
                 master      = self.content_frame,
                 text        = name,
                 bootstyle   = 'light',
                 padding     = self.button_padding,
                 compound    = 'left',
-                command     = command
                 )
-            self.items[name].bind("<Button-3>",menu)
+            self.items[name].bind("<Button-1>",self.open_item_as_page)
+            self.items[name].bind("<Button-3>",self.right_click_menu)
         self.update_item()
+    def rename_item(self, keyword):
+        # 如果尝试重命名的是一个已经打开的标签页
+        rename_an_active_page:bool = "角色-"+keyword in self.page_frame.page_dict.keys()
+        if rename_an_active_page:
+            choice = Messagebox().show_question(
+                message='尝试重命名一个已经启动的角色页面！\n如果这样做，该页面尚未保存的修改将会丢失！',
+                title='警告！',
+                buttons=["取消:primary","确定:danger"]
+                )
+            if choice != '确定':
+                return
+        return super().rename_item(keyword)
     def rename_item_done(self,enter:bool):
+        origin_keyword = self.button_2_rename.cget('text')
+        new_keyword = self.re_name.get()
+        rename_an_active_page:bool = "角色-"+origin_keyword in self.page_frame.page_dict.keys()
         edit_CTB = super().rename_item_done(enter=enter)
-        # TODO: 如果需要变更角色名
         if edit_CTB:
-            # this_CTB:CharTable = self.master.project.chartab
-            pass
-    def open_item_as_page(self,file_index:str):
+            if rename_an_active_page:
+                self.page_frame.page_notebook.delete("角色-"+origin_keyword)
+            # 重命名 content
+            self.content.rename(origin_keyword,new_keyword)
+    def open_item_as_page(self,event):
+        # 获取点击按钮的关键字
+        keyword = event.widget.cget('text')
         super().open_item_as_page(
-            keyword     = '角色-'+file_index,
+            keyword     = '角色-'+keyword,
             file_type   = 'CTB',
-            file_index  = file_index
+            file_index  = keyword
             )
 # 项目视图-可折叠类容器-剧本类
 class RGLCollapsing(FileCollapsing):
@@ -300,21 +333,44 @@ class RGLCollapsing(FileCollapsing):
         self.add_button.pack(side='right',padx=SZ_10,pady=SZ_5,ipady=SZ_1,ipadx=SZ_3)
         # 内容
         for key in self.content.keys():
-            command  = self.closure_button_commands(key,'press')
-            menu = self.closure_button_commands(key,'right')
             self.items[key] = ttk.Button(
                 master      = self.content_frame,
                 text        = key,
                 bootstyle   = 'light',
                 padding     = self.button_padding,
                 compound    = 'left',
-                command     = command
                 )
-            self.items[key].bind("<Button-3>",menu)
+            self.items[key].bind("<Button-1>",self.open_item_as_page)
+            self.items[key].bind("<Button-3>",self.right_click_menu)
         self.update_item()
-    def open_item_as_page(self,file_index:str):
+    def rename_item(self, keyword):
+        # 如果尝试重命名的是一个已经打开的标签页
+        rename_an_active_page:bool = "剧本-"+keyword in self.page_frame.page_dict.keys()
+        if rename_an_active_page:
+            choice = Messagebox().show_question(
+                message='尝试重命名一个已经启动的剧本页面！\n如果这样做，该页面尚未保存的修改将会丢失！',
+                title='警告！',
+                buttons=["取消:primary","确定:danger"]
+                )
+            if choice != '确定':
+                return
+        return super().rename_item(keyword)
+    def rename_item_done(self,enter:bool):
+        origin_keyword = self.button_2_rename.cget('text')
+        new_keyword = self.re_name.get()
+        rename_an_active_page:bool = "剧本-"+origin_keyword in self.page_frame.page_dict.keys()
+        edit_RGL = super().rename_item_done(enter=enter)
+        if edit_RGL:
+            if rename_an_active_page:
+                self.page_frame.page_notebook.delete("剧本-"+origin_keyword)
+            # 重命名 content
+            self.content[new_keyword] = self.content[origin_keyword]
+            self.content.pop(origin_keyword)
+    def open_item_as_page(self,event):
+        # 获取点击按钮的关键字
+        keyword = event.widget.cget('text')
         super().open_item_as_page(
-            keyword     = '剧本-'+file_index,
+            keyword     = '剧本-'+keyword,
             file_type   = 'RGL',
-            file_index  = file_index
+            file_index  = keyword
             )

@@ -83,7 +83,6 @@ class Config:
             'Height'        : self.Height,
             'frame_rate'    : self.frame_rate,
             'Zorder'        : self.zorder,
-            'Language'      : self.lang,
         }
     def execute(self):
         # 动态效果
