@@ -166,7 +166,7 @@ class RGLPage(ttk.Frame):
         self.container = RGLContainer(master=self,content=self.content,screenzoom=self.sz)
         self.outputcommand = OutPutCommand(master=self,screenzoom=self.sz)
         self.preview = PreviewCanvas(master=self,screenzoom=self.sz)
-        self.edit = EditWindow(master=self,screenzoom=self.sz,section=self.content.struct['0'])
+        self.edit = EditWindow(master=self,screenzoom=self.sz,section=None)
         # 放置元件
         SZ_40 = int(self.sz * 40)
         self.searchbar.place(x=0,y=0,relwidth=0.5,height=SZ_40)

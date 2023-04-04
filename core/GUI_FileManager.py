@@ -151,14 +151,95 @@ class FileCollapsing(ttk.Frame):
         keyword = event.widget.cget('text')
         menu = ttk.Menu(master=self.content_frame,tearoff=0)
         menu.add_command(label="重命名",command=lambda:self.rename_item(keyword))
-        menu.add_command(label="删除")
+        menu.add_command(label="删除",command=lambda:self.delete_item(keyword))
         # 显示菜单
         menu.post(event.x_root, event.y_root)
     def add_item(self):
-        pass
-    def delete_item(self):
-        pass
-    def rename_item(self,keyword):
+        # 名字
+        self.re_name = tk.StringVar(master=self,value='')
+        self.in_rename:bool = True
+        # 新建输入框
+        new_entry:ttk.Entry = ttk.Entry(master=self.content_frame,textvariable=self.re_name,bootstyle='warning',justify='center')
+        new_entry.bind("<Return>",lambda event:self.add_item_done(True))
+        new_entry.bind("<FocusOut>",lambda event:self.add_item_done(False))
+        new_entry.bind("<Escape>",lambda event:self.add_item_done(False))
+        # 放置元件
+        self.items['new:init'] = new_entry
+        self.update_filelist()
+        new_entry.focus_set()
+    def add_item_failed(self):
+        self.items['new:init'].destroy()
+        self.items.pop('new:init')
+        self.update_filelist()
+    def add_item_done(self,enter,filetype='角色')->bool:
+        new_keyword = self.re_name.get()
+        origin_keyword = 'new:init'
+        # 每次rename，done只能触发一次！
+        if self.in_rename:
+            self.in_rename = False
+        else:
+            return False
+        try:
+            if enter is False:
+                self.add_item_failed()
+                raise Exception('没有按回车键')
+            if re.match('^[\w\ ]+$',new_keyword) is None:
+                self.add_item_failed()
+                Messagebox().show_warning(
+                    message = '非法的{type}名：{name}\n{type}名只能包含中文、英文、数字、下划线和空格！'.format(type=filetype, name=new_keyword),
+                    title   = '失败的新建'
+                    )
+                raise Exception('非法名')
+            if new_keyword in self.items.keys():
+                self.add_item_failed()
+                Messagebox().show_warning(
+                    message = '重复的{type}名：{name}\n！'.format(type=filetype, name=new_keyword),
+                    title   = '失败的新建'
+                    )
+                raise Exception('重复名')
+            # 删除原来的关键字
+            self.items[origin_keyword].destroy()
+            self.items.pop(origin_keyword)
+            # 新建button
+            self.items[new_keyword] = ttk.Button(
+                master      = self.content_frame,
+                text        = new_keyword,
+                bootstyle   = 'light',
+                padding     = self.button_padding,
+                compound    = 'left',
+                )
+            self.items[new_keyword].bind("<Button-1>",self.open_item_as_page)
+            self.items[new_keyword].bind("<Button-3>",self.right_click_menu)
+            self.update_filelist()
+            # 返回值：是否会变更项目
+            return True
+        except Exception as E:
+            return False
+    def delete_item(self,keyword)->bool:
+        # 确定真的要这么做吗？
+        choice = Messagebox().show_question(
+            message='确定要删除这个项目？\n这项删除将无法复原！',
+            title='警告！',
+            buttons=["取消:primary","确定:danger"]
+            )
+        # 返回是否需要删除项目数据
+        if choice != '确定':
+            return False
+        else:
+            self.items[keyword].destroy()
+            self.items.pop(keyword)
+            return True
+    def rename_item(self,keyword,filetype='角色'):
+        # 如果尝试重命名的是一个已经打开的标签页
+        rename_an_active_page:bool = filetype+"-"+keyword in self.page_frame.page_dict.keys()
+        if rename_an_active_page:
+            choice = Messagebox().show_question(
+                message='尝试重命名一个已经启动的{}页面！\n如果这样做，该页面尚未保存的修改将会丢失！'.format(filetype),
+                title='警告！',
+                buttons=["取消:primary","确定:danger"]
+                )
+            if choice != '确定':
+                return
         # 原来的按钮
         self.button_2_rename:ttk.Button = self.items[keyword]
         self.re_name = tk.StringVar(master=self,value=keyword)
@@ -179,8 +260,10 @@ class FileCollapsing(ttk.Frame):
         self.items[origin_keyword].destroy()
         self.items[origin_keyword] = self.button_2_rename
         self.update_filelist()
-    def rename_item_done(self,enter:bool):
+    def rename_item_done(self,enter:bool,filetype='角色'):
+        # 关键字
         origin_keyword = self.button_2_rename.cget('text')
+        new_keyword = self.re_name.get()
         # 每次rename，done只能触发一次！
         if self.in_rename:
             self.in_rename = False
@@ -191,22 +274,20 @@ class FileCollapsing(ttk.Frame):
                 # 删除Entry，复原Button
                 self.rename_item_failed(origin_keyword)
                 raise Exception('没有按回车键')
-            # 新的关键字
-            new_keyword = self.re_name.get()
             if re.match('^[\w\ ]+$',new_keyword) is None:
                 self.rename_item_failed(origin_keyword)
                 Messagebox().show_warning(
-                    message = '非法的角色名：{}\n角色名只能包含中文、英文、数字、下划线和空格！'.format(new_keyword),
+                    message = '非法的{type}名：{name}\n{type}名只能包含中文、英文、数字、下划线和空格！'.format(type=filetype, name=new_keyword),
                     title   = '失败的重命名'
                     )
-                raise Exception('非法的角色名')
+                raise Exception('非法名')
             if new_keyword in self.items.keys() and new_keyword != origin_keyword:
                 self.rename_item_failed(origin_keyword)
                 Messagebox().show_warning(
-                    message = '重复的角色名：{}\n！',
+                    message = '重复的{type}名：{name}\n！'.format(type=filetype, name=new_keyword),
                     title   = '失败的重命名'
                     )
-                raise Exception('重复的角色名')
+                raise Exception('重复名')
             # 删除原来的关键字
             self.items[origin_keyword].destroy()
             self.items.pop(origin_keyword)
@@ -265,7 +346,8 @@ class MDFCollapsing(FileCollapsing):
             keyword     = '媒体-' + filename, # '媒体-立绘'
             file_type   = 'MDF',
             file_index  = file_index # 'Animation'
-            ) 
+            )
+# TODO:重载 add_item_done 方法，添加角色表增加角色、新增空白剧本
 # 项目视图-可折叠类容器-角色类
 class CTBCollapsing(FileCollapsing):
     def __init__(self, master, screenzoom: float, content:CharTable, page_frame:PageFrame):
@@ -275,7 +357,7 @@ class CTBCollapsing(FileCollapsing):
         SZ_3  = int(self.sz * 3 )
         SZ_1  = int(self.sz * 1 )
         # 新建按钮
-        self.add_button = ttk.Button(master=self.collapbutton,text='新增+',bootstyle='warning',padding=0)
+        self.add_button = ttk.Button(master=self.collapbutton,text='新增+',bootstyle='warning',padding=0,command=self.add_item)
         self.add_button.pack(side='right',padx=SZ_10,pady=SZ_5,ipady=SZ_1,ipadx=SZ_3)
         self.table = self.content.export()
         # 内容
@@ -290,23 +372,27 @@ class CTBCollapsing(FileCollapsing):
             self.items[name].bind("<Button-1>",self.open_item_as_page)
             self.items[name].bind("<Button-3>",self.right_click_menu)
         self.update_item()
+    def add_item_done(self, enter):
+        confirm_add =  super().add_item_done(enter, '角色')
+        new_keyword = self.re_name.get()
+        if confirm_add:
+            self.content.add(new_keyword)
+    def delete_item(self, keyword):
+        confirm_delete:bool = super().delete_item(keyword)
+        delete_an_active_page:bool = "角色-"+keyword in self.page_frame.page_dict.keys()
+        if confirm_delete:
+            # 如果是激活的页面，关闭激活的标签页
+            if delete_an_active_page:
+                self.page_frame.page_notebook.delete("角色-"+keyword)
+            # 执行删除项目
+            self.content.delete(name=keyword)
     def rename_item(self, keyword):
-        # 如果尝试重命名的是一个已经打开的标签页
-        rename_an_active_page:bool = "角色-"+keyword in self.page_frame.page_dict.keys()
-        if rename_an_active_page:
-            choice = Messagebox().show_question(
-                message='尝试重命名一个已经启动的角色页面！\n如果这样做，该页面尚未保存的修改将会丢失！',
-                title='警告！',
-                buttons=["取消:primary","确定:danger"]
-                )
-            if choice != '确定':
-                return
-        return super().rename_item(keyword)
+        return super().rename_item(keyword,filetype='角色')
     def rename_item_done(self,enter:bool):
         origin_keyword = self.button_2_rename.cget('text')
         new_keyword = self.re_name.get()
         rename_an_active_page:bool = "角色-"+origin_keyword in self.page_frame.page_dict.keys()
-        edit_CTB = super().rename_item_done(enter=enter)
+        edit_CTB = super().rename_item_done(enter=enter,filetype='角色')
         if edit_CTB:
             if rename_an_active_page:
                 self.page_frame.page_notebook.delete("角色-"+origin_keyword)
@@ -329,7 +415,7 @@ class RGLCollapsing(FileCollapsing):
         SZ_3  = int(self.sz * 3 )
         SZ_1  = int(self.sz * 1 )
         # 新建按钮
-        self.add_button = ttk.Button(master=self.collapbutton,text='新增+',bootstyle='warning',padding=0)
+        self.add_button = ttk.Button(master=self.collapbutton,text='新增+',bootstyle='warning',padding=0,command=self.add_item)
         self.add_button.pack(side='right',padx=SZ_10,pady=SZ_5,ipady=SZ_1,ipadx=SZ_3)
         # 内容
         for key in self.content.keys():
@@ -343,23 +429,28 @@ class RGLCollapsing(FileCollapsing):
             self.items[key].bind("<Button-1>",self.open_item_as_page)
             self.items[key].bind("<Button-3>",self.right_click_menu)
         self.update_item()
+    def add_item_done(self, enter):
+        confirm_add =  super().add_item_done(enter, '剧本')
+        new_keyword = self.re_name.get()
+        if confirm_add:
+            # 新建一个空白的RGL
+            self.content[new_keyword] = RplGenLog()
+    def delete_item(self, keyword):
+        confirm_delete:bool = super().delete_item(keyword)
+        delete_an_active_page:bool = "剧本-"+keyword in self.page_frame.page_dict.keys()
+        if confirm_delete:
+            # 如果是激活的页面，关闭激活的标签页
+            if delete_an_active_page:
+                self.page_frame.page_notebook.delete("剧本-"+keyword)
+            # 执行删除项目
+            self.content.pop(keyword)
     def rename_item(self, keyword):
-        # 如果尝试重命名的是一个已经打开的标签页
-        rename_an_active_page:bool = "剧本-"+keyword in self.page_frame.page_dict.keys()
-        if rename_an_active_page:
-            choice = Messagebox().show_question(
-                message='尝试重命名一个已经启动的剧本页面！\n如果这样做，该页面尚未保存的修改将会丢失！',
-                title='警告！',
-                buttons=["取消:primary","确定:danger"]
-                )
-            if choice != '确定':
-                return
-        return super().rename_item(keyword)
+        return super().rename_item(keyword,filetype='剧本')
     def rename_item_done(self,enter:bool):
         origin_keyword = self.button_2_rename.cget('text')
         new_keyword = self.re_name.get()
         rename_an_active_page:bool = "剧本-"+origin_keyword in self.page_frame.page_dict.keys()
-        edit_RGL = super().rename_item_done(enter=enter)
+        edit_RGL = super().rename_item_done(enter=enter,filetype='剧本')
         if edit_RGL:
             if rename_an_active_page:
                 self.page_frame.page_notebook.delete("剧本-"+origin_keyword)

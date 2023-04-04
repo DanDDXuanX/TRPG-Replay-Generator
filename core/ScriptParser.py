@@ -446,7 +446,33 @@ class CharTable(Script):
         chartable['Name'] = chartable['Name'].replace(to_rename,new_name)
         chartable.index = chartable['Name']+'.'+chartable['Subtype']
         self.struct = self.parser(chartable)
-
+    # 删除角色
+    def delete(self,name:str,subtype=None):
+        # 获取需要删除的列表
+        list_to_delete = []
+        if subtype is None:
+            # 删除整个角色
+            for key in self.struct:
+                if key.split('.')[0] == name:
+                    list_to_delete.append(key)
+        else:
+            # 删除某个差分
+            if name+'.'+subtype in self.struct:
+                list_to_delete.append(name+'.'+subtype)
+        # 执行删除
+        for key in list_to_delete:
+            self.struct.pop(key)
+    # 添加角色
+    def add(self,name:str):
+        self.struct[name+'.default'] = {
+            'Name'      : name,
+            'Subtype'   : 'default',
+            'Animation' : 'NA',
+            'Bubble'    : 'NA',
+            'Voice'     : 'NA',
+            'SpeechRate': 0,
+            'PitchRate' : 0,
+        }
 # log文件
 class RplGenLog(Script):
     # RGL -> struct
