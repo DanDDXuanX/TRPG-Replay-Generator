@@ -14,7 +14,7 @@
 
 <set:speech_speed>:500
 
-[KP]<cross=30>:本项目是回声工坊的基本示例视频，用于对本软件的基本功能进行展示。<w2w=2>{音效;5}
+[KP.rich]<cross=30>:[i]本项目[u]是[/a][b]回声工坊[/b]的[fg:#ff9999]基本示例视频[/fg]，用于对本[bg:#999999]软件的基本功能[/bg]进行展示。<w2w=2>{音效;5}
 [张安翔]<cross=30>:^项目链接：#https://github.com/DanDDXuanX/TRPG-Replay-Generator<w2w=2>{音效;5}
 <animation>:回放标记
 <wait>:100

@@ -5,6 +5,7 @@ KP立绘位置 = FreePos(0,480)
 
 # Text
 气泡主文本 = Text(fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(60,60,60,255),line_limit=30,label_color='Lavender')
+气泡富文本 = RichText(fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(60,60,60,255),line_limit=30,label_color='Lavender')
 大文本 = Text(fontfile='./media/SourceHanSerifSC-Heavy.otf',fontsize=100,color=(255,255,255,255),line_limit=15,label_color='Lavender')
 血条字体 = Text(fontfile='@/media/consola.ttf',fontsize=40,color=(255,87,87,255),line_limit=20,label_color='Lavender')
 聊天窗主文本 = Text(fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(60,60,60,255),line_limit=20,label_color='Lavender')
@@ -28,6 +29,7 @@ KP头像 = Animation(filepath='@/media/K.png',pos=KP立绘位置,tick=1,loop=Tru
 自适应白 = DynamicBubble(filepath='@/media/dynamic2.png',Main_Text=聊天窗主文本,Header_Text=气泡头文本,pos=(100,600),mt_pos=(50,93),mt_end=(86,129),ht_pos=(50,0),ht_target='Name',fill_mode='stretch',line_distance=1.3,label_color='Cerulean')
 自适应蓝 = DynamicBubble(filepath='@/media/dynamic1.png',fit_axis='free',Main_Text=聊天窗主文本,Header_Text=None,pos=(160,0),mt_pos=(50,50),mt_end=(86,86),ht_pos=(50,0),ht_target='Name',fill_mode='stretch',line_distance=1.3,label_color='Cerulean')
 聊天窗 = ChatWindow(filepath='@/media/chat.png',sub_key=['伊可','KP'],sub_Bubble=[自适应蓝,自适应白],sub_Anime=[伊可头像,KP头像],sub_align=['right','left'],pos=(0,240),sub_pos=(188,185),sub_end=(1240,800),am_left=35,am_right=1398,sub_distance=0,label_color='Rose')
+富气泡 = Bubble(filepath='@/media/bubble.png',Main_Text=气泡富文本,Header_Text=气泡头文本,pos=(550,700),mt_pos=(50,110),ht_pos=(200,10),ht_target='Name',align='left',line_distance=1.3,label_color='Caribbean')
 
 # Background
 背景1 = Background(filepath='@/media/bg1.jpg',pos=(0,0),label_color='Iris')

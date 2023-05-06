@@ -11,7 +11,7 @@ import json
 from .Exceptions import DecodeError,ParserError,WarningPrint,SyntaxsError
 from .Regexs import *
 from .Formulas import *
-from .Medias import Text,StrokeText,Bubble,Balloon,DynamicBubble,ChatWindow,Animation,GroupedAnimation,Dice,HitPoint,Background,BGM,Audio
+from .Medias import Text,StrokeText,RichText,Bubble,Balloon,DynamicBubble,ChatWindow,Animation,GroupedAnimation,Dice,HitPoint,Background,BGM,Audio
 from .FreePos import Pos,FreePos,PosGrid
 from .FilePaths import Filepath
 from .ProjConfig import Config
@@ -23,7 +23,7 @@ class Script:
     # 类型名对应的Class
     Media_type = {
         'Pos':Pos,'FreePos':FreePos,'PosGrid':PosGrid,
-        'Text':Text,'StrokeText':StrokeText,
+        'Text':Text,'StrokeText':StrokeText,'RichText':RichText,
         'Bubble':Bubble,'Balloon':Balloon,'DynamicBubble':DynamicBubble,'ChatWindow':ChatWindow,
         'Animation':Animation,'GroupedAnimation':GroupedAnimation,'HitPoint':HitPoint,'Dice':Dice,
         'Background':Background,
@@ -33,6 +33,7 @@ class Script:
     type_keyword_position = {'Pos':['pos'],'FreePos':['pos'],'PosGrid':['pos','end','x_step','y_step'],
                             'Text':['fontfile','fontsize','color','line_limit','label_color'],
                             'StrokeText':['fontfile','fontsize','color','line_limit','edge_color','edge_width','projection','label_color'],
+                            'RichText':['fontfile','fontsize','color','line_limit','label_color'],
                             'Bubble':['filepath','scale','Main_Text','Header_Text','pos','mt_pos','ht_pos','ht_target','align','line_distance','label_color'],
                             'Balloon':['filepath','scale','Main_Text','Header_Text','pos','mt_pos','ht_pos','ht_target','align','line_distance','label_color'],
                             'DynamicBubble':['filepath','scale','Main_Text','Header_Text','pos','mt_pos','mt_end','ht_pos','ht_target','fill_mode','fit_axis','line_distance','label_color'],

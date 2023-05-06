@@ -2,6 +2,7 @@ Name	Subtype	Animation	Bubble	Voice	SpeechRate	PitchRate	Header	HitPoint
 KP	default	果汁	气泡右	zhitian	120	-30	Init	Init
 KP	聊天	果汁_聊天窗位置	聊天窗:KP	zhitian	120	-30	Init	Init
 KP	运动	KP头像	气泡右	zhitian	120	-30	Init	Init
+KP	rich	果汁	富气泡	zhitian	120	-30	Init	Init
 伊可	default	伊可头像	自适应蓝	Azure::zh-CN-YunxiNeural:assistant:1.0:Boy	0	-70	Init	Init
 伊可	聊天	伊可	聊天窗:伊可	Azure::zh-CN-YunxiNeural:assistant:1.0:Boy	0	-70	Init	Init
 伊可	哒哒	伊可	气泡左	Beats::zizizi	0	-70	Init	Init

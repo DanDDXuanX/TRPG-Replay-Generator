@@ -5,12 +5,15 @@
 
 import numpy as np
 import pygame
+import pygame.freetype
 import pydub
+import re
 
 from .FilePaths import Filepath
 from .FreePos import Pos,FreePos
 from .Exceptions import MediaError, WarningPrint
 from .Formulas import sigmoid
+from .Utils import hex_2_rgba
 
 # 主程序 replay_generator
 
@@ -178,6 +181,138 @@ class StrokeText(Text):
             min_alpha = min(self.color[3],self.edge_color[3])
             canvas.set_alpha(min_alpha)
         return canvas
+
+# 富文本
+class RichText(Text):
+    def __init__(self,fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0,0,255),line_limit=20,label_color='Lavender'):
+        super().__init__(fontfile=fontfile,fontsize=fontsize,color=color,line_limit=line_limit,label_color=label_color) # 继承
+    def render(self,tx:str,riches:dict)->pygame.Surface:
+        # 字号
+        if riches['fs'] != None and riches['fs'] != self.size:
+            fontsize = int(riches['fs'])
+            text_render_obj = pygame.font.Font(self.filepath.exact(),fontsize)
+        else:
+            fontsize = self.size
+            text_render_obj = self.text_render
+        # 粗体、斜体、下划线
+        text_render_obj.set_bold(riches['b'])
+        text_render_obj.set_italic(riches['i'])
+        text_render_obj.set_underline(riches['u'])
+        # 前景
+        if riches['fg'] != None:
+            fgcolor = hex_2_rgba(riches['fg'])
+        else:
+            fgcolor = self.color
+        # 渲染
+        face = text_render_obj.render(tx,True,fgcolor[0:3])
+        # 删除线
+        if riches['x'] == True:
+            w,h = face.get_size()
+            pygame.draw.line(face,color=fgcolor[0:3],start_pos=(0,h/2),end_pos=(w,h/2),width=int(fontsize/15))
+        # 前景的透明度
+        if fgcolor[3] < 255:
+            face.set_alpha(fgcolor[3])
+        # 背景
+        if riches['bg'] != None:
+            bgcolor = hex_2_rgba(riches['bg'])
+            back = pygame.surface.Surface(face.get_size(),pygame.SRCALPHA)
+            back.fill(bgcolor)
+            back.blit(face,(0,0))
+        else:
+            back = face
+        return back
+    def renderline(self,list_of_cell:list)->pygame.Surface:
+        total_width = sum([surf.get_width() for surf in list_of_cell])
+        max_height = max([surf.get_height() for surf in list_of_cell])
+        result_surf = pygame.Surface((total_width, max_height), pygame.SRCALPHA)
+        # 使用 blit() 函数将每个表面绘制到新表面上
+        x = 0
+        for surf in list_of_cell:
+            result_surf.blit(surf, (x, (max_height - surf.get_height())//2))
+            x += surf.get_width()
+        return result_surf
+
+    def draw(self,text:str)->list:
+        # 每次draw的时候，重置一次
+        self.riches = {
+            'b' : False,
+            'u' : False,
+            'i' : False,
+            'x' : False,
+            'fs': None,
+            'fg': None,
+            'bg': None
+        }
+        self.manual = False
+        # 
+        pattern = re.compile("(\[/?[\w\^\#]{1,2}(?:\:[\w\#]+)?\])")
+        cells = pattern.split(text)
+        line_cells = []
+        len_of_line = 0
+        out_text = []
+        for cell in cells:
+            if pattern.match(cell):
+                # a rich label
+                if self.parse_richlabel(cell):
+                    # 是否是换行命令，或是遍历已达结尾
+                    self.manual = True
+                    out_text.append(self.renderline(line_cells))
+                    line_cells.clear()
+                    len_of_line = 0
+            else:
+                if (len(cell) + len_of_line < self.line_limit) or (self.manual == True):
+                    # 如果当前行字数未超过限制，或者是手动换行模式，则延长行
+                    line_cells.append(self.render(cell,self.riches))
+                    len_of_line += len(cell)
+                else:
+                    # 否则就截断，自动换行
+                    tail_count = self.line_limit - len_of_line
+                    line_cells.append(self.render(cell[:tail_count],self.riches))
+                    # 换行并输出
+                    out_text.append(self.renderline(line_cells))
+                    line_cells.clear()
+                    # 后半段
+                    line_cells.append(self.render(cell[tail_count:],self.riches))
+                    len_of_line = len(cell[tail_count:])
+        # 收尾工作
+        out_text.append(self.renderline(line_cells))
+        return out_text
+
+    def parse_richlabel(self,richlabel:str)->bool:
+        content = richlabel[1:-1]
+        # 减法标签
+        if content[0] == '/':
+            command = content[1:]
+            if command in ['b','u','i','x']:
+                self.riches[command] = False
+            if command in ['fs','fg','bg']:
+                self.riches[command] = None
+            if command in ['a']:
+                self.riches = {
+                    'b' : False,
+                    'u' : False,
+                    'i' : False,
+                    'x' : False,
+                    'fs': None,
+                    'fg': None,
+                    'bg': None
+                }
+        # 加法标签
+        else:
+            # 拆分参数
+            if ':' in content:
+                command,arg = content.split(':')
+            else:
+                command,arg = content,None
+            if command in ['b','u','i','x']:
+                self.riches[command] = True
+            if command in ['fs','fg','bg']:
+                self.riches[command] = arg
+            if command in ['r','n','p','#']:
+                return True
+            if command in ['^']:
+                self.manual = True
+        return False
 
 # 气泡
 class Bubble(MediaObj):                                   

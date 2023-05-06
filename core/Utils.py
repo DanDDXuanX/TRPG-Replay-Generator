@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 # 小工具们
-EDITION = 'alpha 1.22.21'
+EDITION = 'alpha 1.23.0'
 
 import numpy as np
 import time
@@ -24,6 +24,22 @@ def isnumber(str):
         return True
     except Exception:
         return False
+    
+# hexcolor 转 rgb(a)
+def hex_2_rgba(hex_string)->tuple:
+    if len(hex_string) == 7:
+        r = int(hex_string[1:3], 16)
+        g = int(hex_string[3:5], 16)
+        b = int(hex_string[5:7], 16)
+        a = 255
+    elif len(hex_string) == 9:
+        r = int(hex_string[1:3], 16)
+        g = int(hex_string[3:5], 16)
+        b = int(hex_string[5:7], 16)
+        a = int(hex_string[7:9], 16)
+    else:
+        r,g,b,a = 0,0,0,0
+    return (r,g,b,a)
 
 # 62进制时间戳*1000，ms单位
 def mod62_timestamp():
