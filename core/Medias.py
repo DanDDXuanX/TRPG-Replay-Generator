@@ -95,6 +95,10 @@ class Text(MediaObj):
         self.color=color
         self.size=fontsize
         self.line_limit = line_limit
+    # 获取原始文本
+    def raw(self,tx:str)->tuple:
+        return tx, [x for x in range(0,len(tx)+1)]
+    # 渲染一行
     def render(self,tx):
         face = self.text_render.render(tx,True,self.color[0:3])
         if self.color[3] < 255:
@@ -186,6 +190,29 @@ class StrokeText(Text):
 class RichText(Text):
     def __init__(self,fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0,0,255),line_limit=20,label_color='Lavender'):
         super().__init__(fontfile=fontfile,fontsize=fontsize,color=color,line_limit=line_limit,label_color=label_color) # 继承
+    def raw(self, tx:str):
+        # 原始文本：
+        pattern = re.compile("(\[/?[\w\^\#]{1,2}(?:\:[\w\#]+)?\])")
+        cells = pattern.split(tx)
+        raw_text = ""
+        idx_map = [0]
+        this = 0
+        for cell in cells:
+            # this是目前这一句开头的位置
+            length = len(cell)
+            if cell == '[^]':
+                raw_text += '^'
+                idx_map.append(this+length)
+            elif re.match('\[[\#prn]\]',cell):
+                raw_text += '#'
+                idx_map.append(this+length)
+            elif pattern.match(cell):
+                pass
+            else:
+                raw_text += cell
+                idx_map += [x for x in range(this+1,this+length+1)]
+            this += length
+        return raw_text, idx_map
     def render(self,tx:str,riches:dict)->pygame.Surface:
         # 字号
         if riches['fs'] != None and riches['fs'] != self.size:

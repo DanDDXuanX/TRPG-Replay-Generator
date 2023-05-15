@@ -983,13 +983,20 @@ class RplGenLog(Script):
         # 返回
         return '\n'.join(list_of_scripts)
     # 执行解析 -> (timeline:pd.DF,breakpoint:pd.Ser,builtin_media:dict?<方便在其他模块实例化>
-    def tx_method_execute(self,content:str,tx_method:dict,line_limit:int,this_duration:int,i=0) -> np.ndarray:
+    def tx_method_execute(self,text:str,text_obj:Text,tx_method:dict,line_limit:int,this_duration:int,i=0) -> np.ndarray:
+        # content: 不包含richlabel
+        content, idxmap = text_obj.raw(text)
+        idx_uf = np.frompyfunc(lambda x:idxmap[x],1,1)
+        # 
         content_length:int = len(content)
         UF_limit_content_length:np.ufunc = np.frompyfunc(lambda x:int(x) if x<=content_length else content_length,1,1)
+        # 检查文字是否合理
+        self.check_text_execute(content_text=content,this_line_limit=line_limit,i=i)
+        # 检查文字效果时间
         if this_duration < tx_method['method_dur']:
             # 小节持续时间过短，不显示任何文字效果
             print(WarningPrint('TxMetDrop',str(i+1)))
-            return content_length*np.ones(this_duration)
+            return idx_uf(content_length*np.ones(this_duration))
         # 全部显示
         if tx_method['method'] == 'all':
             if tx_method['method_dur'] >= this_duration:
@@ -999,14 +1006,14 @@ class RplGenLog(Script):
                     np.zeros(tx_method['method_dur']),
                     content_length*np.ones(this_duration-tx_method['method_dur'])
                     ])
-            return main_text_eff.astype(int)
+            return idx_uf(main_text_eff.astype(int))
         # 逐字显示
         elif tx_method['method'] == 'w2w':
             # 在asterisk_pause/2 时间开始显示第一个字
             delay = int(self.dynamic['asterisk_pause']/2)
             delay_timeline = np.zeros(delay,dtype=int)
             w2w_timeline = np.arange(0,this_duration-delay,1)//tx_method['method_dur'] + 1
-            return UF_limit_content_length(np.hstack([delay_timeline,w2w_timeline]))
+            return idx_uf(UF_limit_content_length(np.hstack([delay_timeline,w2w_timeline])))
         # 逐行显示
         elif tx_method['method'] == 'l2l':
             if ((content[0]=='^')|('#' in content)): #如果是手动换行的列
@@ -1023,9 +1030,9 @@ class RplGenLog(Script):
                 except Exception: 
                     word_count_timeline = np.hstack(wc_list) # this_duration < est
                     word_count_timeline = word_count_timeline[0:this_duration]
-                return UF_limit_content_length(word_count_timeline).astype(int)
+                return idx_uf(UF_limit_content_length(word_count_timeline).astype(int))
             else:
-                return UF_limit_content_length((np.arange(0,this_duration,1)//(tx_method['method_dur']*line_limit)+1)*line_limit)
+                return idx_uf(UF_limit_content_length((np.arange(0,this_duration,1)//(tx_method['method_dur']*line_limit)+1)*line_limit))
         # 逐句显示
         elif tx_method['method'] == 's2s':
             # TODO
@@ -1079,14 +1086,17 @@ class RplGenLog(Script):
             self.main_timeline.loc[last_placed_index,'BbS_main'] = this_tx
             # 如果是放置正常的气泡
             if type(self.medias[this_bb]) in [Bubble,Balloon,DynamicBubble]:
-                line_limit_this = self.medias[this_bb].MainText.line_limit
+                maintext_this = self.medias[this_bb].MainText
+                line_limit_this = maintext_this.line_limit
             # 如果是放置一个的聊天窗
             elif type(self.medias[this_bb]) is ChatWindow:
                 keyword_this = this_hd.split('|')[-1].split('#')[0]
-                line_limit_this = self.medias[this_bb].sub_Bubble[keyword_this]
+                maintext_this = self.medias[this_bb].sub_Bubble[keyword_this].MainText
+                line_limit_this = maintext_this.line_limit
             # 切换效果
             self.main_timeline.loc[last_placed_index,'BbS_main_e'] = self.tx_method_execute(
-                content=this_tx,
+                text=this_tx,
+                text_obj=maintext_this,
                 tx_method={'method':text_method,'method_dur':text_dur},
                 line_limit=line_limit_this,
                 this_duration=this_duration,
@@ -1118,6 +1128,17 @@ class RplGenLog(Script):
             self.main_timeline.loc[last_placed_index,'AmS_p'] = am_method_obj.motion(this_duration)
             self.main_timeline.loc[last_placed_index,'AmS_t'] = self.medias[this_am].get_tick(this_duration)
             self.main_timeline.loc[last_placed_index,'AmS_c'] = am_center
+    def check_text_execute(self,content_text,this_line_limit,i):
+        # 未声明手动换行
+        if ('#' in content_text)&(content_text[0]!='^'):
+            # content_text = '^' + content_text # 补齐申明符号 # 因为和富文本冲突，取消这个功能
+            print(WarningPrint('UndeclMB',str(i+1)))
+        # 行数过多的警告
+        if (len(content_text)>this_line_limit*4) | (len(content_text.split('#'))>4):
+            print(WarningPrint('More4line',str(i+1)))
+        # 手动换行的字数超限的警告
+        if ((content_text[0]=='^')|('#' in content_text))&(np.frompyfunc(len,1,1)(content_text.replace('^','').split('#')).max()>this_line_limit):
+            print(WarningPrint('MBExceed',str(i+1)))
     def execute(self,media_define:MediaDef,char_table:CharTable,config:Config)->pd.DataFrame:
         # 媒体和角色 # 浅复制，只复制了对象地址
         self.medias:dict = media_define.Medias.copy()
@@ -1368,16 +1389,6 @@ class RplGenLog(Script):
                                 # 主头文本有非法字符，双引号，反斜杠
                                 if ('"' in target_text) | ('\\' in target_text) | ('"' in content_text) | ('\\' in content_text):
                                     raise ParserError('InvSymbqu',str(i+1))
-                                # 未声明手动换行
-                                if ('#' in content_text)&(content_text[0]!='^'):
-                                    content_text = '^' + content_text # 补齐申明符号
-                                    print(WarningPrint('UndeclMB',str(i+1)))
-                                #行数过多的警告
-                                if (len(content_text)>this_line_limit*4) | (len(content_text.split('#'))>4):
-                                    print(WarningPrint('More4line',str(i+1)))
-                                # 手动换行的字数超限的警告
-                                if ((content_text[0]=='^')|('#' in content_text))&(np.frompyfunc(len,1,1)(content_text.replace('^','').split('#')).max()>this_line_limit):
-                                    print(WarningPrint('MBExceed',str(i+1)))
                                 # 赋值给当前时间轴的Bb轨道
                                 this_timeline['Bb'] = this_bb
                                 this_timeline['Bb_a'] = bb_method_obj.alpha(this_duration,100)
@@ -1406,7 +1417,8 @@ class RplGenLog(Script):
                                     tx_method['method_dur'] = self.dynamic['tx_dur_default']
                                 # 效果记录
                                 this_timeline['Bb_main_e'] = self.tx_method_execute(
-                                    content=content_text,
+                                    text=content_text,
+                                    text_obj=mainText_this,
                                     tx_method=tx_method,
                                     line_limit=this_line_limit,
                                     this_duration=this_duration,
