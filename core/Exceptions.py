@@ -498,7 +498,9 @@ class WarningPrint(Print):
         'BadAuFile'   :["Audio file '{}' is not exist.",
                         "音频文件 '{}' 并不存在！"],
         'WideEdge'    :["The edge width is set to more than 3, which may cause unintended results.",
-                        "描边宽度被设置超过3，这可能导致意料之外的显示效果。"]
+                        "描边宽度被设置超过3，这可能导致意料之外的显示效果。"],
+        'InvRichlab'  :["Unrecognized rich label : {} , which will be ignored.",
+                        "无法识别的富文本标记：{}，这将被忽略。"]
     }
     # 类型：警告
     info_type = ["\x1B[33m[warning]:\x1B[0m ",

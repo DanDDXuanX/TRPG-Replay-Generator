@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 # coding: utf-8
 # 小工具们
-EDITION = 'alpha 1.23.2'
+EDITION = 'alpha 1.23.3'
 
 import numpy as np
 import time
+from Regexs import RE_rich
 
 # UF : 将2个向量组合成"(x,y)"的形式
 concat_xy = np.frompyfunc(lambda x,y:'('+'%d'%x+','+'%d'%y+')',2,1)
@@ -16,7 +17,8 @@ UF_cut_str = np.frompyfunc(cut_str,2,1)
 
 # 清理ts文本中的标记符号
 def clean_ts(text):
-    return text.replace('^','').replace('#','')
+    # 用于语音合成的内容，不应该包括富标记
+    return RE_rich.sub(text,'').replace('^','').replace('#','')
 
 def isnumber(str):
     try:

@@ -14,6 +14,7 @@ from .FreePos import Pos,FreePos
 from .Exceptions import MediaError, WarningPrint
 from .Formulas import sigmoid
 from .Utils import hex_2_rgba
+from .Regexs import RE_rich
 
 # 主程序 replay_generator
 
@@ -192,7 +193,7 @@ class RichText(Text):
         super().__init__(fontfile=fontfile,fontsize=fontsize,color=color,line_limit=line_limit,label_color=label_color) # 继承
     def raw(self, tx:str):
         # 原始文本：
-        pattern = re.compile("(\[/?[\w\^\#]{1,2}(?:\:[\w\#]+)?\])")
+        pattern = RE_rich
         cells = pattern.split(tx)
         raw_text = ""
         idx_map = [0]
@@ -272,7 +273,7 @@ class RichText(Text):
         }
         self.manual = False
         # 
-        pattern = re.compile("(\[/?[\w\^\#]{1,2}(?:\:[\w\#]+)?\])")
+        pattern = RE_rich
         cells = pattern.split(text)
         line_cells = []
         len_of_line = 0
@@ -312,9 +313,9 @@ class RichText(Text):
             command = content[1:]
             if command in ['b','u','i','x']:
                 self.riches[command] = False
-            if command in ['fs','fg','bg']:
+            elif command in ['fs','fg','bg']:
                 self.riches[command] = None
-            if command in ['a']:
+            elif command in ['a']:
                 self.riches = {
                     'b' : False,
                     'u' : False,
@@ -324,6 +325,8 @@ class RichText(Text):
                     'fg': None,
                     'bg': None
                 }
+            else:
+                WarningPrint('InvRichlab', richlabel)
         # 加法标签
         else:
             # 拆分参数
@@ -333,12 +336,14 @@ class RichText(Text):
                 command,arg = content,None
             if command in ['b','u','i','x']:
                 self.riches[command] = True
-            if command in ['fs','fg','bg']:
+            elif command in ['fs','fg','bg']:
                 self.riches[command] = arg
-            if command in ['r','n','p','#']:
+            elif command in ['r','n','p','#']:
                 return True
-            if command in ['^']:
+            elif command in ['^']:
                 self.manual = True
+            else:
+                WarningPrint('InvRichlab', richlabel)
         return False
 
 # 气泡
