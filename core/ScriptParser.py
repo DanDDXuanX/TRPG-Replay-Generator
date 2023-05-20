@@ -341,10 +341,21 @@ class MediaDef(Script):
             return unit
     def reference_object_execute(self,reference_name:str)->object:
         # 根据 $媒体名 返回 媒体对象
+        media_name = reference_name[1:]
         try:
-            return self.Medias[reference_name[1:]]
-        except KeyError:
-            raise SyntaxsError('UndefName',reference_name[1:])
+            return self.Medias[media_name]
+        except Exception:
+            # 强制实例化
+            if media_name in self.struct.keys():
+                try:
+                    obj_dict_this = self.struct[media_name]
+                    return self.instance_execute(obj_dict_this)
+                except Exception as E:
+                    print(E)
+                    text = self.instance_export(obj_dict_this)
+                    raise SyntaxsError('MediaDef',text,'?') # TODO:改改这个SyntaxsError的输出文本吧
+            else:
+                raise SyntaxsError('UndefName',media_name)
     def execute(self) -> dict:
         # 媒体对象的容器
         self.Medias = {}

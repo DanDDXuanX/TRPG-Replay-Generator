@@ -22,6 +22,7 @@ class Container(ScrolledFrame):
         # 初始化基类
         self.sz = screenzoom
         super().__init__(master=master, padding=3, bootstyle='light', autohide=True)
+        self.preview_canvas = master.preview
         self.vscroll.config(bootstyle='primary-round')
         self.container.config(bootstyle='light',takefocus=True)
         # 按键绑定
@@ -45,6 +46,8 @@ class Container(ScrolledFrame):
             # 添加本次选中的
             self.element[selected_idx].get_select()
             self.selected.append(selected_idx)
+            # 尝试预览
+            self.preview_select()
     def select_range(self,event,index:str):
         self.container.focus_set()
         if index == False:
@@ -58,6 +61,10 @@ class Container(ScrolledFrame):
             effect_range = range(this_selected_idx,last_selected_idx,{True:1,False:-1}[last_selected_idx>=this_selected_idx])
         for idx in effect_range:
             self.select_item(event=event,index=str(idx),add=True)
+    def preview_select(self):
+        if len(self.selected) == 1:
+            to_preview = self.selected[0]
+            self.preview_canvas.preview(to_preview)
 class RGLContainer(Container):
     def __init__(self,master,content:RplGenLog,screenzoom):
         # 初始化基类

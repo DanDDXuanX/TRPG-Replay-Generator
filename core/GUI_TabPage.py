@@ -14,7 +14,7 @@ from PIL import Image,ImageTk
 
 from .GUI_PageElement import SearchBar, OutPutCommand
 from .GUI_Container import RGLContainer, MDFContainer, CTBContainer
-from .GUI_PreviewCanvas import PreviewCanvas
+from .GUI_PreviewCanvas import PreviewCanvas, MDFPreviewCanvas
 from .GUI_Edit import EditWindow
 
 # 项目视图-页面-总体
@@ -193,8 +193,8 @@ class MDFPage(ttk.Frame):
         self.content:MediaDef = content_obj
         # 元件
         self.searchbar = SearchBar(master=self,screenzoom=self.sz)
+        self.preview = MDFPreviewCanvas(master=self,screenzoom=self.sz,mediadef=self.content)
         self.container = MDFContainer(master=self,content=content_obj,typelist=self.categroy_dict[content_type],screenzoom=self.sz)
-        self.preview = PreviewCanvas(master=self,screenzoom=self.sz)
         self.edit = EditWindow(master=self,screenzoom=self.sz,section=None)
         # 放置元件
         SZ_40 = int(self.sz * 40)

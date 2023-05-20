@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 # coding: utf-8
 # 小工具们
-EDITION = 'alpha 1.23.3'
+EDITION = 'alpha 1.23.4'
 
 import numpy as np
 import time
-from Regexs import RE_rich
+from .Regexs import RE_rich
 
 # UF : 将2个向量组合成"(x,y)"的形式
 concat_xy = np.frompyfunc(lambda x,y:'('+'%d'%x+','+'%d'%y+')',2,1)

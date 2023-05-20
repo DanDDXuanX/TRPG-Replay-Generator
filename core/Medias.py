@@ -83,6 +83,9 @@ class MediaObj:
     def PR_center_arg(self,obj_size,pygame_pos) -> np.ndarray:
         screensize = np.array(self.screen_size)
         return (pygame_pos+obj_size/2-screensize/2)/obj_size*self.scale
+    # 预览
+    def preview(self, surface:pygame.Surface):
+        self.display(surface)
     # 转换媒体，仅图像媒体类需要
     def convert(self):
         pass
@@ -124,7 +127,16 @@ class Text(MediaObj):
         else:
             out_text = [self.render(text)]
         return out_text
-
+    # 预览
+    def preview(self, surface:pygame.Surface):
+        # 测试文本
+        test_text = ("测1试Te2st文3本Te4xt" * (self.line_limit//16+1))[0:self.line_limit]
+        text_surf:pygame.Surface = self.draw(test_text)[0]
+        # 尺寸
+        w,h = text_surf.get_size()
+        W,H = surface.get_size()
+        # 显示在正中间
+        surface.blit(text_surf,((W-w)/2,(H-h)/2))
 # 描边文本
 class StrokeText(Text):
     pygame.font.init()
@@ -518,6 +530,29 @@ class Bubble(MediaObj):
         MediaObj.clip_index = MediaObj.clip_index + 1
         # 返回
         return (clip_bubble, clip_text)
+    # GUI预览
+    def preview(self, surface: pygame.Surface):
+        # 主文本
+        if self.MainText is not None:
+            line1 = ((self.MainText.line_limit//4+1)*"测试文本")
+            test_text = ''
+            if type(self.MainText) is RichText:
+                richlabels = ['[u]','[i]','[b]','[fg:#ff5555][bg:#cccccc]']
+                test_text = '[^]'
+                for k in range(0,4):
+                    test_text += richlabels[k]+line1[0:self.MainText.line_limit*(4-k)//4]+'[#]'
+            else:
+                for k in range(0,4):
+                    test_text += line1[0:self.MainText.line_limit*(4-k)//4]+'#'
+                test_text = test_text[:-1]
+        else:
+            test_text = ''
+        # 头文本
+        if self.Header is not None:
+            test_head = ((self.Header.line_limit//4+1)*"测试文本")[0:self.Header.line_limit]
+        else:
+            test_head = ''
+        self.display(surface, text=test_text, header=test_head)
     # 转换媒体对象
     def convert(self):
         self.media = self.media.convert_alpha()
