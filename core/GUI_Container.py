@@ -169,7 +169,7 @@ class SectionElement:
                 self.thumbnail_name[section['filepath']] = thumbnail_name_this
                 self.thumbnail_image[section['filepath']] = ImageTk.PhotoImage(name=thumbnail_name_this,image=thumbnail(image=image,icon_size=icon_size))
                 self.thumb = thumbnail_name_this
-        elif self.line_type in ['Text','StrokeText']:
+        elif self.line_type in ['Text','StrokeText','RichText']:
             # 新建一个缩略图
             text_obj = self.MDFscript.instance_execute(section)
             temp_canvas = pygame.Surface(size=(icon_size,icon_size))
@@ -185,7 +185,7 @@ class SectionElement:
                 else:
                     temp_canvas.fill('white')
             # 渲染预览字体
-            test_text = {'Text':'字体#Text','StrokeText':'描边#Stroke'}[self.line_type]
+            test_text = {'Text':'字体#Text','StrokeText':'描边#Stroke','RichText':'[i]富文[#][/i][u]Rich'}[self.line_type]
             for idx,text in enumerate(text_obj.draw(text=test_text)):
                 text:pygame.Surface
                 w,h = text.get_size()

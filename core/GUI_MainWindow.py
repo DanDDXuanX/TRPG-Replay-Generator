@@ -30,6 +30,21 @@ class RplGenStudioMainWindow(ttk.Window):
         )
         # 关闭
         self.protocol('WM_DELETE_WINDOW',self.on_close)
+        # 主题配置
+        self.theme_config()
+        # 导航栏
+        self.navigate_bar = NavigateBar(master=self,screenzoom=self.sz)
+        self.navigate_bar.place(x=0,y=0,width=100*self.sz,relheight=1)
+        # event
+        self.navigate_bar.bind('<ButtonRelease-1>', self.navigateBar_get_click)
+        self.bind('<F11>', self.switch_fullscreen)
+        # 视图
+        self.view = {
+            'project': ProjectView(master=self,screenzoom=self.sz)
+            }
+        self.view_show('project')
+    # 初始化主题
+    def theme_config(self):
         # 样式
         SZ_3 = int(3 * self.sz)
         SZ_5 = int(5 * self.sz)
@@ -72,16 +87,6 @@ class RplGenStudioMainWindow(ttk.Window):
         self.style.configure('exception.TLabel',anchor='w',font="-family 微软雅黑 -size 10 -weight bold",padding=text_label_pad,foreground='#cc0000') # 红色的
         # 预览窗体
         self.style.configure('preview.TLabel',anchor='center',background='#000000',borderwidth=0)
-        # 导航栏
-        self.navigate_bar = NavigateBar(master=self,screenzoom=self.sz)
-        self.navigate_bar.place(x=0,y=0,width=100*self.sz,relheight=1)
-        # event
-        self.navigate_bar.bind('<ButtonRelease-1>', self.navigateBar_get_click)
-        # 视图
-        self.view = {
-            'project': ProjectView(master=self,screenzoom=self.sz)
-            }
-        self.view_show('project')
     # 当关闭窗口时
     def on_close(self):
         project_view:ProjectView = self.view['project']
@@ -108,6 +113,9 @@ class RplGenStudioMainWindow(ttk.Window):
         else:
             print(sys.platform)
             return 1.0
+    # 进入或者取消全屏
+    def switch_fullscreen(self,event):
+        self.attributes("-fullscreen", not self.attributes("-fullscreen"))
 
 # 最右导航栏的
 class NavigateBar(ttk.Frame):
