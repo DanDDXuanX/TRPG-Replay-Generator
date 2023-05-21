@@ -554,7 +554,7 @@ class Bubble(MediaObj):
         else:
             test_head = ''
         return test_head
-    def preview(self, surface: pygame.Surface):
+    def preview(self, surface: pygame.Surface, key=None):
         # 主文本
         test_text = self.test_maintext()
         # 头文本
@@ -833,7 +833,7 @@ class DynamicBubble(Bubble):
         super().convert()
         self.bubble_clip = np.frompyfunc(lambda x:x.convert_alpha(),1,1)(self.bubble_clip)
     # 预览
-    def preview(self, surface: pygame.Surface):
+    def preview(self, surface: pygame.Surface, key=None):
         # 主文本
         test_text = self.test_maintext(lines=np.random.randint(1,5))
         # 头文本
@@ -1018,14 +1018,19 @@ class ChatWindow(Bubble):
         temp.blit(sub_groupam,(self.am_left,self.sub_pos[1]))
         return (self.media.copy(), temp, self.size)
     # 预览
-    def preview(self, surface: pygame.Surface):
+    def preview(self, surface: pygame.Surface, key=None):
         # 主文本
         test_maintext = []
         test_header = []
-        for key in self.sub_Bubble.keys():
+        if key in self.sub_Bubble.keys():
             bubble_this:Bubble = self.sub_Bubble[key]
             test_maintext.append(bubble_this.test_maintext(lines=2))
             test_header.append(key+'#'+bubble_this.test_header()) # 需要注意的是，Balloon不可以作为ChatWindow的成员！
+        else:
+            for key in self.sub_Bubble.keys():
+                bubble_this:Bubble = self.sub_Bubble[key]
+                test_maintext.append(bubble_this.test_maintext(lines=2))
+                test_header.append(key+'#'+bubble_this.test_header()) # 需要注意的是，Balloon不可以作为ChatWindow的成员！
         # 组合
         test_maintext = '|'.join(test_maintext)
         test_header = '|'.join(test_header)
