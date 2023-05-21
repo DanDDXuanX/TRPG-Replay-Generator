@@ -531,27 +531,34 @@ class Bubble(MediaObj):
         # 返回
         return (clip_bubble, clip_text)
     # GUI预览
-    def preview(self, surface: pygame.Surface):
+    def test_maintext(self, lines=4):
         # 主文本
         if self.MainText is not None:
-            line1 = ((self.MainText.line_limit//4+1)*"测试文本")
-            test_text = ''
+            line1 = ((self.MainText.line_limit//lines+1)*"测试文本")
             if type(self.MainText) is RichText:
                 richlabels = ['[u]','[i]','[b]','[fg:#ff5555][bg:#cccccc]']
                 test_text = '[^]'
-                for k in range(0,4):
-                    test_text += richlabels[k]+line1[0:self.MainText.line_limit*(4-k)//4]+'[#]'
+                for k in range(0,lines):
+                    test_text += richlabels[k]+line1[0:self.MainText.line_limit*(lines-k)//lines]+'[#]'
             else:
-                for k in range(0,4):
-                    test_text += line1[0:self.MainText.line_limit*(4-k)//4]+'#'
+                test_text = ''
+                for k in range(0,lines):
+                    test_text += line1[0:self.MainText.line_limit*(lines-k)//lines]+'#'
                 test_text = test_text[:-1]
         else:
             test_text = ''
-        # 头文本
+        return test_text
+    def test_header(self):
         if self.Header is not None:
             test_head = ((self.Header.line_limit//4+1)*"测试文本")[0:self.Header.line_limit]
         else:
             test_head = ''
+        return test_head
+    def preview(self, surface: pygame.Surface):
+        # 主文本
+        test_text = self.test_maintext()
+        # 头文本
+        test_head = self.test_header()
         self.display(surface, text=test_text, header=test_head)
     # 转换媒体对象
     def convert(self):
@@ -604,7 +611,16 @@ class Balloon(Bubble):
                 word_w,word_h = s.get_size()
                 temp.blit(s,(x+(self.MainText.size*self.MainText.line_limit - word_w)//2,y+i*self.MainText.size*self.line_distance))
         return (self.media.copy(), temp, self.size)
-
+    # 重载preview
+    def test_header(self):
+        test_head = []
+        for header_this in self.Header:
+            if header_this is not None:
+                test_head.append(((header_this.line_limit//4+1)*"测试文本")[0:header_this.line_limit])
+            else:
+                test_head.append('')
+        test_head = '|'.join(test_head)
+        return test_head
 # 自适应气泡
 class DynamicBubble(Bubble):
     def __init__(
@@ -816,7 +832,13 @@ class DynamicBubble(Bubble):
     def convert(self): # 和Animation类相同的convert
         super().convert()
         self.bubble_clip = np.frompyfunc(lambda x:x.convert_alpha(),1,1)(self.bubble_clip)
-
+    # 预览
+    def preview(self, surface: pygame.Surface):
+        # 主文本
+        test_text = self.test_maintext(lines=np.random.randint(1,5))
+        # 头文本
+        test_head = self.test_header()
+        self.display(surface, text=test_text, header=test_head)
 # 聊天窗
 class ChatWindow(Bubble):
     def __init__(
@@ -995,7 +1017,20 @@ class ChatWindow(Bubble):
         temp.blit(sub_surface,self.sub_pos)
         temp.blit(sub_groupam,(self.am_left,self.sub_pos[1]))
         return (self.media.copy(), temp, self.size)
-
+    # 预览
+    def preview(self, surface: pygame.Surface):
+        # 主文本
+        test_maintext = []
+        test_header = []
+        for key in self.sub_Bubble.keys():
+            bubble_this:Bubble = self.sub_Bubble[key]
+            test_maintext.append(bubble_this.test_maintext(lines=2))
+            test_header.append(key+'#'+bubble_this.test_header()) # 需要注意的是，Balloon不可以作为ChatWindow的成员！
+        # 组合
+        test_maintext = '|'.join(test_maintext)
+        test_header = '|'.join(test_header)
+        # 显示
+        self.display(surface=surface, text=test_maintext, header=test_header)
 # 背景
 class Background(MediaObj):
     def __init__(
@@ -1603,6 +1638,13 @@ class Audio(MediaObj):
         if self.audioseg is None:
             self.audioseg = pydub.AudioSegment.from_file(self.filepath.exact())
         return self.audioseg
+    # 预览播放
+    def waveplot(self):
+        # 波形图
+        samples:np.ndarray = pygame.sndarray.sample(self.media).T[0]
+        pass
+    def preview(self, surface: pygame.Surface):
+        self.media.play()
 
 # 背景音乐
 class BGM(MediaObj):
@@ -1641,3 +1683,6 @@ class BGM(MediaObj):
             loop= self.loop,
         )
         return clip_this
+    # 预览
+    def preview(self, surface: pygame.Surface):
+        pass
