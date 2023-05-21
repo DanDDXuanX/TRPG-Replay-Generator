@@ -14,7 +14,7 @@ from PIL import Image,ImageTk
 
 from .GUI_PageElement import SearchBar, OutPutCommand
 from .GUI_Container import RGLContainer, MDFContainer, CTBContainer
-from .GUI_PreviewCanvas import PreviewCanvas, MDFPreviewCanvas, CTBPreviewCanvas
+from .GUI_PreviewCanvas import PreviewCanvas, MDFPreviewCanvas, CTBPreviewCanvas, RGLPreviewCanvas
 from .GUI_Edit import EditWindow
 
 # 项目视图-页面-总体
@@ -163,9 +163,9 @@ class RGLPage(ttk.Frame):
         self.ref_chartab = self.master.ref_chartab
         # 元件
         self.searchbar = SearchBar(master=self,screenzoom=self.sz)
+        self.preview = RGLPreviewCanvas(master=self,screenzoom=self.sz, mediadef=self.ref_medef, chartab=self.ref_chartab, rplgenlog=self.content)
         self.container = RGLContainer(master=self,content=self.content,screenzoom=self.sz)
         self.outputcommand = OutPutCommand(master=self,screenzoom=self.sz)
-        self.preview = PreviewCanvas(master=self,screenzoom=self.sz)
         self.edit = EditWindow(master=self,screenzoom=self.sz,section=None)
         # 放置元件
         SZ_40 = int(self.sz * 40)
