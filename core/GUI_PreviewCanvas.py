@@ -7,7 +7,7 @@ import pygame
 from PIL import Image, ImageTk
 
 from .ScriptParser import MediaDef, CharTable, RplGenLog
-from .Medias import MediaObj, Animation, Bubble, ChatWindow, Balloon, Background
+from .Medias import MediaObj, Animation, Bubble, ChatWindow, Balloon, Background, HitPoint, Dice
 
 # 预览画布
 
@@ -174,11 +174,31 @@ class RGLPreviewCanvas(PreviewCanvas):
                 else:
                     main_text = bb_obj['main_text']
                     header_text = bb_obj['header_text']
-                    bubble_obj:Bubble = self.get_media(am_obj[idx])
+                    bubble_obj:Bubble = self.get_media(bb_obj['bubble'])
                     bubble_obj.display(surface=self.canvas, text=main_text, header=header_text)
-            elif section_dict_this['type'] in ['hitpoint','dice']:
-                # TODO
-                pass
+            elif section_dict_this['type'] == 'hitpoint':
+                self.get_background(line_index).preview(self.canvas) # 背景
+                Background('black').display(self.canvas, alpha=80)
+                for layer in range(0,3):
+                    layer_this = HitPoint(
+                        describe   = section_dict_this['content'],
+                        heart_max  = section_dict_this['hp_max'],
+                        heart_begin= section_dict_this['hp_begin'],
+                        heart_end  = section_dict_this['hp_end'],
+                        layer= layer
+                        )
+                    if layer == 2:
+                        layer_this.display(surface=self.canvas, alpha=50)
+                    else:
+                        layer_this.preview(surface=self.canvas)
+            elif section_dict_this['type'] == 'dice':
+                self.get_background(line_index).preview(self.canvas) # 背景
+                Background('black').display(self.canvas, alpha=80)
+                for layer in range(0,3):
+                    Dice(
+                        dice_set=section_dict_this['dice_set'],
+                        layer= layer
+                        ).preview(surface=self.canvas)
             elif section_dict_this['type'] == 'move':
                 # TODO
                 pass

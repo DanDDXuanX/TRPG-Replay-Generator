@@ -7,6 +7,8 @@
 # Pos在GUI中标记为绿字！
 
 import numpy as np
+import pygame
+from pygame.draw import line
 
 class Pos:
     # 初始化
@@ -61,6 +63,12 @@ class Pos:
         return "({x},{y})".format(x=self.x,y=self.y)
     def get(self):
         return (self.x,self.y)
+    def preview(self, surface:pygame.Surface):
+        px = self.x
+        py = self.y
+        # line
+        line(surface, color='#00aa00',start_pos=(px-100,py),end_pos=(px+100,py))
+        line(surface, color='#00aa00',start_pos=(px,py-100),end_pos=(px,py+100))
     def convert(self):
         pass
 class FreePos(Pos):
@@ -85,11 +93,31 @@ class PosGrid:
         x2,y2 = end
         if (x1>=x2) | (y1>=y2):
             raise Exception('Invalid separate param end for posgrid!')
+        else:
+            self.pos = pos
+            self.end = end
         X,Y = np.mgrid[x1:x2:(x2-x1)/x_step,y1:y2:(y2-y1)/y_step].astype(int)
         self._grid = np.frompyfunc(lambda x,y:Pos(x,y),2,1)(X,Y)
+        self._size = (x_step,y_step)
     def __getitem__(self,key)->Pos:
         return self._grid[key[0],key[1]]
     def size(self):
         return self._grid.shape
+    def preview(self, surface):
+        W,H = surface.get_size()
+        # 起点
+        line(surface, color='#aa00aa',start_pos=(self.pos[0],0),end_pos=(self.pos[0],H))
+        line(surface, color='#aa00aa',start_pos=(0,self.pos[1]),end_pos=(W,self.pos[1]))
+        # 终点
+        line(surface, color='#aa00aa',start_pos=(self.end[0],0),end_pos=(self.end[0],H))
+        line(surface, color='#aa00aa',start_pos=(0,self.end[1]),end_pos=(W,self.end[1]))
+        # 网点
+        for i in range(self._size[0]):
+            for j in range(self._size[1]):
+                pos_this = self._grid[i][j]
+                px = pos_this.x
+                py = pos_this.y
+                line(surface, color='#00aa00',start_pos=(px-20,py),end_pos=(px+20,py))
+                line(surface, color='#00aa00',start_pos=(px,py-20),end_pos=(px,py+20))
     def convert(self):
         pass
