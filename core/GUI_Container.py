@@ -27,17 +27,26 @@ class Container(ScrolledFrame):
         self.container.config(bootstyle='light',takefocus=True)
         # 按键绑定
         self.container.bind('<Control-Key-a>',lambda event:self.select_range(event,index=False),"+")
+        self.container.bind('<Up>',lambda event:self.select_up(event),"+")
+        self.container.bind('<Down>',lambda event:self.select_down(event),"+")
+        self.container.bind('<Delete>',lambda event:self.del_select(event),"+")
         # 内容物
         self.content = content
-        # 容器内的元件
+        # 容器内的元件，顺序
         self.element = {}
+        self.element_keys = []
         # 当前选中的对象
         self.selected:list = []
+    def update_item(self):
+        # 待重载
+        for ele in self.element_keys:
+            self.element[ele].place_forget()
     def select_item(self,event,index,add=False):
         self.container.focus_set()
         # 根据点击的y，定位本次选中的
         selected_idx = index
-        if selected_idx in self.element.keys():
+        if selected_idx in self.element_keys:
+        # if selected_idx in self.element.keys():
             if add is not True:
                 # 先清空选中的列表
                 for idx in self.selected:
@@ -48,10 +57,39 @@ class Container(ScrolledFrame):
             self.selected.append(selected_idx)
             # 尝试预览
             self.preview_select()
+    def select_up(self,event):
+        # top 顶部，初始值是所有元素的总长度
+        top = len(self.element_keys)
+        # 找到当前选中的所有元素的顶部
+        for sele in self.selected:
+            idx_this = self.element_keys.index(sele)
+            if idx_this < top:
+                top = idx_this
+        if top == len(self.element_keys):
+            pass
+        elif top == 0:
+            self.select_item(None,self.element_keys[0])
+        else:
+            self.select_item(None,self.element_keys[top-1])
+    def select_down(self,event):
+        # top 顶部，初始值是-1
+        bottom = -1
+        # 找到当前选中的所有元素的顶部
+        for sele in self.selected:
+            idx_this = self.element_keys.index(sele)
+            if idx_this > bottom:
+                bottom = idx_this
+        if bottom == -1:
+            pass
+        elif bottom == len(self.element_keys)-1:
+            self.select_item(None,self.element_keys[-1])
+        else:
+            self.select_item(None,self.element_keys[bottom+1])
     def select_range(self,event,index:str):
         self.container.focus_set()
         if index == False:
-            effect_range = self.element.keys()
+            # effect_range = self.element.keys()
+            effect_range = self.element_keys
         else:
             # 上一个选中的，数字序号
             last_selected_idx:int = int(self.selected[-1]) # 最后一个
@@ -59,12 +97,20 @@ class Container(ScrolledFrame):
             this_selected_idx:int = int(index)
             # 正序或是倒序
             effect_range = range(this_selected_idx,last_selected_idx,{True:1,False:-1}[last_selected_idx>=this_selected_idx])
+        # 先清除所有已选择，再重新选择
+        self.selected.clear()
         for idx in effect_range:
             self.select_item(event=event,index=str(idx),add=True)
     def preview_select(self):
         if len(self.selected) == 1:
             to_preview = self.selected[0]
             self.preview_canvas.preview(to_preview)
+    def del_select(self,event):
+        for sele in self.selected:
+            self.element_keys.remove(sele)
+            self.element.pop(sele).destroy()
+        self.selected.clear()
+        self.update_item()
 class RGLContainer(Container):
     def __init__(self,master,content:RplGenLog,screenzoom):
         # 初始化基类
@@ -74,6 +120,7 @@ class RGLContainer(Container):
         # 遍历内容物，新建元件
         for key in self.content.struct:
             this_section = self.content.struct[key]
+            self.element_keys.append(key)
             self.element[key] = RGLSectionElement(
                 master=self,
                 bootstyle='primary',
@@ -83,10 +130,11 @@ class RGLContainer(Container):
         # 将内容物元件显示出来
         self.update_item()
     def update_item(self):
+        super().update_item()
         SZ_60 = int(self.sz * 60)
         SZ_55 = int(self.sz * 55)
         sz_10 = int(self.sz * 10)
-        for idx,key in enumerate(self.element):
+        for idx,key in enumerate(self.element_keys):
             this_section_frame:ttk.LabelFrame = self.element[key]
             this_section_frame.place(x=0,y=idx*SZ_60,width=-sz_10,height=SZ_55,relwidth=1)
 class MDFContainer(Container):
@@ -98,6 +146,7 @@ class MDFContainer(Container):
             this_section = self.content.struct[key]
             if this_section['type'] not in typelist:
                 continue
+            self.element_keys.append(key)
             self.element[key] = MDFSectionElement(
                 master=self,
                 bootstyle='secondary',
@@ -105,14 +154,15 @@ class MDFContainer(Container):
                 section=this_section,
                 screenzoom=self.sz)
         # 根据内容物，调整容器总高度
-        self.config(height=int(200*self.sz*np.ceil(len(self.element)/3)))
+        self.config(height=int(200*self.sz*np.ceil(len(self.element_keys)/3)))
         # 将内容物元件显示出来
         self.update_item()
     def update_item(self):
+        super().update_item()
         SZ_100 = int(self.sz * 200)
         SZ_95 = int(self.sz * 190)
         sz_10 = int(self.sz * 10)
-        for idx,key in enumerate(self.element):
+        for idx,key in enumerate(self.element_keys):
             this_section_frame:ttk.LabelFrame = self.element[key]
             this_section_frame.place(relx=idx%3 * 0.33,y=idx//3*SZ_100,width=-sz_10,height=SZ_95,relwidth=0.33)
 class CTBContainer(Container):
@@ -126,6 +176,7 @@ class CTBContainer(Container):
             this_section = self.content.struct[key]
             if this_section['Name'] != name:
                 continue
+            self.element_keys.append(key)
             self.element[key] = CTBSectionElement(
                 master=self,
                 bootstyle='primary',
@@ -134,14 +185,15 @@ class CTBContainer(Container):
                 screenzoom=self.sz
                 )
         # 根据内容物，调整容器总高度
-        self.config(height=int(100*self.sz*len(self.element)))
+        self.config(height=int(100*self.sz*len(self.element_keys)))
         # 将内容物元件显示出来
         self.update_item()
     def update_item(self):
+        super().update_item()
         SZ_100 = int(self.sz * 100)
         SZ_95 = int(self.sz * 95)
         sz_10 = int(self.sz * 10)
-        for idx,key in enumerate(self.element):
+        for idx,key in enumerate(self.element_keys):
             this_section_frame:ttk.LabelFrame = self.element[key]
             this_section_frame.place(x=0,y=idx*SZ_100,width=-sz_10,height=SZ_95,relwidth=1)
 # 容器中的每个小节
