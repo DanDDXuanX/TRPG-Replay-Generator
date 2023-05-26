@@ -30,6 +30,8 @@ class Container(ScrolledFrame):
         self.container.bind('<Up>',lambda event:self.select_up(event),"+")
         self.container.bind('<Down>',lambda event:self.select_down(event),"+")
         self.container.bind('<Delete>',lambda event:self.del_select(event),"+")
+        # 容器高度
+        self.container_height = 0
         # 内容物
         self.content = content
         # 容器内的元件，顺序
@@ -37,8 +39,15 @@ class Container(ScrolledFrame):
         self.element_keys = []
         # 当前选中的对象
         self.selected:list = []
+    def get_container_height(self)->int:
+        return 0
     def update_item(self):
-        # 待重载
+        # 重设容器高度：# BUG：会导致闪烁！
+        this_height = self.get_container_height()
+        if self.container_height != this_height:
+            self.config(height=this_height)
+            self.container_height = this_height
+        # 清空原件
         for ele in self.element_keys:
             self.element[ele].place_forget()
     def select_item(self,event,index,add=False):
@@ -53,8 +62,9 @@ class Container(ScrolledFrame):
                     self.element[idx].drop_select()
                 self.selected.clear()
             # 添加本次选中的
-            self.element[selected_idx].get_select()
-            self.selected.append(selected_idx)
+            if index not in self.selected:
+                self.element[selected_idx].get_select()
+                self.selected.append(selected_idx)
             # 尝试预览
             self.preview_select()
     def select_up(self,event):
@@ -92,23 +102,34 @@ class Container(ScrolledFrame):
             effect_range = self.element_keys
         else:
             # 上一个选中的，数字序号
-            last_selected_idx:int = int(self.selected[-1]) # 最后一个
+            # last_selected_idx:int = int(self.selected[-1]) # 最后一个
+            last_selected_idx:int = self.element_keys.index(self.selected[-1])
             # 本次选中的，数字序号
-            this_selected_idx:int = int(index)
+            this_selected_idx:int = self.element_keys.index(index)
+            # this_selected_idx:int = int(index)
             # 正序或是倒序
-            effect_range = range(this_selected_idx,last_selected_idx,{True:1,False:-1}[last_selected_idx>=this_selected_idx])
-        # 先清除所有已选择，再重新选择
-        self.selected.clear()
+            if this_selected_idx > last_selected_idx:
+                effect_range = [self.element_keys[idx] for idx in range(last_selected_idx+1, this_selected_idx+1)]
+            else:
+                effect_range = [self.element_keys[idx] for idx in range(this_selected_idx, last_selected_idx)]
+            # range(this_selected_idx,last_selected_idx,{True:1,False:-1}[last_selected_idx>=this_selected_idx])
+        # 先清除所有已选择，再重新选择：不应该在这里操作
+        # self.selected.clear()
         for idx in effect_range:
-            self.select_item(event=event,index=str(idx),add=True)
+            if idx not in self.selected:
+                self.select_item(event=event,index=str(idx),add=True)
     def preview_select(self):
         if len(self.selected) == 1:
             to_preview = self.selected[0]
             self.preview_canvas.preview(to_preview)
     def del_select(self,event):
+        # print(self.selected)
         for sele in self.selected:
+            # 删除section_element
             self.element_keys.remove(sele)
             self.element.pop(sele).destroy()
+            # 删除项目content # TODO 这个接口目前是不可用的！
+            # self.content.delete(sele)
         self.selected.clear()
         self.update_item()
 class RGLContainer(Container):
@@ -116,7 +137,8 @@ class RGLContainer(Container):
         # 初始化基类
         super().__init__(master=master,content=content,screenzoom=screenzoom)
         # 根据内容物，调整容器总高度
-        self.config(height=int(60*self.sz)*len(self.content.struct))
+        # self.container_height = int(60*self.sz)*len(self.content.struct)
+        # self.config(height=int(60*self.sz)*len(self.content.struct))
         # 遍历内容物，新建元件
         for key in self.content.struct:
             this_section = self.content.struct[key]
@@ -129,6 +151,8 @@ class RGLContainer(Container):
                 screenzoom=self.sz)
         # 将内容物元件显示出来
         self.update_item()
+    def get_container_height(self) -> int:
+        return int(60*self.sz)*len(self.element_keys)
     def update_item(self):
         super().update_item()
         SZ_60 = int(self.sz * 60)
@@ -154,9 +178,11 @@ class MDFContainer(Container):
                 section=this_section,
                 screenzoom=self.sz)
         # 根据内容物，调整容器总高度
-        self.config(height=int(200*self.sz*np.ceil(len(self.element_keys)/3)))
+        # self.config(height=int(200*self.sz*np.ceil(len(self.element_keys)/3)))
         # 将内容物元件显示出来
         self.update_item()
+    def get_container_height(self) -> int:
+        return int(200*self.sz*np.ceil(len(self.element_keys)/3))
     def update_item(self):
         super().update_item()
         SZ_100 = int(self.sz * 200)
@@ -185,9 +211,11 @@ class CTBContainer(Container):
                 screenzoom=self.sz
                 )
         # 根据内容物，调整容器总高度
-        self.config(height=int(100*self.sz*len(self.element_keys)))
+        # self.config(height=int(100*self.sz*len(self.element_keys)))
         # 将内容物元件显示出来
         self.update_item()
+    def get_container_height(self) -> int:
+        return int(100*self.sz*len(self.element_keys))
     def update_item(self):
         super().update_item()
         SZ_100 = int(self.sz * 100)
@@ -480,7 +508,7 @@ class MDFSectionElement(ttk.Frame,SectionElement):
             # 按键点击事件
             this_item.bind('<Button-1>',lambda event:self.master.select_item(event,index=self.name,add=False))
             this_item.bind('<Control-Button-1>',lambda event:self.master.select_item(event,index=self.name,add=True))
-            # this_item.bind('<Shift-Button-1>',lambda event:self.master.select_range(event,index=self.name)) # BUG: 这个现在是不可用的
+            this_item.bind('<Shift-Button-1>',lambda event:self.master.select_range(event,index=self.name))
 class CTBSectionElement(ttk.Frame,SectionElement):
     thumbnail_image = {}
     thumbnail_name = {}
@@ -528,7 +556,7 @@ class CTBSectionElement(ttk.Frame,SectionElement):
             # 按键点击事件
             this_item.bind('<Button-1>',lambda event:self.master.select_item(event,index=self.name,add=False))
             this_item.bind('<Control-Button-1>',lambda event:self.master.select_item(event,index=self.name,add=True))
-            # this_item.bind('<Shift-Button-1>',lambda event:self.master.select_range(event,index=self.idx))
+            this_item.bind('<Shift-Button-1>',lambda event:self.master.select_range(event,index=self.name))
     def update_image_from_section(self,media_name:str)->str:
         # 图标大小
         icon_size = int(self.sz * 93)
