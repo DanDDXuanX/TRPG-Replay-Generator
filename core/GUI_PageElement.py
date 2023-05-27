@@ -7,13 +7,16 @@
 import tkinter as tk
 import ttkbootstrap as ttk
 from PIL import Image, ImageTk
+from core.GUI_Container import Container
 
 # 搜索窗口
 class SearchBar(ttk.Frame):
-    def __init__(self,master,screenzoom):
+    def __init__(self,master,container:Container,screenzoom):
         # 缩放尺度
         self.sz = screenzoom
         super().__init__(master,borderwidth=int(5*self.sz),bootstyle='light')
+        # 关联容器
+        self.container = container
         # 元件
         self.search_text = tk.StringVar(master=self,value='')
         self.is_regex = tk.BooleanVar(master=self,value=False)
@@ -40,8 +43,11 @@ class SearchBar(ttk.Frame):
             self.right['info'].config(text = '正则搜索：'+self.search_text.get())
         else:
             self.right['info'].config(text = '搜索：'+self.search_text.get())
+        # 搜索与显示过滤
+        self.container.search(to_search=self.search_text.get(),regex=self.is_regex.get())
     def click_clear(self):
         self.right['info'].config(text = '(无)')
+        self.container.search(to_search='')
 # 输出指令
 class OutPutCommand(ttk.Frame):
     def __init__(self,master,screenzoom):

@@ -14,7 +14,7 @@ from PIL import Image,ImageTk
 
 from .GUI_PageElement import SearchBar, OutPutCommand
 from .GUI_Container import RGLContainer, MDFContainer, CTBContainer
-from .GUI_PreviewCanvas import PreviewCanvas, MDFPreviewCanvas, CTBPreviewCanvas, RGLPreviewCanvas
+from .GUI_PreviewCanvas import MDFPreviewCanvas, CTBPreviewCanvas, RGLPreviewCanvas
 from .GUI_Edit import EditWindow
 
 # 项目视图-页面-总体
@@ -158,13 +158,15 @@ class RGLPage(ttk.Frame):
         super().__init__(master,borderwidth=0,bootstyle='primary')
         # 内容
         self.content:RplGenLog = content_obj[content_type]
+        # 是否被修改
+        self.is_modified:bool = False
         # 引用媒体对象
         self.ref_medef = self.master.ref_medef
         self.ref_chartab = self.master.ref_chartab
         # 元件
-        self.searchbar = SearchBar(master=self,screenzoom=self.sz)
         self.preview = RGLPreviewCanvas(master=self,screenzoom=self.sz, mediadef=self.ref_medef, chartab=self.ref_chartab, rplgenlog=self.content)
         self.container = RGLContainer(master=self,content=self.content,screenzoom=self.sz)
+        self.searchbar = SearchBar(master=self,screenzoom=self.sz,container=self.container)
         self.outputcommand = OutPutCommand(master=self,screenzoom=self.sz)
         self.edit = EditWindow(master=self,screenzoom=self.sz,section=None)
         # 放置元件
@@ -191,10 +193,12 @@ class MDFPage(ttk.Frame):
         super().__init__(master,borderwidth=0,bootstyle='primary')
         # 内容
         self.content:MediaDef = content_obj
+        # 是否被修改
+        self.is_modified:bool = False
         # 元件
-        self.searchbar = SearchBar(master=self,screenzoom=self.sz)
         self.preview = MDFPreviewCanvas(master=self,screenzoom=self.sz,mediadef=self.content)
         self.container = MDFContainer(master=self,content=content_obj,typelist=self.categroy_dict[content_type],screenzoom=self.sz)
+        self.searchbar = SearchBar(master=self,screenzoom=self.sz,container=self.container)
         self.edit = EditWindow(master=self,screenzoom=self.sz,section=None)
         # 放置元件
         SZ_40 = int(self.sz * 40)
@@ -211,12 +215,14 @@ class CTBPage(ttk.Frame):
         super().__init__(master,borderwidth=0,bootstyle='primary')
         # 内容
         self.content:CharTable = content_obj
+        # 是否被修改
+        self.is_modified:bool = False
         # 引用媒体对象
         self.ref_medef = self.master.ref_medef
         # 元件
-        self.searchbar = SearchBar(master=self,screenzoom=self.sz)
         self.preview = CTBPreviewCanvas(master=self,screenzoom=self.sz,chartab=self.content,mediadef=self.ref_medef)
         self.container = CTBContainer(master=self,content=content_obj,name=content_type,screenzoom=self.sz)
+        self.searchbar = SearchBar(master=self,screenzoom=self.sz,container=self.container)
         self.edit = EditWindow(master=self,screenzoom=self.sz,section={'type':'False'})
         # 放置元件
         SZ_40 = int(self.sz * 40)

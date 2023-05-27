@@ -10,6 +10,7 @@ import ttkbootstrap as ttk
 import tkinter as tk
 from ttkbootstrap.scrolled import ScrolledFrame
 import pygame
+import re
 
 from .GUI_Util import thumbnail
 from .ScriptParser import MediaDef, CharTable, RplGenLog
@@ -22,7 +23,8 @@ class Container(ScrolledFrame):
         # 初始化基类
         self.sz = screenzoom
         super().__init__(master=master, padding=3, bootstyle='light', autohide=True)
-        self.preview_canvas = master.preview
+        self.page = master
+        self.preview_canvas = self.page.preview
         self.vscroll.config(bootstyle='primary-round')
         self.container.config(bootstyle='light',takefocus=True)
         # 按键绑定
@@ -37,6 +39,8 @@ class Container(ScrolledFrame):
         # 容器内的元件，顺序
         self.element = {}
         self.element_keys = []
+        # 当前条件过滤的对象
+        self.display_filter:list = []
         # 当前选中的对象
         self.selected:list = []
     def get_container_height(self)->int:
@@ -99,19 +103,19 @@ class Container(ScrolledFrame):
         self.container.focus_set()
         if index == False:
             # effect_range = self.element.keys()
-            effect_range = self.element_keys
+            effect_range = self.display_filter
         else:
             # 上一个选中的，数字序号
             # last_selected_idx:int = int(self.selected[-1]) # 最后一个
-            last_selected_idx:int = self.element_keys.index(self.selected[-1])
+            last_selected_idx:int = self.display_filter.index(self.selected[-1])
             # 本次选中的，数字序号
-            this_selected_idx:int = self.element_keys.index(index)
+            this_selected_idx:int = self.display_filter.index(index)
             # this_selected_idx:int = int(index)
             # 正序或是倒序
             if this_selected_idx > last_selected_idx:
-                effect_range = [self.element_keys[idx] for idx in range(last_selected_idx+1, this_selected_idx+1)]
+                effect_range = [self.display_filter[idx] for idx in range(last_selected_idx+1, this_selected_idx+1)]
             else:
-                effect_range = [self.element_keys[idx] for idx in range(this_selected_idx, last_selected_idx)]
+                effect_range = [self.display_filter[idx] for idx in range(this_selected_idx, last_selected_idx)]
             # range(this_selected_idx,last_selected_idx,{True:1,False:-1}[last_selected_idx>=this_selected_idx])
         # 先清除所有已选择，再重新选择：不应该在这里操作
         # self.selected.clear()
@@ -127,14 +131,26 @@ class Container(ScrolledFrame):
         # 待RGL类重载
         pass
     def del_select(self,event):
-        # print(self.selected)
+        # TODO：将发生了变更的页面，x变成o，需要把这个事件传递给 GUI.TabPage.TabNote.set_change()
+        self.page.is_modified = True
         for sele in self.selected:
             # 删除section_element
             self.element_keys.remove(sele)
+            self.display_filter.remove(sele)
             self.element.pop(sele).destroy()
             self.content.delete(sele)
         self.selected.clear()
         self.reindex()
+        self.update_item()
+    def search(self,to_search,regex=False):
+        if to_search == '':
+            is_match = self.element_keys.copy()
+        else:
+            is_match = []
+            for ele in self.element_keys:
+                if self.element[ele].rearch_is_match(to_search, regex):
+                    is_match.append(ele)
+        self.display_filter = is_match
         self.update_item()
 class RGLContainer(Container):
     def __init__(self,master,content:RplGenLog,screenzoom):
@@ -154,20 +170,25 @@ class RGLContainer(Container):
                 section=this_section,
                 screenzoom=self.sz)
         # 将内容物元件显示出来
+        self.display_filter = self.element_keys.copy()
         self.update_item()
     def get_container_height(self) -> int:
-        return int(60*self.sz)*len(self.element_keys)
-    # TODO: RGL的list必须是有序的！如果发生了新建、删除，需要重新给所有小节标号！
+        return int(60*self.sz)*len(self.display_filter)
     def reindex(self):
         new_element_keys = [str(x) for x in range(0,len(self.element_keys))]
         new_element:dict = {}
+        new_display_filter = []
         for idx,ele in enumerate(self.element_keys):
             this_new = new_element_keys[idx]
             new_element[this_new] = self.element[ele]
             new_element[this_new].update_index(this_new)
+            # 是否在当前显示过滤器中
+            if ele in self.display_filter:
+                new_display_filter.append(this_new)
         # 更新
         self.element = new_element
         self.element_keys = new_element_keys
+        self.display_filter = new_display_filter
         self.content.reindex()
         return 1
     def update_item(self):
@@ -175,7 +196,8 @@ class RGLContainer(Container):
         SZ_60 = int(self.sz * 60)
         SZ_55 = int(self.sz * 55)
         sz_10 = int(self.sz * 10)
-        for idx,key in enumerate(self.element_keys):
+        # 是否指定列表显示
+        for idx,key in enumerate(self.display_filter):
             this_section_frame:ttk.LabelFrame = self.element[key]
             this_section_frame.place(x=0,y=idx*SZ_60,width=-sz_10,height=SZ_55,relwidth=1)
 class MDFContainer(Container):
@@ -197,15 +219,17 @@ class MDFContainer(Container):
         # 根据内容物，调整容器总高度
         # self.config(height=int(200*self.sz*np.ceil(len(self.element_keys)/3)))
         # 将内容物元件显示出来
+        self.display_filter = self.element_keys.copy()
         self.update_item()
     def get_container_height(self) -> int:
-        return int(200*self.sz*np.ceil(len(self.element_keys)/3))
+        return int(200*self.sz*np.ceil(len(self.display_filter)/3))
     def update_item(self):
         super().update_item()
         SZ_100 = int(self.sz * 200)
         SZ_95 = int(self.sz * 190)
         sz_10 = int(self.sz * 10)
-        for idx,key in enumerate(self.element_keys):
+        # 是否指定列表显示
+        for idx,key in enumerate(self.display_filter):
             this_section_frame:ttk.LabelFrame = self.element[key]
             this_section_frame.place(relx=idx%3 * 0.33,y=idx//3*SZ_100,width=-sz_10,height=SZ_95,relwidth=0.33)
 class CTBContainer(Container):
@@ -230,15 +254,17 @@ class CTBContainer(Container):
         # 根据内容物，调整容器总高度
         # self.config(height=int(100*self.sz*len(self.element_keys)))
         # 将内容物元件显示出来
+        self.display_filter = self.element_keys.copy()
         self.update_item()
     def get_container_height(self) -> int:
-        return int(100*self.sz*len(self.element_keys))
-    def update_item(self):
+        return int(100*self.sz*len(self.display_filter))
+    def update_item(self,to_show:list=None):
         super().update_item()
         SZ_100 = int(self.sz * 100)
         SZ_95 = int(self.sz * 95)
         sz_10 = int(self.sz * 10)
-        for idx,key in enumerate(self.element_keys):
+        # 是否指定列表显示
+        for idx,key in enumerate(self.display_filter):
             this_section_frame:ttk.LabelFrame = self.element[key]
             this_section_frame.place(x=0,y=idx*SZ_100,width=-sz_10,height=SZ_95,relwidth=1)
 # 容器中的每个小节
@@ -326,6 +352,17 @@ class SectionElement:
                 self.thumbnail_name['FreePos'] = 'FreePos'
             self.thumb = self.line_type
         return self.thumb
+    def rearch_is_match(self,to_search,regex=False)->bool:
+        if regex:
+            try:
+                if re.match(to_search,self.search_text):
+                    return True
+                else:
+                    return False
+            except:
+                return False
+        else:
+            return to_search in self.search_text
 
 class RGLSectionElement(ttk.LabelFrame,SectionElement):
     def __init__(self,master,bootstyle,text,section:dict,screenzoom):
@@ -335,6 +372,7 @@ class RGLSectionElement(ttk.LabelFrame,SectionElement):
         super().__init__(master=master,bootstyle=bootstyle,text=self.idx,labelanchor='e')
         # 从小节中获取文本
         self.update_text_from_section(section=section)
+        self.search_text = self.header + '\n' + self.main
         self.items = {
             'head' : ttk.Label(master=self,text=self.header,anchor='w',style=self.hstyle+'.TLabel'),
             'sep'  : ttk.Separator(master=self),
@@ -510,6 +548,8 @@ class MDFSectionElement(ttk.Frame,SectionElement):
             self.labelcolor = 'Lavender'
         else:
             self.labelcolor = section['label_color']
+        # 搜索标志
+        self.search_text = self.name + '\n' + self.line_type + '\n' + self.labelcolor
         # 从小节中获取缩略图
         self.update_image_from_section(section=section)
         self.items = {
@@ -545,6 +585,8 @@ class CTBSectionElement(ttk.Frame,SectionElement):
         # 容器
         self.table = ttk.Frame(master=self,bootstyle=bootstyle,borderwidth=0)
         self.thumbnail = ttk.Frame(master=self,bootstyle=bootstyle,borderwidth=0)
+        # 搜索标志
+        self.search_text = self.name + '\n' + self.section['Animation'] + '\n' + self.section['Bubble'] + '\n' + self.section['Voice']
         # 缩略图
         am_thumbname = self.update_image_from_section(media_name=section['Animation'])
         bb_thumbname = self.update_image_from_section(media_name=section['Bubble'])

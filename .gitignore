@@ -7,3 +7,4 @@ media/preview_tempfile.wav
 *.ipynb
 **/__pycache__/*
 .vscode/*
+test_project.json
