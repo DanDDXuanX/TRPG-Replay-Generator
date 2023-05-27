@@ -122,15 +122,19 @@ class Container(ScrolledFrame):
         if len(self.selected) == 1:
             to_preview = self.selected[0]
             self.preview_canvas.preview(to_preview)
+    def reindex(self):
+        # 重新设置序号，正常是不需要的
+        # 待RGL类重载
+        pass
     def del_select(self,event):
         # print(self.selected)
         for sele in self.selected:
             # 删除section_element
             self.element_keys.remove(sele)
             self.element.pop(sele).destroy()
-            # 删除项目content # TODO 这个接口目前是不可用的！
-            # self.content.delete(sele)
+            self.content.delete(sele)
         self.selected.clear()
+        self.reindex()
         self.update_item()
 class RGLContainer(Container):
     def __init__(self,master,content:RplGenLog,screenzoom):
@@ -153,6 +157,19 @@ class RGLContainer(Container):
         self.update_item()
     def get_container_height(self) -> int:
         return int(60*self.sz)*len(self.element_keys)
+    # TODO: RGL的list必须是有序的！如果发生了新建、删除，需要重新给所有小节标号！
+    def reindex(self):
+        new_element_keys = [str(x) for x in range(0,len(self.element_keys))]
+        new_element:dict = {}
+        for idx,ele in enumerate(self.element_keys):
+            this_new = new_element_keys[idx]
+            new_element[this_new] = self.element[ele]
+            new_element[this_new].update_index(this_new)
+        # 更新
+        self.element = new_element
+        self.element_keys = new_element_keys
+        self.content.reindex()
+        return 1
     def update_item(self):
         super().update_item()
         SZ_60 = int(self.sz * 60)
@@ -315,7 +332,7 @@ class RGLSectionElement(ttk.LabelFrame,SectionElement):
         self.sz = screenzoom
         self.line_type = section['type']
         self.idx = text # 序号
-        super().__init__(master=master,bootstyle=bootstyle,text=text,labelanchor='e')
+        super().__init__(master=master,bootstyle=bootstyle,text=self.idx,labelanchor='e')
         # 从小节中获取文本
         self.update_text_from_section(section=section)
         self.items = {
@@ -464,6 +481,10 @@ class RGLSectionElement(ttk.LabelFrame,SectionElement):
             self.main = str(section['time']) + ' 帧'
             self.hstyle = 'place'
             self.mstyle = 'digit'
+    def update_index(self,new_index):
+        new_index = str(new_index)
+        self.idx = new_index
+        self.config(text=new_index)
     def update_item(self):
         for idx,key in enumerate(self.items):
             this_item:ttk.Label = self.items[key]

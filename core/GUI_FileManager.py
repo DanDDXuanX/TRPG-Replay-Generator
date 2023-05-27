@@ -347,7 +347,7 @@ class MDFCollapsing(FileCollapsing):
             file_type   = 'MDF',
             file_index  = file_index # 'Animation'
             )
-# TODO:重载 add_item_done 方法，添加角色表增加角色、新增空白剧本
+
 # 项目视图-可折叠类容器-角色类
 class CTBCollapsing(FileCollapsing):
     def __init__(self, master, screenzoom: float, content:CharTable, page_frame:PageFrame):
@@ -385,7 +385,7 @@ class CTBCollapsing(FileCollapsing):
             if delete_an_active_page:
                 self.page_frame.page_notebook.delete("角色-"+keyword)
             # 执行删除项目
-            self.content.delete(name=keyword)
+            self.content.delete_chara(name=keyword)
     def rename_item(self, keyword):
         return super().rename_item(keyword,filetype='角色')
     def rename_item_done(self,enter:bool):

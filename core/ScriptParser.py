@@ -87,7 +87,9 @@ class Script:
         return {}
     def export(self)->str:
         return ''
-
+    # 删除
+    def delete(self, key):
+        self.struct.pop(key)
 # 媒体定义文件
 class MediaDef(Script):
     def __init__(self, string_input=None, dict_input=None, file_input=None, json_input=None) -> None:
@@ -458,22 +460,16 @@ class CharTable(Script):
         chartable['Name'] = chartable['Name'].replace(to_rename,new_name)
         chartable.index = chartable['Name']+'.'+chartable['Subtype']
         self.struct = self.parser(chartable)
-    # 删除角色
-    def delete(self,name:str,subtype=None):
+    # 删除整个角色
+    def delete_chara(self,name:str):
         # 获取需要删除的列表
         list_to_delete = []
-        if subtype is None:
-            # 删除整个角色
-            for key in self.struct:
-                if key.split('.')[0] == name:
-                    list_to_delete.append(key)
-        else:
-            # 删除某个差分
-            if name+'.'+subtype in self.struct:
-                list_to_delete.append(name+'.'+subtype)
+        for key in self.struct:
+            if key.split('.')[0] == name:
+                list_to_delete.append(key)
         # 执行删除
         for key in list_to_delete:
-            self.struct.pop(key)
+            self.delete(key)
     # 添加角色
     def add(self,name:str):
         self.struct[name+'.default'] = {
@@ -898,8 +894,8 @@ class RplGenLog(Script):
         return ','.join(list_of_dice_express)
     def export(self) -> str:
         list_of_scripts = []
-        for key in self.struct.keys():
-            this_section:dict = self.struct[key]
+        for section_key in self.struct.keys():
+            this_section:dict = self.struct[section_key]
             type_this:str = this_section['type']
             # 空行
             if type_this == 'blank':
@@ -2041,3 +2037,15 @@ class RplGenLog(Script):
         self.break_point = self.break_point.astype(int)
         # 返回
         return self.main_timeline
+    # 操作
+    def reindex(self):
+        old_struct_keys = [int(x) for x in self.struct.keys()]
+        old_struct_keys.sort()
+        new_struct_keys = [str(x) for x in range(0,len(old_struct_keys))]
+        new_struct:dict = {}
+        for idx,ele in enumerate(old_struct_keys):
+            this_new = new_struct_keys[idx]
+            new_struct[this_new] = self.struct[str(ele)]
+        self.struct = new_struct
+
+# 下播了下播了，开3D太卡了，都没法做测试了555
