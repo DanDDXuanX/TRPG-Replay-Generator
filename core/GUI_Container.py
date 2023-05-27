@@ -9,6 +9,7 @@ from PIL import Image, ImageTk
 import ttkbootstrap as ttk
 import tkinter as tk
 from ttkbootstrap.scrolled import ScrolledFrame
+from ttkbootstrap.dialogs import Messagebox
 import pygame
 import re
 
@@ -125,7 +126,10 @@ class Container(ScrolledFrame):
     def preview_select(self):
         if len(self.selected) == 1:
             to_preview = self.selected[0]
-            self.preview_canvas.preview(to_preview)
+            try:
+                self.preview_canvas.preview(to_preview)
+            except Exception as E:
+                Messagebox().show_error(message=str(E),title='预览错误')
     def reindex(self):
         # 重新设置序号，正常是不需要的
         # 待RGL类重载
