@@ -2047,5 +2047,10 @@ class RplGenLog(Script):
             this_new = new_struct_keys[idx]
             new_struct[this_new] = self.struct[str(ele)]
         self.struct = new_struct
-
+    def exchange(self,key1:str,key2:str)->bool:
+        try:
+            self.struct[key1], self.struct[key2] = self.struct[key2], self.struct[key1]
+            return True
+        except:
+            return False
 # 下播了下播了，开3D太卡了，都没法做测试了555
