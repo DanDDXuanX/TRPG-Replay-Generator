@@ -90,6 +90,9 @@ class Script:
     # 删除
     def delete(self, key):
         self.struct.pop(key)
+    # 添加
+    def add(self, key:str, section:dict):
+        self.struct[key] = section.copy()
 # 媒体定义文件
 class MediaDef(Script):
     def __init__(self, string_input=None, dict_input=None, file_input=None, json_input=None) -> None:
@@ -443,10 +446,13 @@ class CharTable(Script):
     # 将 dict 转为 DataFrame
     def export(self)->pd.DataFrame:
         # dict -> 转为 DataFrame，把潜在的缺失值处理为'NA'
+        table_col = ['Name','Subtype','Animation','Bubble','Voice','SpeechRate','PitchRate']
         chartab = pd.DataFrame(self.struct).T.fillna('NA')
         if len(chartab) == 0:
-            chartab = pd.DataFrame(columns=['Name','Subtype','Animation','Bubble','Voice','SpeechRate','PitchRate'])
-        return chartab
+            chartab = pd.DataFrame(columns=table_col)
+        else:
+            customize_col = [col for col in chartab.columns if col not in table_col]
+        return chartab[table_col+customize_col]
     # 保存为文本文件 (tsv)
     def dump_file(self,filepath:str)->None:
         charactor_table = self.export()
@@ -471,7 +477,7 @@ class CharTable(Script):
         for key in list_to_delete:
             self.delete(key)
     # 添加角色
-    def add(self,name:str):
+    def add_chara(self,name:str):
         self.struct[name+'.default'] = {
             'Name'      : name,
             'Subtype'   : 'default',
@@ -835,7 +841,7 @@ class RplGenLog(Script):
             if key == '*': # {sound;*50}
                 sound_script_list.append('{' + sound_obj['sound'] + ';*' + str(sound_obj['time']) + '}')
             elif key == '{*}':
-                if 'specified_speech' not in sound_obj.key(): # {*abc}
+                if 'specified_speech' in sound_obj.keys(): # {*abc}
                     sound_script_list.append('{*' + str(sound_obj['specified_speech']) + '}')
                 elif sound_obj['sound'] is not None: # {sound;*}
                     sound_script_list.append('{' + str(sound_obj['sound']) + ';*}')

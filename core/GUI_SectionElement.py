@@ -265,6 +265,8 @@ class RGLSectionElement(ttk.LabelFrame,SectionElement):
             self.hstyle = 'place'
             self.mstyle = 'digit'
     def update_index(self,new_index):
+        # 更新index的时候，取消选中
+        self.drop_select()
         new_index = str(new_index)
         self.idx = new_index
         self.config(text=new_index)

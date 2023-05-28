@@ -376,7 +376,7 @@ class CTBCollapsing(FileCollapsing):
         confirm_add =  super().add_item_done(enter, '角色')
         new_keyword = self.re_name.get()
         if confirm_add:
-            self.content.add(new_keyword)
+            self.content.add_chara(new_keyword)
     def delete_item(self, keyword):
         confirm_delete:bool = super().delete_item(keyword)
         delete_an_active_page:bool = "角色-"+keyword in self.page_frame.page_dict.keys()
