@@ -42,19 +42,27 @@ class Container(ScrolledFrame):
         self.element_keys = []
         # 当前条件过滤的对象
         self.display_filter:list = []
+        # 当前显示内容的列表记录
+        self.display_recode:list = []
         # 当前选中的对象
         self.selected:list = []
     def get_container_height(self)->int:
         return 0
-    def update_item(self):
+    def reset_container_height(self):
         # 重设容器高度：# BUG：会导致闪烁！
         this_height = self.get_container_height()
         if self.container_height != this_height:
             self.config(height=this_height)
             self.container_height = this_height
-        # 清空原件
+    def place_item(self,key,idx):
+        # 待重载
+        pass
+    def update_item(self):
+        # TODO:待优化:如果更新前后位置不变动，则不做
         for ele in self.element_keys:
             self.element[ele].place_forget()
+        for idx,key in enumerate(self.display_filter):
+            self.place_item(key, idx)
     def select_item(self,event,index,add=False):
         self.container.focus_set()
         # 根据点击的y，定位本次选中的
@@ -146,6 +154,7 @@ class Container(ScrolledFrame):
         self.selected.clear()
         self.reindex()
         self.update_item()
+        self.reset_container_height()
     def search(self,to_search,regex=False):
         if to_search == '':
             is_match = self.element_keys.copy()
@@ -156,6 +165,7 @@ class Container(ScrolledFrame):
                     is_match.append(ele)
         self.display_filter = is_match
         self.update_item()
+        self.reset_container_height()
 class RGLContainer(Container):
     def __init__(self,master,content:RplGenLog,screenzoom):
         # 初始化基类
@@ -176,6 +186,7 @@ class RGLContainer(Container):
         # 将内容物元件显示出来
         self.display_filter = self.element_keys.copy()
         self.update_item()
+        self.reset_container_height()
     def get_container_height(self) -> int:
         return int(60*self.sz)*len(self.display_filter)
     def reindex(self):
@@ -195,15 +206,17 @@ class RGLContainer(Container):
         self.display_filter = new_display_filter
         self.content.reindex()
         return 1
-    def update_item(self):
-        super().update_item()
+    # 移动小节
+    def move_up(self):
+        pass
+    def move_down(self):
+        pass
+    def place_item(self,key,idx):
         SZ_60 = int(self.sz * 60)
         SZ_55 = int(self.sz * 55)
         sz_10 = int(self.sz * 10)
-        # 是否指定列表显示
-        for idx,key in enumerate(self.display_filter):
-            this_section_frame:ttk.LabelFrame = self.element[key]
-            this_section_frame.place(x=0,y=idx*SZ_60,width=-sz_10,height=SZ_55,relwidth=1)
+        this_section_frame:RGLSectionElement = self.element[key]
+        this_section_frame.place(x=0,y=idx*SZ_60,width=-sz_10,height=SZ_55,relwidth=1)
 class MDFContainer(Container):
     def __init__(self,master,content:MediaDef,typelist:list,screenzoom):
         # 初始化基类
@@ -225,17 +238,15 @@ class MDFContainer(Container):
         # 将内容物元件显示出来
         self.display_filter = self.element_keys.copy()
         self.update_item()
+        self.reset_container_height()
     def get_container_height(self) -> int:
         return int(200*self.sz*np.ceil(len(self.display_filter)/3))
-    def update_item(self):
-        super().update_item()
+    def place_item(self,key,idx):
         SZ_100 = int(self.sz * 200)
         SZ_95 = int(self.sz * 190)
         sz_10 = int(self.sz * 10)
-        # 是否指定列表显示
-        for idx,key in enumerate(self.display_filter):
-            this_section_frame:ttk.LabelFrame = self.element[key]
-            this_section_frame.place(relx=idx%3 * 0.33,y=idx//3*SZ_100,width=-sz_10,height=SZ_95,relwidth=0.33)
+        this_section_frame:MDFSectionElement = self.element[key]
+        this_section_frame.place(relx=idx%3 * 0.33,y=idx//3*SZ_100,width=-sz_10,height=SZ_95,relwidth=0.33)
 class CTBContainer(Container):
     def __init__(self,master,content:CharTable,name:str,screenzoom):
         # 初始化基类
@@ -260,17 +271,15 @@ class CTBContainer(Container):
         # 将内容物元件显示出来
         self.display_filter = self.element_keys.copy()
         self.update_item()
+        self.reset_container_height()
     def get_container_height(self) -> int:
         return int(100*self.sz*len(self.display_filter))
-    def update_item(self,to_show:list=None):
-        super().update_item()
+    def place_item(self,key,idx):
         SZ_100 = int(self.sz * 100)
         SZ_95 = int(self.sz * 95)
         sz_10 = int(self.sz * 10)
-        # 是否指定列表显示
-        for idx,key in enumerate(self.display_filter):
-            this_section_frame:ttk.LabelFrame = self.element[key]
-            this_section_frame.place(x=0,y=idx*SZ_100,width=-sz_10,height=SZ_95,relwidth=1)
+        this_section_frame:CTBSectionElement = self.element[key]
+        this_section_frame.place(x=0,y=idx*SZ_100,width=-sz_10,height=SZ_95,relwidth=1)
 # 容器中的每个小节
 class SectionElement:
     MDFscript = MediaDef()
