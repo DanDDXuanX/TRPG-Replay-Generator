@@ -21,6 +21,7 @@ class Container(ScrolledFrame):
         super().__init__(master=master, padding=3, bootstyle='light', autohide=True)
         self.page = master
         self.preview_canvas = self.page.preview
+        self.edit_window = self.page.edit
         self.vscroll.config(bootstyle='primary-round')
         self.container.config(bootstyle='light',takefocus=True)
         # 按键绑定
@@ -140,6 +141,7 @@ class Container(ScrolledFrame):
     def preview_select(self):
         if len(self.selected) == 1:
             to_preview = self.selected[0]
+            self.edit_window.update_section(section=self.content.struct[to_preview])
             try:
                 self.preview_canvas.preview(to_preview)
             except Exception as E:

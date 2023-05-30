@@ -14,7 +14,7 @@ class KeyValueDescribe(ttk.Frame):
         self.sz = screenzoom
         super().__init__(master=master)
         # 关键字
-        self.key = ttk.Label(master=self,text=key)
+        self.key = ttk.Label(master=self,text=key,width=10)
         # 数值类型
         if value['type'] == 'int':
             self.value = tk.IntVar(master=self,value=value['value'])
@@ -27,9 +27,9 @@ class KeyValueDescribe(ttk.Frame):
         # 容器
         if value['style'] == 'entry':
             self.input = ttk.Entry(master=self,textvariable=self.value,width=30)
-        elif value['type'] == 'spine':
+        elif value['style'] == 'spine':
             self.input = ttk.Spinbox(master=self,textvariable=self.value,width=30)
-        elif value['type'] == 'combox':
+        elif value['style'] == 'combox':
             self.input = ttk.Combobox(master=self,textvariable=self.value,width=30)
         else:
             self.input = ttk.Entry(master=self,textvariable=self.value,width=30)
@@ -44,7 +44,7 @@ class KeyValueDescribe(ttk.Frame):
         SZ_5 = int(self.sz * 5)
         # 放置
         self.key.pack(fill='none',side='left',padx=SZ_5)
-        self.input.pack(fill='x',side='left',padx=SZ_5,expand=True)
+        self.input.pack(fill='x',side='left',padx=SZ_5,pady=SZ_5,expand=True)
         self.describe.pack(fill='none',side='left',padx=SZ_5)
 
 # 将一个图片处理为指定的icon大小（方形）

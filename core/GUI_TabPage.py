@@ -15,7 +15,7 @@ from PIL import Image,ImageTk
 from .GUI_PageElement import SearchBar, OutPutCommand
 from .GUI_Container import RGLContainer, MDFContainer, CTBContainer
 from .GUI_PreviewCanvas import MDFPreviewCanvas, CTBPreviewCanvas, RGLPreviewCanvas
-from .GUI_Edit import EditWindow
+from .GUI_Edit import EditWindow, CharactorEdit
 
 # 项目视图-页面-总体
 class PageFrame(ttk.Frame):
@@ -221,9 +221,9 @@ class CTBPage(ttk.Frame):
         self.ref_medef = self.master.ref_medef
         # 元件
         self.preview = CTBPreviewCanvas(master=self,screenzoom=self.sz,chartab=self.content,mediadef=self.ref_medef)
+        self.edit = CharactorEdit(master=self,screenzoom=self.sz)
         self.container = CTBContainer(master=self,content=content_obj,name=content_type,screenzoom=self.sz)
         self.searchbar = SearchBar(master=self,screenzoom=self.sz,container=self.container)
-        self.edit = EditWindow(master=self,screenzoom=self.sz,section={'type':'False'})
         # 放置元件
         SZ_40 = int(self.sz * 40)
         self.searchbar.place(x=0,y=0,relwidth=0.5,height=SZ_40)
