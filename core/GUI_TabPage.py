@@ -15,7 +15,7 @@ from PIL import Image,ImageTk
 from .GUI_PageElement import SearchBar, OutPutCommand
 from .GUI_Container import RGLContainer, MDFContainer, CTBContainer
 from .GUI_PreviewCanvas import MDFPreviewCanvas, CTBPreviewCanvas, RGLPreviewCanvas
-from .GUI_Edit import EditWindow, CharactorEdit
+from .GUI_Edit import EditWindow, CharactorEdit, AnimeEdit
 
 # 项目视图-页面-总体
 class PageFrame(ttk.Frame):
@@ -196,10 +196,10 @@ class MDFPage(ttk.Frame):
         # 是否被修改
         self.is_modified:bool = False
         # 元件
+        self.edit = AnimeEdit(master=self,screenzoom=self.sz)
         self.preview = MDFPreviewCanvas(master=self,screenzoom=self.sz,mediadef=self.content)
         self.container = MDFContainer(master=self,content=content_obj,typelist=self.categroy_dict[content_type],screenzoom=self.sz)
         self.searchbar = SearchBar(master=self,screenzoom=self.sz,container=self.container)
-        self.edit = EditWindow(master=self,screenzoom=self.sz,section=None)
         # 放置元件
         SZ_40 = int(self.sz * 40)
         self.searchbar.place(x=0,y=0,relwidth=0.5,height=SZ_40)

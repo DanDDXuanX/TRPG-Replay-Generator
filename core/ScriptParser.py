@@ -381,7 +381,25 @@ class MediaDef(Script):
             else:
                 self.Medias[obj_name] = object_this
         return self.Medias
-
+    # 访问:
+    def get_type(self,_type) -> list:
+        type_name = {
+            'anime'     :['Animation'],
+            'bubble'    :['Bubble','Balloon','DynamicBubble'],
+            'text'      :['Text','StrokeText','RichText'],
+            'pos'       :['Pos','FreePos']
+        }
+        output = []
+        type_this:list = type_name[_type]
+        for keys in self.struct:
+            section_this = self.struct[keys]
+            if section_this['type'] in type_this:
+                output.append(keys)
+            elif _type == 'bubble' and section_this['type'] == 'ChatWindow':
+                for sub_key in section_this['sub_key']:
+                    output.append(keys + ':' + sub_key)
+        output.sort()
+        return output
 # 角色配置文件
 class CharTable(Script):
     # 初始化

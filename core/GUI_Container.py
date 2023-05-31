@@ -141,7 +141,7 @@ class Container(ScrolledFrame):
     def preview_select(self):
         if len(self.selected) == 1:
             to_preview = self.selected[0]
-            self.edit_window.update_section(section=self.content.struct[to_preview])
+            self.edit_window.update_from_section(section=self.content.struct[to_preview])
             try:
                 self.preview_canvas.preview(to_preview)
             except Exception as E:
