@@ -40,7 +40,7 @@ class KeyValueDescribe(ttk.Frame):
         else:
             self.input = ttk.Label(master=self,textvariable=self.value,width=30)
         # 描述
-        if describe['type'] == 'text':
+        if describe['type'] == 'label':
             self.describe = ttk.Label(master=self,text=describe['text'],width=8,anchor='center',padding=padding)
         elif describe['type'] == 'button':
             self.describe = ttk.Button(master=self,text=describe['text'],width=8,padding=padding)
@@ -56,26 +56,68 @@ class KeyValueDescribe(ttk.Frame):
         self.describe.pack(fill='none',side='left',padx=SZ_5)
     def get(self):
         return self.value.get()
-    
+# 文本分割线，包含若干个KVD，可以折叠
 class TextSeparator(ttk.Frame):
     def __init__(self,master,screenzoom:float,describe:dict):
         self.sz = screenzoom
         super().__init__(master=master)
-        # 文字：
-        self.label = ttk.Label(master=self,text=describe,style='dialog.TLabel')
-        # 分割线
+        # 标题栏
+        self.title = ttk.Frame(master=self)
+        ## 文字：
+        self.label = ttk.Label(master=self.title,text=describe,style='dialog.TLabel')
+        self.label.bind("<Button-1>",self.update_toggle)
+        ## 分割线
         self.sep = ttk.Separator(
-                    master=self,
+                    master=self.title,
                     orient='horizontal',
                     bootstyle='primary'
                     )
+        # 容器
+        self.content = {}
+        self.content_index = []
+        self.content_frame = ttk.Frame(master=self)
         # 显示
         self.update_item()
+    # 刷新显示
     def update_item(self):
-        # 放置
+        # 是否扩展
+        self.update_title()
+        self.expand = True
+        self.title.pack(fill='x',side='top')
+        self.content_frame.pack(fill='x',side='top')
+    # 放置标题
+    def update_title(self):
         self.label.pack(fill='x',side='top',expand=True)
         self.sep.pack(fill='x',side='top',expand=True)
-
+    # 切换收缩
+    def update_toggle(self,event):
+        if self.expand:
+            self.content_frame.pack_forget()
+            self.expand:bool = False
+        else:
+            self.content_frame.pack(fill='x',side='top')
+            self.expand:bool = True
+    # 添加KVD
+    def add_element(self,key:str,value:str,kvd:dict)->KeyValueDescribe:
+        SZ_5 = int(self.sz * 5)
+        this_kvd = KeyValueDescribe(
+            master = self.content_frame,
+            screenzoom = self.sz,
+            key=kvd['ktext'],
+            value={
+                'type':kvd['vtype'],
+                'style':kvd['vitem'],
+                'value':value},
+            describe={
+                'type':kvd['ditem'],
+                'text':kvd['dtext']
+            }
+        )
+        self.content_index.append(key)
+        self.content[key] = this_kvd
+        # 摆放
+        this_kvd.pack(side='top',anchor='n',fill='x',pady=(SZ_5,0))
+        return this_kvd
 # 将一个图片处理为指定的icon大小（方形）
 def thumbnail(image:Image.Image,icon_size:int)->Image.Image:
     origin_w,origin_h = image.size

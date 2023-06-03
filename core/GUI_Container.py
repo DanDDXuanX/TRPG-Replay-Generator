@@ -141,11 +141,13 @@ class Container(ScrolledFrame):
     def preview_select(self):
         if len(self.selected) == 1:
             to_preview = self.selected[0]
-            self.edit_window.update_from_section(section=self.content.struct[to_preview])
             try:
+                self.edit_select(to_preview)
                 self.preview_canvas.preview(to_preview)
             except Exception as E:
                 Messagebox().show_error(message=str(E),title='预览错误')
+    def edit_select(self,to_preview):
+        self.edit_window.update_from_section(index=to_preview, section=self.content.struct[to_preview])
     # 删除项目
     def reindex(self):
         # 重新设置序号，正常是不需要的
@@ -353,6 +355,9 @@ class MDFContainer(Container):
         sz_10 = int(self.sz * 10)
         this_section_frame:MDFSectionElement = self.element[key]
         this_section_frame.place(relx=idx%3 * 0.33,y=idx//3*SZ_100,width=-sz_10,height=SZ_95,relwidth=0.33)
+    def edit_select(self,to_preview):
+        section_2_preview:dict = self.content.struct[to_preview]
+        self.edit_window.update_from_section(index=to_preview, section=section_2_preview, line_type=section_2_preview['type'])
     def copy_element(self, event):
         super().copy_element(event)
         # 写入剪贴板
