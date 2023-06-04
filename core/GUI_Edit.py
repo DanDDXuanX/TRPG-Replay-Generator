@@ -2,18 +2,20 @@
 # coding: utf-8
 
 import ttkbootstrap as ttk
+from ttkbootstrap.scrolled import ScrolledFrame
 from .GUI_Util import KeyValueDescribe, TextSeparator
 from .GUI_EditTableStruct import TableStruct
 from .ScriptParser import MediaDef
 # 编辑区
 
 # 编辑窗
-class EditWindow(ttk.LabelFrame):
+class EditWindow(ScrolledFrame):
     TableStruct = TableStruct
     def __init__(self,master,screenzoom):
         # 初始化基类
         self.sz = screenzoom
-        super().__init__(master=master,bootstyle='primary',text='编辑区')
+        super().__init__(master=master, autohide=True)
+        self.vscroll.config(bootstyle='secondary-round')
         self.page = master
         # 初始化状态
         self.line_type = 'no_selection'
@@ -47,21 +49,49 @@ class EditWindow(ttk.LabelFrame):
         # 编辑区
         for sep in self.table_struct:
             this_sep:dict = self.table_struct[sep]
-            self.seperator[sep] = TextSeparator(
-                master=self,
-                screenzoom=self.sz,
-                describe=this_sep['Text']
-            )
-            for key in this_sep['Content']:
-                this_kvd:dict = this_sep['Content'][key]
-                # 如果valuekey判断valuekey
-                if this_kvd['valuekey'] == '$key':
-                    this_value = index
-                elif this_kvd['valuekey'] in self.section.keys():
-                    this_value = self.struct_2_value(self.section[this_kvd['valuekey']])
+            # 一般的
+            if this_sep['Command'] is None:
+                self.seperator[sep] = TextSeparator(
+                    master=self,
+                    screenzoom=self.sz,
+                    describe=this_sep['Text']
+                )
+                for key in this_sep['Content']:
+                    this_kvd:dict = this_sep['Content'][key]
+                    # 如果valuekey判断valuekey
+                    if this_kvd['valuekey'] == '$key':
+                        this_value = index
+                    elif this_kvd['valuekey'] in self.section.keys():
+                        this_value = self.struct_2_value(self.section[this_kvd['valuekey']])
+                    else:
+                        this_value = this_kvd['default']
+                    self.elements[key] = self.seperator[sep].add_element(key=key, value=this_value, kvd=this_kvd)
+            # 重复出现的Sep
+            elif this_sep['Command']['type'] == 'add_sep':
+                key_target:str = this_sep['Command']['key']
+                key_valuekey:str = this_sep['Content'][key_target]['valuekey']
+                # 获取作为关键字的key_values
+                if key_valuekey in self.section.keys():
+                    key_values:list = self.section[key_valuekey]
                 else:
-                    this_value = this_kvd['default']
-                self.elements[key] = self.seperator[sep].add_element(key=key, value=this_value, kvd=this_kvd)
+                    key_values:list = [this_sep['Content'][key_target]['default']]
+                # 多次建立
+                for idx, kvalue in enumerate(key_values):
+                    self.seperator[sep%(1+idx)] = TextSeparator(
+                        master=self,
+                        screenzoom=self.sz,
+                        describe=this_sep['Text']%(1+idx)
+                    )
+                    for key in this_sep['Content']:
+                        this_kvd:dict = this_sep['Content'][key]
+                        # 取出对应顺序的
+                        try:
+                            this_value = self.struct_2_value(self.section[this_kvd['valuekey']][idx])
+                        except (KeyError,IndexError):
+                            this_value = this_kvd['default']
+                        self.elements[key%(idx+1)] = self.seperator[sep%(1+idx)].add_element(key=key%(idx+1), value=this_value, kvd=this_kvd)
+            # 包含可变数量KVD的Sep # TODO
+            pass
     # 从section的值转为显示的value
     def struct_2_value(self,section):
         return section

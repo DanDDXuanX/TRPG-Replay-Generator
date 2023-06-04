@@ -8,6 +8,34 @@ from PIL import Image, ImageTk
 # 公用小元件
 # 包含：最小键值对
 
+# 加上值的映射关系的Combobox\
+class DictCombobox(ttk.Combobox):
+    def __init__(self, master,textvariable,**kw):
+        self.dictionary = {}
+        # 实际的值
+        self.var = textvariable
+        # 显示的
+        self.text = tk.StringVar(master=master,value=self.var.get())
+        # 初始化
+        super().__init__(master, textvariable=self.text, **kw)
+        self.bind('<<ComboboxSelected>>', self.update_var)
+    def update_dict(self, dict:dict):
+        # 显示的内容：实际的内容
+        self.dictionary = dict
+        self.configure(values=list(self.dictionary.keys()))
+        # 修改目前text
+        keys = [key for key,value in self.dictionary.items() if tk.StringVar(value=value).get() == self.text.get()]
+        if len(keys) > 0:
+            self.text.set(keys[0])
+    def update_var(self, event):
+        text = self.text.get()
+        if text in self.dictionary:
+            self.var.set(self.dictionary[text])
+        else:
+            self.var.set(text)
+        print(self.var.get())
+
+
 # 一个键、值、描述的最小单位。
 class KeyValueDescribe(ttk.Frame):
     def __init__(self,master,screenzoom:float,key:str,value:dict,describe:dict):
@@ -34,7 +62,7 @@ class KeyValueDescribe(ttk.Frame):
         elif value['style'] == 'spine':
             self.input = ttk.Spinbox(master=self,textvariable=self.value,width=30)
         elif value['style'] == 'combox':
-            self.input = ttk.Combobox(master=self,textvariable=self.value,width=30)
+            self.input = DictCombobox(master=self,textvariable=self.value,width=30)
         elif value['style'] == 'label':
             self.input = ttk.Label(master=self,textvariable=self.value,width=30)
         else:
