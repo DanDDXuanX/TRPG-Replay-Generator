@@ -141,8 +141,8 @@ class Container(ScrolledFrame):
     def preview_select(self):
         if len(self.selected) == 1:
             to_preview = self.selected[0]
+            self.edit_select(to_preview)
             try:
-                self.edit_select(to_preview)
                 self.preview_canvas.preview(to_preview)
             except Exception as E:
                 Messagebox().show_error(message=str(E),title='预览错误')
@@ -234,6 +234,10 @@ class RGLContainer(Container):
         self.display_filter = new_display_filter
         self.content.reindex()
         return 1
+    # 编辑选中
+    def edit_select(self,to_preview):
+        section_2_preview:dict = self.content.struct[to_preview]
+        self.edit_window.update_from_section(index=to_preview, section=section_2_preview, line_type=section_2_preview['type'])
     # 移动小节
     def exchange(self,key1:str,key2:str):
         # 变更element
@@ -441,11 +445,13 @@ class CTBContainer(Container):
                 ele_key = self.name+'.'+subtype
             else:
                 ele_key = ele
-            while ele_key in self.element_keys:
-                ele_key = ele_key+'_cp'
             # section
             section = CTBContainer.element_clipboard[ele].copy()
             section['Name'] = self.name
+            # key: name.subtype, 重名则加个_cp
+            while ele_key in self.element_keys:
+                ele_key = ele_key+'_cp'
+                section['Subtype'] = section['Subtype']+'_cp'
             # element
             self.element[ele_key] = self.new_element(key=ele_key,section=section)
             # contene

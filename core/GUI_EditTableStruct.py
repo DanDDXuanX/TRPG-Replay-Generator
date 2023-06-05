@@ -90,8 +90,20 @@ TableStruct:dict = {
             },
             "CustomSep":{
                 "Text": "自定义",
-                "Command":None,
-                "Content":{}
+                "Command":{
+                    "type" : "add_kvd",
+                },
+                "Content":{
+                    "{template}" : {
+                        "ktext": "{template}：",
+                        "dtext": "（输入）",
+                        "ditem": "label",
+                        "valuekey": "{template}",
+                        "vitem": "entry",
+                        "vtype": "str",
+                        "default": "Init"
+                    }
+                }
             }
         },
     },
@@ -1435,7 +1447,240 @@ TableStruct:dict = {
         },
     },
     # 剧本
-    'RplGenLog':{},
+    'RplGenLog':{
+        "blank":{
+            "BlankSep":{
+                "Text":"空白行",
+                "Command":None,
+                "Content":{}
+            }
+        },
+        "comment":{
+            "CommentSep":{
+                "Text":"注释",
+                "Command":None,
+                "Content":{
+                    "content":{
+                        "ktext": "文本：",
+                        "dtext": "",
+                        "ditem": "label",
+                        "valuekey": "content",
+                        "vitem": "entry",
+                        "vtype": "str",
+                        "default": ""
+                    }
+                }
+            }
+            },
+        "dialog":{},
+        "background":{
+            "BgSep":{
+                "Text":"背景",
+                "Command":None,
+                "Content":{
+                    "object":{
+                        "ktext": "对象：",
+                        "dtext": "（选择）",
+                        "ditem": "label",
+                        "valuekey": "object",
+                        "vitem": "combox",
+                        "vtype": "str",
+                        "default": "black"
+                    }
+                },
+            },
+            "BgMetSep":{
+                "Text":"切换效果",
+                "Command":{
+                    "type":"subscript",
+                    "key":"."
+                    },
+                "Content":{}
+            }
+        },
+        "animation":{
+            "AmSep":{
+                "Text":"立绘",
+                "Command":None,
+                "Content":{}
+            },
+            "AmMetSep":{
+                "Text":"切换效果",
+                "Command":None,
+                "Content":{}
+            }
+        },
+        "bubble":{
+            "BbSep":{
+                "Text":"气泡",
+                "Command":None,
+                "Content":{
+                    
+                }
+            },
+            "BbMetSep":{
+                "Text":"切换效果",
+                "Command":None,
+                "Content":{}
+            },
+            "TxMetSep":{
+                "Text":"文字效果",
+                "Command":None,
+                "Content":{}
+            }
+        },
+        "set":{},
+        "move":{},
+        "table":{
+            "TableSep":{
+                "Text":"修改目标",
+                "Command":{
+                    "type":"subscript",
+                    "key":"."
+                },
+                "Content":{
+                    "name":{
+                        "ktext": "角色：",
+                        "dtext": "（选择）",
+                        "ditem": "label",
+                        "valuekey": "target.name",
+                        "vitem": "combox",
+                        "vtype": "str",
+                        "default": ""
+                    },
+                    "subtype":{
+                        "ktext": "差分：",
+                        "dtext": "（选择）",
+                        "ditem": "label",
+                        "valuekey": "target.subtype",
+                        "vitem": "combox",
+                        "vtype": "str",
+                        "default": None
+                    },
+                    "column":{
+                        "ktext": "角色表列：",
+                        "dtext": "（选择）",
+                        "ditem": "label",
+                        "valuekey": "target.column",
+                        "vitem": "combox",
+                        "vtype": "str",
+                        "default": ""
+                    },
+                }
+            },
+            "ValueSep":{
+                "Text":"值",
+                "Command":None,
+                "Content":{
+                    'value':{
+                        "ktext": "修改为：",
+                        "dtext": "（输入）",
+                        "ditem": "label",
+                        "valuekey": "value",
+                        "vitem": "entry",
+                        "vtype": "str",
+                        "default": ""
+                    }
+                }
+            }
+        },
+        "music":{
+            "BGMSep":{
+                "Text":"背景音乐",
+                "Command":None,
+                "Content":{
+                    "value":{
+                        "ktext": "音频：",
+                        "dtext": "浏览",
+                        "ditem": "button",
+                        "valuekey": "value",
+                        "vitem": "combox",
+                        "vtype": "str",
+                        "default": ""
+                    }
+                }
+            }
+        },
+        "clear":{
+            "CwSep":{
+                "Text":"清除目标",
+                "Command":None,
+                "Content":{
+                    "object":{
+                        "ktext": "聊天窗：",
+                        "dtext": "（选择）",
+                        "ditem": "label",
+                        "valuekey": "object",
+                        "vitem": "combox",
+                        "vtype": "str",
+                        "default": ""
+                    }
+                }
+            }
+        },
+        "hitpoint":{
+            "HpSep":{
+                "Text":"生命值动画",
+                "Command":None,
+                "Content":{
+                    "content":{
+                        "ktext": "描述：",
+                        "dtext": "（输入）",
+                        "ditem": "label",
+                        "valuekey": "content",
+                        "vitem": "entry",
+                        "vtype": "str",
+                        "default": ""
+                    },
+                    "hp_max":{
+                        "ktext": "HP上限：",
+                        "dtext": "（数值）",
+                        "ditem": "label",
+                        "valuekey": "hp_max",
+                        "vitem": "spine",
+                        "vtype": "int",
+                        "default": 0
+                    },
+                    "hp_begin":{
+                        "ktext": "初始HP：",
+                        "dtext": "（数值）",
+                        "ditem": "label",
+                        "valuekey": "hp_begin",
+                        "vitem": "spine",
+                        "vtype": "int",
+                        "default": 0
+                    },
+                    "hp_end":{
+                        "ktext": "结束HP：",
+                        "dtext": "（数值）",
+                        "ditem": "label",
+                        "valuekey": "hp_end",
+                        "vitem": "spine",
+                        "vtype": "int",
+                        "default": 0
+                    },
+                }
+            }
+        },
+        "dice":{},
+        "wait":{
+            "TimeSep":{
+                "Text":"停顿",
+                "Command":None,
+                "Content":{
+                    "time":{
+                        "ktext": "时长：",
+                        "dtext": "（帧）",
+                        "ditem": "label",
+                        "valuekey": "time",
+                        "vitem": "spine",
+                        "vtype": "int",
+                        "default": 30
+                    }
+                }
+            }
+        },
+    },
     # 项目设置
     'Config':{},
     # 软件设置

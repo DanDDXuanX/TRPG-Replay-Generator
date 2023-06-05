@@ -5,7 +5,7 @@ import ttkbootstrap as ttk
 from ttkbootstrap.scrolled import ScrolledFrame
 from .GUI_Util import KeyValueDescribe, TextSeparator
 from .GUI_EditTableStruct import TableStruct
-from .ScriptParser import MediaDef
+from .ScriptParser import MediaDef, RplGenLog
 # 编辑区
 
 # 编辑窗
@@ -90,8 +90,29 @@ class EditWindow(ScrolledFrame):
                         except (KeyError,IndexError):
                             this_value = this_kvd['default']
                         self.elements[key%(idx+1)] = self.seperator[sep%(1+idx)].add_element(key=key%(idx+1), value=this_value, kvd=this_kvd)
-            # 包含可变数量KVD的Sep # TODO
-            pass
+            elif this_sep['Command']['type'] == 'add_kvd':
+                # 包含可变数量KVD的Sep # TODO
+                pass
+            elif this_sep['Command']['type'] == 'subscript':
+                self.seperator[sep] = TextSeparator(
+                    master=self,
+                    screenzoom=self.sz,
+                    describe=this_sep['Text']
+                )
+                split_str = this_sep['Command']['key']
+                for key in this_sep['Content']:
+                    this_kvd:dict = this_sep['Content'][key]
+                    # subscript型key
+                    key_subscript = this_kvd['valuekey'].split(split_str)
+                    this_value = self.section
+                    for ks in key_subscript:
+                        try:
+                            this_value = this_value[ks]
+                        except KeyError as E:
+                            print(E)
+                            this_value = this_kvd['default']
+                    self.elements[key] = self.seperator[sep].add_element(key=key, value=this_value, kvd=this_kvd)
+
     # 从section的值转为显示的value
     def struct_2_value(self,section):
         return section
@@ -144,3 +165,12 @@ class MediaEdit(EditWindow):
         self.update_item()
     def struct_2_value(self,section):
         return self.medef_tool.value_export(section)
+class LogEdit(EditWindow):
+    def __init__(self, master, screenzoom):
+        super().__init__(master, screenzoom)
+        self.TableStruct = TableStruct['RplGenLog']
+    def update_from_section(self,index:str,section: dict, line_type):
+        super().update_from_section(index, section, line_type)
+        # TODO:各个类型的config
+        # 更新
+        self.update_item()
