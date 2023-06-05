@@ -289,7 +289,7 @@ TableStruct:dict = {
                         "valuekey": "label_color",
                         "vitem": "combox",
                         "vtype": "str",
-                        "default": "Lavender"
+                        "default": "'Lavender'"
                     },
                 }
             },
@@ -372,7 +372,7 @@ TableStruct:dict = {
                         "valuekey": "label_color",
                         "vitem": "combox",
                         "vtype": "str",
-                        "default": "Lavender"
+                        "default": "'Lavender'"
                     },
                 }
             },
@@ -488,7 +488,7 @@ TableStruct:dict = {
                         "valuekey": "label_color",
                         "vitem": "combox",
                         "vtype": "str",
-                        "default": "Lavender"
+                        "default": "'Lavender'"
                     },
                 }
             },
@@ -571,7 +571,7 @@ TableStruct:dict = {
                         "valuekey": "label_color",
                         "vitem": "combox",
                         "vtype": "str",
-                        "default": "Lavender"
+                        "default": "'Lavender'"
                     },
                 }
             },
@@ -637,7 +637,7 @@ TableStruct:dict = {
                         "valuekey": "align",
                         "vitem": "combox",
                         "vtype": "str",
-                        "default": "left"
+                        "default": "'left'"
                     },
                     "line_distance": {
                         "ktext": "行距：",
@@ -679,7 +679,7 @@ TableStruct:dict = {
                         "valuekey": "ht_target",
                         "vitem": "combox",
                         "vtype": "str",
-                        "default": "Name"
+                        "default": "'Name'"
                     }
                 }
             },
@@ -714,7 +714,7 @@ TableStruct:dict = {
                         "valuekey": "label_color",
                         "vitem": "combox",
                         "vtype": "str",
-                        "default": "Lavender"
+                        "default": "'Lavender'"
                     },
                 }
             },
@@ -780,7 +780,7 @@ TableStruct:dict = {
                         "valuekey": "align",
                         "vitem": "combox",
                         "vtype": "str",
-                        "default": "left"
+                        "default": "'left'"
                     },
                     "line_distance": {
                         "ktext": "行距：",
@@ -825,7 +825,7 @@ TableStruct:dict = {
                         "valuekey": "ht_target",
                         "vitem": "combox",
                         "vtype": "str",
-                        "default": "Name"
+                        "default": "'Name'"
                     }
                 }
             },
@@ -860,7 +860,7 @@ TableStruct:dict = {
                         "valuekey": "label_color",
                         "vitem": "combox",
                         "vtype": "str",
-                        "default": "Lavender"
+                        "default": "'Lavender'"
                     },
                 }
             },
@@ -908,7 +908,7 @@ TableStruct:dict = {
                         "valuekey": "fill_mode",
                         "vitem": "combox",
                         "vtype": "str",
-                        "default": "stretch"
+                        "default": "'stretch'"
                     },
                     "fit_axis": {
                         "ktext": "适应方向：",
@@ -917,7 +917,7 @@ TableStruct:dict = {
                         "valuekey": "fit_axis",
                         "vitem": "combox",
                         "vtype": "str",
-                        "default": "free"
+                        "default": "'free'"
                     },
                 }
             },
@@ -1027,7 +1027,7 @@ TableStruct:dict = {
                         "valuekey": "label_color",
                         "vitem": "combox",
                         "vtype": "str",
-                        "default": "Lavender"
+                        "default": "'Lavender'"
                     },
                 }
             },
@@ -1162,7 +1162,7 @@ TableStruct:dict = {
                         "valuekey": "sub_align",
                         "vitem": "combox",
                         "vtype": "str",
-                        "default": "left"
+                        "default": "'left'"
                     }
                 }
             }
@@ -1197,7 +1197,7 @@ TableStruct:dict = {
                         "valuekey": "label_color",
                         "vitem": "combox",
                         "vtype": "str",
-                        "default": "Lavender"
+                        "default": "'Lavender'"
                     },
                 }
             },
@@ -1289,7 +1289,7 @@ TableStruct:dict = {
                         "valuekey": "label_color",
                         "vitem": "combox",
                         "vtype": "str",
-                        "default": "Lavender"
+                        "default": "'Lavender'"
                     },
                 }
             },
@@ -1685,4 +1685,65 @@ TableStruct:dict = {
     'Config':{},
     # 软件设置
     'Preference':{},
+}
+
+label_colors = {
+    "紫罗兰紫"  :"'Violet'",
+    "鸢尾花色蓝":"'Iris'",
+    "加勒比海蓝":"'Caribbean'",
+    "薰衣草粉"  :"'Lavender'",
+    "天蓝色"   :"'Cerulean'",
+    "森林绿"   :"'Forest'",
+    "玫瑰红"   :"'Rose'",
+    "芒果橙"   :"'Mango'",
+    "紫色"    :"'Purple'",
+    "蓝色"    :"'Blue'",
+    "深青色"    :"'Teal'",
+    "洋红色"   :"'Magenta'",
+    "棕黄色"   :"'Tan'",
+    "绿色"    :"'Green'",
+    "棕色"    :"'Brown'",
+    "黄色"    :"'Yellow'"
+}
+
+projection = {
+    "中心"  :"'C'",
+    "上"    :"'N'",
+    "下"    :"'S'",
+    "左"    :"'W'",
+    "右"    :"'E'",
+    "左上"  :"'NW'",
+    "左下"  :"'SW'",
+    "右上"  :"'NE'",
+    "右下"  :"'SE'",
+}
+
+alignments = {
+    "左对齐" : "'left'",
+    "居中对齐": "'center'"
+}
+
+charactor_columns={
+    "Name（角色名）":"'Name'",
+    "Subtype（差分名）":"'Subtype'",
+    "Animation（立绘）":"'Animation'",
+    "Bubble（气泡）":"'Bubble'",
+    "Voice（音源）":"'Voice'",
+    "SpeechRate（语速）":"'SpeechRate'",
+    "PitchRate（语调）":"'PitchRate'",
+}
+
+fill_mode = {
+    "拉伸" : "'stretch'",
+    "拼贴" : "'collage'",
+}
+fit_axis = {
+    "自由" : "'free'",
+    "垂直" : "'vertical'",
+    "水平" : "'horizontal'"
+}
+
+True_False = {
+    "是": True,
+    "否": False
 }

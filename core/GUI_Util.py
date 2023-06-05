@@ -22,7 +22,7 @@ class DictCombobox(ttk.Combobox):
     def update_dict(self, dict:dict):
         # 显示的内容：实际的内容
         self.dictionary = dict
-        self.configure(values=list(self.dictionary.keys()))
+        self.configure(values=list(self.dictionary.keys()), state='readonly')
         # 修改目前text
         keys = [key for key,value in self.dictionary.items() if tk.StringVar(value=value).get() == self.text.get()]
         if len(keys) > 0:

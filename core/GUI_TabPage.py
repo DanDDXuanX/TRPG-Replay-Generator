@@ -193,6 +193,7 @@ class MDFPage(ttk.Frame):
         super().__init__(master,borderwidth=0,bootstyle='primary')
         # 内容
         self.content:MediaDef = content_obj
+        self.ref_medef = self.content
         # 是否被修改
         self.is_modified:bool = False
         # 元件

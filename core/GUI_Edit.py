@@ -4,7 +4,7 @@
 import ttkbootstrap as ttk
 from ttkbootstrap.scrolled import ScrolledFrame
 from .GUI_Util import KeyValueDescribe, TextSeparator
-from .GUI_EditTableStruct import TableStruct
+from .GUI_EditTableStruct import TableStruct, label_colors, projection, alignments, charactor_columns, fill_mode, fit_axis, True_False
 from .ScriptParser import MediaDef, RplGenLog
 # 编辑区
 
@@ -130,6 +130,11 @@ class EditWindow(ScrolledFrame):
         return self.page.ref_medef.get_type('text')
     def get_avaliable_pos(self)->list:
         return self.page.ref_medef.get_type('pos')
+    def get_avaliable_charcol(self)->dict:
+        charactor_columns_this = charactor_columns.copy()
+        for key in CharactorEdit.custom_col:
+            charactor_columns_this["{}（自定义）".format(key)] = "'{}'".format(key)
+        return charactor_columns_this
 class CharactorEdit(EditWindow):
     custom_col = []
     def __init__(self, master, screenzoom):
@@ -162,7 +167,46 @@ class MediaEdit(EditWindow):
         super().update_from_section(index, section, line_type)
         # TODO:各个类型的config
         # 更新
+        self.update_media_element_prop(line_type)
         self.update_item()
+    def update_media_element_prop(self,line_type):
+        # 标签色
+        if line_type not in ['Pos','FreePos','PosGrid']:
+            self.elements['label_color'].input.update_dict(label_colors)
+        # PosGrid
+        if line_type == 'PosGrid':
+            self.elements['x_step'].input.configure(from_=0,to=100,increment=1)
+            self.elements['y_step'].input.configure(from_=0,to=100,increment=1)
+        # 字体
+        if line_type in ['Text','StrokeText','RichText']:
+            self.elements['line_limit'].input.configure(from_=0,to=100,increment=1)
+            self.elements['fontsize'].input.configure(from_=0,to=300,increment=5)
+            if line_type == 'StrokeText':
+                self.elements['edge_width'].input.configure(from_=0,to=30,increment=1)
+                self.elements['projection'].input.update_dict(projection)
+        # Pos
+        if line_type in ['Bubble','Balloon','DynamicBubble','ChatWindow','Animation','Background']:
+            self.elements['pos'].input.configure(values=self.get_avaliable_pos())
+            self.elements['scale'].input.configure(from_=0.1,to=3,increment=0.1)
+        # MainText HeadText
+        if line_type in ['Bubble','Balloon','DynamicBubble']:
+            self.elements['Main_Text'].input.configure(values=['Text()']+self.get_avaliable_text())
+            self.elements['line_distance'].input.configure(from_=0.8,to=3,increment=0.1)
+        if line_type in ['Bubble','Balloon']:
+            self.elements['align'].input.update_dict(alignments)
+        if line_type in ['Bubble','DynamicBubble']:
+            self.elements['Header_Text'].input.configure(values=['None','Text()']+self.get_avaliable_text())
+            self.elements['ht_target'].input.update_dict(self.get_avaliable_charcol())
+        if line_type == 'DynamicBubble':
+            self.elements['fill_mode'].input.update_dict(fill_mode)
+            self.elements['fit_axis'].input.update_dict(fit_axis)
+        # TODO: Balloon 的每一个Header_Text、ht_target
+        if line_type == 'Animation':
+            self.elements['tick'].input.configure(from_=1,to=30,increment=1)
+            self.elements['loop'].input.update_dict(True_False)
+        if line_type == 'BGM':
+            self.elements['volume'].input.configure(from_=0,to=100,increment=10)
+            self.elements['loop'].input.update_dict(True_False)
     def struct_2_value(self,section):
         return self.medef_tool.value_export(section)
 class LogEdit(EditWindow):
