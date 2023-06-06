@@ -112,6 +112,7 @@ class SectionElement:
 class RGLSectionElement(ttk.LabelFrame,SectionElement):
     def __init__(self,master,bootstyle,text,section:dict,screenzoom):
         self.sz = screenzoom
+        self.section = section
         self.line_type = section['type']
         self.idx = text # 序号
         super().__init__(master=master,bootstyle=bootstyle,text=self.idx,labelanchor='e')
@@ -126,6 +127,7 @@ class RGLSectionElement(ttk.LabelFrame,SectionElement):
         self.select_symbol = ttk.Frame(master=self,bootstyle='primary')
         self.update_item()
     def update_text_from_section(self,section):
+        self.line_type = section['type']
         # 确认显示内容
         if   self.line_type == 'blank':
             self.header = '空行'
@@ -278,6 +280,37 @@ class RGLSectionElement(ttk.LabelFrame,SectionElement):
             this_item.bind('<Button-1>',lambda event:self.master.select_item(event,index=self.idx,add=False))
             this_item.bind('<Control-Button-1>',lambda event:self.master.select_item(event,index=self.idx,add=True))
             this_item.bind('<Shift-Button-1>',lambda event:self.master.select_range(event,index=self.idx))
+            this_item.bind('<Button-3>',self.switch_to_script_text)
+    def update_section_content(self,section:dict):
+        # 更新单元格显示
+        self.update_text_from_section(section=section)
+        self.items['head'].configure(text=self.header,style=self.hstyle+'.TLabel')
+        self.items['main'].configure(text=self.main,style=self.mstyle+'.TLabel')
+        # 更新引用的section对象
+        self.section.update(section)
+    # 切换为脚本编辑窗
+    def switch_to_script_text(self,event):
+        for item in self.items:
+            self.items[item].pack_forget()
+        self.text_entry = ttk.Text(master=self)
+        self.text_entry.insert(index='end',chars=RplGenLog(dict_input={'0':self.section}).export())
+        self.text_entry.bind("<Return>",self.switch_back_to_cell)
+        self.text_entry.bind("<FocusOut>",self.switch_back_to_cell)
+        self.text_entry.pack(fill='both',expand=True)
+        self.text_entry.focus_set()
+    def switch_back_to_cell(self,event):
+        try:
+            new_section = RplGenLog(string_input=self.text_entry.get("1.0", "end")).struct['0']
+            # TODO ：注意，这个是能修改原有section内容的操作！
+            self.update_section_content(section=new_section)
+            # -------------------------------------------
+            self.text_entry.pack_forget()
+            self.text_entry.destroy()
+            self.update_item()
+        except Exception as E:
+            # 如果不符合格式要求：
+            print(E)
+            self.text_entry.focus_set()
 class MDFSectionElement(ttk.Frame,SectionElement):
     MDFscript = MediaDef()
     thumbnail_image = {}

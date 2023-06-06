@@ -176,8 +176,8 @@ class Container(ScrolledFrame):
                 if self.element[ele].rearch_is_match(to_search, regex):
                     is_match.append(ele)
         self.display_filter = is_match
-        self.update_item()
         self.reset_container_height()
+        self.update_item()
     def reset_search(self):
         self.page.searchbar.click_clear()
     # 复制项目
