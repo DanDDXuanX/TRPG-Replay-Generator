@@ -163,6 +163,7 @@ class RGLPage(ttk.Frame):
         # 引用媒体对象
         self.ref_medef = self.master.ref_medef
         self.ref_chartab = self.master.ref_chartab
+        self.ref_config = self.master.ref_config
         # 元件
         self.preview = RGLPreviewCanvas(master=self,screenzoom=self.sz, mediadef=self.ref_medef, chartab=self.ref_chartab, rplgenlog=self.content)
         self.edit = LogEdit(master=self,screenzoom=self.sz)

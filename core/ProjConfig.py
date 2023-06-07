@@ -93,21 +93,21 @@ class Config:
         MediaObj.Is_NTSC:bool          = self.frame_rate % 30 == 0 
         MediaObj.Audio_type:str        = 'Audio_type'
         # 修改语言
-        if self.lang == 'zh':
-            # 中文
-            Print.lang = 1 
-            RplGenError.lang = 1
-        else:
-            # 英文
-            Print.lang == 0
-            RplGenError.lang = 0
-        # 阿里云语音合成key
-        Aliyun_TTS_engine.AKID = self.accesskey
-        Aliyun_TTS_engine.AKKEY = self.accesskey_secret
-        Aliyun_TTS_engine.APPKEY = self.appkey
-        # Azure语音合成key
-        Azure_TTS_engine.AZUKEY = self.azurekey
-        Azure_TTS_engine.service_region = self.service_region
+        # if self.lang == 'zh':
+        #     # 中文
+        #     Print.lang = 1 
+        #     RplGenError.lang = 1
+        # else:
+        #     # 英文
+        #     Print.lang == 0
+        #     RplGenError.lang = 0
+        # # 阿里云语音合成key
+        # Aliyun_TTS_engine.AKID = self.accesskey
+        # Aliyun_TTS_engine.AKKEY = self.accesskey_secret
+        # Aliyun_TTS_engine.APPKEY = self.appkey
+        # # Azure语音合成key
+        # Azure_TTS_engine.AZUKEY = self.azurekey
+        # Azure_TTS_engine.service_region = self.service_region
 
 # 程序设置
 class Preference:

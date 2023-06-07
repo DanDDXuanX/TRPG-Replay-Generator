@@ -6,8 +6,13 @@
 
 import tkinter as tk
 import ttkbootstrap as ttk
+import threading
 from PIL import Image, ImageTk
-from core.GUI_Container import Container
+from .GUI_Container import Container
+from .OutputType import PreviewDisplay, ExportVideo, ExportXML
+from .Exceptions import MainPrint
+from .Utils import EDITION
+from .Medias import MediaObj
 
 # 搜索窗口
 class SearchBar(ttk.Frame):
@@ -54,6 +59,8 @@ class OutPutCommand(ttk.Frame):
         # 缩放尺度
         self.sz = screenzoom
         super().__init__(master,borderwidth=0,bootstyle='light')
+        # 引用
+        self.page = self.master
         icon_size = [int(30*self.sz),int(30*self.sz)]
         self.image = {
             'display'   : ImageTk.PhotoImage(name='display',image=Image.open('./media/icon/display.png').resize(icon_size)),
@@ -61,14 +68,67 @@ class OutPutCommand(ttk.Frame):
             'recode'   : ImageTk.PhotoImage(name='recode',image=Image.open('./media/icon/ffmpeg.png').resize(icon_size)),
         }
         self.buttons = {
-            'display' : ttk.Button(master=self,image='display',text='播放预览',compound='left',style='output.TButton'),
-            'export'  : ttk.Button(master=self,image='exportpr',text='导出PR工程',compound='left',style='output.TButton'),
-            'recode'  : ttk.Button(master=self,image='recode',text='导出视频',compound='left',style='output.TButton'),
+            'display' : ttk.Button(master=self,image='display',text='播放预览',compound='left',style='output.TButton',command=lambda:self.open_new_thread('display')),
+            'export'  : ttk.Button(master=self,image='exportpr',text='导出PR工程',compound='left',style='output.TButton',command=lambda:self.open_new_thread('exportpr')),
+            'recode'  : ttk.Button(master=self,image='recode',text='导出视频',compound='left',style='output.TButton',command=lambda:self.open_new_thread('recode')),
         }
+        self.runing_thread = None
         self.update_item()
         
     def update_item(self):
         for key in self.buttons:
             item:ttk.Button = self.buttons[key]
             item.pack(fill='both',side='left',expand=True,pady=0)
+    def load_input(self):
+        # 项目配置
+        self.pconfig = self.page.ref_config
+        # 脚本
+        self.medef = self.page.ref_medef.copy()
+        self.chartab = self.page.ref_chartab.copy()
+        self.rplgenlog = self.page.content.copy()
+        try:
+            # 初始化配置项
+            self.pconfig.execute()
+            # 初始化媒体
+            self.medef.execute()
+            # 初始化角色表
+            self.chartab.execute()
+            # 初始化log文件
+            self.rplgenlog.execute(media_define=self.medef,char_table=self.chartab,config=self.pconfig)
+        except Exception as E:
+            print(E)
+    def preview_display(self):
+        self.load_input()
+        PreviewDisplay(rplgenlog=self.rplgenlog,config=self.pconfig,output_path='./test_output')
+    def export_video(self):
+        self.load_input()
+        ExportVideo(rplgenlog=self.rplgenlog,config=self.pconfig,output_path='./test_output')
+    def export_xml(self):
+        # 调整全局变量
+        MediaObj.export_xml = True
+        MediaObj.output_path = './test_output'
+        self.load_input()
+        ExportXML(rplgenlog=self.rplgenlog,config=self.pconfig,output_path='./test_output')
+        # 复原全局变量
+        MediaObj.export_xml = False
+    def open_new_thread(self,output_type:str):
+        # 先切换到终端页
+        self.winfo_toplevel().navigate_bar.press_button('console')
+        # 检查是否有正在执行的
+        if self.runing_thread is None:
+            pass
+        elif self.runing_thread.is_alive():
+            print("正在执行中")
+            return
+        # 新建线程
+        if output_type == 'display':
+            self.runing_thread = threading.Thread(target=self.preview_display)
+        elif output_type == 'exportpr':
+            self.runing_thread = threading.Thread(target=self.export_xml)
+        elif output_type == 'recode':
+            self.runing_thread = threading.Thread(target=self.export_video)
+        else:
+            self.runing_thread = threading.Thread(target=lambda:print("无效的执行"))
+        # 开始执行
+        self.runing_thread.start()
 

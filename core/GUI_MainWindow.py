@@ -34,7 +34,7 @@ class RplGenStudioMainWindow(ttk.Window):
         self.theme_config()
         # 导航栏
         self.navigate_bar = NavigateBar(master=self,screenzoom=self.sz)
-        self.navigate_bar.place(x=0,y=0,width=100*self.sz,relheight=1)
+        self.navigate_bar.place(x=0,y=0,width=int(80*self.sz),relheight=1)
         # event
         self.navigate_bar.bind('<ButtonRelease-1>', self.navigateBar_get_click)
         self.bind('<F11>', self.switch_fullscreen)
@@ -43,6 +43,7 @@ class RplGenStudioMainWindow(ttk.Window):
             'project': ProjectView(master=self,screenzoom=self.sz),
             'console': ConsoleView(master=self,screenzoom=self.sz)
             }
+        self.show = 'project'
         self.view_show('project')
     # 初始化主题
     def theme_config(self):
@@ -52,8 +53,8 @@ class RplGenStudioMainWindow(ttk.Window):
         text_label_pad = (SZ_5,0,SZ_5,0)
         # 导航栏的按钮
         self.style.configure('secondary.TButton',anchor='w',font="-family 微软雅黑 -size 20 -weight bold",compound='left',padding=(SZ_3,0,0,0))
-        self.style.configure('danger.TButton',compound='left',font="-family 微软雅黑 -size 14 -weight bold")
         self.style.configure('terminal.TButton',compound='left',font="-family 微软雅黑 -size 14 -weight bold")
+        self.style.configure('output.TButton',compound='left',font="-family 微软雅黑 -size 14 -weight bold")
         # 媒体定义的颜色标签
         self.style.configure('Violet.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#ffffff',background='#a690e0')
         self.style.configure('Iris.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#ffffff',background='#729acc')
@@ -103,8 +104,10 @@ class RplGenStudioMainWindow(ttk.Window):
         self.view[self.show].place_configure(x=navigate_bar_width,width=-navigate_bar_width)
     # 显示指定的视图
     def view_show(self,show:str):
+        # 清除原有显示的view
+        self.view[self.show].place_forget()
+        # 显示新的
         navigate_bar_width = int({True:180,False:80}[self.navigate_bar.is_wide] * self.sz)
-        self.view[show].place_forget()
         self.view[show].place(x=navigate_bar_width,y=0,relwidth=1,relheight=1,width=-navigate_bar_width)
         self.show = show
     # 获取系统的缩放比例
@@ -192,12 +195,12 @@ class NavigateBar(ttk.Frame):
             else:
                 button.place_configure(width=width)
     # 点击按键的绑定事件：标注
-    def press_button(self,botton):
-        position = {'setting':80,'project':180,'script':260,'console':340}[botton]*self.sz
+    def press_button(self,button):
+        position = {'setting':80,'project':180,'script':260,'console':340}[button]*self.sz
         SZ_5 = int(self.sz * 5)
         SZ_60 = int(self.sz * 60)
         if len(self.choice.place_info()) == 0:
             self.choice.place(width=SZ_5,height=SZ_60,x=-SZ_5,y= position)
         else:
             self.choice.place_configure(y=position)
-        self.master.view_show(botton)
+        self.master.view_show(button)

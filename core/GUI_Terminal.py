@@ -7,10 +7,10 @@ import ttkbootstrap as ttk
 from ttkbootstrap.scrolled import ScrolledText
 from PIL import Image, ImageTk
 from .Utils import EDITION
+from .Exceptions import MainPrint
 import tkinter as tk
 import sys
 import re
-from .Exceptions import WarningPrint
 
 
 class StdoutRedirector:
@@ -54,11 +54,13 @@ class Terminal(ttk.Frame):
             bootstyle='dark-round',
             background='#333333',
             foreground='#eeeeee',
+            insertbackground='#eeeeee',
             autostyle=False,
-            font='-family consolas -size 15',
+            font='-family consolas -size 14',
             autohide=True
             )
-        self.control = ttk.Button(master=self,bootstyle='danger',text='终止')
+        self.terminal._text.configure(padx=2*SZ_10)
+        self.control = ttk.Button(master=self,style='terminal.TButton',text='终止')
         # 测试
         self.bind_stdout()
         self.update_item()
@@ -69,9 +71,8 @@ class Terminal(ttk.Frame):
         self.control.place(relx=0.3,y=-SZ_50,rely=1,height=SZ_50,relwidth=0.4)
     def bind_stdout(self):
         sys.stdout = StdoutRedirector(text_widget=self.terminal._text)
-        # test
-        print("RplGenStudio {version}, copyright Betelgeuse Industry & Exception.".format(version=EDITION))
-        print(WarningPrint('HighFPS',30))
+        # 欢迎
+        print(MainPrint('Welcome',EDITION))
 
 class Texture(tk.Frame):
     def __init__(self,master,screenzoom):
@@ -79,7 +80,7 @@ class Texture(tk.Frame):
         # Label对象
         self.canvas = ttk.Label(master=self,padding=0)
         # 纹理图片
-        self.texture = Image.open('./media/icon/texture.png')
+        self.texture = Image.open('./media/icon/texture4.png')
         self.bind('<Configure>', self.update_image)
         self.update_image(None)
         self.update_item()

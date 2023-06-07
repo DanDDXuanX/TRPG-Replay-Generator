@@ -49,7 +49,7 @@ class Script:
             self.struct:dict = self.parser(script=string_input)
         # 字典 输入：不安全的方法
         elif dict_input is not None:
-            self.struct:dict = dict_input
+            self.struct:dict = dict_input.copy()
         # 如果输入了脚本文件
         elif file_input is not None:
             self.struct:dict = self.parser(script=self.load_file(filepath=file_input))
@@ -82,6 +82,9 @@ class Script:
     def dump_json(self,filepath:str)->None:
         with open(filepath,'w',encoding='utf-8') as of:
             of.write(json.dumps(self.struct,indent=4))
+    # 深复制
+    def copy(self):
+        return self.__class__(dict_input=self.struct)
     # 待重载的：
     def parser(self,script:str)->dict:
         return {}

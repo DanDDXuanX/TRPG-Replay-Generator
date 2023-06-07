@@ -101,6 +101,7 @@ class FileManager(ttk.Frame):
         self.page_frame:PageFrame = page_frame
         self.page_frame.ref_medef = self.project.mediadef
         self.page_frame.ref_chartab = self.project.chartab
+        self.page_frame.ref_config = self.project.config
         # 元件
         self.items = {
             'mediadef'  : MDFCollapsing(master=self.project_content,screenzoom=self.sz,content=self.project.mediadef,page_frame=self.page_frame),
