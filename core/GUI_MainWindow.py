@@ -13,7 +13,7 @@ from .ProjConfig import Preference
 from .Utils import EDITION
 
 # 项目视图
-from .GUI_View import ProjectView
+from .GUI_View import ProjectView, ConsoleView
 
 class RplGenStudioMainWindow(ttk.Window):
     def __init__(
@@ -40,7 +40,8 @@ class RplGenStudioMainWindow(ttk.Window):
         self.bind('<F11>', self.switch_fullscreen)
         # 视图
         self.view = {
-            'project': ProjectView(master=self,screenzoom=self.sz)
+            'project': ProjectView(master=self,screenzoom=self.sz),
+            'console': ConsoleView(master=self,screenzoom=self.sz)
             }
         self.view_show('project')
     # 初始化主题
@@ -51,7 +52,8 @@ class RplGenStudioMainWindow(ttk.Window):
         text_label_pad = (SZ_5,0,SZ_5,0)
         # 导航栏的按钮
         self.style.configure('secondary.TButton',anchor='w',font="-family 微软雅黑 -size 20 -weight bold",compound='left',padding=(SZ_3,0,0,0))
-        self.style.configure('output.TButton',compound='left',font="-family 微软雅黑 -size 14 -weight bold")
+        self.style.configure('danger.TButton',compound='left',font="-family 微软雅黑 -size 14 -weight bold")
+        self.style.configure('terminal.TButton',compound='left',font="-family 微软雅黑 -size 14 -weight bold")
         # 媒体定义的颜色标签
         self.style.configure('Violet.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#ffffff',background='#a690e0')
         self.style.configure('Iris.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#ffffff',background='#729acc')

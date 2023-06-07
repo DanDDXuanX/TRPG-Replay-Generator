@@ -7,6 +7,7 @@
 # 项目视图：浏览、编辑、预览、使用RplGenProJect的视图
 from .GUI_FileManager import FileManager
 from .GUI_TabPage import PageFrame
+from .GUI_Terminal import Terminal, Texture
 from .ScriptParser import RplGenLog, MediaDef, CharTable
 # 脚本视图：运行 MDF、CTB、RGL 脚本文件的视图。
 # 控制台视图：容纳控制台输出内容的视图。
@@ -42,7 +43,25 @@ class ScriptView(ttk.Frame):
     pass
 # 控制台视图
 class ConsoleView(ttk.Frame):
-    pass
+    """
+    各个元件的尺寸：以100%缩放为准
+    -----
+    1. terminal：宽无线/2，高无限-50
+    2. 按键：高50，宽无限100
+    """
+    def __init__(self,master,screenzoom)->None:
+        # 初始化
+        self.sz = screenzoom
+        super().__init__(master,borderwidth=0,bootstyle='light')
+        # 子原件
+        self.texture = Texture(master=self,screenzoom=self.sz)
+        self.terminal = Terminal(master=self,screenzoom=self.sz)
+        # 更新
+        self.update_item()
+    def update_item(self):
+        self.texture.place(relx=0,rely=0,relwidth=1,relheight=1)
+        self.terminal.place(relx=0.2,y=0,relwidth=0.6,relheight=1)
+
 # 首选项视图
 class PreferenceView(ttk.Frame):
     pass
