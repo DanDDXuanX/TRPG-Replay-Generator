@@ -13,6 +13,7 @@ TableStruct:dict = {
                 "Content":{
                     "Name": {
                         "ktext": "名字：",
+                        "tooltip":"角色的名字\n注：只能使用：中文、英文、数字、空格、下划线",
                         "dtext": "",
                         "ditem": "label",
                         "valuekey": "Name",
@@ -22,6 +23,7 @@ TableStruct:dict = {
                     },
                     "Subtype": {
                         "ktext": "差分：",
+                        "tooltip":"差分代表角色的不同状态，一个角色可以有多个差分。",
                         "dtext": "（输入）",
                         "ditem": "label",
                         "valuekey": "Subtype",
@@ -37,6 +39,7 @@ TableStruct:dict = {
                 "Content":{
                     "Animation": {
                         "ktext": "立绘：",
+                        "tooltip":"本角色的立绘形象，请选择一个Animation类媒体。",
                         "dtext": "（选择）",
                         "ditem": "label",
                         "valuekey": "Animation",
@@ -46,6 +49,7 @@ TableStruct:dict = {
                     },
                     "Bubble": {
                         "ktext": "气泡：",
+                        "tooltip":"本角色的发言气泡，请选择一个Bubble类媒体。",
                         "dtext": "（选择）",
                         "ditem": "label",
                         "valuekey": "Bubble",
@@ -61,6 +65,7 @@ TableStruct:dict = {
                 "Content":{
                     "Voice": {
                         "ktext": "音源：",
+                        "tooltip":"本角色语音合成的音源。",
                         "dtext": "选择",
                         "ditem": "button",
                         "valuekey": "Voice",
@@ -70,6 +75,7 @@ TableStruct:dict = {
                     },
                     "SpeechRate": {
                         "ktext": "语速：",
+                        "tooltip":"语音的说话语速，取值范围是-500~500，-500代表0.5倍速度，500代表2倍速度。",
                         "dtext": "选择",
                         "ditem": "button",
                         "valuekey": "SpeechRate",
@@ -79,6 +85,7 @@ TableStruct:dict = {
                     },
                     "PitchRate": {
                         "ktext": "语调：",
+                        "tooltip":"语音的说话音高，取值范围是-500~500，-500代表低八度，500代表高八度。",
                         "dtext": "选择",
                         "ditem": "button",
                         "valuekey": "PitchRate",
@@ -96,6 +103,7 @@ TableStruct:dict = {
                 "Content":{
                     "{template}" : {
                         "ktext": "{template}：",
+                        "tooltip":None,
                         "dtext": "（输入）",
                         "ditem": "label",
                         "valuekey": "{template}",
@@ -116,6 +124,7 @@ TableStruct:dict = {
                 "Content":{
                     "type": {
                         "ktext": "类型：",
+                        "tooltip":None,
                         "dtext": "帮助",
                         "ditem": "button",
                         "valuekey": "type",
@@ -125,6 +134,7 @@ TableStruct:dict = {
                     },
                     "Name": {
                         "ktext": "媒体名：",
+                        "tooltip":None,
                         "dtext": "（输入）",
                         "ditem": "label",
                         "valuekey": "$key",
@@ -140,6 +150,7 @@ TableStruct:dict = {
                 "Content":{
                     "pos":{
                         "ktext": "位置：",
+                        "tooltip":None,
                         "dtext": "选择",
                         "ditem": "button",
                         "valuekey": "pos",
@@ -157,6 +168,7 @@ TableStruct:dict = {
                 "Content":{
                     "type": {
                         "ktext": "类型：",
+                        "tooltip":None,
                         "dtext": "帮助",
                         "ditem": "button",
                         "valuekey": "type",
@@ -166,6 +178,7 @@ TableStruct:dict = {
                     },
                     "Name": {
                         "ktext": "媒体名：",
+                        "tooltip":None,
                         "dtext": "（输入）",
                         "ditem": "label",
                         "valuekey": "$key",
@@ -181,6 +194,7 @@ TableStruct:dict = {
                 "Content":{
                     "pos": {
                         "ktext": "位置：",
+                        "tooltip":None,
                         "dtext": "选择",
                         "ditem": "button",
                         "valuekey": "pos",
@@ -198,6 +212,7 @@ TableStruct:dict = {
                 "Content":{
                     "type": {
                         "ktext": "类型：",
+                        "tooltip":None,
                         "dtext": "帮助",
                         "ditem": "button",
                         "valuekey": "type",
@@ -207,6 +222,7 @@ TableStruct:dict = {
                     },
                     "Name": {
                         "ktext": "媒体名：",
+                        "tooltip":None,
                         "dtext": "（输入）",
                         "ditem": "label",
                         "valuekey": "$key",
@@ -222,6 +238,7 @@ TableStruct:dict = {
                 "Content":{
                     "pos": {
                         "ktext": "起点：",
+                        "tooltip":None,
                         "dtext": "选择",
                         "ditem": "button",
                         "valuekey": "pos",
@@ -231,6 +248,7 @@ TableStruct:dict = {
                     },
                     "end": {
                         "ktext": "终点：",
+                        "tooltip":None,
                         "dtext": "选择",
                         "ditem": "button",
                         "valuekey": "end",
@@ -240,6 +258,7 @@ TableStruct:dict = {
                     },
                     "x_step": {
                         "ktext": "水平点数：",
+                        "tooltip":None,
                         "dtext": "（数值）",
                         "ditem": "label",
                         "valuekey": "x_step",
@@ -249,6 +268,7 @@ TableStruct:dict = {
                     },
                     "y_step": {
                         "ktext": "垂直点数：",
+                        "tooltip":None,
                         "dtext": "（数值）",
                         "ditem": "label",
                         "valuekey": "y_step",
@@ -266,6 +286,7 @@ TableStruct:dict = {
                 "Content":{
                     "type": {
                         "ktext": "类型：",
+                        "tooltip":None,
                         "dtext": "帮助",
                         "ditem": "button",
                         "valuekey": "type",
@@ -275,6 +296,7 @@ TableStruct:dict = {
                     },
                     "Name": {
                         "ktext": "媒体名：",
+                        "tooltip":None,
                         "dtext": "（输入）",
                         "ditem": "label",
                         "valuekey": "$key",
@@ -284,6 +306,7 @@ TableStruct:dict = {
                     },
                     "label_color": {
                         "ktext": "标签色：",
+                        "tooltip":None,
                         "dtext": "（选择）",
                         "ditem": "label",
                         "valuekey": "label_color",
@@ -299,6 +322,7 @@ TableStruct:dict = {
                 "Content":{
                     "fontfile": {
                         "ktext": "字体路径：",
+                        "tooltip":None,
                         "dtext": "浏览",
                         "ditem": "button",
                         "valuekey": "fontfile",
@@ -308,6 +332,7 @@ TableStruct:dict = {
                     },
                     "line_limit": {
                         "ktext": "单行字数：",
+                        "tooltip":None,
                         "dtext": "（数值）",
                         "ditem": "label",
                         "valuekey": "line_limit",
@@ -323,6 +348,7 @@ TableStruct:dict = {
                 "Content":{
                     "fontsize": {
                         "ktext": "大小：",
+                        "tooltip":None,
                         "dtext": "（数值）",
                         "ditem": "label",
                         "valuekey": "fontsize",
@@ -332,6 +358,7 @@ TableStruct:dict = {
                     },
                     "color": {
                         "ktext": "颜色：",
+                        "tooltip":None,
                         "dtext": "选择",
                         "ditem": "button",
                         "valuekey": "color",
@@ -349,6 +376,7 @@ TableStruct:dict = {
                 "Content":{
                     "type": {
                         "ktext": "类型：",
+                        "tooltip":None,
                         "dtext": "帮助",
                         "ditem": "button",
                         "valuekey": "type",
@@ -358,6 +386,7 @@ TableStruct:dict = {
                     },
                     "Name": {
                         "ktext": "媒体名：",
+                        "tooltip":None,
                         "dtext": "（输入）",
                         "ditem": "label",
                         "valuekey": "$key",
@@ -367,6 +396,7 @@ TableStruct:dict = {
                     },
                     "label_color": {
                         "ktext": "标签色：",
+                        "tooltip":None,
                         "dtext": "（选择）",
                         "ditem": "label",
                         "valuekey": "label_color",
@@ -382,6 +412,7 @@ TableStruct:dict = {
                 "Content":{
                     "fontfile": {
                         "ktext": "字体路径：",
+                        "tooltip":None,
                         "dtext": "浏览",
                         "ditem": "button",
                         "valuekey": "fontfile",
@@ -391,6 +422,7 @@ TableStruct:dict = {
                     },
                     "line_limit": {
                         "ktext": "单行字数：",
+                        "tooltip":None,
                         "dtext": "（数值）",
                         "ditem": "label",
                         "valuekey": "line_limit",
@@ -406,6 +438,7 @@ TableStruct:dict = {
                 "Content":{
                     "fontsize": {
                         "ktext": "大小：",
+                        "tooltip":None,
                         "dtext": "（数值）",
                         "ditem": "label",
                         "valuekey": "fontsize",
@@ -415,6 +448,7 @@ TableStruct:dict = {
                     },
                     "color": {
                         "ktext": "颜色：",
+                        "tooltip":None,
                         "dtext": "选择",
                         "ditem": "button",
                         "valuekey": "color",
@@ -430,6 +464,7 @@ TableStruct:dict = {
                 "Content":{
                     "edge_color": {
                         "ktext": "颜色：",
+                        "tooltip":None,
                         "dtext": "选择",
                         "ditem": "button",
                         "valuekey": "edge_color",
@@ -439,6 +474,7 @@ TableStruct:dict = {
                     },
                     "edge_width": {
                         "ktext": "宽度：",
+                        "tooltip":None,
                         "dtext": "（数值）",
                         "ditem": "label",
                         "valuekey": "edge_width",
@@ -448,6 +484,7 @@ TableStruct:dict = {
                     },
                     "projection": {
                         "ktext": "投影方向：",
+                        "tooltip":None,
                         "dtext": "（选择）",
                         "ditem": "label",
                         "valuekey": "projection",
@@ -465,6 +502,7 @@ TableStruct:dict = {
                 "Content":{
                     "type": {
                         "ktext": "类型：",
+                        "tooltip":None,
                         "dtext": "帮助",
                         "ditem": "button",
                         "valuekey": "type",
@@ -474,6 +512,7 @@ TableStruct:dict = {
                     },
                     "Name": {
                         "ktext": "媒体名：",
+                        "tooltip":None,
                         "dtext": "（输入）",
                         "ditem": "label",
                         "valuekey": "$key",
@@ -483,6 +522,7 @@ TableStruct:dict = {
                     },
                     "label_color": {
                         "ktext": "标签色：",
+                        "tooltip":None,
                         "dtext": "（选择）",
                         "ditem": "label",
                         "valuekey": "label_color",
@@ -498,6 +538,7 @@ TableStruct:dict = {
                 "Content":{
                     "fontfile": {
                         "ktext": "字体路径：",
+                        "tooltip":None,
                         "dtext": "浏览",
                         "ditem": "button",
                         "valuekey": "fontfile",
@@ -507,6 +548,7 @@ TableStruct:dict = {
                     },
                     "line_limit": {
                         "ktext": "单行字数：",
+                        "tooltip":None,
                         "dtext": "（数值）",
                         "ditem": "label",
                         "valuekey": "line_limit",
@@ -522,6 +564,7 @@ TableStruct:dict = {
                 "Content":{
                     "fontsize": {
                         "ktext": "大小：",
+                        "tooltip":None,
                         "dtext": "（数值）",
                         "ditem": "label",
                         "valuekey": "fontsize",
@@ -531,6 +574,7 @@ TableStruct:dict = {
                     },
                     "color": {
                         "ktext": "颜色：",
+                        "tooltip":None,
                         "dtext": "选择",
                         "ditem": "button",
                         "valuekey": "color",
@@ -548,6 +592,7 @@ TableStruct:dict = {
                 "Content":{
                     "type": {
                         "ktext": "类型：",
+                        "tooltip":None,
                         "dtext": "帮助",
                         "ditem": "button",
                         "valuekey": "type",
@@ -557,6 +602,7 @@ TableStruct:dict = {
                     },
                     "Name": {
                         "ktext": "媒体名：",
+                        "tooltip":None,
                         "dtext": "（输入）",
                         "ditem": "label",
                         "valuekey": "$key",
@@ -566,6 +612,7 @@ TableStruct:dict = {
                     },
                     "label_color": {
                         "ktext": "标签色：",
+                        "tooltip":None,
                         "dtext": "（选择）",
                         "ditem": "label",
                         "valuekey": "label_color",
@@ -581,6 +628,7 @@ TableStruct:dict = {
                 "Content":{
                     "filepath": {
                         "ktext": "图片路径：",
+                        "tooltip":None,
                         "dtext": "浏览",
                         "ditem": "button",
                         "valuekey": "filepath",
@@ -590,6 +638,7 @@ TableStruct:dict = {
                     },
                     "pos": {
                         "ktext": "位置：",
+                        "tooltip":None,
                         "dtext": "选择",
                         "ditem": "button",
                         "valuekey": "pos",
@@ -599,6 +648,7 @@ TableStruct:dict = {
                     },
                     "scale": {
                         "ktext": "缩放：",
+                        "tooltip":None,
                         "dtext": "（数值）",
                         "ditem": "label",
                         "valuekey": "scale",
@@ -614,6 +664,7 @@ TableStruct:dict = {
                 "Content":{
                     "Main_Text": {
                         "ktext": "字体：",
+                        "tooltip":None,
                         "dtext": "（选择）",
                         "ditem": "label",
                         "valuekey": "Main_Text",
@@ -623,6 +674,7 @@ TableStruct:dict = {
                     },
                     "mt_pos": {
                         "ktext": "位置：",
+                        "tooltip":None,
                         "dtext": "选择",
                         "ditem": "button",
                         "valuekey": "mt_pos",
@@ -632,6 +684,7 @@ TableStruct:dict = {
                     },
                     "align": {
                         "ktext": "对齐：",
+                        "tooltip":None,
                         "dtext": "（选择）",
                         "ditem": "label",
                         "valuekey": "align",
@@ -641,6 +694,7 @@ TableStruct:dict = {
                     },
                     "line_distance": {
                         "ktext": "行距：",
+                        "tooltip":None,
                         "dtext": "（数值）",
                         "ditem": "label",
                         "valuekey": "line_distance",
@@ -656,6 +710,7 @@ TableStruct:dict = {
                 "Content":{
                     "Header_Text": {
                         "ktext": "字体：",
+                        "tooltip":None,
                         "dtext": "（选择）",
                         "ditem": "label",
                         "valuekey": "Header_Text",
@@ -665,6 +720,7 @@ TableStruct:dict = {
                     },
                     "ht_pos": {
                         "ktext": "位置：",
+                        "tooltip":None,
                         "dtext": "选择",
                         "ditem": "button",
                         "valuekey": "ht_pos",
@@ -674,6 +730,7 @@ TableStruct:dict = {
                     },
                     "ht_target": {
                         "ktext": "目标：",
+                        "tooltip":None,
                         "dtext": "（选择）",
                         "ditem": "label",
                         "valuekey": "ht_target",
@@ -691,6 +748,7 @@ TableStruct:dict = {
                 "Content":{
                     "type": {
                         "ktext": "类型：",
+                        "tooltip":None,
                         "dtext": "帮助",
                         "ditem": "button",
                         "valuekey": "type",
@@ -700,6 +758,7 @@ TableStruct:dict = {
                     },
                         "Name": {
                         "ktext": "媒体名：",
+                        "tooltip":None,
                         "dtext": "（输入）",
                         "ditem": "label",
                         "valuekey": "$key",
@@ -709,6 +768,7 @@ TableStruct:dict = {
                     },
                     "label_color": {
                         "ktext": "标签色：",
+                        "tooltip":None,
                         "dtext": "（选择）",
                         "ditem": "label",
                         "valuekey": "label_color",
@@ -724,6 +784,7 @@ TableStruct:dict = {
                 "Content":{
                     "filepath": {
                         "ktext": "图片路径：",
+                        "tooltip":None,
                         "dtext": "浏览",
                         "ditem": "button",
                         "valuekey": "filepath",
@@ -733,6 +794,7 @@ TableStruct:dict = {
                     },
                     "pos": {
                         "ktext": "位置：",
+                        "tooltip":None,
                         "dtext": "选择",
                         "ditem": "button",
                         "valuekey": "pos",
@@ -742,6 +804,7 @@ TableStruct:dict = {
                     },
                     "scale": {
                         "ktext": "缩放：",
+                        "tooltip":None,
                         "dtext": "（数值）",
                         "ditem": "label",
                         "valuekey": "scale",
@@ -757,6 +820,7 @@ TableStruct:dict = {
                 "Content":{
                     "Main_Text": {
                         "ktext": "字体：",
+                        "tooltip":None,
                         "dtext": "（选择）",
                         "ditem": "label",
                         "valuekey": "Main_Text",
@@ -766,6 +830,7 @@ TableStruct:dict = {
                     },
                     "mt_pos": {
                         "ktext": "位置：",
+                        "tooltip":None,
                         "dtext": "选择",
                         "ditem": "button",
                         "valuekey": "mt_pos",
@@ -775,6 +840,7 @@ TableStruct:dict = {
                     },
                     "align": {
                         "ktext": "对齐：",
+                        "tooltip":None,
                         "dtext": "（选择）",
                         "ditem": "label",
                         "valuekey": "align",
@@ -784,6 +850,7 @@ TableStruct:dict = {
                     },
                     "line_distance": {
                         "ktext": "行距：",
+                        "tooltip":None,
                         "dtext": "（数值）",
                         "ditem": "label",
                         "valuekey": "line_distance",
@@ -802,6 +869,7 @@ TableStruct:dict = {
                 "Content":{
                     "Header_Text_%d": {
                         "ktext": "字体：",
+                        "tooltip":None,
                         "dtext": "（选择）",
                         "ditem": "label",
                         "valuekey": "Header_Text",
@@ -811,6 +879,7 @@ TableStruct:dict = {
                     },
                     "ht_pos_%d": {
                         "ktext": "位置：",
+                        "tooltip":None,
                         "dtext": "选择",
                         "ditem": "button",
                         "valuekey": "ht_pos",
@@ -820,6 +889,7 @@ TableStruct:dict = {
                     },
                     "ht_target_%d": {
                         "ktext": "目标：",
+                        "tooltip":None,
                         "dtext": "（选择）",
                         "ditem": "label",
                         "valuekey": "ht_target",
@@ -837,6 +907,7 @@ TableStruct:dict = {
                 "Content":{
                     "type": {
                         "ktext": "类型：",
+                        "tooltip":None,
                         "dtext": "帮助",
                         "ditem": "button",
                         "valuekey": "type",
@@ -846,6 +917,7 @@ TableStruct:dict = {
                     },
                     "Name": {
                         "ktext": "媒体名：",
+                        "tooltip":None,
                         "dtext": "（输入）",
                         "ditem": "label",
                         "valuekey": "$key",
@@ -855,6 +927,7 @@ TableStruct:dict = {
                     },
                     "label_color": {
                         "ktext": "标签色：",
+                        "tooltip":None,
                         "dtext": "（选择）",
                         "ditem": "label",
                         "valuekey": "label_color",
@@ -870,6 +943,7 @@ TableStruct:dict = {
                 "Content":{
                     "filepath": {
                         "ktext": "图片路径：",
+                        "tooltip":None,
                         "dtext": "浏览",
                         "ditem": "button",
                         "valuekey": "filepath",
@@ -879,6 +953,7 @@ TableStruct:dict = {
                     },
                     "pos": {
                         "ktext": "位置：",
+                        "tooltip":None,
                         "dtext": "选择",
                         "ditem": "button",
                         "valuekey": "pos",
@@ -888,6 +963,7 @@ TableStruct:dict = {
                     },
                     "scale": {
                         "ktext": "缩放：",
+                        "tooltip":None,
                         "dtext": "（数值）",
                         "ditem": "label",
                         "valuekey": "scale",
@@ -903,6 +979,7 @@ TableStruct:dict = {
                 "Content":{
                     "fill_mode": {
                         "ktext": "填充模式：",
+                        "tooltip":None,
                         "dtext": "（选择）",
                         "ditem": "label",
                         "valuekey": "fill_mode",
@@ -912,6 +989,7 @@ TableStruct:dict = {
                     },
                     "fit_axis": {
                         "ktext": "适应方向：",
+                        "tooltip":None,
                         "dtext": "（选择）",
                         "ditem": "label",
                         "valuekey": "fit_axis",
@@ -927,6 +1005,7 @@ TableStruct:dict = {
                 "Content":{
                     "Main_Text": {
                         "ktext": "字体：",
+                        "tooltip":None,
                         "dtext": "（选择）",
                         "ditem": "label",
                         "valuekey": "Main_Text",
@@ -936,6 +1015,7 @@ TableStruct:dict = {
                     },
                     "mt_pos": {
                         "ktext": "起点：",
+                        "tooltip":None,
                         "dtext": "选择",
                         "ditem": "button",
                         "valuekey": "mt_pos",
@@ -945,6 +1025,7 @@ TableStruct:dict = {
                     },
                     "mt_end": {
                         "ktext": "终点：",
+                        "tooltip":None,
                         "dtext": "选择",
                         "ditem": "button",
                         "valuekey": "mt_end",
@@ -954,6 +1035,7 @@ TableStruct:dict = {
                     },
                     "line_distance": {
                         "ktext": "行距：",
+                        "tooltip":None,
                         "dtext": "（数值）",
                         "ditem": "label",
                         "valuekey": "line_distance",
@@ -969,6 +1051,7 @@ TableStruct:dict = {
                 "Content":{
                     "Header_Text": {
                         "ktext": "字体：",
+                        "tooltip":None,
                         "dtext": "（选择）",
                         "ditem": "label",
                         "valuekey": "Header_Text",
@@ -978,6 +1061,7 @@ TableStruct:dict = {
                     },
                     "ht_pos": {
                         "ktext": "位置：",
+                        "tooltip":None,
                         "dtext": "选择",
                         "ditem": "button",
                         "valuekey": "ht_pos",
@@ -987,6 +1071,7 @@ TableStruct:dict = {
                     },
                     "ht_target": {
                         "ktext": "目标：",
+                        "tooltip":None,
                         "dtext": "（选择）",
                         "ditem": "label",
                         "valuekey": "ht_target",
@@ -1004,6 +1089,7 @@ TableStruct:dict = {
                 "Content":{
                     "type": {
                         "ktext": "类型：",
+                        "tooltip":None,
                         "dtext": "帮助",
                         "ditem": "button",
                         "valuekey": "type",
@@ -1013,6 +1099,7 @@ TableStruct:dict = {
                     },
                     "Name": {
                         "ktext": "媒体名：",
+                        "tooltip":None,
                         "dtext": "（输入）",
                         "ditem": "label",
                         "valuekey": "key",
@@ -1022,6 +1109,7 @@ TableStruct:dict = {
                     },
                     "label_color": {
                         "ktext": "标签色：",
+                        "tooltip":None,
                         "dtext": "（选择）",
                         "ditem": "label",
                         "valuekey": "label_color",
@@ -1037,6 +1125,7 @@ TableStruct:dict = {
                 "Content":{
                     "filepath": {
                         "ktext": "图片路径：",
+                        "tooltip":None,
                         "dtext": "浏览",
                         "ditem": "button",
                         "valuekey": "filepath",
@@ -1046,6 +1135,7 @@ TableStruct:dict = {
                     },
                     "pos": {
                         "ktext": "位置：",
+                        "tooltip":None,
                         "dtext": "选择",
                         "ditem": "button",
                         "valuekey": "pos",
@@ -1055,6 +1145,7 @@ TableStruct:dict = {
                     },
                     "scale": {
                         "ktext": "缩放：",
+                        "tooltip":None,
                         "dtext": "（数值）",
                         "ditem": "label",
                         "valuekey": "scale",
@@ -1070,6 +1161,7 @@ TableStruct:dict = {
                 "Content":{
                     "sub_pos": {
                         "ktext": "起点：",
+                        "tooltip":None,
                         "dtext": "选择",
                         "ditem": "button",
                         "valuekey": "sub_pos",
@@ -1079,6 +1171,7 @@ TableStruct:dict = {
                     },
                     "sub_end": {
                         "ktext": "终点：",
+                        "tooltip":None,
                         "dtext": "选择",
                         "ditem": "button",
                         "valuekey": "sub_end",
@@ -1088,6 +1181,7 @@ TableStruct:dict = {
                     },
                     "sub_distance": {
                         "ktext": "间距：",
+                        "tooltip":None,
                         "dtext": "（选择）",
                         "ditem": "label",
                         "valuekey": "sub_distance",
@@ -1103,6 +1197,7 @@ TableStruct:dict = {
                 "Content":{
                     "am_left": {
                         "ktext": "左边界：",
+                        "tooltip":None,
                         "dtext": "选择",
                         "ditem": "button",
                         "valuekey": "am_left",
@@ -1112,6 +1207,7 @@ TableStruct:dict = {
                     },
                     "am_right": {
                         "ktext": "右边界：",
+                        "tooltip":None,
                         "dtext": "选择",
                         "ditem": "button",
                         "valuekey": "am_right",
@@ -1130,6 +1226,7 @@ TableStruct:dict = {
                 "Content":{
                     "sub_key-%d": {
                         "ktext": "关键字：",
+                        "tooltip":None,
                         "dtext": "（输入）",
                         "ditem": "label",
                         "valuekey": "sub_key",
@@ -1139,6 +1236,7 @@ TableStruct:dict = {
                     },
                     "sub_Bubble-%d": {
                         "ktext": "气泡：",
+                        "tooltip":None,
                         "dtext": "（选择）",
                         "ditem": "label",
                         "valuekey": "sub_Bubble",
@@ -1148,6 +1246,7 @@ TableStruct:dict = {
                     },
                     "sub_Anime-%d": {
                         "ktext": "头像：",
+                        "tooltip":None,
                         "dtext": "（选择）",
                         "ditem": "label",
                         "valuekey": "sub_Anime",
@@ -1157,6 +1256,7 @@ TableStruct:dict = {
                     },
                     "sub_align-%d": {
                         "ktext": "对齐：",
+                        "tooltip":None,
                         "dtext": "（选择）",
                         "ditem": "label",
                         "valuekey": "sub_align",
@@ -1174,6 +1274,7 @@ TableStruct:dict = {
                 "Content":{
                     "type": {
                         "ktext": "类型：",
+                        "tooltip":None,
                         "dtext": "帮助",
                         "ditem": "button",
                         "valuekey": "type",
@@ -1183,6 +1284,7 @@ TableStruct:dict = {
                     },
                     "Name": {
                         "ktext": "媒体名：",
+                        "tooltip":None,
                         "dtext": "（输入）",
                         "ditem": "label",
                         "valuekey": "$key",
@@ -1192,6 +1294,7 @@ TableStruct:dict = {
                     },
                     "label_color": {
                         "ktext": "标签色：",
+                        "tooltip":None,
                         "dtext": "（选择）",
                         "ditem": "label",
                         "valuekey": "label_color",
@@ -1207,6 +1310,7 @@ TableStruct:dict = {
                 "Content":{
                     "filepath": {
                         "ktext": "图片路径：",
+                        "tooltip":None,
                         "dtext": "浏览",
                         "ditem": "button",
                         "valuekey": "filepath",
@@ -1216,6 +1320,7 @@ TableStruct:dict = {
                     },
                     "pos": {
                         "ktext": "位置：",
+                        "tooltip":None,
                         "dtext": "选择",
                         "ditem": "button",
                         "valuekey": "pos",
@@ -1225,6 +1330,7 @@ TableStruct:dict = {
                     },
                     "scale": {
                         "ktext": "缩放：",
+                        "tooltip":None,
                         "dtext": "（数值）",
                         "ditem": "label",
                         "valuekey": "scale",
@@ -1240,6 +1346,7 @@ TableStruct:dict = {
                 "Content":{
                     "tick": {
                         "ktext": "拍率：",
+                        "tooltip":None,
                         "dtext": "（数值）",
                         "ditem": "label",
                         "valuekey": "tick",
@@ -1249,6 +1356,7 @@ TableStruct:dict = {
                     },
                     "loop": {
                         "ktext": "循环播放：",
+                        "tooltip":None,
                         "dtext": "（选择）",
                         "ditem": "label",
                         "valuekey": "loop",
@@ -1266,6 +1374,7 @@ TableStruct:dict = {
                 "Content":{
                     "type": {
                         "ktext": "类型：",
+                        "tooltip":None,
                         "dtext": "帮助",
                         "ditem": "button",
                         "valuekey": "type",
@@ -1275,6 +1384,7 @@ TableStruct:dict = {
                     },
                     "Name": {
                         "ktext": "媒体名：",
+                        "tooltip":None,
                         "dtext": "（输入）",
                         "ditem": "label",
                         "valuekey": "$key",
@@ -1284,6 +1394,7 @@ TableStruct:dict = {
                     },
                     "label_color": {
                         "ktext": "标签色：",
+                        "tooltip":None,
                         "dtext": "（选择）",
                         "ditem": "label",
                         "valuekey": "label_color",
@@ -1299,6 +1410,7 @@ TableStruct:dict = {
                 "Content":{
                     "filepath": {
                         "ktext": "图片路径：",
+                        "tooltip":None,
                         "dtext": "浏览",
                         "ditem": "button",
                         "valuekey": "filepath",
@@ -1308,6 +1420,7 @@ TableStruct:dict = {
                     },
                     "pos": {
                         "ktext": "位置：",
+                        "tooltip":None,
                         "dtext": "选择",
                         "ditem": "button",
                         "valuekey": "pos",
@@ -1317,6 +1430,7 @@ TableStruct:dict = {
                     },
                     "scale": {
                         "ktext": "缩放：",
+                        "tooltip":None,
                         "dtext": "（数值）",
                         "ditem": "label",
                         "valuekey": "scale",
@@ -1334,6 +1448,7 @@ TableStruct:dict = {
                 "Content":{
                     "type": {
                         "ktext": "类型：",
+                        "tooltip":None,
                         "dtext": "帮助",
                         "ditem": "button",
                         "valuekey": "type",
@@ -1343,6 +1458,7 @@ TableStruct:dict = {
                     },
                     "Name": {
                         "ktext": "媒体名：",
+                        "tooltip":None,
                         "dtext": "（输入）",
                         "ditem": "label",
                         "valuekey": "$key",
@@ -1352,6 +1468,7 @@ TableStruct:dict = {
                     },
                     "label_color": {
                         "ktext": "标签色：",
+                        "tooltip":None,
                         "dtext": "（选择）",
                         "ditem": "label",
                         "valuekey": "label_color",
@@ -1367,6 +1484,7 @@ TableStruct:dict = {
                 "Content":{
                     "filepath": {
                         "ktext": "音频路径：",
+                        "tooltip":None,
                         "dtext": "浏览",
                         "ditem": "button",
                         "valuekey": "filepath",
@@ -1384,6 +1502,7 @@ TableStruct:dict = {
                 "Content":{
                     "type": {
                         "ktext": "类型：",
+                        "tooltip":None,
                         "dtext": "帮助",
                         "ditem": "button",
                         "valuekey": "type",
@@ -1393,6 +1512,7 @@ TableStruct:dict = {
                     },
                     "Name": {
                         "ktext": "媒体名：",
+                        "tooltip":None,
                         "dtext": "（输入）",
                         "ditem": "label",
                         "valuekey": "$key",
@@ -1402,6 +1522,7 @@ TableStruct:dict = {
                     },
                     "label_color": {
                         "ktext": "标签色：",
+                        "tooltip":None,
                         "dtext": "（选择）",
                         "ditem": "label",
                         "valuekey": "label_color",
@@ -1417,6 +1538,7 @@ TableStruct:dict = {
                 "Content":{
                     "filepath": {
                         "ktext": "音频路径：",
+                        "tooltip":None,
                         "dtext": "浏览",
                         "ditem": "button",
                         "valuekey": "filepath",
@@ -1426,6 +1548,7 @@ TableStruct:dict = {
                     },
                     "volume": {
                         "ktext": "音量：",
+                        "tooltip":None,
                         "dtext": "（数值）",
                         "ditem": "label",
                         "valuekey": "volume",
@@ -1435,6 +1558,7 @@ TableStruct:dict = {
                     },
                     "loop": {
                         "ktext": "循环播放：",
+                        "tooltip":None,
                         "dtext": "（选择）",
                         "ditem": "label",
                         "valuekey": "loop",
@@ -1462,6 +1586,7 @@ TableStruct:dict = {
                 "Content":{
                     "content":{
                         "ktext": "文本：",
+                        "tooltip":None,
                         "dtext": "",
                         "ditem": "label",
                         "valuekey": "content",
@@ -1480,6 +1605,7 @@ TableStruct:dict = {
                 "Content":{
                     "object":{
                         "ktext": "对象：",
+                        "tooltip":None,
                         "dtext": "（选择）",
                         "ditem": "label",
                         "valuekey": "object",
@@ -1541,6 +1667,7 @@ TableStruct:dict = {
                 "Content":{
                     "name":{
                         "ktext": "角色：",
+                        "tooltip":None,
                         "dtext": "（选择）",
                         "ditem": "label",
                         "valuekey": "target.name",
@@ -1550,6 +1677,7 @@ TableStruct:dict = {
                     },
                     "subtype":{
                         "ktext": "差分：",
+                        "tooltip":None,
                         "dtext": "（选择）",
                         "ditem": "label",
                         "valuekey": "target.subtype",
@@ -1559,6 +1687,7 @@ TableStruct:dict = {
                     },
                     "column":{
                         "ktext": "角色表列：",
+                        "tooltip":None,
                         "dtext": "（选择）",
                         "ditem": "label",
                         "valuekey": "target.column",
@@ -1574,6 +1703,7 @@ TableStruct:dict = {
                 "Content":{
                     'value':{
                         "ktext": "修改为：",
+                        "tooltip":None,
                         "dtext": "（输入）",
                         "ditem": "label",
                         "valuekey": "value",
@@ -1591,6 +1721,7 @@ TableStruct:dict = {
                 "Content":{
                     "value":{
                         "ktext": "音频：",
+                        "tooltip":None,
                         "dtext": "浏览",
                         "ditem": "button",
                         "valuekey": "value",
@@ -1608,6 +1739,7 @@ TableStruct:dict = {
                 "Content":{
                     "object":{
                         "ktext": "聊天窗：",
+                        "tooltip":None,
                         "dtext": "（选择）",
                         "ditem": "label",
                         "valuekey": "object",
@@ -1625,6 +1757,7 @@ TableStruct:dict = {
                 "Content":{
                     "content":{
                         "ktext": "描述：",
+                        "tooltip":None,
                         "dtext": "（输入）",
                         "ditem": "label",
                         "valuekey": "content",
@@ -1634,6 +1767,7 @@ TableStruct:dict = {
                     },
                     "hp_max":{
                         "ktext": "HP上限：",
+                        "tooltip":None,
                         "dtext": "（数值）",
                         "ditem": "label",
                         "valuekey": "hp_max",
@@ -1643,6 +1777,7 @@ TableStruct:dict = {
                     },
                     "hp_begin":{
                         "ktext": "初始HP：",
+                        "tooltip":None,
                         "dtext": "（数值）",
                         "ditem": "label",
                         "valuekey": "hp_begin",
@@ -1652,6 +1787,7 @@ TableStruct:dict = {
                     },
                     "hp_end":{
                         "ktext": "结束HP：",
+                        "tooltip":None,
                         "dtext": "（数值）",
                         "ditem": "label",
                         "valuekey": "hp_end",
@@ -1670,6 +1806,7 @@ TableStruct:dict = {
                 "Content":{
                     "time":{
                         "ktext": "时长：",
+                        "tooltip":None,
                         "dtext": "（帧）",
                         "ditem": "label",
                         "valuekey": "time",

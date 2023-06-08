@@ -2,6 +2,7 @@
 # coding: utf-8
 
 import ttkbootstrap as ttk
+from ttkbootstrap.tooltip import ToolTip
 import tkinter as tk
 from PIL import Image, ImageTk
 
@@ -38,7 +39,7 @@ class DictCombobox(ttk.Combobox):
 
 # 一个键、值、描述的最小单位。
 class KeyValueDescribe(ttk.Frame):
-    def __init__(self,master,screenzoom:float,key:str,value:dict,describe:dict):
+    def __init__(self,master,screenzoom:float,key:str,value:dict,describe:dict,tooltip:str=None):
         self.sz = screenzoom
         super().__init__(master=master)
         SZ_5 = int(self.sz * 5)
@@ -56,6 +57,8 @@ class KeyValueDescribe(ttk.Frame):
             self.value = tk.StringVar(master=self,value=value['value'])
         # 关键字
         self.key = ttk.Label(master=self,text=key,width=8,anchor='e',padding=padding)
+        if tooltip is not None:
+            self.tooltip = ToolTip(widget=self.key,text=tooltip,bootstyle='info-inverse')
         # 容器
         if value['style'] == 'entry':
             self.input = ttk.Entry(master=self,textvariable=self.value,width=30)
@@ -139,7 +142,8 @@ class TextSeparator(ttk.Frame):
             describe={
                 'type':kvd['ditem'],
                 'text':kvd['dtext']
-            }
+            },
+            tooltip=kvd['tooltip']
         )
         self.content_index.append(key)
         self.content[key] = this_kvd
