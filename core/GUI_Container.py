@@ -141,10 +141,13 @@ class Container(ScrolledFrame):
     def preview_select(self):
         if len(self.selected) == 1:
             to_preview = self.selected[0]
-            self.edit_select(to_preview)
             try:
+                self.edit_select(to_preview)
                 self.preview_canvas.preview(to_preview)
             except Exception as E:
+                from traceback import print_exc
+                print(to_preview)
+                print_exc()
                 Messagebox().show_error(message=str(E),title='预览错误')
     def edit_select(self,to_preview):
         self.edit_window.update_from_section(index=to_preview, section=self.content.struct[to_preview])

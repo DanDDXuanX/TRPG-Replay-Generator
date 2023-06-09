@@ -4,7 +4,6 @@
 # 终端
 
 import ttkbootstrap as ttk
-import tkinter.font as tkFont
 from ttkbootstrap.scrolled import ScrolledText
 from PIL import Image, ImageTk
 from .Utils import EDITION
@@ -52,7 +51,6 @@ class Terminal(ttk.Frame):
         SZ_10 = int(self.sz*10)
         super().__init__(master,borderwidth=0,padding=SZ_10)
         # 子原件
-        self.font = tkFont.Font(family='./media/YaHei Consolas Hybrid 1.12.ttf',size=14)
         self.terminal = ScrolledText(
             master=self,
             bootstyle='dark-round',
@@ -60,11 +58,10 @@ class Terminal(ttk.Frame):
             foreground='#eeeeee',
             insertbackground='#eeeeee',
             autostyle=False,
-            font=self.font,
+            font='-family consolas -size 14',
             autohide=True
             )
-        self.terminal._text.configure(padx=2*SZ_10,font=self.font)
-        # self.control = ttk.Button(master=self,style='terminal.TButton',text='终止')
+        self.terminal._text.configure(padx=2*SZ_10)
         self.control = ttk.Button(master=self,style='terminal.TButton',text='终止')
         # 测试
         self.bind_stdout()

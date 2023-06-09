@@ -14,6 +14,8 @@ from ttkbootstrap.dialogs import Messagebox
 from .ScriptParser import MediaDef, CharTable, RplGenLog, Script
 from .FilePaths import Filepath
 from .ProjConfig import Config
+from .Exceptions import MediaError
+from .Medias import MediaObj
 from .GUI_TabPage import PageFrame, RGLPage, CTBPage, MDFPage
 from .GUI_DialogWindow import browse_file, save_file
 # 项目视图-文件管理器-RGPJ
@@ -113,23 +115,100 @@ class FileManager(ttk.Frame):
         # 放置
         self.update_item()
         self.project_content.pack(fill='both',expand=True,side='top')
+    def update_item(self):
+        for idx,key in enumerate(self.items):
+            fileitem:ttk.Button = self.items[key]
+            fileitem.pack(fill='x',pady=0,side='top')
+    # 检查相关文件是否存在
+    def check_file_exist(self,filepath:str)->bool:
+        if filepath in MediaObj.cmap.keys() or filepath == 'None' or filepath is None:
+            return True
+        try:
+            Filepath(filepath).exact()
+            return True
+        except MediaError:
+            return False
     # 导入文件
     def import_file(self):
-        get_file = browse_file(master=self.winfo_toplevel(),text_obj=tk.StringVar(),method='file',filetype='rgscripts')
+        get_file:str = browse_file(master=self.winfo_toplevel(),text_obj=tk.StringVar(),method='file',filetype='rgscripts')
         if get_file != '':
-            Types = {MediaDef:0,CharTable:0,RplGenLog:0}
+            # 尝试多个解析
+            Types = {MediaDef:None,CharTable:None,RplGenLog:None}
             for ScriptType in Types:
                 try:
                     this = ScriptType(file_input=get_file)
-                    Types[ScriptType] = len(this.struct)
+                    Types[ScriptType] = this
                 except:
-                    Types[ScriptType] = 0
-                top_parse = max(Types,key=Types.get)
-                if Types[top_parse] == 0:
-                    # 显示一个错误消息框
-                    Messagebox().show_error(message='无效的文件是无效的！',title='错误')
+                    Types[ScriptType] = ScriptType()
+            # 获取最优解析结果
+            top_parse:Script = max(Types,key=lambda x:len(Types.get(x).struct))
+            if Types[top_parse] == 0:
+                # 显示一个错误消息框
+                Messagebox().show_error(message='无效的文件是无效的！',title='错误')
+            else:
+                # 更新到项目
+                if top_parse is RplGenLog:
+                    imported:RplGenLog = Types[top_parse]
+                    collapse:RGLCollapsing = self.items['rplgenlog']
+                    filename = Filepath(get_file).name()
+                    # 如果重名了，在名字后面加东西
+                    while filename in self.project.logfile.keys():
+                        filename = filename+'_new'
+                    else:
+                        # 更新项目内容
+                        self.project.logfile[filename] = imported
+                        # 更新文件管理器
+                        collapse.create_new_button(new_keyword=filename)
+                elif top_parse is CharTable:
+                    imported:CharTable = Types[top_parse]
+                    collapse:CTBCollapsing = self.items['chartab']
+                    new_charactor:list = []
+                    for keyword in imported.struct:
+                        name, subtype = keyword.split('.')
+                        # 是不是一个新增的角色？是则新建标签
+                        if name not in collapse.get_chara_name():
+                            new_charactor.append(name)
+                            collapse.create_new_button(new_keyword=name)
+                        # 如果重名了，在名字后面加东西
+                        keyword_new = keyword
+                        while keyword_new in self.project.chartab.struct.keys():
+                            keyword_new = keyword_new + '_new'
+                            subtype = subtype + '_new'
+                        else:
+                            # 更新项目内容
+                            imported.struct[keyword]['Subtype'] = subtype
+                            self.project.chartab.struct[keyword_new] = imported.struct[keyword]
+                    # 最后，检查所有新建角色，有没有default，没有则新建
+                    for chara in new_charactor:
+                        self.project.chartab.add_chara_default(name=chara)
+                elif top_parse is MediaDef:
+                    imported:MediaDef = Types[top_parse]
+                    collapse:MDFCollapsing = self.items['mediadef']
+                    file_not_found:list = []
+                    for keyword in imported.struct:
+                        # 检查是否是无效行
+                        if imported.struct[keyword]['type'] in ['comment','blank']:
+                            continue
+                        # 检查文件可用性
+                        if 'filepath' in imported.struct[keyword]:
+                            file_path = imported.struct[keyword]['filepath']
+                        elif 'fontpath' in imported.struct[keyword]:
+                            file_path = imported.struct[keyword]['fontpath']
+                        else:
+                            file_path = None
+                        if not self.check_file_exist(file_path):
+                            file_not_found.append(file_path)
+                        # 检查文件名是否重复
+                        keyword_new = keyword
+                        while keyword_new in self.project.mediadef.struct.keys():
+                            keyword_new = keyword_new + '_new'
+                        else:
+                            self.project.mediadef.struct[keyword_new] = imported.struct[keyword]
+                    # TODO：检查素材可及性？
+                    print(file_not_found)
+                    # self.relocation_file(file_not_found)
                 else:
-                    print(get_file,Types[top_parse])
+                    pass 
     # 导出文件
     def export_file(self):
         pass
@@ -142,10 +221,6 @@ class FileManager(ttk.Frame):
                 self.project_file = select_path
         else:
             self.project.dump_json(filepath=self.project_file)
-    def update_item(self):
-        for idx,key in enumerate(self.items):
-            fileitem:ttk.Button = self.items[key]
-            fileitem.pack(fill='x',pady=0,side='top')
 # 项目视图-可折叠类容器-基类
 class FileCollapsing(ttk.Frame):
     def __init__(self,master,screenzoom:float,fileclass:str,content,page_frame:PageFrame):
@@ -233,20 +308,25 @@ class FileCollapsing(ttk.Frame):
             self.items[origin_keyword].destroy()
             self.items.pop(origin_keyword)
             # 新建button
-            self.items[new_keyword] = ttk.Button(
-                master      = self.content_frame,
-                text        = new_keyword,
-                bootstyle   = 'light',
-                padding     = self.button_padding,
-                compound    = 'left',
-                )
-            self.items[new_keyword].bind("<Button-1>",self.open_item_as_page)
-            self.items[new_keyword].bind("<Button-3>",self.right_click_menu)
+            self.create_new_button(new_keyword)
             self.update_filelist()
             # 返回值：是否会变更项目
             return True
         except Exception as E:
+            print(E)
             return False
+    def create_new_button(self,new_keyword:str):
+        # 新建button
+        self.items[new_keyword] = ttk.Button(
+            master      = self.content_frame,
+            text        = new_keyword,
+            bootstyle   = 'light',
+            padding     = self.button_padding,
+            compound    = 'left',
+            )
+        self.items[new_keyword].bind("<Button-1>",self.open_item_as_page)
+        self.items[new_keyword].bind("<Button-3>",self.right_click_menu)
+        self.update_filelist()
     def delete_item(self,keyword)->bool:
         # 确定真的要这么做吗？
         choice = Messagebox().show_question(
@@ -408,7 +488,7 @@ class CTBCollapsing(FileCollapsing):
         confirm_add =  super().add_item_done(enter, '角色')
         new_keyword = self.re_name.get()
         if confirm_add:
-            self.content.add_chara(new_keyword)
+            self.content.add_chara_default(new_keyword)
     def delete_item(self, keyword):
         confirm_delete:bool = super().delete_item(keyword)
         delete_an_active_page:bool = "角色-"+keyword in self.page_frame.page_dict.keys()
@@ -438,6 +518,8 @@ class CTBCollapsing(FileCollapsing):
             file_type   = 'CTB',
             file_index  = keyword
             )
+    def get_chara_name(self)->list:
+        return list(self.items.keys())
 # 项目视图-可折叠类容器-剧本类
 class RGLCollapsing(FileCollapsing):
     def __init__(self, master, screenzoom: float, content:dict, page_frame:PageFrame):

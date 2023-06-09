@@ -12,6 +12,7 @@ from .GUI_Util import thumbnail
 from .ScriptParser import MediaDef, CharTable, RplGenLog
 from .Medias import MediaObj
 from .FilePaths import Filepath
+from .Exceptions import MediaError
 
 # 容器中的每个小节
 class SectionElement:
@@ -36,8 +37,12 @@ class SectionElement:
                 elif section['filepath'] in MediaObj.cmap.keys():
                     image = Image.new(mode='RGBA',size=(icon_size,icon_size),color=MediaObj.cmap[filepath])
                 else:
-                    filepath = Filepath(filepath=section['filepath']).exact()
-                    image = Image.open(filepath)
+                    # 万一图片路径是错误的，显示错误缩略图
+                    try:
+                        filepath = Filepath(filepath=section['filepath']).exact()
+                        image = Image.open(filepath)
+                    except MediaError:
+                        image = Image.open('./media/icon/Error.png')
                 # 缩略名
                 thumbnail_name_this = thumbname%self.thumbnail_idx
                 self.__class__.thumbnail_idx += 1
@@ -360,6 +365,8 @@ class CTBSectionElement(ttk.Frame,SectionElement):
         self.name = text # 序号
         super().__init__(master=master,bootstyle=bootstyle,borderwidth=int(1*self.sz))
         self.section = section
+        # 初始化错误和空白的缩略图
+        self.init_thumbnail()
         # 媒体定义对象
         self.ref_medef:MediaDef = self.master.ref_medef
         # 容器
@@ -400,6 +407,15 @@ class CTBSectionElement(ttk.Frame,SectionElement):
             this_item.bind('<Button-1>',lambda event:self.master.select_item(event,index=self.name,add=False))
             this_item.bind('<Control-Button-1>',lambda event:self.master.select_item(event,index=self.name,add=True))
             this_item.bind('<Shift-Button-1>',lambda event:self.master.select_range(event,index=self.name))
+    def init_thumbnail(self):
+        # 图标大小
+        icon_size = int(self.sz * 93)
+        if 'NA' not in self.thumbnail_name.keys():
+            self.thumbnail_image['NA'] = ImageTk.PhotoImage(name='NA', image=Image.open('./media/icon/NA.png').resize([icon_size,icon_size]))
+            self.thumbnail_name['NA'] = 'NA'
+        if 'MediaNotFound' not in self.thumbnail_name.keys():
+            self.thumbnail_image['MediaNotFound'] = ImageTk.PhotoImage(name='MediaNotFound', image=Image.open('./media/icon/Error.png').resize([icon_size,icon_size]))
+            self.thumbnail_name['MediaNotFound'] = 'MediaNotFound'
     def update_image_from_section(self,media_name:str)->str:
         # 图标大小
         icon_size = int(self.sz * 93)
@@ -407,9 +423,6 @@ class CTBSectionElement(ttk.Frame,SectionElement):
         media_name = media_name.split(':')[0]
         # 是否存在
         if media_name == 'NA':
-            if 'NA' not in self.thumbnail_name.keys():
-                self.thumbnail_image['NA'] = ImageTk.PhotoImage(name='NA', image=Image.open('./media/icon/NA.png').resize([icon_size,icon_size]))
-                self.thumbnail_name['NA'] = 'NA'
             return 'NA'
         if media_name not in self.ref_medef.struct.keys():
             return 'MediaNotFound' # TODO : 给这个错误情况来一个图标（伊可的）

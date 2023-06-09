@@ -497,17 +497,18 @@ class CharTable(Script):
         # 执行删除
         for key in list_to_delete:
             self.delete(key)
-    # 添加角色
-    def add_chara(self,name:str):
-        self.struct[name+'.default'] = {
-            'Name'      : name,
-            'Subtype'   : 'default',
-            'Animation' : 'NA',
-            'Bubble'    : 'NA',
-            'Voice'     : 'NA',
-            'SpeechRate': 0,
-            'PitchRate' : 0,
-        }
+    # 添加角色的默认差分
+    def add_chara_default(self,name:str):
+        if name + '.default' not in self.struct.keys():
+            self.struct[name+'.default'] = {
+                'Name'      : name,
+                'Subtype'   : 'default',
+                'Animation' : 'NA',
+                'Bubble'    : 'NA',
+                'Voice'     : 'NA',
+                'SpeechRate': 0,
+                'PitchRate' : 0,
+            }
 # log文件
 class RplGenLog(Script):
     # RGL -> struct
