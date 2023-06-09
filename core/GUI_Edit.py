@@ -181,11 +181,15 @@ class MediaEdit(EditWindow):
         if line_type in ['Text','StrokeText','RichText']:
             self.elements['line_limit'].input.configure(from_=0,to=100,increment=1)
             self.elements['fontsize'].input.configure(from_=0,to=300,increment=5)
+            self.elements['fontfile'].bind_bubble(dtype='fontfile-file')
+            self.elements['color'].bind_bubble(dtype='color')
             if line_type == 'StrokeText':
+                self.elements['edge_color'].bind_bubble(dtype='color')
                 self.elements['edge_width'].input.configure(from_=0,to=30,increment=1)
                 self.elements['projection'].input.update_dict(projection)
         # Pos
         if line_type in ['Bubble','Balloon','DynamicBubble','ChatWindow','Animation','Background']:
+            self.elements['filepath'].bind_bubble(dtype='picture-file')
             self.elements['pos'].input.configure(values=self.get_avaliable_pos())
             self.elements['scale'].input.configure(from_=0.1,to=3,increment=0.1)
         # MainText HeadText
@@ -204,7 +208,10 @@ class MediaEdit(EditWindow):
         if line_type == 'Animation':
             self.elements['tick'].input.configure(from_=1,to=30,increment=1)
             self.elements['loop'].input.update_dict(True_False)
+        if line_type == 'Audio':
+            self.elements['filepath'].bind_bubble(dtype='soundeff-file')
         if line_type == 'BGM':
+            self.elements['filepath'].bind_bubble(dtype='BGM-file')
             self.elements['volume'].input.configure(from_=0,to=100,increment=10)
             self.elements['loop'].input.update_dict(True_False)
     def struct_2_value(self,section):

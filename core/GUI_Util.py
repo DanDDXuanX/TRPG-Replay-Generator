@@ -5,6 +5,7 @@ import ttkbootstrap as ttk
 from ttkbootstrap.tooltip import ToolTip
 import tkinter as tk
 from PIL import Image, ImageTk
+from .GUI_DialogWindow import color_chooser, browse_file
 
 # 公用小元件
 # 包含：最小键值对
@@ -87,6 +88,16 @@ class KeyValueDescribe(ttk.Frame):
         self.describe.pack(fill='none',side='left',padx=SZ_5)
     def get(self):
         return self.value.get()
+    def bind_bubble(self,dtype='picture-file'):
+        if type(self.describe) != ttk.Button:
+            return
+        # type=file
+        if 'file' in dtype:
+            filetype = dtype.split('-')[0]
+            command = lambda:browse_file(master=self, text_obj=self.value, method='file', filetype=filetype)
+        elif 'color' in dtype:
+            command = lambda:color_chooser(master=self, text_obj=self.value)
+        self.describe.configure(command=command)
 # 文本分割线，包含若干个KVD，可以折叠
 class TextSeparator(ttk.Frame):
     def __init__(self,master,screenzoom:float,describe:dict):
