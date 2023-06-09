@@ -88,15 +88,15 @@ class KeyValueDescribe(ttk.Frame):
         self.describe.pack(fill='none',side='left',padx=SZ_5)
     def get(self):
         return self.value.get()
-    def bind_bubble(self,dtype='picture-file'):
+    def bind_button(self,dtype='picture-file'):
         if type(self.describe) != ttk.Button:
             return
         # type=file
         if 'file' in dtype:
             filetype = dtype.split('-')[0]
-            command = lambda:browse_file(master=self, text_obj=self.value, method='file', filetype=filetype)
+            command = lambda:browse_file(master=self.winfo_toplevel(), text_obj=self.value, method='file', filetype=filetype)
         elif 'color' in dtype:
-            command = lambda:color_chooser(master=self, text_obj=self.value)
+            command = lambda:color_chooser(master=self.winfo_toplevel(), text_obj=self.value)
         self.describe.configure(command=command)
 # 文本分割线，包含若干个KVD，可以折叠
 class TextSeparator(ttk.Frame):

@@ -4,6 +4,7 @@
 # 终端
 
 import ttkbootstrap as ttk
+import tkinter.font as tkFont
 from ttkbootstrap.scrolled import ScrolledText
 from PIL import Image, ImageTk
 from .Utils import EDITION
@@ -20,11 +21,13 @@ class StdoutRedirector:
         self.text_widget.tag_configure('error',foreground='#ff4444')
         self.text_widget.tag_configure('warning',foreground='#ff9944')
         self.text_widget.tag_configure('info',foreground='#44ff44')
+        self.text_widget.tag_configure('black',foreground='#000000')
         # from terminal output to colortag
         self.colortag = {
             '33':'warning',
             '32':'info',
-            '31':'error'
+            '31':'error',
+            '30':'black'
         }
         # regex
         self.RE_cp = re.compile(r"(\x1B\[\d+m.+\x1B\[0m)")
@@ -49,6 +52,7 @@ class Terminal(ttk.Frame):
         SZ_10 = int(self.sz*10)
         super().__init__(master,borderwidth=0,padding=SZ_10)
         # 子原件
+        self.font = tkFont.Font(family='./media/YaHei Consolas Hybrid 1.12.ttf',size=14)
         self.terminal = ScrolledText(
             master=self,
             bootstyle='dark-round',
@@ -56,10 +60,11 @@ class Terminal(ttk.Frame):
             foreground='#eeeeee',
             insertbackground='#eeeeee',
             autostyle=False,
-            font='-family consolas -size 14',
+            font=self.font,
             autohide=True
             )
-        self.terminal._text.configure(padx=2*SZ_10)
+        self.terminal._text.configure(padx=2*SZ_10,font=self.font)
+        # self.control = ttk.Button(master=self,style='terminal.TButton',text='终止')
         self.control = ttk.Button(master=self,style='terminal.TButton',text='终止')
         # 测试
         self.bind_stdout()

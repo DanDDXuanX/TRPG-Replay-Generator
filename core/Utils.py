@@ -5,6 +5,7 @@ EDITION = 'alpha 1.24.8'
 
 import numpy as np
 import time
+import re
 from .Regexs import RE_rich
 
 # UF : 将2个向量组合成"(x,y)"的形式
@@ -42,6 +43,20 @@ def hex_2_rgba(hex_string)->tuple:
     else:
         r,g,b,a = 0,0,0,0
     return (r,g,b,a)
+
+# rgb(a)，转hexcolor
+def rgb_2_hex(R:int,G:int,B:int):
+    return f"#{R:02x}{G:02x}{B:02x}"
+def rgba_str_2_hex(rgba_str:str)->str:
+    # alpha will be ignore
+    m = re.match(r"\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(,\s*\d+\s*)?\)$", rgba_str)
+    if m:
+        R = int(m.group(1))
+        G = int(m.group(2))
+        B = int(m.group(3))
+        return rgb_2_hex(R,G,B)
+    else:
+        return None
 
 # 62进制时间戳*1000，ms单位
 def mod62_timestamp():

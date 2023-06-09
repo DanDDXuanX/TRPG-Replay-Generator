@@ -15,6 +15,7 @@ from .ScriptParser import MediaDef, CharTable, RplGenLog, Script
 from .FilePaths import Filepath
 from .ProjConfig import Config
 from .GUI_TabPage import PageFrame, RGLPage, CTBPage, MDFPage
+from .GUI_DialogWindow import browse_file, save_file
 # 项目视图-文件管理器-RGPJ
 class RplGenProJect(Script):
     def __init__(self, json_input=None) -> None:
@@ -61,7 +62,7 @@ class RplGenProJect(Script):
 
 # 项目视图-文件管理器
 class FileManager(ttk.Frame):
-    def __init__(self,master,screenzoom,page_frame:PageFrame)->None:
+    def __init__(self, master, screenzoom, page_frame:PageFrame, project_file:str=None)->None:
         self.sz = screenzoom
         super().__init__(master,borderwidth=0,bootstyle='primary')
         self.master = master
@@ -81,10 +82,10 @@ class FileManager(ttk.Frame):
         self.project_title = ttk.Frame(master=self,borderwidth=0,bootstyle='light')
         self.title_pic = ttk.Label(master=self.project_title,image='title',borderwidth=0)
         self.buttons = {
-            'save'      : ttk.Button(master=self.project_title,image='save'  ),
-            'config'    : ttk.Button(master=self.project_title,image='config'),
-            'import'    : ttk.Button(master=self.project_title,image='import'),
-            'export'    : ttk.Button(master=self.project_title,image='export'),
+            'save'      : ttk.Button(master=self.project_title,image='save'  ,command=self.save_file),
+            'config'    : ttk.Button(master=self.project_title,image='config',command=None),
+            'import'    : ttk.Button(master=self.project_title,image='import',command=self.import_file),
+            'export'    : ttk.Button(master=self.project_title,image='export',command=None),
         }
         # 放置
         self.title_pic.pack(fill='none',side='top')
@@ -93,7 +94,8 @@ class FileManager(ttk.Frame):
             buttons.pack(expand=True,fill='x',side='left',anchor='se',padx=0,pady=0)
         self.project_title.pack(fill='x',side='top',padx=0,pady=0,ipadx=0,ipady=0)
         # 文件管理器的项目对象
-        self.project:RplGenProJect = RplGenProJect()
+        self.project:RplGenProJect = RplGenProJect(json_input=project_file)
+        self.project_file:str = project_file
         # 文件浏览器元件
         self.project_content = ScrolledFrame(master=self,borderwidth=0,bootstyle='light',autohide=True)
         self.project_content.vscroll.config(bootstyle='warning-round')
@@ -111,6 +113,35 @@ class FileManager(ttk.Frame):
         # 放置
         self.update_item()
         self.project_content.pack(fill='both',expand=True,side='top')
+    # 导入文件
+    def import_file(self):
+        get_file = browse_file(master=self.winfo_toplevel(),text_obj=tk.StringVar(),method='file',filetype='rgscripts')
+        if get_file != '':
+            Types = {MediaDef:0,CharTable:0,RplGenLog:0}
+            for ScriptType in Types:
+                try:
+                    this = ScriptType(file_input=get_file)
+                    Types[ScriptType] = len(this.struct)
+                except:
+                    Types[ScriptType] = 0
+                top_parse = max(Types,key=Types.get)
+                if Types[top_parse] == 0:
+                    # 显示一个错误消息框
+                    Messagebox().show_error(message='无效的文件是无效的！',title='错误')
+                else:
+                    print(get_file,Types[top_parse])
+    # 导出文件
+    def export_file(self):
+        pass
+    # 保存文件
+    def save_file(self):
+        if self.project_file is None:
+            select_path = save_file(master=self.winfo_toplevel(),filetype='rplgenproj')
+            if select_path != '':
+                self.project.dump_json(filepath=select_path)
+                self.project_file = select_path
+        else:
+            self.project.dump_json(filepath=self.project_file)
     def update_item(self):
         for idx,key in enumerate(self.items):
             fileitem:ttk.Button = self.items[key]
