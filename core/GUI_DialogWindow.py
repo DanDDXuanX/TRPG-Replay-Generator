@@ -52,13 +52,15 @@ filetype_dic = {
     'soundeff':     [('音效文件','*.wav'),('全部文件','*.*')],
     'BGM':          [('背景音乐文件','*.ogg'),('全部文件','*.*')],
     'fontfile':     [('字体文件',('*.ttf','*.otf','*.ttc')),('全部文件','*.*')],
-    'rplgenproj':   [('回声工程',('*.rgpj')),('全部文件','*.*')]
+    'rplgenproj':   [('回声工程',('*.rgpj')),('全部文件','*.*')],
+    'prefix':       [('全部文件','*.*')]
 }
 default_name = {
     'logfile':   ['新建剧本文件','.rgl'],
     'chartab':   ['新建角色表'  ,'.tsv'],
-    'mediadef':  ['新建媒体库'  ,'.mdf'],
+    'mediadef':  ['新建媒体库'  ,'.txt'],
     'rplgenproj':['新建工程'    ,'.rgpj'],
+    'prefix':    ['导出文件'    ,'']
 }
 # 浏览文件，并把路径输出给 StringVar
 def browse_file(master, text_obj:StringVar, method='file', filetype=None):

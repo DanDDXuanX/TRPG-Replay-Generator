@@ -13,7 +13,7 @@ from .ProjConfig import Preference
 from .Utils import EDITION
 
 # 项目视图
-from .GUI_View import ProjectView, ConsoleView
+from .GUI_View import ProjectView, ConsoleView, ScriptView, PreferenceView
 
 class RplGenStudioMainWindow(ttk.Window):
     def __init__(
@@ -41,7 +41,9 @@ class RplGenStudioMainWindow(ttk.Window):
         # 视图
         self.view = {
             'project': ProjectView(master=self,screenzoom=self.sz),
-            'console': ConsoleView(master=self,screenzoom=self.sz)
+            'console': ConsoleView(master=self,screenzoom=self.sz),
+            'script' : ScriptView( master=self,screenzoom=self.sz),
+            'setting': PreferenceView(master=self,screenzoom=self.sz)
             }
         self.show = 'project'
         self.view_show('project')

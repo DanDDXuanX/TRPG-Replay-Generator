@@ -11,6 +11,7 @@ import ttkbootstrap as ttk
 import tkinter as tk
 from ttkbootstrap.scrolled import ScrolledFrame
 from ttkbootstrap.dialogs import Messagebox
+from ttkbootstrap.tooltip import ToolTip
 from .ScriptParser import MediaDef, CharTable, RplGenLog, Script
 from .FilePaths import Filepath
 from .ProjConfig import Config
@@ -87,7 +88,13 @@ class FileManager(ttk.Frame):
             'save'      : ttk.Button(master=self.project_title,image='save'  ,command=self.save_file),
             'config'    : ttk.Button(master=self.project_title,image='config',command=None),
             'import'    : ttk.Button(master=self.project_title,image='import',command=self.import_file),
-            'export'    : ttk.Button(master=self.project_title,image='export',command=None),
+            'export'    : ttk.Button(master=self.project_title,image='export',command=self.export_file),
+        }
+        self.buttons_tooltip = {
+            'save'      : ToolTip(widget=self.buttons['save']  ,text='保存项目',bootstyle='secondary-inverse'),
+            'config'    : ToolTip(widget=self.buttons['config'],text='项目设置',bootstyle='secondary-inverse'),
+            'import'    : ToolTip(widget=self.buttons['import'],text='导入文件',bootstyle='secondary-inverse'),
+            'export'    : ToolTip(widget=self.buttons['export'],text='导出项目',bootstyle='secondary-inverse'),
         }
         # 放置
         self.title_pic.pack(fill='none',side='top')
@@ -144,13 +151,14 @@ class FileManager(ttk.Frame):
             top_parse:Script = max(Types,key=lambda x:len(Types.get(x).struct))
             if Types[top_parse] == 0:
                 # 显示一个错误消息框
-                Messagebox().show_error(message='无效的文件是无效的！',title='错误')
+                Messagebox().show_error(message='无法导入这个文件！',title='错误')
             else:
                 # 更新到项目
                 if top_parse is RplGenLog:
+                    showname = '剧本文件'
                     imported:RplGenLog = Types[top_parse]
                     collapse:RGLCollapsing = self.items['rplgenlog']
-                    filename = Filepath(get_file).name()
+                    filename = Filepath(get_file).name().split('.')[0]
                     # 如果重名了，在名字后面加东西
                     while filename in self.project.logfile.keys():
                         filename = filename+'_new'
@@ -160,6 +168,7 @@ class FileManager(ttk.Frame):
                         # 更新文件管理器
                         collapse.create_new_button(new_keyword=filename)
                 elif top_parse is CharTable:
+                    showname = '角色配置'
                     imported:CharTable = Types[top_parse]
                     collapse:CTBCollapsing = self.items['chartab']
                     new_charactor:list = []
@@ -182,6 +191,7 @@ class FileManager(ttk.Frame):
                     for chara in new_charactor:
                         self.project.chartab.add_chara_default(name=chara)
                 elif top_parse is MediaDef:
+                    showname = '媒体库'
                     imported:MediaDef = Types[top_parse]
                     collapse:MDFCollapsing = self.items['mediadef']
                     file_not_found:list = []
@@ -208,10 +218,26 @@ class FileManager(ttk.Frame):
                     print(file_not_found)
                     # self.relocation_file(file_not_found)
                 else:
-                    pass 
+                    return
+                Messagebox().show_info(title='导入成功',message='成功向{showname}中导入共计{number}个小节/项目。'.format(showname=showname,number=len(imported.struct)))
     # 导出文件
     def export_file(self):
-        pass
+        # 如果导出完整的项目为脚本
+        get_file = save_file(master=self.winfo_toplevel(), method='file',filetype='prefix')
+        if get_file != '':
+            try:
+                # 媒体定义
+                self.project.mediadef.dump_file(filepath=get_file+'.媒体库.txt')
+                # 角色配置
+                self.project.chartab.dump_file(filepath=get_file+'.角色配置.tsv')
+                # 剧本文件
+                for keyword, rgl in self.project.logfile.items():
+                    rgl.dump_file(filepath=get_file+'.{}.rgl'.format(keyword))
+                # 显示消息
+                Messagebox().show_info(title='导出成功',message='成功将工程导出为脚本文件！\n导出路径：{}'.format(get_file))
+            except Exception as E:
+                Messagebox().show_error(title='导出失败',message='无法将工程导出！\n由于：{}'.format(E))
+
     # 保存文件
     def save_file(self):
         if self.project_file is None:

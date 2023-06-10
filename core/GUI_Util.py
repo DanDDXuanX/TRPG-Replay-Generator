@@ -37,7 +37,6 @@ class DictCombobox(ttk.Combobox):
             self.var.set(text)
         print(self.var.get())
 
-
 # 一个键、值、描述的最小单位。
 class KeyValueDescribe(ttk.Frame):
     def __init__(self,master,screenzoom:float,key:str,value:dict,describe:dict,tooltip:str=None):
@@ -98,6 +97,32 @@ class KeyValueDescribe(ttk.Frame):
         elif 'color' in dtype:
             command = lambda:color_chooser(master=self.winfo_toplevel(), text_obj=self.value)
         self.describe.configure(command=command)
+# 一个比上面的KVD更详细的最小单位，常用于设置
+class DetailedKeyValueDescribe(KeyValueDescribe):
+    def __init__(self,master,screenzoom:float,key:str,value:dict,describe:dict,tooltip:str=None):
+        super().__init__(master=master,screenzoom=screenzoom,key=key,value=value,describe=describe,tooltip=None)
+        SZ_5 = int(self.sz * 5)
+        padding = (0,SZ_5,0,SZ_5)
+        self.key.configure(font='-family 微软雅黑 -size 11 -weight bold',foreground='#000000',anchor='w',width=30)
+        self.tooltip = ttk.Label(master=self,text=tooltip,anchor='w',padding=padding,foreground='#888888')
+        self.sideshow = ttk.Frame(master=self, bootstyle='secondary')
+        self.update_item_delay()
+    def update_item(self):
+        # 把super的update_item无效化
+        pass
+    def update_item_delay(self):
+        # 重做的update_item
+        SZ_5 = int(self.sz * 5)
+        SZ_2 = int(self.sz * 1)
+        SZ_10 = int(self.sz * 10)
+        # 放置
+        self.key.pack(fill='x',side='top',padx=(SZ_10, SZ_5))
+        self.tooltip.pack(fill='x',side='top',padx=(SZ_10, SZ_5),pady=0)
+        self.input.pack(fill='x',side='left',padx=(SZ_10, SZ_5),expand=True)
+        self.describe.pack(fill='none',side='left',padx=SZ_5)
+        # 边缘线
+        self.sideshow.place(x=0,y=0,width=SZ_2,relheight=1)
+
 # 文本分割线，包含若干个KVD，可以折叠
 class TextSeparator(ttk.Frame):
     def __init__(self,master,screenzoom:float,describe:dict):
@@ -140,27 +165,66 @@ class TextSeparator(ttk.Frame):
             self.content_frame.pack(fill='x',side='top')
             self.expand:bool = True
     # 添加KVD
-    def add_element(self,key:str,value:str,kvd:dict)->KeyValueDescribe:
+    def add_element(self,key:str,value:str,kvd:dict,detail:bool=False)->KeyValueDescribe:
         SZ_5 = int(self.sz * 5)
-        this_kvd = KeyValueDescribe(
-            master = self.content_frame,
-            screenzoom = self.sz,
-            key=kvd['ktext'],
-            value={
-                'type':kvd['vtype'],
-                'style':kvd['vitem'],
-                'value':value},
-            describe={
-                'type':kvd['ditem'],
-                'text':kvd['dtext']
-            },
-            tooltip=kvd['tooltip']
-        )
+        if detail:
+            this_kvd = DetailedKeyValueDescribe(
+                master = self.content_frame,
+                screenzoom = self.sz,
+                key=kvd['ktext'],
+                value={
+                    'type':kvd['vtype'],
+                    'style':kvd['vitem'],
+                    'value':value},
+                describe={
+                    'type':kvd['ditem'],
+                    'text':kvd['dtext']
+                },
+                tooltip=kvd['tooltip']
+            )
+        else:
+            this_kvd = KeyValueDescribe(
+                master = self.content_frame,
+                screenzoom = self.sz,
+                key=kvd['ktext'],
+                value={
+                    'type':kvd['vtype'],
+                    'style':kvd['vitem'],
+                    'value':value},
+                describe={
+                    'type':kvd['ditem'],
+                    'text':kvd['dtext']
+                },
+                tooltip=kvd['tooltip']
+            )
         self.content_index.append(key)
         self.content[key] = this_kvd
         # 摆放
-        this_kvd.pack(side='top',anchor='n',fill='x',pady=(SZ_5,0))
+        this_kvd.pack(side='top',anchor='n',fill='x',pady=(SZ_5 + detail*SZ_5 ,0))
         return this_kvd
+
+# 纹理背景
+class Texture(tk.Frame):
+    def __init__(self,master,screenzoom,file='./media/icon/texture4.png'):
+        super().__init__(master=master)
+        # Label对象
+        self.canvas = ttk.Label(master=self,padding=0)
+        # 纹理图片
+        self.texture = Image.open(file)
+        self.bind('<Configure>', self.update_image)
+        self.update_image(None)
+        self.update_item()
+    def update_item(self):
+        self.canvas.pack(fill='both', expand=True)
+    def update_image(self, event):
+        self.image = ImageTk.PhotoImage(self.fill_texture(self.winfo_width(),self.winfo_height()))
+        self.canvas.config(image=self.image)
+    def fill_texture(self,width,height):
+        new_image = Image.new('RGB',(width,height))
+        for x in range(0, width, self.texture.width):
+            for y in range(0, height, self.texture.height):
+                new_image.paste(self.texture, (x, y))
+        return new_image
 # 将一个图片处理为指定的icon大小（方形）
 def thumbnail(image:Image.Image,icon_size:int)->Image.Image:
     origin_w,origin_h = image.size

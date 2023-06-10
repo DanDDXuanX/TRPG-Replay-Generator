@@ -75,25 +75,3 @@ class Terminal(ttk.Frame):
         sys.stdout = StdoutRedirector(text_widget=self.terminal._text)
         # 欢迎
         print(MainPrint('Welcome',EDITION))
-
-class Texture(tk.Frame):
-    def __init__(self,master,screenzoom):
-        super().__init__(master=master)
-        # Label对象
-        self.canvas = ttk.Label(master=self,padding=0)
-        # 纹理图片
-        self.texture = Image.open('./media/icon/texture4.png')
-        self.bind('<Configure>', self.update_image)
-        self.update_image(None)
-        self.update_item()
-    def update_item(self):
-        self.canvas.pack(fill='both', expand=True)
-    def update_image(self, event):
-        self.image = ImageTk.PhotoImage(self.fill_texture(self.winfo_width(),self.winfo_height()))
-        self.canvas.config(image=self.image)
-    def fill_texture(self,width,height):
-        new_image = Image.new('RGB',(width,height))
-        for x in range(0, width, self.texture.width):
-            for y in range(0, height, self.texture.height):
-                new_image.paste(self.texture, (x, y))
-        return new_image
