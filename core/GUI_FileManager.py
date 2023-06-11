@@ -457,7 +457,7 @@ class FileCollapsing(ttk.Frame):
 class MDFCollapsing(FileCollapsing):
     media_type_name = {
         'Pos'       :   '位置',
-        'Text'      :   '文本',
+        'Text'      :   '字体',
         'Bubble'    :   '气泡',
         'Animation' :   '立绘',
         'Background':   '背景',

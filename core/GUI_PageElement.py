@@ -7,6 +7,7 @@
 import tkinter as tk
 import ttkbootstrap as ttk
 import threading
+import pygame
 from PIL import Image, ImageTk
 from .GUI_Container import Container
 from .OutputType import PreviewDisplay, ExportVideo, ExportXML
@@ -99,18 +100,36 @@ class OutPutCommand(ttk.Frame):
             print(E)
     def preview_display(self):
         self.load_input()
-        PreviewDisplay(rplgenlog=self.rplgenlog,config=self.pconfig,output_path='./test_output')
+        try:
+            PreviewDisplay(rplgenlog=self.rplgenlog,config=self.pconfig,output_path='./test_output')
+        except Exception as E:
+            print(E)
+        finally:
+            pygame.init()
+            pygame.font.init()
     def export_video(self):
-        self.load_input()
-        ExportVideo(rplgenlog=self.rplgenlog,config=self.pconfig,output_path='./test_output')
+        try:
+            self.load_input()
+            ExportVideo(rplgenlog=self.rplgenlog,config=self.pconfig,output_path='./test_output')
+        except Exception as E:
+            print(E)
+        finally:
+            pygame.init()
+            pygame.font.init()
     def export_xml(self):
-        # 调整全局变量
-        MediaObj.export_xml = True
-        MediaObj.output_path = './test_output'
-        self.load_input()
-        ExportXML(rplgenlog=self.rplgenlog,config=self.pconfig,output_path='./test_output')
-        # 复原全局变量
-        MediaObj.export_xml = False
+        try:
+            # 调整全局变量
+            MediaObj.export_xml = True
+            MediaObj.output_path = './test_output'
+            self.load_input()
+            ExportXML(rplgenlog=self.rplgenlog,config=self.pconfig,output_path='./test_output')
+        except Exception as E:
+            print(E)
+        finally:
+            # 复原全局变量
+            pygame.init()
+            pygame.font.init()
+            MediaObj.export_xml = False
     def open_new_thread(self,output_type:str):
         # 先切换到终端页
         self.winfo_toplevel().navigate_bar.press_button('console')
@@ -120,7 +139,7 @@ class OutPutCommand(ttk.Frame):
         elif self.runing_thread.is_alive():
             print("正在执行中")
             return
-        # 新建线程
+        # 新建线程：FIXME：重复两次开始预览播放，可能导致闪退，考虑改为多进程。
         if output_type == 'display':
             self.runing_thread = threading.Thread(target=self.preview_display)
         elif output_type == 'exportpr':

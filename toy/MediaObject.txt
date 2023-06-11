@@ -12,7 +12,7 @@ KP立绘位置 = FreePos(0,480)
 气泡头文本 = StrokeText(fontfile='./media/SourceHanSerifSC-Heavy.otf',fontsize=40,color=(255,255,255,255),line_limit=10,edge_color=(60,60,60,255),edge_width=2,projection='SE',label_color='Lavender')
 
 # Animation
-张安翔 = Animation(filepath='@/media/am.png',pos=张安翔立绘位置,tick=1,loop=True,label_color='Purple')
+张安翔 = Animation(filepath='@/media/am1.png',pos=张安翔立绘位置,tick=1,loop=True,label_color='Purple')
 果汁 = Animation(filepath='@/media/am3.png',pos=KP立绘位置,tick=1,loop=True,label_color='Forest')
 伊可 = Animation(filepath='@/media/正作伊可.png',pos=(1375,481),tick=1,loop=True,label_color='Magenta')
 果汁_聊天窗位置 = Animation(filepath='@/media/am3.png',pos=(1375,481),tick=1,loop=True,label_color='Forest')
