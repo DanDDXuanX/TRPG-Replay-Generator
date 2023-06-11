@@ -39,6 +39,7 @@ class RplGenProJect(Script):
             # config
             self.config     = Config(dict_input=self.struct['config'])
             # media
+            Filepath.Mediapath = Filepath(json_input).directory()
             self.mediadef   = MediaDef(dict_input=self.struct['mediadef'])
             # chartab
             self.chartab    = CharTable(dict_input=self.struct['chartab'])

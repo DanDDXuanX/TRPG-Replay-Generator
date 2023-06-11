@@ -91,3 +91,6 @@ class Filepath:
             # 摆烂
             to_format = 'file://localhost' + to_format
         return to_format
+    # 所在文件夹
+    def directory(self) -> str:
+        return '/'.join(self.exact().split('/')[0:-1]) + '/'

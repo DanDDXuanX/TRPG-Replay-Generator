@@ -52,33 +52,36 @@ class SectionElement:
                 self.thumb = thumbnail_name_this
         elif self.line_type in ['Text','StrokeText','RichText']:
             # 新建一个缩略图
-            text_obj = self.MDFscript.instance_execute(section)
-            temp_canvas = pygame.Surface(size=(icon_size,icon_size))
-            # 背景图的颜色
-            if self.line_type == 'StrokeText':
-                if np.mean(text_obj.edge_color) > 230:
-                    temp_canvas.fill('black')
+            try:
+                text_obj = self.MDFscript.instance_execute(section)
+                temp_canvas = pygame.Surface(size=(icon_size,icon_size))
+                # 背景图的颜色
+                if self.line_type == 'StrokeText':
+                    if np.mean(text_obj.edge_color) > 230:
+                        temp_canvas.fill('black')
+                    else:
+                        temp_canvas.fill('white')
                 else:
-                    temp_canvas.fill('white')
-            else:
-                if np.mean(text_obj.color) > 230:
-                    temp_canvas.fill('black')
-                else:
-                    temp_canvas.fill('white')
-            # 渲染预览字体
-            test_text = {'Text':'字体#Text','StrokeText':'描边#Stroke','RichText':'[i]富文[#][/i][u]Rich'}[self.line_type]
-            for idx,text in enumerate(text_obj.draw(text=test_text)):
-                text:pygame.Surface
-                w,h = text.get_size()
-                temp_canvas.blit(
-                    text,
-                    [
-                        int( icon_size/2 - w/2 ),
-                        int( icon_size/2 - (1 - idx) * text_obj.size )
-                    ]
-                )
-            # 转为Image
-            image = Image.frombytes(mode='RGB',size=(icon_size,icon_size),data=pygame.image.tostring(temp_canvas,'RGB'))
+                    if np.mean(text_obj.color) > 230:
+                        temp_canvas.fill('black')
+                    else:
+                        temp_canvas.fill('white')
+                # 渲染预览字体
+                test_text = {'Text':'字体#Text','StrokeText':'描边#Stroke','RichText':'[i]富文[#][/i][u]Rich'}[self.line_type]
+                for idx,text in enumerate(text_obj.draw(text=test_text)):
+                    text:pygame.Surface
+                    w,h = text.get_size()
+                    temp_canvas.blit(
+                        text,
+                        [
+                            int( icon_size/2 - w/2 ),
+                            int( icon_size/2 - (1 - idx) * text_obj.size )
+                        ]
+                    )
+                # 转为Image
+                image = Image.frombytes(mode='RGB',size=(icon_size,icon_size),data=pygame.image.tostring(temp_canvas,'RGB'))
+            except Exception as E:
+                image = Image.open('./media/icon/Error.png')
             # 缩略名
             thumbnail_name_this = 'thumbnail%d'%self.thumbnail_idx
             self.__class__.thumbnail_idx += 1

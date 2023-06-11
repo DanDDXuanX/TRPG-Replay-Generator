@@ -13,7 +13,7 @@ from .ProjConfig import Preference
 from .Utils import EDITION
 
 # 项目视图
-from .GUI_View import ProjectView, ConsoleView, ScriptView, PreferenceView
+from .GUI_View import EmptyView, ProjectView, ConsoleView, ScriptView, PreferenceView
 
 class RplGenStudioMainWindow(ttk.Window):
     def __init__(
@@ -23,7 +23,7 @@ class RplGenStudioMainWindow(ttk.Window):
         self.sz = self.get_screenzoom()
         super().__init__(
             title       = '回声工坊 ' + EDITION,
-            themename   = 'lumen',
+            themename   = 'rplgenlight',
             iconphoto   = './media/icon.png',
             size        = (int(1500*self.sz),int(800*self.sz)),
             resizable   = (True,True),
@@ -40,7 +40,8 @@ class RplGenStudioMainWindow(ttk.Window):
         self.bind('<F11>', self.switch_fullscreen)
         # 视图
         self.view = {
-            'project': ProjectView(master=self,screenzoom=self.sz),
+            # 'project': ProjectView(master=self,screenzoom=self.sz),
+            'project': EmptyView(master=self,screenzoom=self.sz),
             'console': ConsoleView(master=self,screenzoom=self.sz),
             'script' : ScriptView( master=self,screenzoom=self.sz),
             'setting': PreferenceView(master=self,screenzoom=self.sz)
@@ -54,9 +55,11 @@ class RplGenStudioMainWindow(ttk.Window):
         SZ_5 = int(5 * self.sz)
         text_label_pad = (SZ_5,0,SZ_5,0)
         # 导航栏的按钮
-        self.style.configure('secondary.TButton',anchor='w',font="-family 微软雅黑 -size 20 -weight bold",compound='left',padding=(SZ_3,0,0,0))
+        # self.style.configure('dark.TButton',font="-family 微软雅黑 -size 18 -weight bold",compound='left',padding=(SZ_3,0,0,0))
         self.style.configure('terminal.TButton',compound='left',font="-family 微软雅黑 -size 14 -weight bold")
         self.style.configure('output.TButton',compound='left',font="-family 微软雅黑 -size 14 -weight bold")
+        self.style.configure('dark.TButton',font="-family 微软雅黑 -size 18 -weight bold",anchor='w')
+        self.style.configure('info.TButton',font="-family 微软雅黑 -size 16 -weight bold",anchor='center',foreground="#555555")
         # 媒体定义的颜色标签
         self.style.configure('Violet.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#ffffff',background='#a690e0')
         self.style.configure('Iris.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#ffffff',background='#729acc')
@@ -94,8 +97,8 @@ class RplGenStudioMainWindow(ttk.Window):
         self.style.configure('preview.TLabel',anchor='center',background='#000000',borderwidth=0)
     # 当关闭窗口时
     def on_close(self):
-        project_view:ProjectView = self.view['project']
-        project_view.file_manager.project.dump_json('./test_project.json')
+        # project_view:ProjectView = self.view['project']
+        # project_view.file_manager.project.dump_json('./test_project.json')
         self.destroy()
     # 当导航栏被点击时
     def navigateBar_get_click(self,event):
@@ -138,7 +141,8 @@ class NavigateBar(ttk.Frame):
     """
     def __init__(self,master,screenzoom) -> None:
         self.sz = screenzoom
-        super().__init__(master,borderwidth=10*self.sz,bootstyle='secondary')
+        SZ_3 = int(self.sz *3)
+        super().__init__(master,borderwidth=10*self.sz,bootstyle='dark')
         icon_size = [int(50*self.sz),int(50*self.sz)]
         self.master = master
         self.is_wide = False
@@ -152,16 +156,16 @@ class NavigateBar(ttk.Frame):
         }
         # 顶部
         self.titles = {
-            'logo'      : ttk.Button(master=self,image='logo',bootstyle='secondary-solid'),
-            'set'       : ttk.Button(master=self,image ='setting',text=' 首选项',command=lambda :self.press_button('setting'),bootstyle='secondary-solid',compound='left')
+            'logo'      : ttk.Button(master=self,image='logo',bootstyle='dark',padding=(SZ_3,0,0,0)),
+            'set'       : ttk.Button(master=self,image ='setting',text=' 首选项',command=lambda :self.press_button('setting'),bootstyle='dark',compound='left',padding=(SZ_3,0,0,0))
         } 
         # 分割线
         self.separator = ttk.Separator(master=self,orient='horizontal',bootstyle='light')
         # 按钮
         self.buttons = {
-            'project'   : ttk.Button(master=self,image='project',text=' 项目',command=lambda :self.press_button('project'),bootstyle='secondary-solid',compound='left'),
-            'script'    : ttk.Button(master=self,image='script',text=' 脚本',command=lambda :self.press_button('script'),bootstyle='secondary-solid',compound='left'),
-            'console'   : ttk.Button(master=self,image='console',text=' 控制台',command=lambda :self.press_button('console'),bootstyle='secondary-solid',compound='left'),
+            'project'   : ttk.Button(master=self,image='project',text=' 项目',command=lambda :self.press_button('project'),bootstyle='dark',compound='left',padding=(SZ_3,0,0,0)),
+            'script'    : ttk.Button(master=self,image='script',text=' 脚本',command=lambda :self.press_button('script'),bootstyle='dark',compound='left',padding=(SZ_3,0,0,0)),
+            'console'   : ttk.Button(master=self,image='console',text=' 控制台',command=lambda :self.press_button('console'),bootstyle='dark',compound='left',padding=(SZ_3,0,0,0)),
         }
         # 高亮的线
         self.choice = ttk.Frame(master=self,bootstyle='primary')
@@ -196,6 +200,8 @@ class NavigateBar(ttk.Frame):
                 button.place(width=width,height=width,x=0, y= y_this + idx*distance)
             else:
                 button.place_configure(width=width)
+        # 高亮的线
+        self.press_button('project')
     # 点击按键的绑定事件：标注
     def press_button(self,button):
         position = {'setting':80,'project':180,'script':260,'console':340}[button]*self.sz
@@ -205,4 +211,4 @@ class NavigateBar(ttk.Frame):
             self.choice.place(width=SZ_5,height=SZ_60,x=-SZ_5,y= position)
         else:
             self.choice.place_configure(y=position)
-        self.master.view_show(button)
+            self.master.view_show(button)
