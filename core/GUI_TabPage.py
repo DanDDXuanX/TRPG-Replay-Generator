@@ -69,20 +69,21 @@ class PageNotes(ttk.Frame):
     """
     def __init__(self,master,screenzoom)->None:
         self.sz = screenzoom
-        super().__init__(master,borderwidth=0,bootstyle='secondary')
+        super().__init__(master,borderwidth=0,bootstyle='dark')
         self.master = master
         self.active_tabs = {}
         self.active_tabs_name_list = []
         self.selected_tabs = None
         self.update_item()
     def update_item(self):
-        SZ_1 = int(self.sz * 1)
+        SZ_2 = int(self.sz * 2)
         for idx,key in enumerate(self.active_tabs):
             page_label:ttk.Button = self.active_tabs[key]
             page_label.pack_forget()
-            page_label.pack(fill='y',padx=SZ_1,side='left',pady=0)
+            page_label.pack(fill='y',padx=(0,SZ_2),side='left',pady=0)
     def add(self,name):
         # 添加对象
+        # bootstyle_dict = {'媒体':'warning', '角色':'success', '剧本':'primary'}
         self.active_tabs[name] = TabNote(master=self,text=name,bootstyle='primary',screenzoom=self.sz)
         self.active_tabs_name_list.append(name)
         # 触发点击事件
@@ -143,8 +144,8 @@ class TabNote(ttk.Button):
         # 复原所有已点击
         for key in self.master.active_tabs:
             self.master.active_tabs[key].recover()
-        self.config(bootstyle='light')
-        self.dele.config(bootstyle='light')
+        self.config(bootstyle=self.bootstyle+'-link')
+        self.dele.config(bootstyle=self.bootstyle+'-link')
     def recover(self):
         self.config(bootstyle=self.bootstyle)
         self.dele.config(bootstyle=self.bootstyle)

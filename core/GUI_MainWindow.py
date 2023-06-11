@@ -40,8 +40,8 @@ class RplGenStudioMainWindow(ttk.Window):
         self.bind('<F11>', self.switch_fullscreen)
         # 视图
         self.view = {
-            # 'project': ProjectView(master=self,screenzoom=self.sz),
-            'project': EmptyView(master=self,screenzoom=self.sz),
+            'project': ProjectView(master=self,screenzoom=self.sz,project_file=None),
+            # 'project': EmptyView(master=self,screenzoom=self.sz),
             'console': ConsoleView(master=self,screenzoom=self.sz),
             'script' : ScriptView( master=self,screenzoom=self.sz),
             'setting': PreferenceView(master=self,screenzoom=self.sz)
@@ -51,8 +51,8 @@ class RplGenStudioMainWindow(ttk.Window):
     # 初始化主题
     def theme_config(self):
         # 样式
-        SZ_3 = int(3 * self.sz)
         SZ_5 = int(5 * self.sz)
+        SZ_10 = int(10 * self.sz)
         text_label_pad = (SZ_5,0,SZ_5,0)
         # 导航栏的按钮
         # self.style.configure('dark.TButton',font="-family 微软雅黑 -size 18 -weight bold",compound='left',padding=(SZ_3,0,0,0))
@@ -60,6 +60,7 @@ class RplGenStudioMainWindow(ttk.Window):
         self.style.configure('output.TButton',compound='left',font="-family 微软雅黑 -size 14 -weight bold")
         self.style.configure('dark.TButton',font="-family 微软雅黑 -size 18 -weight bold",anchor='w')
         self.style.configure('info.TButton',font="-family 微软雅黑 -size 16 -weight bold",anchor='center',foreground="#555555")
+        self.style.configure('light.TButton',anchor='w')
         # 媒体定义的颜色标签
         self.style.configure('Violet.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#ffffff',background='#a690e0')
         self.style.configure('Iris.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#ffffff',background='#729acc')

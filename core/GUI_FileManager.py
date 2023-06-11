@@ -253,7 +253,7 @@ class FileCollapsing(ttk.Frame):
     def __init__(self,master,screenzoom:float,fileclass:str,content,page_frame:PageFrame):
         self.sz = screenzoom
         self.page_frame = page_frame
-        SZ_5 = int(self.sz * 5)
+        SZ_5 = int(self.sz * 10)
         SZ_2 = int(self.sz * 2)
         super().__init__(master=master,borderwidth=0)
         self.class_text = {'mediadef':'媒体库','chartab':'角色配置','rplgenlog':'剧本文件'}[fileclass]
@@ -347,6 +347,7 @@ class FileCollapsing(ttk.Frame):
         self.items[new_keyword] = ttk.Button(
             master      = self.content_frame,
             text        = new_keyword,
+            image       = self.img_name,
             bootstyle   = 'light',
             padding     = self.button_padding,
             compound    = 'left',
@@ -464,12 +465,25 @@ class MDFCollapsing(FileCollapsing):
     }
     def __init__(self, master, screenzoom: float, content:MediaDef, page_frame:PageFrame):
         super().__init__(master, screenzoom, 'mediadef', content, page_frame)
+        SZ_15 = int(self.sz * 15)
+        icon_size = [SZ_15,SZ_15]
+        self.image_path = {
+            'Pos'       : './media/icon/FM_pos.png',
+            'Text'      : './media/icon/FM_text.png',
+            'Bubble'    : './media/icon/FM_bubble.png',
+            'Animation' : './media/icon/FM_animation.png',
+            'Background': './media/icon/FM_background.png',
+            'Audio'     : './media/icon/FM_audio.png',
+        }
+        self.image = {}
         for mediatype in ['Pos', 'Text', 'Bubble', 'Animation', 'Background', 'Audio']:
             filename = self.media_type_name[mediatype]
             showname = "{} ({})".format(filename,mediatype)
+            self.image[mediatype] = ImageTk.PhotoImage(name='FM_'+mediatype , image=Image.open(self.image_path[mediatype]).resize(icon_size))
             self.items[mediatype] = ttk.Button(
                 master      = self.content_frame,
                 text        = showname,
+                image       = 'FM_'+mediatype,
                 bootstyle   = 'light',
                 padding     = self.button_padding,
                 compound    = 'left',
@@ -491,10 +505,14 @@ class MDFCollapsing(FileCollapsing):
 class CTBCollapsing(FileCollapsing):
     def __init__(self, master, screenzoom: float, content:CharTable, page_frame:PageFrame):
         super().__init__(master, screenzoom, 'chartab', content, page_frame)
+        SZ_15 = int(self.sz * 15)
         SZ_10 = int(self.sz * 10)
         SZ_5  = int(self.sz * 5 )
         SZ_3  = int(self.sz * 3 )
         SZ_1  = int(self.sz * 1 )
+        icon_size = [SZ_15,SZ_15]
+        self.image = ImageTk.PhotoImage(name='FM_charactor' , image=Image.open('./media/icon/FM_charactor.png').resize(icon_size))
+        self.img_name = 'FM_charactor'
         # 新建按钮
         self.add_button = ttk.Button(master=self.collapbutton,text='新增+',bootstyle='warning',padding=0,command=self.add_item)
         self.add_button.pack(side='right',padx=SZ_10,pady=SZ_5,ipady=SZ_1,ipadx=SZ_3)
@@ -504,6 +522,7 @@ class CTBCollapsing(FileCollapsing):
             self.items[name] = ttk.Button(
                 master      = self.content_frame,
                 text        = name,
+                image       = self.img_name,
                 bootstyle   = 'light',
                 padding     = self.button_padding,
                 compound    = 'left',
@@ -551,10 +570,14 @@ class CTBCollapsing(FileCollapsing):
 class RGLCollapsing(FileCollapsing):
     def __init__(self, master, screenzoom: float, content:dict, page_frame:PageFrame):
         super().__init__(master, screenzoom, 'rplgenlog', content, page_frame)
+        SZ_15 = int(self.sz * 15)
         SZ_10 = int(self.sz * 10)
         SZ_5  = int(self.sz * 5 )
         SZ_3  = int(self.sz * 3 )
         SZ_1  = int(self.sz * 1 )
+        icon_size = [SZ_15,SZ_15]
+        self.image = ImageTk.PhotoImage(name='FM_logfile' , image=Image.open('./media/icon/FM_logfile.png').resize(icon_size))
+        self.img_name = 'FM_logfile'
         # 新建按钮
         self.add_button = ttk.Button(master=self.collapbutton,text='新增+',bootstyle='warning',padding=0,command=self.add_item)
         self.add_button.pack(side='right',padx=SZ_10,pady=SZ_5,ipady=SZ_1,ipadx=SZ_3)
@@ -563,6 +586,7 @@ class RGLCollapsing(FileCollapsing):
             self.items[key] = ttk.Button(
                 master      = self.content_frame,
                 text        = key,
+                image       = self.img_name,
                 bootstyle   = 'light',
                 padding     = self.button_padding,
                 compound    = 'left',

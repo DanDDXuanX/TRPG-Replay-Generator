@@ -38,9 +38,9 @@ class EmptyView(ttk.Frame):
             'intel_p': ImageTk.PhotoImage(name='intel_p', image=Image.open('./media/icon/intel.png').resize(icon_size)),
         }
         self.open_project_buttons = {
-            'open_p' : ttk.Button(master=self.content, text='打开项目',     compound='top', image='open_p' ,bootstyle='large.info',command=self.open_project),
-            'new_p'  : ttk.Button(master=self.content, text='新建空白项目', compound='top', image='new_p'  ,bootstyle='large.info',command=self.new_project),
-            'intel_p': ttk.Button(master=self.content, text='新建智能项目', compound='top', image='intel_p',bootstyle='large.info',command=self.intel_project),
+            'open_p' : ttk.Button(master=self.content, text='打开项目',     compound='top', image='open_p' ,bootstyle='info',command=self.open_project),
+            'new_p'  : ttk.Button(master=self.content, text='新建空白项目', compound='top', image='new_p'  ,bootstyle='info',command=self.new_project),
+            'intel_p': ttk.Button(master=self.content, text='新建智能项目', compound='top', image='intel_p',bootstyle='info',command=self.intel_project),
         }
         self.update_items()
     def update_items(self):
