@@ -14,6 +14,7 @@ from .Utils import EDITION
 
 # 项目视图
 from .GUI_View import EmptyView, ProjectView, ConsoleView, ScriptView, PreferenceView
+from .GUI_Theme import USER_THEMES
 
 class RplGenStudioMainWindow(ttk.Window):
     def __init__(
@@ -23,7 +24,6 @@ class RplGenStudioMainWindow(ttk.Window):
         self.sz = self.get_screenzoom()
         super().__init__(
             title       = '回声工坊 ' + EDITION,
-            themename   = 'rplgenlight',
             iconphoto   = './media/icon.png',
             size        = (int(1500*self.sz),int(800*self.sz)),
             resizable   = (True,True),
@@ -54,8 +54,10 @@ class RplGenStudioMainWindow(ttk.Window):
         SZ_5 = int(5 * self.sz)
         SZ_10 = int(10 * self.sz)
         text_label_pad = (SZ_5,0,SZ_5,0)
-        # 导航栏的按钮
-        # self.style.configure('dark.TButton',font="-family 微软雅黑 -size 18 -weight bold",compound='left',padding=(SZ_3,0,0,0))
+        # 载入主题
+        self.style.load_user_themes('./media/GUI_theme.json')
+        self.style.theme_use('rplgenlight')
+        # 使用主题
         self.style.configure('terminal.TButton',compound='left',font="-family 微软雅黑 -size 14 -weight bold")
         self.style.configure('output.TButton',compound='left',font="-family 微软雅黑 -size 14 -weight bold")
         self.style.configure('dark.TButton',font="-family 微软雅黑 -size 18 -weight bold",anchor='w')

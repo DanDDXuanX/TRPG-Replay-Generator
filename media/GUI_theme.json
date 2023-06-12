@@ -1,0 +1,50 @@
+{
+    "themes":[
+        {
+            "rplgenlight": {
+                "type": "light",
+                "colors": {
+                    "primary": "#158cba",
+                    "secondary": "#919191",
+                    "success": "#28b62c",
+                    "info": "#e6e6e6",
+                    "warning": "#ff851b",
+                    "danger": "#ff4136",
+                    "light": "#f6f6f6",
+                    "dark": "#555555",
+                    "bg": "#ffffff",
+                    "fg": "#555555",
+                    "selectbg": "#919191",
+                    "selectfg": "#ffffff",
+                    "border": "#ced4da",
+                    "inputfg": "#555555",
+                    "inputbg": "#fff",
+                    "active": "#e5e5e5"
+                }
+            }
+        },
+        {
+            "rplgendark": {
+                "type": "dark",
+                "colors": {
+                    "primary": "#6f8dc6",
+                    "secondary": "#4e5d6c",
+                    "success": "#689d6d",
+                    "info": "#53acac",
+                    "warning": "#c2a87c",
+                    "danger": "#9d5151",
+                    "light": "#35404a",
+                    "dark": "#718397",
+                    "bg": "#2b3e50",
+                    "fg": "#ffffff",
+                    "selectbg": "#526170",
+                    "selectfg": "#ffffff",
+                    "border": "#222222",
+                    "inputfg": "#ebebeb",
+                    "inputbg": "#32465a",
+                    "active": "#2B4155"
+                }
+            }
+        }
+    ]
+}
