@@ -7,6 +7,7 @@ import sys
 
 import tkinter as tk
 import ttkbootstrap as ttk
+from ttkbootstrap.toast import ToastNotification
 from PIL import Image, ImageTk
 
 from .ProjConfig import Preference
@@ -37,7 +38,8 @@ class RplGenStudioMainWindow(ttk.Window):
         self.navigate_bar.place(x=0,y=0,width=int(80*self.sz),relheight=1)
         # event
         self.navigate_bar.bind('<ButtonRelease-1>', self.navigateBar_get_click)
-        self.bind('<F11>', self.switch_fullscreen)
+        # self.bind('<F12>', self.show_toast)
+        # self.bind('<F11>', self.switch_fullscreen) # BUG 全屏模式下的窗口上下顺序会出现异常
         # 视图
         self.view = {
             'project': ProjectView(master=self,screenzoom=self.sz,project_file=None),
@@ -57,12 +59,13 @@ class RplGenStudioMainWindow(ttk.Window):
         # 载入主题
         self.style.load_user_themes('./media/GUI_theme.json')
         self.style.theme_use('rplgenlight')
+        # self
         # 使用主题
         self.style.configure('terminal.TButton',compound='left',font="-family 微软雅黑 -size 14 -weight bold")
         self.style.configure('output.TButton',compound='left',font="-family 微软雅黑 -size 14 -weight bold")
         self.style.configure('dark.TButton',font="-family 微软雅黑 -size 18 -weight bold",anchor='w')
         self.style.configure('info.TButton',font="-family 微软雅黑 -size 16 -weight bold",anchor='center',foreground="#555555")
-        self.style.configure('light.TButton',anchor='w')
+        self.style.configure('notebook.TButton',anchor='center',padding=(SZ_10,10,SZ_10,10))
         # 媒体定义的颜色标签
         self.style.configure('Violet.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#ffffff',background='#a690e0')
         self.style.configure('Iris.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#ffffff',background='#729acc')
@@ -129,7 +132,12 @@ class RplGenStudioMainWindow(ttk.Window):
     # 进入或者取消全屏
     def switch_fullscreen(self,event):
         self.attributes("-fullscreen", not self.attributes("-fullscreen"))
-
+    # 显示toast
+    def show_toast(self,message,title='test'):
+        toast = ToastNotification(title=title,message=message)
+        toast.show_toast()
+        toast.toplevel.lift()
+        
 # 最右导航栏的
 class NavigateBar(ttk.Frame):
     """
@@ -172,6 +180,8 @@ class NavigateBar(ttk.Frame):
         }
         # 高亮的线
         self.choice = ttk.Frame(master=self,bootstyle='primary')
+        # 禁用
+        self.disabled = False
         # self.titles
         self.place_widgets(self.is_wide)
     # 放置元件
@@ -207,6 +217,10 @@ class NavigateBar(ttk.Frame):
         self.press_button('project')
     # 点击按键的绑定事件：标注
     def press_button(self,button):
+        # 检查是否禁用
+        if self.disabled:
+            ToastNotification(title='禁用图形界面',message='核心程序正在运行中！在核心程序终止前，图形界面已被暂时的禁用。').show_toast()
+            return
         position = {'setting':80,'project':180,'script':260,'console':340}[button]*self.sz
         SZ_5 = int(self.sz * 5)
         SZ_60 = int(self.sz * 60)
@@ -215,3 +229,8 @@ class NavigateBar(ttk.Frame):
         else:
             self.choice.place_configure(y=position)
             self.master.view_show(button)
+    # 禁用
+    def disable_navigate(self):
+        self.disabled = True
+    def enable_navigate(self):
+        self.disabled = False

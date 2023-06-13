@@ -107,6 +107,7 @@ class OutPutCommand(ttk.Frame):
         finally:
             pygame.init()
             pygame.font.init()
+            self.winfo_toplevel().navigate_bar.enable_navigate()
     def export_video(self):
         try:
             self.load_input()
@@ -116,6 +117,7 @@ class OutPutCommand(ttk.Frame):
         finally:
             pygame.init()
             pygame.font.init()
+            self.winfo_toplevel().navigate_bar.enable_navigate()
     def export_xml(self):
         try:
             # 调整全局变量
@@ -130,9 +132,11 @@ class OutPutCommand(ttk.Frame):
             pygame.init()
             pygame.font.init()
             MediaObj.export_xml = False
+            self.winfo_toplevel().navigate_bar.enable_navigate()
     def open_new_thread(self,output_type:str):
         # 先切换到终端页
         self.winfo_toplevel().navigate_bar.press_button('console')
+        self.winfo_toplevel().navigate_bar.disable_navigate()
         # 检查是否有正在执行的
         if self.runing_thread is None:
             pass
