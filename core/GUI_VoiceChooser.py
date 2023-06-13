@@ -1,0 +1,252 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# 语音合成音源的浏览框体
+
+import tkinter as tk
+import ttkbootstrap as ttk
+from .TTSengines import Aliyun_TTS_engine, Azure_TTS_engine, Beats_engine, voice_lib
+from ttkbootstrap.dialogs import Messagebox
+# 语音参数
+class VoiceArgs(ttk.Frame):
+    def __init__(self,master,screenzoom,service:str,voice:str='',speech_rate:int=0,pitch_rate:int=0):
+        # 缩放尺度
+        self.sz = screenzoom
+        SZ_5 = int(self.sz *5)
+        super().__init__(master,borderwidth=SZ_5)
+        # variables
+        self.service = service
+        self.voice_description = '无'
+        self.voice_lib = voice_lib[voice_lib.service==self.service]
+        # 载入输入参数
+        self.variables = {}
+        self.load_input_args(voice=voice,speech_rate=speech_rate,pitch_rate=pitch_rate)
+        # labels
+        self.frames = {
+            'voice'         : ttk.Frame(master=self),
+            'speechrate'    : ttk.Frame(master=self),
+            'pitchrate'     : ttk.Frame(master=self),
+        }
+        self.labels = {
+            'voice'         : ttk.Label(master=self.frames['voice'],text='音源名：',width=6),
+            'speechrate'    : ttk.Label(master=self.frames['speechrate'],text='语速：',width=6),
+            'pitchrate'     : ttk.Label(master=self.frames['pitchrate'],text='语调：',width=6)
+        }
+        # input
+        self.inputs = {
+            'voice'         : ttk.Combobox(master=self.frames['voice'],textvariable=self.variables['voice'],values=list(self.voice_lib.index)),
+            'speechrate'    : ttk.Scale(self.frames['speechrate'],from_=-500,to=500,variable=self.variables['speechrate'],command=lambda _:self.get_scale_to_intvar(self.variables['speechrate'])),
+            'pitchrate'     : ttk.Scale(self.frames['pitchrate'],from_=-500,to=500,variable=self.variables['pitchrate'],command=lambda _:self.get_scale_to_intvar(self.variables['pitchrate'])),
+        }
+        self.inputs['voice'].bind("<<ComboboxSelected>>",self.update_selected_voice)
+        # addition
+        self.addition = {
+            'voice'         : ttk.Label(self.frames['voice'],text=self.voice_description, width=18),
+            'speechrate'    : ttk.Spinbox(master=self.frames['speechrate'],textvariable=self.variables['speechrate'], width=8, from_=-500,to=500,increment=10),
+            'pitchrate'     : ttk.Spinbox(master=self.frames['pitchrate'],textvariable=self.variables['pitchrate'], width=8, from_=-500,to=500,increment=10)
+        }
+        self.display_order = ['voice','speechrate','pitchrate']
+    def update_elements(self):
+        SZ_5 = int(self.sz * 5)
+        for keyword in self.display_order:
+            self.labels[keyword].pack(fill='none',side='left',padx=SZ_5)
+            self.inputs[keyword].pack(fill='x',side='left',padx=SZ_5,expand=True)
+            # 不一定有的
+            if self.addition[keyword] is not None:
+                self.addition[keyword].pack(fill='none',side='left',padx=SZ_5)
+    def update_items(self):
+        SZ_5 = int(self.sz * 5)
+        for keyword in self.display_order:
+            if keyword in self.frames:
+                self.frames[keyword].pack(fill='x',side='top',pady=SZ_5)
+    def load_input_args(self,voice,speech_rate,pitch_rate):
+        # 载入输入参数
+        if voice in self.voice_lib.index:
+            self.variables['voice'] = tk.StringVar(master=self, value=voice)
+            self.variables['speechrate'] = tk.IntVar(master=self, value=speech_rate)
+            self.variables['pitchrate'] = tk.IntVar(master=self, value=pitch_rate)
+        else:
+            self.variables['voice'] = tk.StringVar(master=self, value='')
+            self.variables['speechrate'] = tk.IntVar(master=self, value=0)
+            self.variables['pitchrate'] = tk.IntVar(master=self, value=0)
+    def get_voice_info(self,colname='description')->str:
+        try:
+            return self.voice_lib.loc[self.variables['voice'].get(),colname]
+        except Exception:
+            return {'description':'无','style':'general','role':'Default'}[colname]
+    def update_selected_voice(self,event):
+        # 更新介绍label
+        self.addition['voice'].configure(text=self.get_voice_info('description'))
+    def get_scale_to_intvar(self,variable):
+        variable.set(int(variable.get()))
+    def get_args(self) -> dict:
+        return {
+            'voice' : self.variables['voice'].get(),
+            'speechrate' :self.variables['speechrate'].get(),
+            'pitchrate' :self.variables['pitchrate'].get(),
+        }
+class AliyunVoiceArgs(VoiceArgs):
+    def __init__(self, master, screenzoom, voice: str = '', speech_rate: int = 0, pitch_rate: int = 0):
+        # 继承
+        super().__init__(master, screenzoom, service='Aliyun', voice=voice, speech_rate=speech_rate, pitch_rate=pitch_rate)
+        # 放置元件
+        self.update_selected_voice(None)
+        self.update_elements()
+        self.update_items()
+    def get_args(self) -> dict:
+        if self.variables['voice'].get() in self.voice_lib.index:
+            return super().get_args()
+        else:
+            raise Exception('Invalid Voice Name.')
+class BeatsVoiceArgs(VoiceArgs):
+    def __init__(self, master, screenzoom, voice: str = '', speech_rate: int = 0, pitch_rate: int = 0):
+        # 继承
+        super().__init__(master, screenzoom, service='Beats', voice=voice, speech_rate=0, pitch_rate=0)
+        # 禁用语速语调
+        for keyword in ['speechrate','pitchrate']:
+            self.inputs[keyword].configure(state='disable')
+            self.addition[keyword].configure(state='disable')
+        # 放置元件
+        self.update_selected_voice(None)
+        self.update_elements()
+        self.update_items()
+    def load_input_args(self, voice, speech_rate, pitch_rate):
+        super().load_input_args(voice, speech_rate, pitch_rate)
+        # 强制归零语速和语调
+        self.variables['speechrate'].set(0)
+        self.variables['pitchrate'].set(0)
+    def get_args(self) -> dict:
+        if self.variables['voice'].get() in self.voice_lib.index:
+            args = super().get_args()
+            args['voice'] = 'Beats::' + args['voice']
+            return args
+        else:
+            raise Exception('Invalid Voice Name.')
+class AzureVoiceArgs(VoiceArgs):
+    def __init__(self, master, screenzoom, voice: str = '', speech_rate: int = 0, pitch_rate: int = 0):
+        # 继承
+        super().__init__(master, screenzoom, service='Azure', voice=voice, speech_rate=speech_rate, pitch_rate=pitch_rate)
+        # 添加额外
+        # frames
+        self.frames['style'] = ttk.Frame(master=self)
+        self.frames['roleplay'] = ttk.Frame(master=self)
+        # labels
+        self.labels['style'] = ttk.Label(master=self.frames['style'], text='风格：',width=6)
+        self.labels['degree'] = ttk.Label(master=self.frames['style'], text='强度：',width=6)
+        self.labels['roleplay'] = ttk.Label(master=self.frames['roleplay'], text='扮演：',width=6)
+        # input
+        self.inputs['style'] = ttk.Combobox(master=self.frames['style'],textvariable=self.variables['style'])
+        self.inputs['degree'] = ttk.Spinbox(master=self.frames['style'], textvariable=self.variables['degree'], width=8, from_=0.1,to=2.0,increment=0.1)
+        self.inputs['roleplay'] = ttk.Combobox(master=self.frames['roleplay'],textvariable=self.variables['roleplay'])
+        # add
+        self.addition['style'] = None # 空占位
+        self.addition['degree'] = None # 空占位
+        self.addition['roleplay'] = ttk.Label(master=self.frames['roleplay'], text='',width=18)
+        # order
+        self.display_order = ['voice','style','degree','roleplay','speechrate','pitchrate']
+        # 放置元件
+        self.update_selected_voice(None)
+        self.update_elements()
+        self.update_items()
+    def update_elements(self):
+        super().update_elements()
+        # degree的spinebox不需要扩展，保持宽度8
+        self.inputs['degree'].pack_configure(expand=False)
+    def update_selected_voice(self, event):
+        super().update_selected_voice(event)
+        this_style:list = self.get_voice_info(colname='style').split(',')
+        this_role:list = self.get_voice_info(colname='role').split(',')
+        self.inputs['style'].configure(values=this_style)
+        self.inputs['roleplay'].configure(values=this_role)
+    def load_input_args(self, voice, speech_rate, pitch_rate):
+        # Azure解析
+        if ':' in voice:
+            speaker,style,degree,roleplay = voice.split(':')
+            degree = float(degree)
+        else:
+            speaker = voice
+            style = 'general'
+            degree = 1.0
+            roleplay = 'Default'
+        # variable
+        self.variables['style'] = tk.StringVar(master=self,value=style)
+        self.variables['degree'] = tk.DoubleVar(master=self,value=degree)
+        self.variables['roleplay'] = tk.StringVar(master=self,value=roleplay)
+        # 继承（voice,speech,pitch）
+        super().load_input_args(speaker, speech_rate, pitch_rate)
+    def get_args(self) -> dict:
+        args = super().get_args()
+        style = self.variables['style'].get()
+        degree = str(self.variables['degree'].get())
+        roleplay = self.variables['roleplay'].get()
+        args['voice'] = 'Azure::' + ':'.join([args['voice'], style, degree, roleplay])
+        return args
+# 语音选择
+class VoiceChooser(ttk.Frame):
+    def __init__(self,master,screenzoom,voice:str,speech_rate:int,pitch_rate:int):
+        # 缩放尺度
+        self.sz = screenzoom
+        super().__init__(master,borderwidth=0)
+        SZ_10 = int(10 * self.sz)
+        SZ_5 = int(5*self.sz)
+        # 解析输入
+        if '::' in voice:
+            service,speaker = voice.split('::')
+            if service not in ['Aliyun','Azure','Beats']:
+                service = 'Aliyun'
+        else:
+            service = "Aliyun"
+            speaker = voice
+        # 建立元件
+        self.title = ttk.Label(master=self,text='选择音源',font='-family 微软雅黑 -size 15 -weight bold')
+        self.argument_notebook = ttk.Notebook(master=self,bootstyle="primary")
+        self.args_frame = {
+            'Aliyun'    : AliyunVoiceArgs(master=self.argument_notebook,screenzoom=self.sz,voice=speaker,speech_rate=speech_rate,pitch_rate=pitch_rate),
+            'Azure'     : AzureVoiceArgs(master=self.argument_notebook,screenzoom=self.sz,voice=speaker,speech_rate=speech_rate,pitch_rate=pitch_rate),
+            'Beats'     : BeatsVoiceArgs(master=self.argument_notebook,screenzoom=self.sz,voice=speaker,speech_rate=speech_rate,pitch_rate=pitch_rate),
+        }
+        for keyword in self.args_frame:
+            self.argument_notebook.add(self.args_frame[keyword],text='{}'.format(keyword))
+        # 切换初始化选择的标签
+        self.argument_notebook.select(self.args_frame[service])
+        # 测试文本
+        self.preview_frame = ttk.LabelFrame(master=self, text='测试文本',padding=(SZ_10,SZ_5,SZ_10,SZ_10))
+        self.preview_text = ttk.Text(master=self.preview_frame,font='-family 微软雅黑 -size 12',height=1)
+        self.preview_text.pack(fill='both',expand=True)
+        # 按钮
+        self.button_frame = ttk.Frame(master=self)
+        self.buttons = {
+            'confirm' : ttk.Button(master=self.button_frame,bootstyle='primary',text='确定',command=self.comfirm),
+            'preview' : ttk.Button(master=self.button_frame,bootstyle='primary',text='试听',command=self.preview),
+            'save'    : ttk.Button(master=self.button_frame,bootstyle='primary',text='保存',command=self.savefile),
+            'copy'    : ttk.Button(master=self.button_frame,bootstyle='primary',text='复制',command=self.copy_args),
+        }
+        for keyword in self.buttons:
+            self.buttons[keyword].pack(side='left',fill='x',expand=True,padx=SZ_10,ipady=SZ_5)
+        self.update_items()
+    def update_items(self):
+        SZ_10 = int(10 * self.sz)
+        SZ_5 = int(5*self.sz)
+        self.title.pack(side='top',fill='x',padx=SZ_10,pady=[SZ_10,SZ_5])
+        self.argument_notebook.pack(side='top',fill='x',padx=SZ_10,pady=SZ_5)
+        self.preview_frame.pack(side='top',fill='both',expand=True,padx=SZ_10,pady=SZ_5)
+        self.button_frame.pack(side='top',fill='x',padx=SZ_10,pady=[SZ_5,SZ_10])
+    def copy_args(self):
+        # 当前选中的标签页的名字
+        service:str = self.argument_notebook.tab(self.argument_notebook.select(), "text")
+        # 获取参数
+        this_VoiceArgs:VoiceArgs = self.args_frame[service]
+        try:
+            args = this_VoiceArgs.get_args()
+        except Exception:
+            Messagebox.show_error(message='音源名是无效的。',title='错误')
+            return
+        # 添加到剪贴板
+        self.clipboard_clear()
+        self.clipboard_append('\t'.join([str(x) for x in args.values()]))
+    def comfirm(self):
+        pass
+    def preview(self):
+        pass
+    def savefile(self):
+        pass

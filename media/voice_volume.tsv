@@ -92,3 +92,7 @@ Azure	zh-CN-XiaoyouNeural	晓悠:女	91	general	Default
 Azure	zh-CN-YunxiNeural	云希:男	100	general,angry,assistant,cheerful,depressed,disgruntled,embarrassed,fearful,narration-relaxed,sad,serious	Default,Narrator,YoungAdultMale,Boy
 Azure	zh-CN-YunyangNeural	云扬:男	100	general,customerservice,narration-professional,newscast-casual	Default
 Azure	zh-CN-YunyeNeural	云野:男	100	general,angry,calm,cheerful,disgruntled,embarrassed,fearful,sad,serious	Default,YoungAdultFemale,YoungAdultMale,OlderAdultFemale,OlderAdultMale,SeniorFemale,SeniorMale,Girl,Boy
+Beats	dadada	哒哒哒	100	general	Default
+Beats	dududu	嘟嘟嘟	100	general	Default
+Beats	kakaka	咔咔咔	100	general	Default
+Beats	zizizi	滋滋滋	100	general	Default
