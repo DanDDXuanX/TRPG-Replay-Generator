@@ -6,3 +6,4 @@ ffmpeg-python>=0.2.0
 pydub>=0.25.1
 openpyxl>=3.0.4
 azure-cognitiveservices-speech>=1.21.0
+ttkbootstrap>=1.10.0
