@@ -64,7 +64,7 @@ class RplGenStudioMainWindow(ttk.Window):
         self.style.configure('output.TButton',compound='left',font="-family 微软雅黑 -size 14 -weight bold")
         self.style.configure('dark.TButton',font="-family 微软雅黑 -size 18 -weight bold",anchor='w')
         self.style.configure('info.TButton',font="-family 微软雅黑 -size 16 -weight bold",anchor='center',foreground="#555555")
-        self.style.configure('notebook.TButton',anchor='center',padding=(SZ_10,10,SZ_10,10))
+        self.style.configure('light.TButton',anchor='w')
         # 媒体定义的颜色标签
         self.style.configure('Violet.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#ffffff',background='#a690e0')
         self.style.configure('Iris.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#ffffff',background='#729acc')

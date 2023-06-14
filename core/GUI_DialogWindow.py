@@ -9,6 +9,7 @@ from tkinter.filedialog import askopenfilename, askdirectory, asksaveasfilename
 from tkinter import StringVar, IntVar
 from .Utils import rgba_str_2_hex
 from .GUI_VoiceChooser import VoiceChooserDialog
+from .GUI_Relocate import RelocateDialog
 
 class ColorChooserDialogZH(colorchooser.ColorChooserDialog):
     # 重载：在中文系统里，OK被翻译为确定了，这回导致选色的值不输出到result
@@ -68,6 +69,9 @@ def voice_chooser(master,voice_obj:StringVar,speech_obj:IntVar,pitch_obj:IntVar)
     else:
         return None
 
+# 打开重定位文件，并获取一个包含了前后文件路径的表格
+def relocate_file(master, file_not_found:dict):
+    pass
 filetype_dic = {
     'logfile':      [('剧本文件',('*.rgl','*.txt')),('全部文件','*.*')],
     'chartab':      [('角色配置表',('*.tsv','*.csv','*.xlsx','*.txt')),('全部文件','*.*')],
