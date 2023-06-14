@@ -124,8 +124,8 @@ class ConsoleView(ttk.Frame):
         # 子原件
         self.texture = Texture(master=self, screenzoom=self.sz, file='./media/icon/texture4.png')
         # self.terminal = VoiceChooser(master=self,screenzoom=self.sz,voice='Azure::zh-CN-YunxiNeural:assistant:1.0:Boy',speech_rate=30,pitch_rate=-70)
-        # self.terminal = Terminal(master=self,screenzoom=self.sz)
-        self.terminal = RelocateFile(master=self, screenzoom=self.sz, file_not_found={'A':'./media/icon/texture4.png','B':'./media/icon/texture2.png','C':'./media/icon/texture3.png'})
+        # self.terminal = RelocateFile(master=self, screenzoom=self.sz, file_not_found={'A':'./media/icon/texture4.png','B':'./media/icon/texture2.png','C':'./media/icon/texture3.png'})
+        self.terminal = Terminal(master=self,screenzoom=self.sz)
         # 更新
         self.update_item()
     def update_item(self):

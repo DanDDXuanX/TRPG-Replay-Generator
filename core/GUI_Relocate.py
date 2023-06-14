@@ -19,18 +19,20 @@ class RelocateFile(ttk.Frame):
         super().__init__(master,borderwidth=0)
         SZ_10 = int(10 * self.sz)
         SZ_5 = int(5*self.sz)
+        SZ_3 = int(3*self.sz)
         # 关闭窗口命令
         self.close_func = close_func
         # 建立表格
         self.data = pd.DataFrame(columns=['media_name','file_name','invalid_path','relocate_path'])
         # 建立原件
-        self.title = ttk.Label(master=self,text='重新定位素材',font='-family 微软雅黑 -size 15 -weight bold')
+        self.title = ttk.Label(master=self,font='-family 微软雅黑 -size 15 -weight bold')
         # 表格
         self.table = ttk.Treeview(
             master=self,
             show='headings',
             bootstyle='primary',
-            columns= ['media_name','file_name','invalid_path','relocate_path']
+            columns= ['media_name','file_name','invalid_path','relocate_path'],
+            height=20
             )
         self.table.column('#0',anchor='center',width=50,stretch=False)
         self.table.column('media_name',anchor='center',width=150,stretch=True)
@@ -51,7 +53,7 @@ class RelocateFile(ttk.Frame):
             'comfirm' :ttk.Button(master=self.button_frame,bootstyle='primary',text='确定',width=10,command=self.comfirm),
         }
         for keyword in self.buttons:
-            self.buttons[keyword].pack(side='left',padx=SZ_10,ipady=SZ_5,expand=True,fill='x')
+            self.buttons[keyword].pack(side='left',padx=SZ_10,ipady=SZ_3,expand=True,fill='x')
         # 初始化显示
         self.load_missing_path(file_not_found)
         self.update_items()
@@ -72,8 +74,15 @@ class RelocateFile(ttk.Frame):
                 text=str(idx+1),
                 values=(name, filename, path, '')
                 )
+        # 用于显示的标题
+        self.relocate_len = 0
+        self.missing_len = len(self.data)
+        self.update_title()
         # 更新数据
-    def get_file_to_search(self,colname):
+    def update_title(self):
+        self.relocate_len = self.missing_len - len(self.get_file_to_search())
+        self.title.config(text=f'重新定位媒体[{self.relocate_len}/{self.missing_len}]')
+    def get_file_to_search(self,colname='media_name'):
         return self.data.query("relocate_path=='None'")[colname].values
     def search_file_by_browse(self):
         # 选择目录
@@ -87,19 +96,21 @@ class RelocateFile(ttk.Frame):
                         for key in self.data[self.data['file_name'] == file].index:
                             new_path = os.path.join(root, file).replace('\\','/')
                             self.update_relocate_path(key,new_path)
+            self.update_title()
         else:
             pass
     def offline_a_file(self):
-        print(self.table.selection())
         try:
             select_idx = [self.table.index(x) for x in self.table.selection()]
             for idx in select_idx:
                 self.update_relocate_path(idx, '脱机')
+            self.update_title()
         except IndexError:
             return
     def offline_all_file(self):
         for idx in self.data.index:
             self.update_relocate_path(idx, '脱机')
+        self.update_title()
     def comfirm(self):
         # 如不不为空
         if len(self.get_file_to_search('relocate_path'))!=0:
@@ -112,6 +123,7 @@ class RelocateFile(ttk.Frame):
     def update_items(self):
         SZ_10 = int(10 * self.sz)
         SZ_5 = int(5*self.sz)
+        SZ_1 = int(1 * self.sz)
         self.title.pack(side='top',fill='x',padx=SZ_10,pady=[SZ_10,SZ_5])
         self.table.pack(side='top',fill='both',expand=True,padx=SZ_10,pady=SZ_5)
         self.button_frame.pack(side='top',fill='x',padx=SZ_10,pady=[SZ_5,SZ_10])

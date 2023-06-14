@@ -18,7 +18,7 @@ from .ProjConfig import Config
 from .Exceptions import MediaError
 from .Medias import MediaObj
 from .GUI_TabPage import PageFrame, RGLPage, CTBPage, MDFPage
-from .GUI_DialogWindow import browse_file, save_file
+from .GUI_DialogWindow import browse_file, save_file, relocate_file
 # 项目视图-文件管理器-RGPJ
 class RplGenProJect(Script):
     def __init__(self, json_input=None) -> None:
@@ -73,10 +73,10 @@ class FileManager(ttk.Frame):
         # 图形
         SZ_30 = int(self.sz * 30)
         SZ_300 = int(self.sz * 300)
-        SZ_180 = int(self.sz * 180)
+        SZ_180 = int(self.sz * 168.75)
         icon_size = [SZ_30,SZ_30]
         self.image = {
-            'title'     : ImageTk.PhotoImage(name='title',   image=Image.open('./toy/media/bg1.jpg').resize([SZ_300,SZ_180])),
+            'title'     : ImageTk.PhotoImage(name='title',   image=Image.open('./toy/toy_cover.jpg').resize([SZ_300,SZ_180])),
             'save'      : ImageTk.PhotoImage(name='save' ,   image=Image.open('./media/icon/save.png').resize(icon_size)),
             'config'    : ImageTk.PhotoImage(name='config',   image=Image.open('./media/icon/setting.png').resize(icon_size)),
             'import'    : ImageTk.PhotoImage(name='import',   image=Image.open('./media/icon/import.png').resize(icon_size)),
@@ -106,6 +106,8 @@ class FileManager(ttk.Frame):
         # 文件管理器的项目对象
         self.project:RplGenProJect = RplGenProJect(json_input=project_file)
         self.project_file:str = project_file
+        # 在初始化的时候，检查文件可用性
+        self.check_project_media_exist()
         # 文件浏览器元件
         self.project_content = ScrolledFrame(master=self,borderwidth=0,bootstyle='light',autohide=True)
         self.project_content.vscroll.config(bootstyle='warning-round')
@@ -122,11 +124,11 @@ class FileManager(ttk.Frame):
         }
         # 放置
         self.update_item()
-        self.project_content.pack(fill='both',expand=True,side='top')
     def update_item(self):
         for idx,key in enumerate(self.items):
             fileitem:ttk.Button = self.items[key]
             fileitem.pack(fill='x',pady=0,side='top')
+        self.project_content.pack(fill='both',expand=True,side='top')
     # 检查相关文件是否存在
     def check_file_exist(self,filepath:str)->bool:
         if filepath in MediaObj.cmap.keys() or filepath == 'None' or filepath is None:
@@ -136,6 +138,24 @@ class FileManager(ttk.Frame):
             return True
         except MediaError:
             return False
+    # 项目层面上的整体文件检查，如果存在脱机素材会唤起定位文件的对话框
+    def check_project_media_exist(self):
+        file_not_found = {}
+        for keyword in self.project.mediadef.struct:
+            this_section:dict = self.project.mediadef.struct[keyword]
+            # 检查文件可用性
+            if 'filepath' in this_section:
+                file_path = this_section['filepath']
+            elif 'fontfile' in this_section:
+                file_path = this_section['fontfile']
+            else:
+                file_path = None
+            if not self.check_file_exist(file_path):
+                file_not_found[keyword] = file_path
+        # 检查是否有脱机素材，如果有则启动重定位
+        if len(file_not_found) != 0:
+            # 这个步骤可能会改变mediadef！
+            relocate_file(master=self,file_not_found=file_not_found,mediadef=self.project.mediadef)
     # 导入文件
     def import_file(self):
         get_file:str = browse_file(master=self.winfo_toplevel(),text_obj=tk.StringVar(),method='file',filetype='rgscripts')
@@ -150,9 +170,10 @@ class FileManager(ttk.Frame):
                     Types[ScriptType] = ScriptType()
             # 获取最优解析结果
             top_parse:Script = max(Types,key=lambda x:len(Types.get(x).struct))
-            if Types[top_parse] == 0:
+            if len(Types[top_parse].struct) == 0:
                 # 显示一个错误消息框
                 Messagebox().show_error(message='无法导入这个文件！',title='错误')
+                return 0
             else:
                 # 更新到项目
                 if top_parse is RplGenLog:
@@ -195,32 +216,22 @@ class FileManager(ttk.Frame):
                     showname = '媒体库'
                     imported:MediaDef = Types[top_parse]
                     collapse:MDFCollapsing = self.items['mediadef']
-                    file_not_found:list = []
                     for keyword in imported.struct:
                         # 检查是否是无效行
                         if imported.struct[keyword]['type'] in ['comment','blank']:
                             continue
-                        # 检查文件可用性
-                        if 'filepath' in imported.struct[keyword]:
-                            file_path = imported.struct[keyword]['filepath']
-                        elif 'fontpath' in imported.struct[keyword]:
-                            file_path = imported.struct[keyword]['fontpath']
-                        else:
-                            file_path = None
-                        if not self.check_file_exist(file_path):
-                            file_not_found.append(file_path)
                         # 检查文件名是否重复
                         keyword_new = keyword
                         while keyword_new in self.project.mediadef.struct.keys():
                             keyword_new = keyword_new + '_new'
                         else:
                             self.project.mediadef.struct[keyword_new] = imported.struct[keyword]
-                    # TODO：检查素材可及性？
-                    print(file_not_found)
-                    # self.relocation_file(file_not_found)
+                    # 检查是否有脱机素材，如果有则启动重定位
+                    self.check_project_media_exist()
                 else:
-                    return
+                    return 0
                 Messagebox().show_info(title='导入成功',message='成功向{showname}中导入共计{number}个小节/项目。'.format(showname=showname,number=len(imported.struct)))
+                return len(imported.struct)
     # 导出文件
     def export_file(self):
         # 如果导出完整的项目为脚本
@@ -238,7 +249,6 @@ class FileManager(ttk.Frame):
                 Messagebox().show_info(title='导出成功',message='成功将工程导出为脚本文件！\n导出路径：{}'.format(get_file))
             except Exception as E:
                 Messagebox().show_error(title='导出失败',message='无法将工程导出！\n由于：{}'.format(E))
-
     # 保存文件
     def save_file(self):
         if self.project_file is None:

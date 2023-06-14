@@ -403,6 +403,18 @@ class MediaDef(Script):
                     output.append(keys + ':' + sub_key)
         output.sort()
         return output
+    def update_media_file(self,name:str,old_path:str,new_path:str):
+        this_section = self.struct[name]
+        # 获取关键字
+        if this_section['type'] in ['Text','StrokeText','RichText']:
+            keyword = 'fontfile'
+        else:
+            keyword = 'filepath'
+        # 检查old是匹配的，才更新为new
+        if this_section[keyword] == old_path:
+            this_section[keyword] = new_path
+        else:
+            print(name, old_path, this_section[keyword])
 # 角色配置文件
 class CharTable(Script):
     # 初始化
