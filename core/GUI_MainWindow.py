@@ -15,7 +15,6 @@ from .Utils import EDITION
 
 # 项目视图
 from .GUI_View import EmptyView, ProjectView, ConsoleView, ScriptView, PreferenceView
-from .GUI_Theme import USER_THEMES
 
 class RplGenStudioMainWindow(ttk.Window):
     def __init__(

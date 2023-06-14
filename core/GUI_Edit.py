@@ -6,6 +6,7 @@ from ttkbootstrap.scrolled import ScrolledFrame
 from .GUI_Util import KeyValueDescribe, TextSeparator
 from .GUI_EditTableStruct import TableStruct, label_colors, projection, alignments, charactor_columns, fill_mode, fit_axis, True_False
 from .ScriptParser import MediaDef, RplGenLog
+from .GUI_DialogWindow import voice_chooser
 # 编辑区
 
 # 编辑窗
@@ -149,15 +150,15 @@ class CharactorEdit(EditWindow):
         for ele in ['Voice','SpeechRate','PitchRate']:
             self.elements[ele].describe.configure(command=lambda :self.open_voice_selection(
                 master=self,
-                voice=self.elements['Voice'].get(),
-                speech_rate=self.elements['SpeechRate'].get(),
-                pitch_rate=self.elements['PitchRate'].get(),
+                voice=self.elements['Voice'].value,
+                speech_rate=self.elements['SpeechRate'].value,
+                pitch_rate=self.elements['PitchRate'].value,
             ))
         # 更新
         self.update_item()
     # 打开音源选择窗
     def open_voice_selection(self, master, voice, speech_rate, pitch_rate):
-        print(voice,speech_rate,pitch_rate)
+        voice_chooser(master=master,voice_obj=voice,speech_obj=speech_rate,pitch_obj=pitch_rate)
 class MediaEdit(EditWindow):
     medef_tool = MediaDef()
     def __init__(self, master, screenzoom):

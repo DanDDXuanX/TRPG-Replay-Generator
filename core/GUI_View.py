@@ -15,7 +15,6 @@ from .GUI_Terminal import Terminal
 from .GUI_TableSet import ScriptExecuter, PreferenceTable
 from .GUI_Util import Texture
 from .GUI_DialogWindow import browse_file
-from .GUI_VoiceChooser import VoiceChooser
 # 脚本视图：运行 MDF、CTB、RGL 脚本文件的视图。
 # 控制台视图：容纳控制台输出内容的视图。
 # 首选项视图：设置整个程序的首选项的视图。
@@ -123,8 +122,8 @@ class ConsoleView(ttk.Frame):
         super().__init__(master,borderwidth=0,bootstyle='light')
         # 子原件
         self.texture = Texture(master=self, screenzoom=self.sz, file='./media/icon/texture4.png')
-        self.terminal = VoiceChooser(master=self,screenzoom=self.sz,voice='Azure::zh-CN-YunxiNeural:assistant:1.0:Boy',speech_rate=30,pitch_rate=-70)
-        # self.terminal = Terminal(master=self,screenzoom=self.sz)
+        # self.terminal = VoiceChooser(master=self,screenzoom=self.sz,voice='Azure::zh-CN-YunxiNeural:assistant:1.0:Boy',speech_rate=30,pitch_rate=-70)
+        self.terminal = Terminal(master=self,screenzoom=self.sz)
         # 更新
         self.update_item()
     def update_item(self):

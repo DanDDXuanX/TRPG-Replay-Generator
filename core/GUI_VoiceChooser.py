@@ -3,10 +3,15 @@
 
 # 语音合成音源的浏览框体
 
+from shutil import copy
 import tkinter as tk
 import ttkbootstrap as ttk
+from ttkbootstrap.dialogs import Messagebox, Dialog
+from tkinter.filedialog import asksaveasfilename
 from .TTSengines import Aliyun_TTS_engine, Azure_TTS_engine, Beats_engine, voice_lib
-from ttkbootstrap.dialogs import Messagebox
+from .Exceptions import WarningPrint
+from .Medias import Audio
+from .Utils import mod62_timestamp
 # 语音参数
 class VoiceArgs(ttk.Frame):
     def __init__(self,master,screenzoom,service:str,voice:str='',speech_rate:int=0,pitch_rate:int=0):
@@ -18,6 +23,7 @@ class VoiceArgs(ttk.Frame):
         self.service = service
         self.voice_description = '无'
         self.voice_lib = voice_lib[voice_lib.service==self.service]
+        self.TTS = Aliyun_TTS_engine
         # 载入输入参数
         self.variables = {}
         self.load_input_args(voice=voice,speech_rate=speech_rate,pitch_rate=pitch_rate)
@@ -85,10 +91,38 @@ class VoiceArgs(ttk.Frame):
             'speechrate' :self.variables['speechrate'].get(),
             'pitchrate' :self.variables['pitchrate'].get(),
         }
+    def exec_synthesis(self,text:str):
+        # 载入音源名
+        try:
+            args = self.get_args()
+        except ValueError as E:
+            return False, str(E)
+        if args['voice'] == '':
+            return False, '缺少音源名！'
+        elif '::' in args['voice']:
+            TTS_voice = args['voice'].split('::')[1]
+        else:
+            TTS_voice = args['voice']
+        # 新建语音合成对象
+        this_TTS = self.TTS(
+            name = 'preview',
+            voice = TTS_voice,
+            speech_rate = args['speechrate'],
+            pitch_rate = args['pitchrate'],
+            aformat = 'wav'
+        )
+        # 执行合成
+        try:
+            this_TTS.start(text=text, ofile='./media/preview_tempfile.wav')
+            return True, './media/preview_tempfile.wav'
+        except Exception as E:
+            print(WarningPrint('PrevFail',E))
+            return False, '语音合成失败！检视控制台获取详细信息。'
 class AliyunVoiceArgs(VoiceArgs):
     def __init__(self, master, screenzoom, voice: str = '', speech_rate: int = 0, pitch_rate: int = 0):
         # 继承
         super().__init__(master, screenzoom, service='Aliyun', voice=voice, speech_rate=speech_rate, pitch_rate=pitch_rate)
+        self.TTS = Aliyun_TTS_engine
         # 放置元件
         self.update_selected_voice(None)
         self.update_elements()
@@ -97,11 +131,12 @@ class AliyunVoiceArgs(VoiceArgs):
         if self.variables['voice'].get() in self.voice_lib.index:
             return super().get_args()
         else:
-            raise Exception('Invalid Voice Name.')
+            raise ValueError('音源名是无效的！')
 class BeatsVoiceArgs(VoiceArgs):
     def __init__(self, master, screenzoom, voice: str = '', speech_rate: int = 0, pitch_rate: int = 0):
         # 继承
         super().__init__(master, screenzoom, service='Beats', voice=voice, speech_rate=0, pitch_rate=0)
+        self.TTS = Beats_engine
         # 禁用语速语调
         for keyword in ['speechrate','pitchrate']:
             self.inputs[keyword].configure(state='disable')
@@ -122,10 +157,38 @@ class BeatsVoiceArgs(VoiceArgs):
             return args
         else:
             raise Exception('Invalid Voice Name.')
+    def exec_synthesis(self,text:str):
+        # 载入音源名
+        try:
+            args = self.get_args()
+        except ValueError as E:
+            return False, str(E)
+        if args['voice'] == '':
+            return False, '缺少音源名！'
+        elif '::' in args['voice']:
+            TTS_voice = args['voice'].split('::')[1]
+        else:
+            TTS_voice = args['voice']
+        # 新建语音合成对象：默认帧率=30，<w2w=2>
+        this_TTS = self.TTS(
+            name = 'preview',
+            voice = TTS_voice,
+            frame_rate = 30,
+            aformat = 'wav'
+        )
+        this_TTS.tx_method_specify(tx_method={"method":"w2w","method_dur":3})
+        # 执行合成
+        try:
+            this_TTS.start(text=text, ofile='./media/preview_tempfile.wav')
+            return True, './media/preview_tempfile.wav'
+        except Exception as E:
+            print(WarningPrint('PrevFail',E))
+            return False, '语音合成失败！检视控制台获取详细信息。'
 class AzureVoiceArgs(VoiceArgs):
     def __init__(self, master, screenzoom, voice: str = '', speech_rate: int = 0, pitch_rate: int = 0):
         # 继承
         super().__init__(master, screenzoom, service='Azure', voice=voice, speech_rate=speech_rate, pitch_rate=pitch_rate)
+        self.TTS = Azure_TTS_engine
         # 添加额外
         # frames
         self.frames['style'] = ttk.Frame(master=self)
@@ -154,6 +217,11 @@ class AzureVoiceArgs(VoiceArgs):
         self.inputs['degree'].pack_configure(expand=False)
     def update_selected_voice(self, event):
         super().update_selected_voice(event)
+        # 复原风格参数
+        self.variables['style'].set('general')
+        self.variables['degree'].set(1.0)
+        self.variables['roleplay'].set('Default')
+        # 刷新可选值
         this_style:list = self.get_voice_info(colname='style').split(',')
         this_role:list = self.get_voice_info(colname='role').split(',')
         self.inputs['style'].configure(values=this_style)
@@ -183,12 +251,14 @@ class AzureVoiceArgs(VoiceArgs):
         return args
 # 语音选择
 class VoiceChooser(ttk.Frame):
-    def __init__(self,master,screenzoom,voice:str,speech_rate:int,pitch_rate:int):
+    def __init__(self,master,screenzoom,voice:str,speech_rate:int,pitch_rate:int,close_func):
         # 缩放尺度
         self.sz = screenzoom
         super().__init__(master,borderwidth=0)
         SZ_10 = int(10 * self.sz)
         SZ_5 = int(5*self.sz)
+        # 关闭窗口命令
+        self.close_func = close_func
         # 解析输入
         if '::' in voice:
             service,speaker = voice.split('::')
@@ -211,7 +281,8 @@ class VoiceChooser(ttk.Frame):
         self.argument_notebook.select(self.args_frame[service])
         # 测试文本
         self.preview_frame = ttk.LabelFrame(master=self, text='测试文本',padding=(SZ_10,SZ_5,SZ_10,SZ_10))
-        self.preview_text = ttk.Text(master=self.preview_frame,font='-family 微软雅黑 -size 12',height=1)
+        self.preview_text = ttk.Text(master=self.preview_frame,font='-family 微软雅黑 -size 12',height=5,width=20)
+        self.preview_text.insert("end",'在这里输入你想要合成的文本！')
         self.preview_text.pack(fill='both',expand=True)
         # 按钮
         self.button_frame = ttk.Frame(master=self)
@@ -231,22 +302,85 @@ class VoiceChooser(ttk.Frame):
         self.argument_notebook.pack(side='top',fill='x',padx=SZ_10,pady=SZ_5)
         self.preview_frame.pack(side='top',fill='both',expand=True,padx=SZ_10,pady=SZ_5)
         self.button_frame.pack(side='top',fill='x',padx=SZ_10,pady=[SZ_5,SZ_10])
-    def copy_args(self):
+    def get_select_args(self)->VoiceArgs:
         # 当前选中的标签页的名字
         service:str = self.argument_notebook.tab(self.argument_notebook.select(), "text")
         # 获取参数
-        this_VoiceArgs:VoiceArgs = self.args_frame[service]
+        return self.args_frame[service]
+    def copy_args(self):
+        this_VoiceArgs = self.get_select_args()
         try:
             args = this_VoiceArgs.get_args()
-        except Exception:
-            Messagebox.show_error(message='音源名是无效的。',title='错误')
+        except ValueError as E:
+            Messagebox().show_error(message=E,title='错误')
             return
         # 添加到剪贴板
         self.clipboard_clear()
         self.clipboard_append('\t'.join([str(x) for x in args.values()]))
     def comfirm(self):
-        pass
-    def preview(self):
-        pass
-    def savefile(self):
+        this_VoiceArgs = self.get_select_args()
+        try:
+            args = this_VoiceArgs.get_args()
+            # 关闭
+            self.close_func(result=args)
+        except ValueError as E:
+            Messagebox().show_error(message=E,title='错误')
+            return
+    def preview(self)->bool:
+        this_VoiceArgs = self.get_select_args()
+        ptext = self.preview_text.get("0.0","end")
+        status, message = this_VoiceArgs.exec_synthesis(text=ptext)
+        if status:
+            try:
+                Audio(filepath=message).preview(None)
+                return True
+            except Exception as E:
+                print(WarningPrint('AuPlayFail',E))
+                Messagebox().show_error(message='无法播放音频文件！',title='播放失败')
+                return False
+        else:
+            Messagebox().show_error(message=message,title='合成失败')
+            return False
+    def savefile(self)->bool:
+        this_VoiceArgs = self.get_select_args()
+        ptext = self.preview_text.get("0.0","end")
+        status, message = this_VoiceArgs.exec_synthesis(text=ptext)
+        if status:
+            try:
+                voice_this = this_VoiceArgs.variables['voice'].get()
+                default_filename = voice_this.split(':')[0] + '_' + mod62_timestamp()+ '.wav'
+                save_path = asksaveasfilename(initialfile=default_filename,filetypes=[('音频文件','*.wav')])
+                if save_path != '':
+                    copy(message, save_path)
+                    return True
+                else:
+                    return False
+            except Exception as E:
+                print(WarningPrint('SaveFail',E))
+                Messagebox().show_error(message='无法保存音频文件！',title='保存失败')
+                return False
+        else:
+            Messagebox().show_error(message=message,title='合成失败')
+            return False
+class VoiceChooserDialog(Dialog):
+    def __init__(self, screenzoom, parent=None, title="选择语音音源", voice='', speechrate=0, pitchrate=0):
+        super().__init__(parent, title, alert=False)
+        self.sz = screenzoom
+        self.voice = voice
+        self.speech_rate = speechrate
+        self.pitch_rate = pitchrate
+    def close_dialog(self,result=None):
+        self._result = result
+        self._toplevel.destroy()
+    def create_body(self, master):
+        self.voice_chooser = VoiceChooser(
+            master,
+            screenzoom=self.sz,
+            voice=self.voice,
+            speech_rate=self.speech_rate,
+            pitch_rate=self.pitch_rate,
+            close_func=self.close_dialog
+        )
+        self.voice_chooser.pack(fill='both', expand=True)
+    def create_buttonbox(self, master):
         pass
