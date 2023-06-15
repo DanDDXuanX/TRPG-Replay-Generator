@@ -15,6 +15,7 @@ from .GUI_Terminal import Terminal
 from .GUI_TableSet import ScriptExecuter, PreferenceTable
 from .GUI_Util import Texture
 from .GUI_DialogWindow import browse_file
+from .GUI_CustomDialog import new_project
 # 脚本视图：运行 MDF、CTB、RGL 脚本文件的视图。
 # 控制台视图：容纳控制台输出内容的视图。
 # 首选项视图：设置整个程序的首选项的视图。
@@ -38,7 +39,7 @@ class EmptyView(ttk.Frame):
         }
         self.open_project_buttons = {
             'open_p' : ttk.Button(master=self.content, text='打开项目',     compound='top', image='open_p' ,bootstyle='info',command=self.open_project),
-            'new_p'  : ttk.Button(master=self.content, text='新建空白项目', compound='top', image='new_p'  ,bootstyle='info',command=self.new_project),
+            'new_p'  : ttk.Button(master=self.content, text='新建空白项目', compound='top', image='new_p'  ,bootstyle='info',command=self.empty_project),
             'intel_p': ttk.Button(master=self.content, text='新建智能项目', compound='top', image='intel_p',bootstyle='info',command=self.intel_project),
         }
         self.update_items()
@@ -49,21 +50,31 @@ class EmptyView(ttk.Frame):
             SZ_10 = int(self.sz * 10)
             this_button:ttk.Button = self.open_project_buttons[keyword]
             this_button.pack(side='left', fill='both',expand=True,padx=SZ_10,pady=SZ_10)
+    def open_project_file(self,filepath):
+        try:
+            PView = ProjectView(master=self.master,screenzoom=self.sz,project_file=filepath)
+            self.master.view['project'] = PView
+            self.place_forget()
+            self.master.view_show('project')
+            self.destroy()
+        except Exception as E:
+            from traceback import print_exc
+            print_exc()
+            Messagebox().show_error(message='无法读取工程文件，该文件可能已损坏。',title='打开失败',parent=self.winfo_toplevel())
     def open_project(self):
         get_file:str = browse_file(master=self.winfo_toplevel(),text_obj=tk.StringVar(),method='file',filetype='rplgenproj')
         if get_file != '':
-            try:
-                PView = ProjectView(master=self.master,screenzoom=self.sz,project_file=get_file)
-                self.master.view['project'] = PView
-                self.place_forget()
-                self.master.view_show('project')
-                self.destroy()
-            except Exception as E:
-                Messagebox().show_error(message='无法读取工程文件，该文件可能已损坏。',title='打开失败',parent=self.winfo_toplevel())
-    def new_project(self):
-        pass
+            self.open_project_file(filepath=get_file)
+    def empty_project(self):
+        get_file:str = new_project(master=self,ptype='Empty')
+        if get_file is not None:
+            self.open_project_file(filepath=get_file)
     def intel_project(self):
-        pass
+        return 
+        # 暂时还不可用的
+        get_file:str = new_project(master=self,ptype='Intel')
+        if get_file is not None:
+            self.open_project_file(filepath=get_file)
 # 项目视图
 class ProjectView(ttk.Frame):
     """
@@ -108,7 +119,6 @@ class ScriptView(ttk.Frame):
         self.texture.place(relx=0,rely=0,relwidth=1,relheight=1)
         self.content.place(relx=0.2,y=0,relwidth=0.6,relheight=1)
 # 控制台视图
-from .GUI_NewProject import CreateEmptyProject
 class ConsoleView(ttk.Frame):
     """
     各个元件的尺寸：以100%缩放为准
@@ -124,8 +134,8 @@ class ConsoleView(ttk.Frame):
         self.texture = Texture(master=self, screenzoom=self.sz, file='./media/icon/texture4.png')
         # self.terminal = VoiceChooser(master=self,screenzoom=self.sz,voice='Azure::zh-CN-YunxiNeural:assistant:1.0:Boy',speech_rate=30,pitch_rate=-70)
         # self.terminal = RelocateFile(master=self, screenzoom=self.sz, file_not_found={'A':'./media/icon/texture4.png','B':'./media/icon/texture2.png','C':'./media/icon/texture3.png'})
-        # self.terminal = Terminal(master=self,screenzoom=self.sz)
-        self.terminal = CreateEmptyProject(master=self,screenzoom=self.sz)
+        # self.terminal = CreateEmptyProject(master=self,screenzoom=self.sz)
+        self.terminal = Terminal(master=self,screenzoom=self.sz)
         # 更新
         self.update_item()
     def update_item(self):

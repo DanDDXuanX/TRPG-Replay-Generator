@@ -483,9 +483,10 @@ class CharTable(Script):
         chartab = pd.DataFrame(self.struct).T.fillna('NA')
         if len(chartab) == 0:
             chartab = pd.DataFrame(columns=table_col)
+            return chartab
         else:
             customize_col = [col for col in chartab.columns if col not in table_col]
-        return chartab[table_col+customize_col]
+            return chartab[table_col+customize_col]
     # 保存为文本文件 (tsv)
     def dump_file(self,filepath:str)->None:
         charactor_table = self.export()

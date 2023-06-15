@@ -6,7 +6,7 @@ from ttkbootstrap.scrolled import ScrolledFrame
 from .GUI_Util import KeyValueDescribe, TextSeparator
 from .GUI_EditTableStruct import TableStruct, label_colors, projection, alignments, charactor_columns, fill_mode, fit_axis, True_False
 from .ScriptParser import MediaDef, RplGenLog
-from .GUI_DialogWindow import voice_chooser
+from .GUI_CustomDialog import voice_chooser
 # 编辑区
 
 # 编辑窗

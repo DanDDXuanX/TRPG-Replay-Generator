@@ -18,7 +18,8 @@ from .ProjConfig import Config
 from .Exceptions import MediaError
 from .Medias import MediaObj
 from .GUI_TabPage import PageFrame, RGLPage, CTBPage, MDFPage
-from .GUI_DialogWindow import browse_file, save_file, relocate_file
+from .GUI_DialogWindow import browse_file, save_file
+from .GUI_CustomDialog import relocate_file
 # 项目视图-文件管理器-RGPJ
 class RplGenProJect(Script):
     def __init__(self, json_input=None) -> None:

@@ -1,17 +1,13 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# 会话框
+# tk内置的会话框
 
-import pandas as pd
 from ttkbootstrap.dialogs import colorchooser
 from ttkbootstrap.localization import MessageCatalog
 from tkinter.filedialog import askopenfilename, askdirectory, asksaveasfilename
-from tkinter import StringVar, IntVar
+from tkinter import StringVar
 from .Utils import rgba_str_2_hex
-from .GUI_VoiceChooser import VoiceChooserDialog
-from .GUI_Relocate import RelocateDialog
-from .ScriptParser import MediaDef
 
 class ColorChooserDialogZH(colorchooser.ColorChooserDialog):
     # 重载：在中文系统里，OK被翻译为确定了，这回导致选色的值不输出到result
@@ -48,57 +44,6 @@ def color_chooser(master,text_obj:StringVar,quote:bool=False)->str:
         return (R,G,B,A)
     else:
         # text_obj.set("")
-        return None
-    
-# 打开语音选择器，并把结果输出给 StringVar
-def voice_chooser(master,voice_obj:StringVar,speech_obj:IntVar,pitch_obj:IntVar):
-    init_voice = voice_obj.get()
-    init_speech = speech_obj.get()
-    init_pitch = pitch_obj.get()
-    dialog_window = VoiceChooserDialog(
-        parent=master,
-        screenzoom=master.sz,
-        title='选择语音音源',
-        voice=init_voice,
-        speechrate=init_speech,
-        pitchrate=init_pitch
-        )
-    dialog_window.show()
-    # 获取结果
-    result_args = dialog_window.result
-    if result_args:
-        voice_obj.set(result_args['voice'])
-        speech_obj.set(result_args['speechrate'])
-        pitch_obj.set(result_args['pitchrate'])
-        return result_args
-    else:
-        return None
-
-# 打开重定位文件，并获取一个包含了前后文件路径的表格
-def relocate_file(master, file_not_found:dict, mediadef:MediaDef):
-    dialog_window = RelocateDialog(
-        parent=master,
-        screenzoom=master.sz,
-        title = '重新定位媒体',
-        file_not_found=file_not_found,
-    )
-    dialog_window.show()
-    # 获取结果
-    result_args:pd.DataFrame = dialog_window.result
-    if result_args is not None:
-        for key,value in result_args.iterrows():
-            # 检查是否需要替换：空白和脱机则不需要替换
-            if value['relocate_path'] in ['None', '脱机']:
-                continue
-            else:
-                # 变更媒体定义文件
-                mediadef.update_media_file(
-                    name     = value['media_name'],
-                    old_path = value['invalid_path'],
-                    new_path = value['relocate_path']
-                    )
-        return result_args
-    else:
         return None
 
 filetype_dic = {

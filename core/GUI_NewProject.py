@@ -2,25 +2,27 @@
 # coding: utf-8
 
 # 新建空白项目，新建智能项目的窗口
-
 import os
-import pandas as pd
+import json
 import tkinter as tk
 import ttkbootstrap as ttk
-from ttkbootstrap.dialogs import Messagebox, Dialog
-from tkinter.filedialog import askdirectory
+from ttkbootstrap.dialogs import Dialog, Messagebox, MessageCatalog
 from .GUI_Util import KeyValueDescribe
 from .GUI_EditTableStruct import NewProjectTable
-from .GUI_DialogWindow import browse_file
 
 class CreateProject(ttk.Frame):
     table_struct = {}
-    def __init__(self,master,screenzoom):
+    def __init__(self,master,screenzoom,close_func):
         # 缩放尺度
         self.sz = screenzoom
-        super().__init__(master,borderwidth=0)
+        SZ_5 = int(5*self.sz)
+        super().__init__(master,borderwidth=SZ_5)
+        # 退出函数
+        self.close_func = close_func
+        # 结构
         self.seperator = {}
         self.elements = {}
+        self.comfirm_button = ttk.Button(master=self,text='确定',bootstyle='primary',command=self.confirm,width=10)
         self.build_struct()
         self.update_item()
     def build_struct(self):
@@ -46,14 +48,14 @@ class CreateProject(ttk.Frame):
                 )
     def update_item(self):
         SZ_5 = int(5*self.sz)
-        SZ_10 = int(10*self.sz)
-        SZ_15 = int(15*self.sz)
         for key in self.seperator:
             item = self.seperator[key]
-            item.pack(side='top',anchor='n',fill='x',pady=(0,SZ_5),padx=(SZ_10,SZ_10))
+            item.pack(side='top',anchor='n',fill='x',pady=(0,SZ_5),padx=(SZ_5,SZ_5))
         for key in self.elements:
             item = self.elements[key]
             item.pack(side='top',anchor='n',fill='x',pady=(0,SZ_5))
+        # 确认键
+        self.comfirm_button.pack(side='top',anchor='center',expand=False,pady=SZ_5)
     def clear_item(self):
         for key in self.elements:
             item:KeyValueDescribe = self.elements[key]
@@ -63,7 +65,48 @@ class CreateProject(ttk.Frame):
             item.destroy()
         self.elements.clear()
         self.seperator.clear()
-
+    def confirm(self):
+        W = int(self.elements['video_width'].get())
+        H = int(self.elements['video_height'].get())
+        F = int(self.elements['frame_rate'].get())
+        Z = self.elements['layer_zorder'].get().split(',')
+        save_dir = self.elements['save_pos'].get()
+        file_name = self.elements['proj_name'].get()
+        save_path = save_dir + '/' + file_name + '.rgpj'
+        # 检查合法性
+        if W<0 or H<0 or F<0:
+            Messagebox().show_warning(title='警告',message='分辨率或帧率是非法的数值！')
+            return False
+        for symbol in ['/','\\',':','*','?','"','<','>','|']:
+            if symbol in file_name:
+                Messagebox().show_warning(title='警告',message=f'文件名中不能包含符号 {symbol} ！')
+                return False
+        # 如果文件已经存在
+        if os.path.isfile(save_path):
+            choice = Messagebox().okcancel(title='文件已存在',message='目录下已经存在重名的项目文件，要覆盖吗？')
+            if choice != MessageCatalog.translate('OK'):
+                return False
+        # 新建项目结构
+        new_project_struct = {
+            'config':{
+                'Width'         : W,
+                'Height'        : H,
+                'frame_rate'    : F,
+                'Zorder'        : Z,
+            },
+            'mediadef':{},
+            'chartab':{},
+            'logfile':{}
+        }
+        # 保存文件
+        try:
+            with open(save_path,'w',encoding='utf-8') as of:
+                of.write(json.dumps(new_project_struct,indent=4))
+            # 退出
+            self.close_func(save_path)
+        except:
+            Messagebox().show_error(title='错误',message=f'无法保存文件到：\n{save_path}')
+            return False
 class CreateEmptyProject(CreateProject):
     # 原件：
     # 1. 基本（项目名称、项目封面、位置）
@@ -118,5 +161,29 @@ class CreateEmptyProject(CreateProject):
         else:
             self.elements['layer_zorder'].input.configure(state='normal')
 
-class CreateIntelProject(ttk.Frame):
+class CreateIntelProject(CreateProject):
     pass
+
+class CreateProjectDialog(Dialog):
+    def __init__(self, screenzoom, parent=None, ptype='Empty'):
+        if ptype == 'Intel':
+            super().__init__(parent, '新建智能项目', alert=False)
+        else:
+            super().__init__(parent, '新建空白项目', alert=False)
+        self.sz = screenzoom
+        self.ptype = ptype
+    def close_dialog(self,result=None):
+        self._result = result
+        self._toplevel.destroy()
+    def create_body(self, master):
+        if self.ptype == 'Intel':
+            pass
+        else:
+            self.create_project = CreateEmptyProject(
+                master = master,
+                screenzoom = self.sz,
+                close_func=self.close_dialog
+                )
+        self.create_project.pack(fill='both',expand=True)
+    def create_buttonbox(self, master):
+        pass

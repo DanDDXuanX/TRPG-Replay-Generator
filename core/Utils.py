@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 # 小工具们
-EDITION = 'alpha 1.24.22'
+EDITION = 'alpha 1.24.25'
 
 import numpy as np
 import time
