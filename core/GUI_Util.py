@@ -35,7 +35,6 @@ class DictCombobox(ttk.Combobox):
             self.var.set(self.dictionary[text])
         else:
             self.var.set(text)
-        print(self.var.get())
 
 # 一个键、值、描述的最小单位。
 class KeyValueDescribe(ttk.Frame):
@@ -87,13 +86,15 @@ class KeyValueDescribe(ttk.Frame):
         self.describe.pack(fill='none',side='left',padx=SZ_5)
     def get(self):
         return self.value.get()
-    def bind_button(self,dtype='picture-file'):
+    def bind_button(self,dtype='picture-file',quote=True):
         if type(self.describe) != ttk.Button:
             return
         # type=file
-        if 'file' in dtype:
+        if dtype == 'dir':
+            command = lambda:browse_file(master=self.winfo_toplevel(), text_obj=self.value, method='dir', filetype=None, quote=quote)
+        elif 'file' in dtype:
             filetype = dtype.split('-')[0]
-            command = lambda:browse_file(master=self.winfo_toplevel(), text_obj=self.value, method='file', filetype=filetype)
+            command = lambda:browse_file(master=self.winfo_toplevel(), text_obj=self.value, method='file', filetype=filetype, quote=quote)
         elif 'color' in dtype:
             command = lambda:color_chooser(master=self.winfo_toplevel(), text_obj=self.value)
         self.describe.configure(command=command)

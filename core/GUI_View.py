@@ -15,12 +15,10 @@ from .GUI_Terminal import Terminal
 from .GUI_TableSet import ScriptExecuter, PreferenceTable
 from .GUI_Util import Texture
 from .GUI_DialogWindow import browse_file
-from .GUI_Relocate import RelocateFile
 # 脚本视图：运行 MDF、CTB、RGL 脚本文件的视图。
 # 控制台视图：容纳控制台输出内容的视图。
 # 首选项视图：设置整个程序的首选项的视图。
 
-# TODO：空白的项目视图（打开项目、新建空白项目、新建智能工程）（初始化+新建的流程）
 # 空白的项目视图
 class EmptyView(ttk.Frame):
     def __init__(self,master,screenzoom)->None:
@@ -110,6 +108,7 @@ class ScriptView(ttk.Frame):
         self.texture.place(relx=0,rely=0,relwidth=1,relheight=1)
         self.content.place(relx=0.2,y=0,relwidth=0.6,relheight=1)
 # 控制台视图
+from .GUI_NewProject import CreateEmptyProject
 class ConsoleView(ttk.Frame):
     """
     各个元件的尺寸：以100%缩放为准
@@ -125,7 +124,8 @@ class ConsoleView(ttk.Frame):
         self.texture = Texture(master=self, screenzoom=self.sz, file='./media/icon/texture4.png')
         # self.terminal = VoiceChooser(master=self,screenzoom=self.sz,voice='Azure::zh-CN-YunxiNeural:assistant:1.0:Boy',speech_rate=30,pitch_rate=-70)
         # self.terminal = RelocateFile(master=self, screenzoom=self.sz, file_not_found={'A':'./media/icon/texture4.png','B':'./media/icon/texture2.png','C':'./media/icon/texture3.png'})
-        self.terminal = Terminal(master=self,screenzoom=self.sz)
+        # self.terminal = Terminal(master=self,screenzoom=self.sz)
+        self.terminal = CreateEmptyProject(master=self,screenzoom=self.sz)
         # 更新
         self.update_item()
     def update_item(self):

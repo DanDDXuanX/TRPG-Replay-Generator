@@ -282,6 +282,7 @@ class RGLContainer(Container):
         sz_10 = int(self.sz * 10)
         this_section_frame:RGLSectionElement = self.element[key]
         this_section_frame.place(x=0,y=idx*SZ_60,width=-sz_10,height=SZ_55,relwidth=1)
+    # BUG: 当通过右键编辑一个被复制的小节时，会出现一系列异常！
     def copy_element(self, event):
         super().copy_element(event)
         # 写入剪贴板

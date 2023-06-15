@@ -27,7 +27,7 @@ class ColorChooserDialogZH(colorchooser.ColorChooserDialog):
         self._toplevel.destroy()
 
 # 打开选色器，并把结果输出给 StringVar
-def color_chooser(master,text_obj:StringVar)->str:
+def color_chooser(master,text_obj:StringVar,quote:bool=False)->str:
     initcolor = rgba_str_2_hex(text_obj.get())
     if initcolor:
         dialog_window = ColorChooserDialogZH(parent=master,title='选择颜色',initialcolor=initcolor)
@@ -41,7 +41,10 @@ def color_chooser(master,text_obj:StringVar)->str:
         R, G, B = color.rgb
         A = 255
         # 设置 StringVar
-        text_obj.set('({0},{1},{2},{3})'.format(int(R), int(G), int(B),int(A)))
+        if quote:
+            text_obj.set("'({0},{1},{2},{3})'".format(int(R), int(G), int(B),int(A)))
+        else:
+            text_obj.set('({0},{1},{2},{3})'.format(int(R), int(G), int(B),int(A)))
         return (R,G,B,A)
     else:
         # text_obj.set("")
@@ -118,7 +121,7 @@ default_name = {
     'prefix':    ['导出文件'    ,'']
 }
 # 浏览文件，并把路径输出给 StringVar
-def browse_file(master, text_obj:StringVar, method='file', filetype=None):
+def browse_file(master, text_obj:StringVar, method='file', filetype=None, quote:bool=True):
     if method == 'file':
         if filetype is None:
             getname = askopenfilename(parent=master,)
@@ -134,10 +137,13 @@ def browse_file(master, text_obj:StringVar, method='file', filetype=None):
     if getname == '':
         return getname
     else:
-        text_obj.set("'{}'".format(getname))
+        if quote:
+            text_obj.set("'{}'".format(getname))
+        else:
+            text_obj.set(getname)
         return getname
     
-def save_file(master, method='file', filetype=None)->str:
+def save_file(master, method='file', filetype=None, quote:bool=True)->str:
     if method == 'file':
         defaults = default_name[filetype]
         if filetype is None:

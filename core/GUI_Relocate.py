@@ -9,7 +9,6 @@ import tkinter as tk
 import ttkbootstrap as ttk
 from ttkbootstrap.dialogs import Messagebox, Dialog
 from tkinter.filedialog import askdirectory
-from .ScriptParser import MediaDef,RplGenLog
 
 # 框
 class RelocateFile(ttk.Frame):
@@ -18,8 +17,9 @@ class RelocateFile(ttk.Frame):
         self.sz = screenzoom
         super().__init__(master,borderwidth=0)
         SZ_10 = int(10 * self.sz)
-        SZ_5 = int(5*self.sz)
         SZ_3 = int(3*self.sz)
+        SZ_150 = int(150*self.sz)
+        SZ_400 = int(400*self.sz)
         # 关闭窗口命令
         self.close_func = close_func
         # 建立表格
@@ -34,11 +34,11 @@ class RelocateFile(ttk.Frame):
             columns= ['media_name','file_name','invalid_path','relocate_path'],
             height=20
             )
-        self.table.column('#0',anchor='center',width=50,stretch=False)
-        self.table.column('media_name',anchor='center',width=150,stretch=True)
-        self.table.column('file_name',anchor='center',width=150,stretch=True)
-        self.table.column('invalid_path',anchor='center',width=400,stretch=True)
-        self.table.column('relocate_path',anchor='center',width=400,stretch=True)
+        self.table.column('#0',anchor='center',width=SZ_10,stretch=False)
+        self.table.column('media_name',anchor='center',width=SZ_150,stretch=True)
+        self.table.column('file_name',anchor='center',width=SZ_150,stretch=True)
+        self.table.column('invalid_path',anchor='center',width=SZ_400,stretch=True)
+        self.table.column('relocate_path',anchor='center',width=SZ_400,stretch=True)
         self.table.heading('#0',text='序号',anchor='center')
         self.table.heading('media_name',text='媒体名',anchor='center')
         self.table.heading('file_name',text='文件名',anchor='center')

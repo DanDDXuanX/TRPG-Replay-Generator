@@ -1824,6 +1824,122 @@ TableStruct:dict = {
     'Preference':{},
 }
 
+NewProjectTable:dict = {
+    "EmptyProject":{
+        "BasicSep":{
+            "Text": "基本",
+            "Command":None,
+            "Content":{
+                "proj_name":{
+                    "ktext": "项目名称：",
+                    "tooltip":"项目的名称，需要同时是一个合法的文件名！",
+                    "dtext": "",
+                    "ditem": "label",
+                    "valuekey": None,
+                    "vitem": "entry",
+                    "vtype": "str",
+                    "default": "新建空白项目"
+                },
+                "proj_cover":{
+                    "ktext": "项目封面：",
+                    "tooltip":"可以选择一张图片作为项目封面。",
+                    "dtext": "浏览",
+                    "ditem": "button",
+                    "valuekey": None,
+                    "vitem": "entry",
+                    "vtype": "str",
+                    "default": "无"
+                },
+                "save_pos":{
+                    "ktext": "保存位置：",
+                    "tooltip":"保存项目文件的文件夹。",
+                    "dtext": "浏览",
+                    "ditem": "button",
+                    "valuekey": None,
+                    "vitem": "entry",
+                    "vtype": "str",
+                    "default": ""
+                },
+            }
+        },
+        "VideoSep":{
+            "Text": "视频",
+            "Command":None,
+            "Content":{
+                "preset_video":{
+                    "ktext": "预设：",
+                    "tooltip":None,
+                    "dtext": "",
+                    "ditem": "label",
+                    "valuekey": None,
+                    "vitem": "combox",
+                    "vtype": "str",
+                    "default": "横屏-高清 (1920x1080, 30fps)"
+                },
+                "video_width":{
+                    "ktext": "分辨率宽：",
+                    "tooltip":"视频画布的宽度，单位是像素。",
+                    "dtext": "（偶数）",
+                    "ditem": "label",
+                    "valuekey": None,
+                    "vitem": "entry",
+                    "vtype": "int",
+                    "default": 1920
+                },
+                "video_height":{
+                    "ktext": "分辨率高：",
+                    "tooltip":"视频画布的高度，单位是像素。",
+                    "dtext": "（偶数）",
+                    "ditem": "label",
+                    "valuekey": None,
+                    "vitem": "entry",
+                    "vtype": "int",
+                    "default": 1080
+                },
+                "frame_rate":{
+                    "ktext": "帧率：",
+                    "tooltip":"视频每秒的帧数。",
+                    "dtext": "（整数）",
+                    "ditem": "label",
+                    "valuekey": None,
+                    "vitem": "entry",
+                    "vtype": "int",
+                    "default": 30
+                },
+            }
+        },
+        "LayerSep":{
+            "Text": "图层",
+            "Command":None,
+            "Content":{
+                "preset_layer":{
+                    "ktext": "预设：",
+                    "tooltip":None,
+                    "dtext": "",
+                    "ditem": "label",
+                    "valuekey": None,
+                    "vitem": "combox",
+                    "vtype": "str",
+                    "default": "背景->立绘->气泡"
+                },
+                "layer_zorder":{
+                    "ktext": "图层顺序：",
+                    "tooltip":"警告：这是一个敏感的参数，指定错误的值可能导致程序崩溃，请谨慎修改！",
+                    "dtext": "",
+                    "ditem": "label",
+                    "valuekey": None,
+                    "vitem": "entry",
+                    "vtype": "str",
+                    "default": "BG2,BG1,Am3,Am2,Am1,AmS,Bb,BbS"
+                },
+            }
+        }
+    },
+    "IntelProject":{
+
+    }
+}
+
 label_colors = {
     "紫罗兰紫"  :"'Violet'",
     "鸢尾花色蓝":"'Iris'",
