@@ -58,7 +58,7 @@ class Terminal(ttk.Frame):
             foreground='#eeeeee',
             insertbackground='#eeeeee',
             autostyle=False,
-            font='-family consolas -size 14',
+            font=('Sarasa Mono SC',14),
             autohide=True
             )
         self.terminal._text.configure(padx=2*SZ_10)

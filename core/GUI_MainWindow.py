@@ -12,6 +12,7 @@ from PIL import Image, ImageTk
 
 from .ProjConfig import Preference
 from .Utils import EDITION
+from tkextrafont import Font as FileFont
 
 # 项目视图
 from .GUI_View import EmptyView, ProjectView, ConsoleView, ScriptView, PreferenceView
@@ -51,6 +52,7 @@ class RplGenStudioMainWindow(ttk.Window):
         self.view_show('project')
     # 初始化主题
     def theme_config(self):
+        self.terminal_font = FileFont(file='./media/sarasa-mono-sc-regular.ttf')
         # 样式
         SZ_5 = int(5 * self.sz)
         SZ_10 = int(10 * self.sz)

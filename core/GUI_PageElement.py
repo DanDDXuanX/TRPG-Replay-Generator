@@ -11,8 +11,6 @@ import pygame
 from PIL import Image, ImageTk
 from .GUI_Container import Container
 from .OutputType import PreviewDisplay, ExportVideo, ExportXML
-from .Exceptions import MainPrint
-from .Utils import EDITION
 from .Medias import MediaObj
 
 # 搜索窗口
@@ -20,7 +18,7 @@ class SearchBar(ttk.Frame):
     def __init__(self,master,container:Container,screenzoom):
         # 缩放尺度
         self.sz = screenzoom
-        super().__init__(master,borderwidth=int(5*self.sz),bootstyle='light')
+        super().__init__(master,borderwidth=int(5*self.sz))
         # 关联容器
         self.container = container
         # 元件
@@ -28,7 +26,7 @@ class SearchBar(ttk.Frame):
         self.is_regex = tk.BooleanVar(master=self,value=False)
         self.left = {
             'entry' : ttk.Entry(master=self,width=30,textvariable=self.search_text),
-            'regex' : ttk.Checkbutton(master=self,text='正则',variable=self.is_regex),
+            'regex' : ttk.Checkbutton(master=self, text='正则', variable=self.is_regex),
             'search' : ttk.Button(master=self,text='搜索',command=self.click_search,bootstyle='primary')
         }
         self.right = {
