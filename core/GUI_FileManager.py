@@ -126,9 +126,10 @@ class FileManager(ttk.Frame):
         # 放置
         self.update_item()
     def update_item(self):
+        SZ_10 = int(self.sz*10)
         for idx,key in enumerate(self.items):
-            fileitem:ttk.Button = self.items[key]
-            fileitem.pack(fill='x',pady=0,side='top')
+            fileitem:FileCollapsing = self.items[key]
+            fileitem.pack(fill='x',pady=0,padx=0,side='top')
         self.project_content.pack(fill='both',expand=True,side='top')
     # 检查相关文件是否存在
     def check_file_exist(self,filepath:str)->bool:
@@ -275,8 +276,9 @@ class FileCollapsing(ttk.Frame):
         self.content = content
         self.items = {}
     def update_item(self):
+        SZ_3 = int(self.sz * 3)
         self.update_filelist()
-        self.collapbutton.pack(fill='x',side='top')
+        self.collapbutton.pack(fill='x',side='top',ipady=SZ_3)
         self.expand:bool = False
         self.update_toggle()
     def update_filelist(self):
@@ -526,7 +528,8 @@ class CTBCollapsing(FileCollapsing):
         self.img_name = 'FM_charactor'
         # 新建按钮
         self.add_button = ttk.Button(master=self.collapbutton,text='新增+',bootstyle='warning',padding=0,command=self.add_item)
-        self.add_button.pack(side='right',padx=SZ_10,pady=SZ_5,ipady=SZ_1,ipadx=SZ_3)
+        self.add_button.place(relx=0.8,relwidth=0.2, x=-SZ_10,rely=0.1,relheight=0.8)
+        # self.add_button.pack(side='right',padx=SZ_10,pady=SZ_5,ipady=SZ_1,ipadx=SZ_3)
         self.table = self.content.export()
         # 内容
         for name in self.table['Name'].unique():
@@ -591,7 +594,8 @@ class RGLCollapsing(FileCollapsing):
         self.img_name = 'FM_logfile'
         # 新建按钮
         self.add_button = ttk.Button(master=self.collapbutton,text='新增+',bootstyle='warning',padding=0,command=self.add_item)
-        self.add_button.pack(side='right',padx=SZ_10,pady=SZ_5,ipady=SZ_1,ipadx=SZ_3)
+        self.add_button.place(relx=0.8,relwidth=0.2, x=-SZ_10,rely=0.1,relheight=0.8)
+        # self.add_button.pack(side='right',padx=SZ_10,pady=SZ_5,ipady=SZ_1,ipadx=SZ_3)
         # 内容
         for key in self.content.keys():
             self.items[key] = ttk.Button(

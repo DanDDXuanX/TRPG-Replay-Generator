@@ -48,6 +48,7 @@ class CreateProject(ttk.Frame):
                 )
     def update_item(self):
         SZ_5 = int(5*self.sz)
+        SZ_3 = int(3*self.sz)
         for key in self.seperator:
             item = self.seperator[key]
             item.pack(side='top',anchor='n',fill='x',pady=(0,SZ_5),padx=(SZ_5,SZ_5))
@@ -55,7 +56,7 @@ class CreateProject(ttk.Frame):
             item = self.elements[key]
             item.pack(side='top',anchor='n',fill='x',pady=(0,SZ_5))
         # 确认键
-        self.comfirm_button.pack(side='top',anchor='center',expand=False,pady=SZ_5)
+        self.comfirm_button.pack(side='top',anchor='center',expand=False,pady=SZ_5,ipady=SZ_3)
     def clear_item(self):
         for key in self.elements:
             item:KeyValueDescribe = self.elements[key]
