@@ -101,7 +101,7 @@ class RplGenStudioMainWindow(ttk.Window):
         self.style.configure('object.TLabel',anchor='w',font="-family 微软雅黑 -size 10 -weight bold",padding=text_label_pad,foreground='#303030') # 深灰色
         self.style.configure('exception.TLabel',anchor='w',font="-family 微软雅黑 -size 10 -weight bold",padding=text_label_pad,foreground='#cc0000') # 红色的
         # 预览窗体
-        self.style.configure('preview.TLabel',anchor='center',background='#000000',borderwidth=0)
+        self.style.configure('preview.TLabel',anchor='center',background='#333333',borderwidth=0)
     # 当关闭窗口时
     def on_close(self):
         # project_view:ProjectView = self.view['project']

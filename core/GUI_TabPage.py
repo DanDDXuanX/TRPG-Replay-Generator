@@ -11,7 +11,9 @@ from .ScriptParser import MediaDef, CharTable, RplGenLog, Script
 import ttkbootstrap as ttk
 import tkinter as tk
 from PIL import Image,ImageTk
+from chlorophyll import CodeView
 
+from .RplGenLogLexer import RplGenLogLexer
 from .GUI_PageElement import SearchBar, OutPutCommand
 from .GUI_Container import RGLContainer, MDFContainer, CTBContainer
 from .GUI_PreviewCanvas import MDFPreviewCanvas, CTBPreviewCanvas, RGLPreviewCanvas
@@ -165,19 +167,44 @@ class RGLPage(ttk.Frame):
         self.ref_medef = self.master.ref_medef
         self.ref_chartab = self.master.ref_chartab
         self.ref_config = self.master.ref_config
+        # 初始化
+        self.update_items_codeview()
+    # 放置元件
+    def update_items_visual(self):
+        SZ_40 = int(self.sz * 40)
+        # 代码编辑区
+        try:
+            self.codeview.place_forget()
+        except Exception:
+            pass
         # 元件
         self.preview = RGLPreviewCanvas(master=self,screenzoom=self.sz, mediadef=self.ref_medef, chartab=self.ref_chartab, rplgenlog=self.content)
         self.edit = LogEdit(master=self,screenzoom=self.sz)
         self.container = RGLContainer(master=self,content=self.content,screenzoom=self.sz)
         self.searchbar = SearchBar(master=self,screenzoom=self.sz,container=self.container)
         self.outputcommand = OutPutCommand(master=self,screenzoom=self.sz)
-        # 放置元件
-        SZ_40 = int(self.sz * 40)
+        # 可视化编辑区
         self.searchbar.place(x=0,y=0,relwidth=0.5,height=SZ_40)
         self.container.place(x=0,y=SZ_40,relwidth=0.5,relheight=1,height=-2*SZ_40)
         self.outputcommand.place(x=0,y=-SZ_40,rely=1,relwidth=0.5,height=SZ_40)
-        self.preview.place(relx=0.5,rely=0,relwidth=0.5,relheight=0.5)
-        self.edit.place(relx=0.5,rely=0.5,relwidth=0.5,relheight=0.5)
+        self.preview.place(relx=0.5,rely=0,relwidth=0.5,relheight=0.44)
+        self.edit.place(relx=0.5,rely=0.44,relwidth=0.5,relheight=0.56)
+    # 放置编辑器
+    def update_items_codeview(self):
+        # 可视化编辑区
+        try:
+            self.searchbar.destroy()
+            self.container.destroy()
+            self.outputcommand.destroy()
+            self.preview.destroy()
+            self.edit.place_forget()
+        except Exception:
+            pass
+        # 脚本模式
+        self.codeview = CodeView(master=self, lexer=RplGenLogLexer, color_scheme="monokai", font=('Sarasa Mono SC',12), undo=True)
+        self.codeview.insert("end",self.content.export()) # 插入脚本文本
+        # 代码编辑区
+        self.codeview.place(x=0,y=0,relwidth=1,relheight=1)
 
 # 页面视图：媒体定义文件
 class MDFPage(ttk.Frame):
@@ -207,8 +234,8 @@ class MDFPage(ttk.Frame):
         SZ_40 = int(self.sz * 40)
         self.searchbar.place(x=0,y=0,relwidth=0.5,height=SZ_40)
         self.container.place(x=0,y=SZ_40,relwidth=0.5,relheight=1,height=-SZ_40)
-        self.preview.place(relx=0.5,rely=0,relwidth=0.5,relheight=0.5)
-        self.edit.place(relx=0.5,rely=0.5,relwidth=0.5,relheight=0.5)
+        self.preview.place(relx=0.5,rely=0,relwidth=0.5,relheight=0.44)
+        self.edit.place(relx=0.5,rely=0.44,relwidth=0.5,relheight=0.56)
 
 # 页面视图：角色配置文件
 class CTBPage(ttk.Frame):
@@ -231,5 +258,5 @@ class CTBPage(ttk.Frame):
         SZ_40 = int(self.sz * 40)
         self.searchbar.place(x=0,y=0,relwidth=0.5,height=SZ_40)
         self.container.place(x=0,y=SZ_40,relwidth=0.5,relheight=1,height=-SZ_40)
-        self.preview.place(relx=0.5,rely=0,relwidth=0.5,relheight=0.5)
-        self.edit.place(relx=0.5,rely=0.5,relwidth=0.5,relheight=0.5)
+        self.preview.place(relx=0.5,rely=0,relwidth=0.5,relheight=0.44)
+        self.edit.place(relx=0.5,rely=0.44,relwidth=0.5,relheight=0.56)

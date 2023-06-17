@@ -1,33 +1,124 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+import numpy as np
 import tkinter as tk
 import ttkbootstrap as ttk
 import pygame
+from pygame.draw import line, rect
 from PIL import Image, ImageTk
+
+from core.Medias import MediaObj
 
 from .ScriptParser import MediaDef, CharTable, RplGenLog
 from .Medias import MediaObj, Animation, Bubble, ChatWindow, Balloon, Background, HitPoint, Dice
+from .FreePos import Pos
 
-# 预览画布
-
+# 可交互的点线框
+class InteractiveDot:
+    def __init__(self,p1,p2,color,master:Animation=None) -> None:
+        self.master = master
+        self.color:str = color
+        if self.color == 'green':
+            self.p1 = np.array(p1)
+            self.p2 = np.array(p2)
+        elif self.color == 'blue':
+            self.p1 = np.array(p1) + np.array(master.pos.get())
+            self.p2 = np.array(p2) + np.array(master.pos.get())
+        elif self.color == 'purple':
+            self.p1 = np.array(p1) + np.array(master.pos.get())
+            self.p2 = np.array(p2) + np.array(master.pos.get())
+        else: # red
+            self.p1 = np.array([p1,0])
+            self.p2 = np.array([-np.inf,-np.inf]) # 无效的占位符
+        # 是否被选中
+        self.selected = {
+            'p1' : False,
+            'p2' : False
+        }
+    def check(self, pos, canvas_zoom:float=1.0)->bool:
+        rw = int(5 / canvas_zoom)
+        if np.max(np.abs(np.array(pos) - self.p1)) < rw:
+            self.selected['p1'] = True
+            self.selected['p2'] = False
+            return True
+        elif np.max(np.abs(np.array(pos) - self.p2)) < rw:
+            self.selected['p1'] = False
+            self.selected['p2'] = True
+            return True
+        else:
+            self.selected['p1'] = False
+            self.selected['p2'] = False
+            return False
+    def draw(self, surface, canvas_zoom:float=1.0):
+        lw = int(1 / canvas_zoom)
+        rw = int(5 / canvas_zoom)
+        dlw = {True:rw, False:lw}
+        if self.color == 'green':
+            element_rect = [self.p1[0], self.p1[1], self.p2[0]-self.p1[0], self.p2[1]-self.p1[1]]
+            p1_rect = [self.p1[0]-rw, self.p1[1]-rw, 2*rw, 2*rw]
+            p2_rect = [self.p2[0]-rw, self.p2[1]-rw, 2*rw, 2*rw]
+            rect(surface=surface,color='#00aa00',rect=element_rect,width=lw)
+            rect(surface=surface,color='#00aa00',rect=p1_rect,width=dlw[self.selected['p1']])
+            rect(surface=surface,color='#00aa00',rect=p2_rect,width=dlw[self.selected['p2']])
+        elif self.color == 'blue':
+            element_rect = [self.p1[0], self.p1[1], self.p2[0]-self.p1[0], self.p2[1]-self.p1[1]]
+            p1_rect = [self.p1[0]-rw, self.p1[1]-rw, 2*rw, 2*rw]
+            rect(surface=surface,color='#0000bb',rect=element_rect,width=lw)
+            rect(surface=surface,color='#0000bb',rect=p1_rect,width=dlw[self.selected['p1']])
+        elif self.color == 'purple':
+            element_rect = [self.p1[0], self.p1[1], self.p2[0]-self.p1[0], self.p2[1]-self.p1[1]]
+            p1_rect = [self.p1[0]-rw, self.p1[1]-rw, 2*rw, 2*rw]
+            p2_rect = [self.p2[0]-rw, self.p2[1]-rw, 2*rw, 2*rw]
+            rect(surface=surface,color='#aa00aa',rect=element_rect,width=lw)
+            rect(surface=surface,color='#aa00aa',rect=p1_rect,width=dlw[self.selected['p1']])
+            rect(surface=surface,color='#aa00aa',rect=p2_rect,width=dlw[self.selected['p2']])
+        else:
+            center = self.master.pos.get()[1] + int(self.master.size[1]/2)
+            p1_rect = [self.p1[0]-rw, center-rw, 2*rw, 2*rw]
+            line(
+                surface=surface,
+                start_pos=(self.p1[0], self.master.pos.get()[1]),
+                end_pos=(self.p1[0], self.master.pos.get()[1] + self.master.size[1]),
+                width=lw, color='#aa0000'
+                )
+            rect(surface=surface,color='#aa0000',rect=p1_rect,width=dlw[self.selected['p1']])
+    def move(self, new_pos):
+        if self.selected['p1'] == True:
+            if self.color in ('green','blue'):
+                p1_2_p2_vec = self.p2 - self.p1
+                self.p1 = np.array(new_pos)
+                self.p2 = self.p1 + p1_2_p2_vec
+            else:
+                self.p1 = np.array(new_pos)
+        elif self.selected['p2'] == True:
+            # TODO: 只能在对角线上！
+            self.p2 = np.array(new_pos)
+        else:
+            pass
+    def get(self):
+        if self.color=='green':
+            return self.p1.tolist(), self.p2.tolist()
+        else:
+            master_pos = np.array(self.master.pos.get())
+            return self.p1-master_pos, self.p2-master_pos
 # 预览窗
-class PreviewCanvas(ttk.LabelFrame):
+class PreviewCanvas(ttk.Frame):
     def __init__(self,master,screenzoom,mediadef):
         # 基类初始化
         self.sz = screenzoom
-        super().__init__(master=master,bootstyle='primary',text='预览窗')
+        SZ_2 = int(self.sz * 2)
+        super().__init__(master=master, bootstyle='secondary',border=SZ_2)
+        self.blank_size = (0, 0)
         self.canvas_zoom = tk.DoubleVar(master=self,value=0.4)
-        self.canvas_size = (1920,1080)
+        # TODO: 待修改，这个位置应该引用项目的尺寸！
+        self.canvas_size = (1920, 1080)
         # 媒体定义
         self.mediadef:MediaDef = mediadef
+        # 尺寸自适应：
         # 元件
-        self.items = {
-            'canvas': ttk.Label(master=self,image=None,style='preview.TLabel'),
-            'zoomlb': ttk.Label(master=self,text='缩放'),
-            'zoomcb': ttk.Spinbox(master=self,from_=0.1,to=1.0,increment=0.01,textvariable=self.canvas_zoom,width=5,command=self.update_canvas),
-        }
-        self.items['zoomcb'].bind('<Return>',lambda event:self.update_canvas())
+        self.canvas_label = ttk.Label(master=self,image=None,style='preview.TLabel')
+        self.canvas_label.bind('<Configure>', self.update_size)
         # 预览图像
         self.empty_canvas = pygame.image.load('./media/canvas.png')
         self.canvas = pygame.Surface(size=self.canvas_size)
@@ -35,16 +126,27 @@ class PreviewCanvas(ttk.LabelFrame):
         # 更新
         self.update_canvas()
         self.update_item()
-        # 测试：预览
-        # self.preview('气泡主文本')
+    # 更新尺寸
+    def update_size(self, event):
+        WW = self.canvas_label.winfo_width()
+        WH = self.canvas_label.winfo_height()
+        RW = WW/self.canvas_size[0]
+        RH = WH/self.canvas_size[1]
+        # 根据尺寸，调整缩放率
+        if RW > RH:
+            # 宽有余量：
+            self.canvas_zoom.set(RH)
+            self.blank_size = (int((WW/RH - self.canvas_size[0])/2), 0)
+        else:
+            # 高有余量
+            self.canvas_zoom.set(RW)
+            self.blank_size = (0, int((WH/RW - self.canvas_size[1])/2))
+        # 更新画面
+        if self.canvas_zoom.get() > 0.01:
+            self.update_canvas()
     # 更新组件
     def update_item(self):
-        SZ_40 = int(self.sz * 40)
-        SZ_60 = int(self.sz * 60)
-        SZ_5 = int(self.sz * 5)
-        self.items['canvas'].place(x=0,y=0,relwidth=1,relheight=1,height=-SZ_40-SZ_5)
-        self.items['zoomlb'].place(x=0,y=-SZ_40,rely=1,width=SZ_60,height=SZ_40)
-        self.items['zoomcb'].place(x=SZ_60,y=-SZ_40,rely=1,width=SZ_60,height=SZ_40)
+        self.canvas_label.pack(expand=True,fill='both')
     # 更新画布
     def update_canvas(self):
         pil_canvas_iamge = Image.frombytes(mode='RGB',data=pygame.image.tostring(self.canvas,'RGB'),size=self.canvas_size)
@@ -54,7 +156,7 @@ class PreviewCanvas(ttk.LabelFrame):
                 int(self.canvas_size[1]*self.canvas_zoom.get()),
                 ]),
             )
-        self.items['canvas'].config(image=self.image)
+        self.canvas_label.config(image=self.image)
     # 更新预览
     def get_media(self,media_name)->MediaObj:
         if media_name in ['black', 'white']:
@@ -70,12 +172,137 @@ class PreviewCanvas(ttk.LabelFrame):
         self.canvas.blit(self.empty_canvas,(0,0))
         
 class MDFPreviewCanvas(PreviewCanvas):
+    def __init__(self, master, screenzoom, mediadef):
+        # 继承
+        super().__init__(master, screenzoom, mediadef)
+        # 可交互的预览窗的特性：
+        # 预览窗是可输入焦点的
+        self.canvas_label.configure(takefocus=True) 
+        self.canvas_label.bind('<FocusIn>',self.get_focus)
+        self.canvas_label.bind('<FocusOut>',self.lost_focus)
+        # 鼠标单击和拖动
+        self.canvas_label.bind('<Button-1>',self.get_pressed)
+        self.canvas_label.bind('<B1-Motion>',self.get_drag)
+        self.canvas_label.bind('<ButtonRelease-1>',self.get_drag_done)
+        # ctrl + Z 撤回
     def preview(self, media_name:str):
         super().preview()
-        object_this = self.get_media(media_name)
-        if object_this:
-            object_this.preview(self.canvas)
+        # 需要将这个对象保存下来
+        self.object_this = self.get_media(media_name)
+        # print(self.object_this)
+        if self.object_this:
+            self.object_this.preview(self.canvas)
+        # 获取
+        self.dots = {}
+        self.dot_info = self.object_this.get_pos()
+        for color in self.dot_info:
+            this_color = self.dot_info[color]
+            for dot in this_color:
+                if color == 'green':
+                    self.dots[dot] = InteractiveDot(
+                        p1=this_color[dot]['pos'],
+                        p2=this_color[dot]['scale'],
+                        color=color,
+                        master=self.object_this
+                        )
+                elif color == 'purple':
+                    self.dots[dot] = InteractiveDot(
+                        p1=this_color[dot]['sub_pos'],
+                        p2=this_color[dot]['sub_end'],
+                        color=color,
+                        master=self.object_this
+                        )
+                elif color == 'red':
+                    if 'am_left' in this_color[dot]:
+                        keyword = 'am_left'
+                    else:
+                        keyword = 'am_right'
+                    self.dots[dot] = InteractiveDot(
+                        p1=this_color[dot][keyword],
+                        p2=None,
+                        color=color,
+                        master=self.object_this
+                        )
+                else:
+                    if dot == 'b0':
+                        p1k = 'mt_pos'
+                        p2k = 'mt_end'
+                    else:
+                        p1k = 'ht_pos'
+                        p2k = 'ht_end'
+                    self.dots[dot] = InteractiveDot(
+                        p1=this_color[dot][p1k],
+                        p2=this_color[dot][p2k],
+                        color=color,
+                        master=self.object_this
+                        )
+                self.dots[dot].draw(self.canvas,self.canvas_zoom.get())
         self.update_canvas()
+    def update_preview(self,pressed:tuple,refresh:bool=False):
+        # 重置背景
+        self.canvas.blit(self.empty_canvas,(0,0))
+        # 刷新媒体
+        self.object_this.preview(self.canvas)
+        # 刷新点
+        self.selected_dot = None
+        self.selected_dot_name = None
+        for dot in self.dots:
+            this_dot:InteractiveDot = self.dots[dot]
+            if this_dot.check(pos=pressed,canvas_zoom=self.canvas_zoom.get()):
+                self.selected_dot = this_dot
+                self.selected_dot_name = dot
+            self.dots[dot].draw(self.canvas,self.canvas_zoom.get())
+        # 刷新画布
+        self.update_canvas()
+    def get_focus(self,event):
+        self.configure(bootstyle='primary')
+    def lost_focus(self,event):
+        self.configure(bootstyle='secondary')
+    def get_coordinates(self,event):
+        zoom = self.canvas_zoom.get()
+        Rx = int(event.x / zoom)
+        Ry = int(event.y / zoom)
+        return (Rx - self.blank_size[0], Ry - self.blank_size[1])
+    def get_pressed(self,event):
+        # 被点击的功能：输入焦点、点选一个可拖动点
+        self.canvas_label.focus_set()
+        pressd = self.get_coordinates(event=event)
+        self.update_preview(pressed=pressd,refresh=False)
+    def get_drag(self,event):
+        # 拖动中的功能：渲染点被拖动中的位置
+        pressd = self.get_coordinates(event=event)
+        if self.selected_dot:
+            self.selected_dot.move(new_pos=pressd)
+        self.update_preview(pressed=pressd,refresh=False)
+    def get_drag_done(self,event):
+        # 释放鼠标的功能：确定最终修改的位置，并重置预览的画面渲染
+        pressd = self.get_coordinates(event=event)
+        if self.selected_dot:
+            if self.selected_dot_name == 'g0':
+                new_pos = self.selected_dot.get()[0]
+                #TODO: new_end = self.selected_dot.get()[1]
+                self.object_this.pos = Pos(*new_pos)
+            elif self.selected_dot_name == 'b0':
+                new_pos = self.selected_dot.get()[0] 
+                self.object_this.mt_pos = tuple([x for x in new_pos])
+            elif self.selected_dot_name[0] == 'b':
+                header_index = int(self.selected_dot_name[1:])-1
+                new_pos = self.selected_dot.get()[0]
+                if type(self.object_this) is Balloon:
+                    ht_pos:list = self.object_this.ht_pos
+                    ht_pos[header_index] = tuple([x for x in new_pos])
+                    self.object_this.ht_pos = ht_pos
+                else:
+                    self.object_this.ht_pos = tuple([x for x in new_pos])
+            elif self.selected_dot_name == 'r0':
+                pass
+            elif self.selected_dot_name == 'r1':
+                pass
+            elif self.selected_dot_name == 'p0':
+                pass
+            else:
+                pass
+        self.update_preview(pressed=pressd,refresh=True)
 
 class CTBPreviewCanvas(PreviewCanvas):
     def __init__(self, master, screenzoom, chartab, mediadef):

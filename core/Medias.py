@@ -89,6 +89,9 @@ class MediaObj:
     # 转换媒体，仅图像媒体类需要
     def convert(self):
         pass
+    # 获取所有点
+    def get_pos(self) -> dict:
+        return {}
 
 # 文字对象
 class Text(MediaObj):
@@ -563,7 +566,33 @@ class Bubble(MediaObj):
     # 转换媒体对象
     def convert(self):
         self.media = self.media.convert_alpha()
-
+    # 获取所有点
+    def get_pos(self) -> dict:
+        pos_dict = {
+            'green': {
+                'g0':{
+                    'pos' : self.pos.get(),
+                    'scale' : (self.pos + self.media.get_size()).get()
+                }
+            },
+            'blue':{
+            }
+        }
+        if self.MainText:
+            pos_dict['blue']['b0'] = {}
+            pos_dict['blue']['b0']['mt_pos'] = self.mt_pos
+            pos_dict['blue']['b0']['mt_end'] = (
+                    self.mt_pos[0] + self.MainText.line_limit*self.MainText.size,
+                    self.mt_pos[1] + self.line_distance*self.MainText.size*4
+                )
+        if type(self.Header) in [Text, StrokeText, RichText]:
+            pos_dict['blue']['b1'] = {}
+            pos_dict['blue']['b1']['ht_pos'] = self.ht_pos
+            pos_dict['blue']['b1']['ht_end'] = (
+                    self.ht_pos[0] + self.Header.line_limit*self.Header.size,
+                    self.ht_pos[1] + self.Header.size * 1.5
+                )
+        return pos_dict
 # 气球
 class Balloon(Bubble):
     def __init__(
@@ -621,6 +650,17 @@ class Balloon(Bubble):
                 test_head.append('')
         test_head = '|'.join(test_head)
         return test_head
+    def get_pos(self) -> dict:
+        pos_dict = super().get_pos()
+        for i, HT in enumerate(self.Header):
+            if type(HT) in [Text, StrokeText, RichText]:
+                pos_dict['blue'][f'b{str(i+1)}'] = {}
+                pos_dict['blue'][f'b{str(i+1)}']['ht_pos'] = self.ht_pos[i]
+                pos_dict['blue'][f'b{str(i+1)}']['ht_end'] = (
+                        self.ht_pos[i][0] + HT.line_limit * HT.size,
+                        self.ht_pos[i][1] + HT.size * 1.5
+                    )
+        return pos_dict
 # 自适应气泡
 class DynamicBubble(Bubble):
     def __init__(
@@ -1036,6 +1076,30 @@ class ChatWindow(Bubble):
         test_header = '|'.join(test_header)
         # 显示
         self.display(surface=surface, text=test_maintext, header=test_header)
+    def get_pos(self) -> dict:
+        pos_dict = {
+            'green': {
+                'g0':{
+                    'pos' : self.pos.get(),
+                    'scale' : (self.pos + self.media.get_size()).get()
+                }
+            },
+            'purple':{
+                'p0':{
+                    'sub_pos' : self.sub_pos,
+                    'sub_end' : (self.sub_pos[0]+self.sub_size[0], self.sub_pos[1]+self.sub_size[1]),
+                }
+            },
+            'red' :{
+                'r0':{
+                    'am_left' : self.am_left,
+                },
+                'r1':{
+                    'am_right': self.am_right,
+                }
+            }
+        }
+        return pos_dict
 # 背景
 class Background(MediaObj):
     def __init__(
@@ -1130,6 +1194,16 @@ class Background(MediaObj):
         return clip_this
     def convert(self):
         self.media = self.media.convert_alpha()
+    def get_pos(self) -> dict:
+        pos_dict = {
+            'green': {
+                'g0':{
+                    'pos' : self.pos.get(),
+                    'scale' : (self.pos + self.media.get_size()).get()
+                }
+            },
+        }
+        return pos_dict
 
 # 立绘
 class Animation(MediaObj):
@@ -1219,7 +1293,16 @@ class Animation(MediaObj):
         return tick_lineline
     def convert(self):
         self.media = np.frompyfunc(lambda x:x.convert_alpha(),1,1)(self.media)
-
+    def get_pos(self) -> dict:
+        pos_dict = {
+            'green': {
+                'g0':{
+                    'pos' : self.pos.get(),
+                    'scale' : (self.pos + self.media[0].get_size()).get()
+                }
+            },
+        }
+        return pos_dict
 # 内建动画的基类：不可以直接使用
 class BuiltInAnimation(Animation):
     # BIA初始化：需要在media确定之后！
