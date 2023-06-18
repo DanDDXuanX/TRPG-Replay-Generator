@@ -66,6 +66,14 @@ class MediaObj:
             sizex,sizey = media.get_size()
             target_size = int(sizex * scale),int(sizey * scale)
             return pygame.transform.smoothscale(media,target_size)
+    # 导入图片
+    def load_image(self,scale:float):
+        # 读取图片文件
+        origin_media = pygame.image.load(self.filepath.exact())
+        self.origin_size:tuple = origin_media.get_size()
+        self.media:pygame.Surface = self.zoom(origin_media,scale=scale)
+        self.size:tuple = self.media.get_size()
+        self.scale:float  = scale
     # 初始化为PR序列
     def PR_init(self,file_index:str='None') -> None:
         if self.export_xml ==  False:
@@ -393,11 +401,7 @@ class Bubble(MediaObj):
             self.PR_init('None')
         else:
             # 读取图片文件
-            origin_media = pygame.image.load(self.filepath.exact())
-            self.origin_size:tuple = origin_media.get_size()
-            self.media:pygame.Surface = self.zoom(origin_media,scale=scale)
-            self.size:tuple = self.media.get_size()
-            self.scale:float  = scale
+            self.load_image(scale=scale)
             # 其他参数
             self.PR_init(file_index='BBfile_%d')
         # 底图位置
@@ -879,6 +883,17 @@ class DynamicBubble(Bubble):
         # 头文本
         test_head = self.test_header()
         self.display(surface, text=test_text, header=test_head)
+    # TODO: 目前自适应气泡只能选择绿色
+    def get_pos(self) -> dict:
+        pos_dict = {
+            'green': {
+                'g0':{
+                    'pos' : self.pos.get(),
+                    'scale' : (self.pos + self.media.get_size()).get()
+                }
+            },
+        }
+        return pos_dict
 # 聊天窗
 class ChatWindow(Bubble):
     def __init__(
@@ -911,12 +926,7 @@ class ChatWindow(Bubble):
             self.PR_init('None')
         else:
             # 读取图片文件
-            origin_media = pygame.image.load(self.filepath.exact())
-            self.origin_size:tuple = origin_media.get_size()
-            self.media:pygame.Surface = self.zoom(origin_media,scale=scale)
-            self.size:tuple = self.media.get_size()
-            # 其他参数
-            self.scale:float  = scale
+            self.load_image(scale=scale)
             self.PR_init('BBfile_%d')
         # 位置
         if type(pos) in [Pos,FreePos]:
@@ -1092,10 +1102,10 @@ class ChatWindow(Bubble):
             },
             'red' :{
                 'r0':{
-                    'am_left' : self.am_left,
+                    'am_left' : (self.am_left,0),
                 },
                 'r1':{
-                    'am_right': self.am_right,
+                    'am_right': (self.am_right,0),
                 }
             }
         }
@@ -1121,11 +1131,7 @@ class Background(MediaObj):
             self.origin_size:tuple = self.size
         else:
             # 读取图片文件
-            origin_media = pygame.image.load(self.filepath.exact())
-            self.origin_size:tuple = origin_media.get_size()
-            self.media:pygame.Surface = self.zoom(origin_media,scale=scale)
-            self.size:tuple = self.media.get_size()
-            self.scale:float  = scale
+            self.load_image(scale=scale)
         # 路径
         self.PR_init(filepath,'BGfile_%d')
         # 位置
@@ -1219,12 +1225,7 @@ class Animation(MediaObj):
         # 文件和路径
         super().__init__(filepath=filepath,label_color=label_color)
         # 立绘图像
-        self.length:int = len(self.filepath.list())
-        self.media:np.ndarray = np.frompyfunc(lambda x:self.zoom(pygame.image.load(x),scale=scale),1,1)(self.filepath.list())
-        # 尺寸是第一张图的尺寸
-        self.size:tuple = self.media[0].get_size()
-        self.origin_size:tuple = pygame.image.load(self.filepath.list()[0]).get_size()
-        self.scale:float   = scale
+        self.load_image(scale=scale)
         # 初始化PR
         self.PR_init(file_index='AMfile_%d')
         # 位置
@@ -1236,6 +1237,14 @@ class Animation(MediaObj):
         self.loop:bool = loop
         self.tick:int = tick
         self.this:int = 0
+    def load_image(self, scale: float):
+        # 立绘图像
+        self.length:int = len(self.filepath.list())
+        self.media:np.ndarray = np.frompyfunc(lambda x:self.zoom(pygame.image.load(x),scale=scale),1,1)(self.filepath.list())
+        # 尺寸是第一张图的尺寸
+        self.size:tuple = self.media[0].get_size()
+        self.origin_size:tuple = pygame.image.load(self.filepath.list()[0]).get_size()
+        self.scale:float  = scale
     def display(self,surface:pygame.Surface,alpha:float=100,center:str='NA',adjust:str='NA',frame:int=0)->None:
         self.this = frame
         if center == 'NA':

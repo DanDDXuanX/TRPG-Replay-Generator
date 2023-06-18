@@ -12,24 +12,31 @@ from core.Medias import MediaObj
 
 from .ScriptParser import MediaDef, CharTable, RplGenLog
 from .Medias import MediaObj, Animation, Bubble, ChatWindow, Balloon, Background, HitPoint, Dice
-from .FreePos import Pos
-
+from .FreePos import Pos, PosGrid
+from .Utils import get_vppr
 # 可交互的点线框
 class InteractiveDot:
-    def __init__(self,p1,p2,color,master:Animation=None) -> None:
+    def __init__(self,p1:tuple,p2:tuple,color:str,master:Animation=None) -> None:
         self.master = master
         self.color:str = color
+        # root: pos-scale 两个联动的可交互点
         if self.color == 'green':
             self.p1 = np.array(p1)
             self.p2 = np.array(p2)
+        # tx_pos-tx_end 仅一个可交互点
         elif self.color == 'blue':
             self.p1 = np.array(p1) + np.array(master.pos.get())
             self.p2 = np.array(p2) + np.array(master.pos.get())
+        # sub_pos 两个不联动的可交互点
         elif self.color == 'purple':
             self.p1 = np.array(p1) + np.array(master.pos.get())
             self.p2 = np.array(p2) + np.array(master.pos.get())
-        else: # red
-            self.p1 = np.array([p1,0])
+        # pos / posgrid, 一个孤点
+        elif self.color == 'orange':
+            self.p1 = np.array(p1)
+            self.p2 = np.array([-np.inf,-np.inf]) # 无效的占位符
+        else: # am left / right 一条竖线
+            self.p1 = np.array([p1[0], int(self.master.size[1]/2)]) + np.array(master.pos.get())
             self.p2 = np.array([-np.inf,-np.inf]) # 无效的占位符
         # 是否被选中
         self.selected = {
@@ -73,9 +80,12 @@ class InteractiveDot:
             rect(surface=surface,color='#aa00aa',rect=element_rect,width=lw)
             rect(surface=surface,color='#aa00aa',rect=p1_rect,width=dlw[self.selected['p1']])
             rect(surface=surface,color='#aa00aa',rect=p2_rect,width=dlw[self.selected['p2']])
+        elif self.color == 'orange':
+            p1_rect = [self.p1[0]-rw, self.p1[1]-rw, 2*rw, 2*rw]
+            rect(surface=surface,color='#ddaa00',rect=p1_rect,width=dlw[self.selected['p1']])
         else:
-            center = self.master.pos.get()[1] + int(self.master.size[1]/2)
-            p1_rect = [self.p1[0]-rw, center-rw, 2*rw, 2*rw]
+            # center = self.master.pos.get()[1] + int(self.master.size[1]/2)
+            p1_rect = [self.p1[0]-rw, self.p1[1]-rw, 2*rw, 2*rw]
             line(
                 surface=surface,
                 start_pos=(self.p1[0], self.master.pos.get()[1]),
@@ -92,16 +102,22 @@ class InteractiveDot:
             else:
                 self.p1 = np.array(new_pos)
         elif self.selected['p2'] == True:
-            # TODO: 只能在对角线上！
             self.p2 = np.array(new_pos)
         else:
             pass
     def get(self):
-        if self.color=='green':
+        if self.color in ('green','orange'):
             return self.p1.tolist(), self.p2.tolist()
         else:
             master_pos = np.array(self.master.pos.get())
             return self.p1-master_pos, self.p2-master_pos
+    def get_selected(self):
+        if self.selected['p1']:
+            return self.p1
+        elif self.selected['p2']:
+            return self.p2
+        else:
+            return None
 # 预览窗
 class PreviewCanvas(ttk.Frame):
     def __init__(self,master,screenzoom,mediadef):
@@ -184,7 +200,22 @@ class MDFPreviewCanvas(PreviewCanvas):
         self.canvas_label.bind('<Button-1>',self.get_pressed)
         self.canvas_label.bind('<B1-Motion>',self.get_drag)
         self.canvas_label.bind('<ButtonRelease-1>',self.get_drag_done)
+        # 最大化显示预览窗
+        self.canvas_label.bind('<Tab>',self.switch_fullview)
+        # 方向控制
+        self.canvas_label.bind('<Key-Up>',self.adjust_selected_point)
+        self.canvas_label.bind('<Key-Down>',self.adjust_selected_point)
+        self.canvas_label.bind('<Key-Left>',self.adjust_selected_point)
+        self.canvas_label.bind('<Key-Right>',self.adjust_selected_point)
+        # 可以联动编辑区
+        self.edit_frame = self.master.edit
+        # 刷新点
+        self.object_this = None
+        self.dots = {}
+        self.selected_dot = None
+        self.selected_dot_name = None
         # ctrl + Z 撤回
+    # 实例化媒体，生成点视图，并预览一次
     def preview(self, media_name:str):
         super().preview()
         # 需要将这个对象保存下来
@@ -192,9 +223,38 @@ class MDFPreviewCanvas(PreviewCanvas):
         # print(self.object_this)
         if self.object_this:
             self.object_this.preview(self.canvas)
+        # 获取点视图
+        self.update_dotview()
+        # 刷新显示
+        self.update_canvas()
+    # 拖拽中实时刷新点视图的内容
+    def update_preview(self,pressed:tuple):
+        # 重置背景
+        self.canvas.blit(self.empty_canvas,(0,0))
+        # 刷新媒体
+        if self.object_this:
+            self.object_this.preview(self.canvas)
+        else:
+            return
+        # 刷新点
+        self.selected_dot = None
+        self.selected_dot_name = None
+        for dot in self.dots:
+            this_dot:InteractiveDot = self.dots[dot]
+            if this_dot.check(pos=pressed,canvas_zoom=self.canvas_zoom.get()):
+                self.selected_dot = this_dot
+                self.selected_dot_name = dot
+            self.dots[dot].draw(self.canvas,self.canvas_zoom.get())
+        # 刷新画布
+        self.update_canvas()
+    # 重新生成点视图
+    def update_dotview(self):
         # 获取
+        if self.object_this:
+            self.dot_info = self.object_this.get_pos()
+        else:
+            return
         self.dots = {}
-        self.dot_info = self.object_this.get_pos()
         for color in self.dot_info:
             this_color = self.dot_info[color]
             for dot in this_color:
@@ -223,6 +283,17 @@ class MDFPreviewCanvas(PreviewCanvas):
                         color=color,
                         master=self.object_this
                         )
+                elif color == 'orange':
+                    if dot == 'o0':
+                        keyword = 'pos'
+                    else:
+                        keyword = 'end'
+                    self.dots[dot] = InteractiveDot(
+                        p1=this_color[dot][keyword],
+                        p2=None,
+                        color=color,
+                        master=self.object_this
+                        )
                 else:
                     if dot == 'b0':
                         p1k = 'mt_pos'
@@ -237,23 +308,6 @@ class MDFPreviewCanvas(PreviewCanvas):
                         master=self.object_this
                         )
                 self.dots[dot].draw(self.canvas,self.canvas_zoom.get())
-        self.update_canvas()
-    def update_preview(self,pressed:tuple,refresh:bool=False):
-        # 重置背景
-        self.canvas.blit(self.empty_canvas,(0,0))
-        # 刷新媒体
-        self.object_this.preview(self.canvas)
-        # 刷新点
-        self.selected_dot = None
-        self.selected_dot_name = None
-        for dot in self.dots:
-            this_dot:InteractiveDot = self.dots[dot]
-            if this_dot.check(pos=pressed,canvas_zoom=self.canvas_zoom.get()):
-                self.selected_dot = this_dot
-                self.selected_dot_name = dot
-            self.dots[dot].draw(self.canvas,self.canvas_zoom.get())
-        # 刷新画布
-        self.update_canvas()
     def get_focus(self,event):
         self.configure(bootstyle='primary')
     def lost_focus(self,event):
@@ -263,28 +317,49 @@ class MDFPreviewCanvas(PreviewCanvas):
         Rx = int(event.x / zoom)
         Ry = int(event.y / zoom)
         return (Rx - self.blank_size[0], Ry - self.blank_size[1])
+    # 被点击的功能：输入焦点、点选一个可拖动点
     def get_pressed(self,event):
-        # 被点击的功能：输入焦点、点选一个可拖动点
         self.canvas_label.focus_set()
         pressd = self.get_coordinates(event=event)
-        self.update_preview(pressed=pressd,refresh=False)
+        self.update_preview(pressed=pressd)
+    # 拖动中的功能：渲染点被拖动中的位置
     def get_drag(self,event):
-        # 拖动中的功能：渲染点被拖动中的位置
         pressd = self.get_coordinates(event=event)
         if self.selected_dot:
             self.selected_dot.move(new_pos=pressd)
-        self.update_preview(pressed=pressd,refresh=False)
+        self.update_preview(pressed=pressd)
+    # 释放鼠标的功能：确定最终修改的位置，并重置预览的画面渲染
     def get_drag_done(self,event):
-        # 释放鼠标的功能：确定最终修改的位置，并重置预览的画面渲染
         pressd = self.get_coordinates(event=event)
+        # 根据当前选点，刷新媒体对象
+        self.update_media_object()
+        # 整个重载点视图
+        self.update_dotview()
+        self.update_preview(pressed=pressd)
+    # 将变更同步到编辑区和媒体对象的成员
+    def update_media_object(self,):
+        # 如果有选中点
         if self.selected_dot:
+            # 绿点，影响pos
             if self.selected_dot_name == 'g0':
+                # POS
                 new_pos = self.selected_dot.get()[0]
-                #TODO: new_end = self.selected_dot.get()[1]
                 self.object_this.pos = Pos(*new_pos)
+                self.edit_frame.elements['pos'].set( '({},{})'.format(new_pos[0], new_pos[1]) )
+                # scale：投影到对角线上
+                new_end = self.selected_dot.get()[1]
+                NPV = np.array(new_end)-np.array(self.object_this.pos.get())
+                Z = get_vppr(new_pos=NPV, master_size=self.object_this.origin_size)
+                if Z == self.object_this.scale:
+                    pass
+                else:
+                    self.object_this.load_image(scale=round(Z,2))
+                    self.edit_frame.elements['scale'].set( round(Z,2) )
+            # 蓝点，影响字体位置
             elif self.selected_dot_name == 'b0':
                 new_pos = self.selected_dot.get()[0] 
                 self.object_this.mt_pos = tuple([x for x in new_pos])
+                self.edit_frame.elements['mt_pos'].set( '({},{})'.format(new_pos[0], new_pos[1]) )
             elif self.selected_dot_name[0] == 'b':
                 header_index = int(self.selected_dot_name[1:])-1
                 new_pos = self.selected_dot.get()[0]
@@ -292,18 +367,66 @@ class MDFPreviewCanvas(PreviewCanvas):
                     ht_pos:list = self.object_this.ht_pos
                     ht_pos[header_index] = tuple([x for x in new_pos])
                     self.object_this.ht_pos = ht_pos
+                    self.edit_frame.elements['ht_pos_%d'%(header_index+1)].set( '({},{})'.format(new_pos[0], new_pos[1]) )
                 else:
                     self.object_this.ht_pos = tuple([x for x in new_pos])
+                    self.edit_frame.elements['ht_pos'].set( '({},{})'.format(new_pos[0], new_pos[1]) )
+            # 红点，影响am_left_right
             elif self.selected_dot_name == 'r0':
-                pass
+                new_pos = self.selected_dot.get()[0]
+                self.object_this.am_left = new_pos[0]
+                self.edit_frame.elements['am_left'].set(new_pos[0])
             elif self.selected_dot_name == 'r1':
-                pass
+                new_pos = self.selected_dot.get()[0]
+                self.object_this.am_right = new_pos[0]
+                self.edit_frame.elements['am_right'].set(new_pos[0])
             elif self.selected_dot_name == 'p0':
-                pass
+                new_pos = self.selected_dot.get()[0]
+                new_end = self.selected_dot.get()[1]
+                self.object_this.sub_pos = new_pos
+                self.object_this.sub_size = new_end - new_pos
+                self.edit_frame.elements['sub_pos'].set('({},{})'.format(new_pos[0], new_pos[1]))
+                self.edit_frame.elements['sub_end'].set('({},{})'.format(new_end[0], new_end[1]))
+            elif self.selected_dot_name == 'o0':
+                new_pos = self.selected_dot.get()[0]
+                if type(self.object_this) is PosGrid:
+                    self.object_this.pos = new_pos
+                    self.object_this.make_grid()
+                else:
+                    self.object_this.x = new_pos[0]
+                    self.object_this.y = new_pos[1]
+                self.edit_frame.elements['pos'].set('({},{})'.format(new_pos[0], new_pos[1]))
+            elif self.selected_dot_name == 'o1':
+                new_pos = self.selected_dot.get()[0]
+                self.object_this.end = new_pos
+                self.object_this.make_grid()
+                self.edit_frame.elements['end'].set('({},{})'.format(new_pos[0], new_pos[1]))
             else:
                 pass
-        self.update_preview(pressed=pressd,refresh=True)
 
+    # 切换全屏视图
+    def switch_fullview(self,event):
+        self.master.set_fullview()
+        self.canvas_label.focus_set()
+    # 方向键微调位置
+    def adjust_selected_point(self,event):
+        direction_key = {'Up':(0,-1),'Down':(0,1),'Left':(-1,0),'Right':(1,0)}
+        if event.state == 262153: # Shift|Mod1|0x40000
+            multi = 10
+        else:
+            multi = 1
+        if self.selected_dot:
+            r_x, r_y = self.selected_dot.get_selected()
+            p_x = r_x+direction_key[event.keysym][0]*multi
+            p_y = r_y+direction_key[event.keysym][1]*multi
+            self.selected_dot.move(new_pos=(p_x, p_y))
+            # 刷新媒体对象
+            self.update_media_object()
+            # 整个重载点视图
+            self.update_dotview()
+            self.update_preview(pressed=(p_x, p_y))
+        else:
+            pass
 class CTBPreviewCanvas(PreviewCanvas):
     def __init__(self, master, screenzoom, chartab, mediadef):
         self.chartab:CharTable = chartab

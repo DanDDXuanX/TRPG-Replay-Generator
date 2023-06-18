@@ -453,12 +453,13 @@ class FileCollapsing(ttk.Frame):
             return True
         except Exception as E:
             return False
-    def open_item_as_page(self,keyword,file_type,file_index):
+    def open_item_as_page(self,keyword,image,file_type,file_index):
         # 检查是否是Page_frame中的活跃页
         if keyword not in self.page_frame.page_dict.keys():
             # 如果不是活动页，新增活跃页
             self.page_frame.add_active_page(
                 name        = keyword,
+                image       = image,
                 file_type   = file_type,
                 content_obj = self.content,
                 content_type= file_index
@@ -510,6 +511,7 @@ class MDFCollapsing(FileCollapsing):
         file_index = file_index[1:-1] # 去除括号
         super().open_item_as_page(
             keyword     = '媒体-' + filename, # '媒体-立绘'
+            image       = 'FM_' + file_index,
             file_type   = 'MDF',
             file_index  = file_index # 'Animation'
             )
@@ -575,6 +577,7 @@ class CTBCollapsing(FileCollapsing):
         keyword = event.widget.cget('text')
         super().open_item_as_page(
             keyword     = '角色-'+keyword,
+            image       = self.img_name,
             file_type   = 'CTB',
             file_index  = keyword
             )
@@ -642,6 +645,7 @@ class RGLCollapsing(FileCollapsing):
         keyword = event.widget.cget('text')
         super().open_item_as_page(
             keyword     = '剧本-'+keyword,
+            image       = self.img_name,
             file_type   = 'RGL',
             file_index  = keyword
             )

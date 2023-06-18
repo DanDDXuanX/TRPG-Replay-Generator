@@ -16,6 +16,8 @@ class DictCombobox(ttk.Combobox):
         self.dictionary = {}
         # 实际的值
         self.var = textvariable
+        self.var_update_text = True
+        self.var.trace_variable("w", self.update_text) # 检查是否发生了变更，如果变更了则刷新text
         # 显示的
         self.text = tk.StringVar(master=master,value=self.var.get())
         # 初始化
@@ -30,11 +32,21 @@ class DictCombobox(ttk.Combobox):
         if len(keys) > 0:
             self.text.set(keys[0])
     def update_var(self, event):
+        # 禁用 update_text
+        self.var_update_text = False
+        # 获取当前 text
         text = self.text.get()
         if text in self.dictionary:
             self.var.set(self.dictionary[text])
         else:
             self.var.set(text)
+        # 重新启用 update_text
+        self.var_update_text = True
+    # 从被修改的self.var里更新显示的文本
+    def update_text(self, *args):
+        if self.var_update_text:
+            var = self.var.get()
+            self.text.set(var)
 
 # 一个键、值、描述的最小单位。
 class KeyValueDescribe(ttk.Frame):
@@ -86,6 +98,8 @@ class KeyValueDescribe(ttk.Frame):
         self.describe.pack(fill='none',side='left',padx=SZ_5)
     def get(self):
         return self.value.get()
+    def set(self,value):
+        return self.value.set(value)
     def bind_button(self,dtype='picture-file',quote=True):
         if type(self.describe) != ttk.Button:
             return

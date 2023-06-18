@@ -67,10 +67,19 @@ class Pos:
         px = self.x
         py = self.y
         # line
-        line(surface, color='#00aa00',start_pos=(px-100,py),end_pos=(px+100,py))
-        line(surface, color='#00aa00',start_pos=(px,py-100),end_pos=(px,py+100))
+        line(surface, color='#00aa00',start_pos=(px-100,py),end_pos=(px+100,py),width=3)
+        line(surface, color='#00aa00',start_pos=(px,py-100),end_pos=(px,py+100),width=3)
     def convert(self):
         pass
+    def get_pos(self):
+        pos_dict = {
+            'orange': {
+                'o0':{
+                    'pos' : (self.x, self.y),
+                }
+            },
+        }
+        return pos_dict
 class FreePos(Pos):
     # 重设位置
     def set(self,others):
@@ -96,28 +105,45 @@ class PosGrid:
         else:
             self.pos = pos
             self.end = end
-        X,Y = np.mgrid[x1:x2:(x2-x1)/x_step,y1:y2:(y2-y1)/y_step].astype(int)
-        self._grid = np.frompyfunc(lambda x,y:Pos(x,y),2,1)(X,Y)
         self._size = (x_step,y_step)
+        self.make_grid()
     def __getitem__(self,key)->Pos:
         return self._grid[key[0],key[1]]
+    def make_grid(self):
+        x_step, y_step = self._size
+        x1,y1 = self.pos
+        x2,y2 = self.end
+        X,Y = np.mgrid[x1:x2:(x2-x1)/x_step,y1:y2:(y2-y1)/y_step].astype(int)
+        self._grid = np.frompyfunc(lambda x,y:Pos(x,y),2,1)(X,Y)
     def size(self):
         return self._grid.shape
     def preview(self, surface):
         W,H = surface.get_size()
         # 起点
-        line(surface, color='#aa00aa',start_pos=(self.pos[0],0),end_pos=(self.pos[0],H))
-        line(surface, color='#aa00aa',start_pos=(0,self.pos[1]),end_pos=(W,self.pos[1]))
+        line(surface, color='#aa00aa',start_pos=(self.pos[0],0),end_pos=(self.pos[0],H),width=3)
+        line(surface, color='#aa00aa',start_pos=(0,self.pos[1]),end_pos=(W,self.pos[1]),width=3)
         # 终点
-        line(surface, color='#aa00aa',start_pos=(self.end[0],0),end_pos=(self.end[0],H))
-        line(surface, color='#aa00aa',start_pos=(0,self.end[1]),end_pos=(W,self.end[1]))
+        line(surface, color='#aa00aa',start_pos=(self.end[0],0),end_pos=(self.end[0],H),width=3)
+        line(surface, color='#aa00aa',start_pos=(0,self.end[1]),end_pos=(W,self.end[1]),width=3)
         # 网点
         for i in range(self._size[0]):
             for j in range(self._size[1]):
                 pos_this = self._grid[i][j]
                 px = pos_this.x
                 py = pos_this.y
-                line(surface, color='#00aa00',start_pos=(px-20,py),end_pos=(px+20,py))
-                line(surface, color='#00aa00',start_pos=(px,py-20),end_pos=(px,py+20))
+                line(surface, color='#00aa00',start_pos=(px-20,py),end_pos=(px+20,py),width=3)
+                line(surface, color='#00aa00',start_pos=(px,py-20),end_pos=(px,py+20),width=3)
     def convert(self):
         pass
+    def get_pos(self):
+        pos_dict = {
+            'orange': {
+                'o0':{
+                    'pos' : self.pos,
+                },
+                'o1':{
+                    'end' : self.end,
+                }
+            },
+        }
+        return pos_dict

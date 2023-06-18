@@ -40,7 +40,7 @@ class PageFrame(ttk.Frame):
         self.page_notebook.place(x=0,y=0,height=SZ_30,relwidth=1)
         # 初始化显示
         self.page_show.place(x=0,y=SZ_30,relheight=1,height=-SZ_30,relwidth=1)
-    def add_active_page(self,name:str,file_type:str,content_obj:Script,content_type=False):
+    def add_active_page(self,name:str,image:str,file_type:str,content_obj:Script,content_type=False):
         # 将对象添加到 page_dict
         PageType = {
             'MDF' : MDFPage,
@@ -54,7 +54,7 @@ class PageFrame(ttk.Frame):
             content_type= content_type
             )
         # 在标签页中新建一个标签
-        self.page_notebook.add(name=name)
+        self.page_notebook.add(name=name,image=image)
     def switch_page(self,name:str):
         # 切换页面
         SZ_30 = int(self.sz * 30)
@@ -83,10 +83,9 @@ class PageNotes(ttk.Frame):
             page_label:ttk.Button = self.active_tabs[key]
             page_label.pack_forget()
             page_label.pack(fill='y',padx=(0,SZ_2),side='left',pady=0)
-    def add(self,name):
+    def add(self,name,image):
         # 添加对象
-        # bootstyle_dict = {'媒体':'warning', '角色':'success', '剧本':'primary'}
-        self.active_tabs[name] = TabNote(master=self,text=name,bootstyle='primary',screenzoom=self.sz)
+        self.active_tabs[name] = TabNote(master=self,text=name,image=image,bootstyle='secondary',screenzoom=self.sz)
         self.active_tabs_name_list.append(name)
         # 触发点击事件
         self.active_tabs[name].get_pressed()
@@ -121,13 +120,21 @@ class PageNotes(ttk.Frame):
 
 # 项目视图-页面标签-标签
 class TabNote(ttk.Button):
-    def __init__(self,master,screenzoom,text,bootstyle)->None:
+    def __init__(self,master,screenzoom,text,image,bootstyle)->None:
         self.sz = screenzoom
         SZ_5 = int(self.sz * 5)
         SZ_21 = int(self.sz * 21)
         SZ_24 = int(self.sz * 24)
         SZ_30 = int(self.sz * 30)
-        super().__init__(master,bootstyle=bootstyle,text=text,compound='left',padding=(SZ_5,SZ_5,SZ_30,SZ_5),command=self.get_pressed)
+        super().__init__(
+            master,
+            bootstyle=bootstyle,
+            text=text,
+            image=image,
+            compound='left',
+            padding=(SZ_5,SZ_5,SZ_30,SZ_5),
+            command=self.get_pressed
+        )
         self.name = text
         self.bootstyle = bootstyle
         self.is_change = tk.StringVar(master=self,value='×')
@@ -230,12 +237,34 @@ class MDFPage(ttk.Frame):
         self.preview = MDFPreviewCanvas(master=self,screenzoom=self.sz,mediadef=self.content)
         self.container = MDFContainer(master=self,content=content_obj,typelist=self.categroy_dict[content_type],screenzoom=self.sz)
         self.searchbar = SearchBar(master=self,screenzoom=self.sz,container=self.container)
+        # 初始显示
+        self.update_items()
+    def update_items(self):
+        # 取消全屏预览（假如）
+        self.preview.pack_forget()
         # 放置元件
         SZ_40 = int(self.sz * 40)
         self.searchbar.place(x=0,y=0,relwidth=0.5,height=SZ_40)
         self.container.place(x=0,y=SZ_40,relwidth=0.5,relheight=1,height=-SZ_40)
         self.preview.place(relx=0.5,rely=0,relwidth=0.5,relheight=0.44)
         self.edit.place(relx=0.5,rely=0.44,relwidth=0.5,relheight=0.56)
+        # 标志
+        self.isfull = False
+    def update_fullviews(self):
+        # 取消全部显示
+        self.searchbar.place_forget()
+        self.container.place_forget()
+        self.preview.place_forget()
+        self.edit.place_forget()
+        # 显示全屏预览
+        self.preview.pack(fill='both',expand=True)
+        # 标志
+        self.isfull = True
+    def set_fullview(self):
+        if self.isfull:
+            self.update_items()
+        else:
+            self.update_fullviews()
 
 # 页面视图：角色配置文件
 class CTBPage(ttk.Frame):

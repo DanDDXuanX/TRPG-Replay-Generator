@@ -166,7 +166,6 @@ class MediaEdit(EditWindow):
         self.TableStruct = TableStruct['MediaDef']
     def update_from_section(self,index:str,section: dict, line_type):
         super().update_from_section(index, section, line_type)
-        # TODO:各个类型的config
         # 更新
         self.update_media_element_prop(line_type)
         self.update_item()

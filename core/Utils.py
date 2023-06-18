@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 # 小工具们
-EDITION = 'alpha 1.24.25'
+EDITION = 'alpha 1.24.29'
 
 import numpy as np
 import time
@@ -20,6 +20,13 @@ UF_cut_str = np.frompyfunc(cut_str,2,1)
 def clean_ts(text):
     # 用于语音合成的内容，不应该包括富标记
     return RE_rich.sub(text,'').replace('^','').replace('#','')
+
+# 获取点在矩形对角线垂直投影方向的投影点相对矩形垂直对角线的倍率（scale）
+def get_vppr(new_pos,master_size):
+    V_AP = np.array(new_pos)
+    V_AB = np.array(master_size)
+    Z = np.dot(V_AP,V_AB)/np.dot(V_AB,V_AB)
+    return Z
 
 def isnumber(str):
     try:
