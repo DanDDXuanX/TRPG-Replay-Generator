@@ -6,6 +6,7 @@
 import re
 import pandas as pd
 import numpy as np
+from collections import Counter
 
 class StoryImporter:
     parse_struct = {
@@ -19,7 +20,7 @@ class StoryImporter:
             },
             "add": {
                 "cmd"   : "add",
-                "regex" : r"^(.*)$",
+                "regex" : r"^(.+)$",
                 "ID"    : None,
                 "name"  : None,
                 "speech": r"$1"
@@ -33,7 +34,21 @@ class StoryImporter:
                 "speech": ""
             },
             "add": {
-                "regex" : r"^(.*)$",
+                "regex" : r"^(.+)$",
+                "ID"    : None,
+                "name"  : None,
+                "speech": r"$1"
+            }
+        },
+        "QQChannel" : {
+            "new":{
+                "regex" : r"^(.+?)\s+(\d{4}-\d{1,2}-\d{1,2})\s+(\d{1,2}:\d{1,2}:\d{1,2})$",
+                "ID"    : r"$1",
+                "name"  : r"$1",
+                "speech": ""
+            },
+            "add": {
+                "regex" : r"^(.+)$",
                 "ID"    : None,
                 "name"  : None,
                 "speech": r"$1"
@@ -56,19 +71,11 @@ class StoryImporter:
                 "speech": None
             },
             "add": {
-                "regex" : r"^(.*)$",
+                "regex" : r"^(.+)$",
                 "ID"    : None,
                 "name"  : None,
                 "speech": r"$1"
             }
-        },
-        "SinaNya":{
-            "new":{
-                "regex" : r"^(<\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d>\s*)?\[?([^\]]+)\]?:\s*?([^\n]+)$",
-                "ID"    : r"$2",
-                "name"  : r"$2",
-                "speech": r"$3"
-            },
         },
         "Rendered":{
             "new":{
@@ -78,7 +85,7 @@ class StoryImporter:
                 "speech": r"$5"
             },
             "add": {
-                "regex" : r"^(.*)$",
+                "regex" : r"^(.+)$",
                 "ID"    : None,
                 "name"  : None,
                 "speech": r"$1"
@@ -86,7 +93,7 @@ class StoryImporter:
         },
     }
     struct_col = ['ID','name','speech']
-    def __init__(self) -> None:
+    def __init__(self, regex_specify:dict=None) -> None:
         self.log_mode = None
         self.section = {
             "ID"    :"",
@@ -95,6 +102,9 @@ class StoryImporter:
         }
         self.results = pd.DataFrame(columns = self.struct_col)
         self.line_index = 0
+        # 如果指定了解析正则结构，则重载类变量
+        if regex_specify:
+            self.parse_struct = regex_specify
     def load(self,text:str):
         lines = text.split('\n')
         for line in lines:
@@ -152,18 +162,33 @@ class StoryImporter:
         # 调试
         if self.line_index % 1000 == 0:
             print(self.line_index)
-    def get_charactor_ID(self):
-        ID_valid = re.compile('[\w\ ]+')
+    def get_charactor_ID(self)->list:
         if len(self.results) == 0:
             return []
         else:
             this_result = self.results[1:]
+            # 原始ID，是倒序排序的
             raw_ID = this_result['ID'].value_counts()
-            all_ID = raw_ID.index.map(ID_valid.findall)
-    def get_charactor_name(self):
+            # 返回
+            return raw_ID.index.to_list()
+    def get_charactor_name(self)->pd.Series:
         if len(self.results) == 0:
-            return []
+            return None
         else:
-            this_result = self.results[1:]
-            raw_name = this_result['name'].value_counts()
-            # TODO
+            this_result = self.results.loc[1:]
+            names = this_result.groupby('ID')['name'].apply(self.get_possible_valid_name)
+            # 检查是否出现了重名
+            if names.duplicated().any():
+                return names.where(~names.duplicated(), names+'_dup')
+            else:
+                return names
+    def get_possible_valid_name(self,set_of_name:pd.Series):
+        # 检索内容中的合法词组
+        ID_valid = re.compile('[\w]+')
+        name_words = set_of_name.map(ID_valid.findall)
+        # 将列表元素的Series展平为一个一一对应Series
+        name_words_S = name_words.explode()
+        # 统计每个词组出现的频次
+        name_words_C = name_words_S.value_counts()
+        # 返回出现频次等于最大值的词组成的新词组
+        return '_'.join(name_words_C[name_words_C == name_words_C.max()].index)
