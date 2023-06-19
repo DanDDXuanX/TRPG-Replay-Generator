@@ -16,9 +16,10 @@ from .FreePos import Pos, PosGrid
 from .Utils import get_vppr
 # 可交互的点线框
 class InteractiveDot:
-    def __init__(self,p1:tuple,p2:tuple,color:str,master:Animation=None) -> None:
+    def __init__(self,p1:tuple,p2:tuple,color:str,master:Animation=None,screen_zoom:float=1.0) -> None:
         self.master = master
         self.color:str = color
+        self.sz = screen_zoom
         # root: pos-scale 两个联动的可交互点
         if self.color == 'green':
             self.p1 = np.array(p1)
@@ -44,7 +45,7 @@ class InteractiveDot:
             'p2' : False
         }
     def check(self, pos, canvas_zoom:float=1.0)->bool:
-        rw = int(5 / canvas_zoom)
+        rw = np.int(np.ceil(5 / canvas_zoom * self.sz))
         if np.max(np.abs(np.array(pos) - self.p1)) < rw:
             self.selected['p1'] = True
             self.selected['p2'] = False
@@ -58,8 +59,8 @@ class InteractiveDot:
             self.selected['p2'] = False
             return False
     def draw(self, surface, canvas_zoom:float=1.0):
-        lw = int(1 / canvas_zoom)
-        rw = int(5 / canvas_zoom)
+        lw = np.int(np.ceil(1 / canvas_zoom))
+        rw = np.int(np.ceil(5 / canvas_zoom * self.sz))
         dlw = {True:rw, False:lw}
         if self.color == 'green':
             element_rect = [self.p1[0], self.p1[1], self.p2[0]-self.p1[0], self.p2[1]-self.p1[1]]
@@ -263,14 +264,16 @@ class MDFPreviewCanvas(PreviewCanvas):
                         p1=this_color[dot]['pos'],
                         p2=this_color[dot]['scale'],
                         color=color,
-                        master=self.object_this
+                        master=self.object_this,
+                        screen_zoom=self.sz
                         )
                 elif color == 'purple':
                     self.dots[dot] = InteractiveDot(
                         p1=this_color[dot]['sub_pos'],
                         p2=this_color[dot]['sub_end'],
                         color=color,
-                        master=self.object_this
+                        master=self.object_this,
+                        screen_zoom=self.sz
                         )
                 elif color == 'red':
                     if 'am_left' in this_color[dot]:
@@ -281,7 +284,8 @@ class MDFPreviewCanvas(PreviewCanvas):
                         p1=this_color[dot][keyword],
                         p2=None,
                         color=color,
-                        master=self.object_this
+                        master=self.object_this,
+                        screen_zoom=self.sz
                         )
                 elif color == 'orange':
                     if dot == 'o0':
@@ -292,7 +296,8 @@ class MDFPreviewCanvas(PreviewCanvas):
                         p1=this_color[dot][keyword],
                         p2=None,
                         color=color,
-                        master=self.object_this
+                        master=self.object_this,
+                        screen_zoom=self.sz
                         )
                 else:
                     if dot == 'b0':
@@ -305,7 +310,8 @@ class MDFPreviewCanvas(PreviewCanvas):
                         p1=this_color[dot][p1k],
                         p2=this_color[dot][p2k],
                         color=color,
-                        master=self.object_this
+                        master=self.object_this,
+                        screen_zoom=self.sz
                         )
                 self.dots[dot].draw(self.canvas,self.canvas_zoom.get())
     def get_focus(self,event):
