@@ -6,10 +6,11 @@
 import re
 import pandas as pd
 import numpy as np
-from collections import Counter
 
 class StoryImporter:
     parse_struct = {
+        # 2023-06-20 15:50:30 Exception(3247131970)
+        # 请不要打扰我的工作啦，我会很困扰的。
         "QQExport" : {
             "new": {
                 "cmd"   : "new",
@@ -26,6 +27,8 @@ class StoryImporter:
                 "speech": r"$1"
             }
         },
+        # 【伊可】Exception 2023/06/20 15:50:30
+        # 请不要打扰我的工作啦，我会很困扰的。
         "QQCopy" : {
             "new":{
                 "regex" : r"^(【.{0,10}】)?(.+?)\s+(\d{4}/\d{1,2}/\d{1,2}\s+)?(\d{1,2}:\d{1,2}:\d{1,2})$",
@@ -40,6 +43,8 @@ class StoryImporter:
                 "speech": r"$1"
             }
         },
+        # Exception 2023-06-20 15:50:30
+        # 请不要打扰我的工作啦，我会很困扰的。
         "QQChannel" : {
             "new":{
                 "regex" : r"^(.+?)\s+(\d{4}-\d{1,2}-\d{1,2})\s+(\d{1,2}:\d{1,2}:\d{1,2})$",
@@ -54,15 +59,17 @@ class StoryImporter:
                 "speech": r"$1"
             }
         },
+        # [Exception]:请不要打扰我的工作啦，我会很困扰的。
         "RGLoid":{
             "new":{
                 "regex" : r"^\[([^\[\]]+?)(,.+?)?\](<.+>)?:(.+?)(<.+>)?({.+})?$",
                 "ID"    : r"$1",
                 "name"  : r"$1",
-                "speech": r"$2"
+                "speech": r"$4"
             }
         },
-        # "Maoye":{},
+        # [2023/06/20, 3:50:30 PM] Exception
+        # 请不要打扰我的工作啦，我会很困扰的。
         "FVTT":{
             "new":{
                 "regex" : r"^\[(\d+\/\d+\/\d+, \d+:\d+:\d+ [AP]M)\] (.+)$",
@@ -77,9 +84,10 @@ class StoryImporter:
                 "speech": r"$1"
             }
         },
+        # 2023/06/20 15:50:30 <Exception>:请不要打扰我的工作啦，我会很困扰的。
         "Rendered":{
             "new":{
-                "regex" : r"^((\d{4}\/\d{2}\/\d{2}\s)?\d{2}:\d{2}:\d{2})?<(.+?)(\([^)]+\))?>:(.*)$",
+                "regex" : r"^(\d{4}\/\d{2}\/\d{2}\s)?(\d{2}:\d{2}:\d{2}\s)?<(.+?)(\([^)]+\))?>:?(.*)$",
                 "ID"    : r"$3",
                 "name"  : r"$3",
                 "speech": r"$5"
@@ -112,6 +120,8 @@ class StoryImporter:
                 self.identify(line=line)
             # 解析，或者pass
             self.parse(line=line)
+        # 结束遍历之后，最后记录一次
+        self.recode()
     def identify(self,line:str):
         for mode in self.parse_struct:
             regex = self.parse_struct[mode]['new']['regex']
