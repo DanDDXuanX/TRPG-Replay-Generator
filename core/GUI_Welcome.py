@@ -32,7 +32,8 @@ class RplGenStudioWelcome(ttk.Window):
         self.image_show = ttk.Label(master=self,image='welcome',borderwidth=SZ_5,anchor='center',background='#963fff')
         self.image_show.pack(fill='both',expand=True)
         # 主循环
-        self.after(4000, self.fade_out)
+        self.attributes('-alpha', 0)
+        self.fade_in()
         self.mainloop()
     # 获取系统的缩放比例
     def get_screen(self)->float:
@@ -55,3 +56,12 @@ class RplGenStudioWelcome(ttk.Window):
             self.after(20, self.fade_out)
         else:
             self.destroy()
+    # 开启
+    def fade_in(self):
+        alpha = self.attributes('-alpha')
+        if alpha < 1:
+            alpha += 0.02
+            self.attributes('-alpha', alpha)
+            self.after(20, self.fade_in)
+        else:
+            self.after(3000, self.fade_out)
