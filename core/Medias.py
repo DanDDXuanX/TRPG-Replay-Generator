@@ -100,6 +100,25 @@ class MediaObj:
     # 获取所有点
     def get_pos(self) -> dict:
         return {}
+    # 在对象实例化后修改参数
+    def configure(self,key:str,value,index:int=0):
+        if key == 'filepath':
+            # 文件路径是非法关键字
+            if (value is None) or (value == 'None') or (value in self.cmap.keys()):
+                self.filepath = None
+            # 否则是一个Filepath 对象
+            else:
+                self.filepath = Filepath(filepath=value)
+        elif key == 'pos':
+            self.pos = Pos(*value)
+        elif key == 'scale':
+            self.scale = value
+            self.load_image(scale=self.scale)
+        else:
+            try:
+                self.__setattr__(key,value)
+            except AttributeError:
+                pass
 
 # 文字对象
 class Text(MediaObj):
@@ -148,6 +167,14 @@ class Text(MediaObj):
         W,H = surface.get_size()
         # 显示在正中间
         surface.blit(text_surf,((W-w)/2,(H-h)/2))
+    # 修改
+    def configure(self, key: str, value, index: int = 0):
+        if key == 'fontfile':
+            super().configure(key='filepath',value=value)
+            self.text_render = pygame.font.Font(self.filepath.exact(), self.size)
+        else:
+            # 继承
+            super().configure(key, value, index)
 # 描边文本
 class StrokeText(Text):
     pygame.font.init()
@@ -156,7 +183,7 @@ class StrokeText(Text):
         # 描边颜色
         self.edge_color = edge_color
         # 投影方向
-        self.dirction_dict = {
+        self.projection_dict = {
             'C' :np.array([ 0, 0]),
             'E' :np.array([ 1, 0]),
             'W' :np.array([-1, 0]),
@@ -167,10 +194,10 @@ class StrokeText(Text):
             'SE':np.array([ 1, 1]),
             'SW':np.array([-1, 1]),
         }
-        if projection in self.dirction_dict.keys():
-            self.dirction = projection
+        if projection in self.projection_dict.keys():
+            self.projection = projection
         else:
-            self.dirction = 'C'
+            self.projection = 'C'
         # 描边宽度
         try:
             self.edge_width = int(edge_width)
@@ -180,7 +207,6 @@ class StrokeText(Text):
             raise MediaError("InvEgWd",edge_width)
         elif self.edge_width > 3:
             print(WarningPrint('WideEdge'))
-        # bug：受限于pygame的性能，无法正确的表现透明度不同的描边和字体，但在导出PR项目时是正常的
         if (self.color[3] < 255) | (self.edge_color[3] < 255):
             print(WarningPrint('AlphaText'))
     def render(self,tx):
@@ -202,7 +228,7 @@ class StrokeText(Text):
         else:
             pass
         # face图层：在投影模式下，也至少回保留一个像素
-        canvas.blit(face,(ew,ew)-self.dirction_dict[self.dirction]*(ew-1))
+        canvas.blit(face,(ew,ew)-self.projection_dict[self.projection]*(ew-1))
         # bug：受限于pygame的性能，无法正确的表现透明度不同的描边和字体，但在导出PR项目时是正常的
         if (self.color[3] < 255) | (self.edge_color[3] < 255):
             # 按照透明度的最小值显示
@@ -597,6 +623,33 @@ class Bubble(MediaObj):
                     self.ht_pos[1] + self.Header.size * 1.5
                 )
         return pos_dict
+    # 修改
+    def configure(self, key: str, value, index: int = 0):
+        # 底图
+        if key == 'filepath':
+            super().configure(key, value, index)
+            # 底图的初始化
+            # 气泡底图
+            if self.filepath is None:
+                # 媒体设为空图
+                self.media = pygame.Surface(self.screen_size,pygame.SRCALPHA)
+                self.media.fill(self.cmap['empty'])
+                # 尺寸和缩放
+                self.scale:float = 1.0
+                self.size:tuple = self.screen_size
+                self.origin_size:tuple = self.size
+            else:
+                # 读取图片文件
+                self.load_image(scale=self.scale)
+        elif key == 'Main_Text':
+            self.MainText == value
+        elif key == 'Header_Text':
+            self.Header = value
+        elif key == 'ht_target':
+            self.target = value
+        else:
+            super().configure(key, value, index)
+
 # 气球
 class Balloon(Bubble):
     def __init__(
@@ -665,6 +718,15 @@ class Balloon(Bubble):
                         self.ht_pos[i][1] + HT.size * 1.5
                     )
         return pos_dict
+    def configure(self, key: str, value, index: int = 0):
+        if key == 'Header_Text':
+            self.Header[index] = value
+        elif key == 'ht_target':
+            self.target[index] = value
+        elif key == 'ht_pos':
+            self.ht_pos[index] = value
+        else:
+            super().configure(key, value, index)
 # 自适应气泡
 class DynamicBubble(Bubble):
     def __init__(
@@ -702,6 +764,10 @@ class DynamicBubble(Bubble):
             self.horizontal,self.vertical = {'free':(1,1),'vertical':(0,1),'horizontal':(1,0)}[fit_axis]
         else:
             raise MediaError('InvFit',fit_axis)
+        # 初始化切片
+        self.clip_init()
+    # 初始化切片
+    def clip_init(self):
         # x,y轴上的四条分割线
         self.x_tick:list = [0,self.mt_pos[0],self.mt_end[0],self.size[0]]
         self.y_tick:list = [0,self.mt_pos[1],self.mt_end[1],self.size[1]]
@@ -894,6 +960,15 @@ class DynamicBubble(Bubble):
             },
         }
         return pos_dict
+    # 调整
+    def configure(self, key: str, value, index: int = 0):
+        if key == 'fit_axis':
+            self.horizontal,self.vertical = {'free':(1,1),'vertical':(0,1),'horizontal':(1,0)}[value]
+        else:
+            super().configure(key, value, index)
+            # 如果涉及到分割线，那么重新初始化分割线
+            if key in ['filepath','scale','mt_pos','mt_end']:
+                self.clip_init()
 # 聊天窗
 class ChatWindow(Bubble):
     def __init__(
@@ -937,10 +1012,11 @@ class ChatWindow(Bubble):
         if len(sub_Bubble) != len(sub_key):
             raise MediaError('CWKeyLen')
         # 子气泡和对齐
+        self.sub_key = sub_key
         self.sub_Bubble = {}
         self.sub_Anime = {}
         self.sub_align = {}
-        for i,key in enumerate(sub_key):
+        for i,key in enumerate(self.sub_key):
             # 检查气泡是否是 Ballon
             if type(sub_Bubble[i]) is Balloon:
                 raise MediaError('Bn2CW',key)
@@ -1110,6 +1186,28 @@ class ChatWindow(Bubble):
             }
         }
         return pos_dict
+    # 修改
+    def configure(self, key: str, value, index: int = 0):
+        # 注意，这两个要同时做！
+        if key == 'sub_pos':
+            self.sub_pos = value
+        elif key == 'sub_end':
+            self.sub_size = (value[0]-self.sub_pos[0],value[1]-self.sub_pos[1])
+        # 关键词参数们
+        elif key == 'sub_key':
+            self.sub_key[index] = value
+        elif key == 'sub_Bubble':
+            keyword = self.sub_key[index]
+            self.sub_Bubble[keyword] = value
+        elif key == 'sub_Anime':
+            keyword = self.sub_key[index]
+            self.sub_Anime[keyword] = value
+        elif key == 'sub_align':
+            keyword = self.sub_key[index]
+            self.sub_align[keyword] = value
+        else:
+            super().configure(key, value, index)
+
 # 背景
 class Background(MediaObj):
     def __init__(
@@ -1210,7 +1308,20 @@ class Background(MediaObj):
             },
         }
         return pos_dict
-
+    def configure(self, key: str, value, index: int = 0):
+        super().configure(key, value, index)
+        if key == 'filepath':
+            if value in self.cmap.keys():
+                # 填充纯色
+                self.media = pygame.Surface(self.screen_size,pygame.SRCALPHA)
+                self.media.fill(self.cmap[value])
+                # 其他参数
+                self.scale:float = 1.0
+                self.size:tuple  = self.screen_size
+                self.origin_size:tuple = self.size
+            else:
+                # 读取图片文件
+                self.load_image(scale=self.scale)
 # 立绘
 class Animation(MediaObj):
     def __init__(
@@ -1312,6 +1423,10 @@ class Animation(MediaObj):
             },
         }
         return pos_dict
+    def configure(self, key: str, value, index: int = 0):
+        super().configure(key, value, index)
+        if key == 'filepath':
+            self.load_image(scale=self.scale)
 # 内建动画的基类：不可以直接使用
 class BuiltInAnimation(Animation):
     # BIA初始化：需要在media确定之后！
@@ -1354,7 +1469,9 @@ class BuiltInAnimation(Animation):
             MediaObj.outanime_index = MediaObj.outanime_index+1
         # 继承
         return super().PR_init(file_index)
-
+    # 内建动画，没有configure
+    def configure(self, key: str, value, index: int = 0):
+        pass
 # 组合立绘
 class GroupedAnimation(BuiltInAnimation):
     def __init__(
@@ -1742,7 +1859,12 @@ class Audio(MediaObj):
         pass
     def preview(self, surface: pygame.Surface):
         self.media.play()
-
+    # 修改
+    def configure(self, key: str, value, index: int = 0):
+        super().configure(key, value, index)
+        if key == 'filepath':
+            self.media = pygame.mixer.Sound(self.filepath.exact())
+            self.length:int = int(self.media.get_length()*self.frame_rate)
 # 背景音乐
 class BGM(MediaObj):
     def __init__(self,filepath,volume=100,loop=True,label_color='Caribbean'):
@@ -1783,3 +1905,13 @@ class BGM(MediaObj):
     # 预览
     def preview(self, surface: pygame.Surface):
         pass
+    # 修改
+    def configure(self, key: str, value, index: int = 0):
+        if key == 'filepath':
+            super().configure(key, value, index)
+            self.media = self.filepath.exact()
+            self.length:int = int(self.media.get_length()*self.frame_rate)
+        elif key == 'volume':
+            self.volume = value/100
+        else:
+            super().configure(key, value, index)

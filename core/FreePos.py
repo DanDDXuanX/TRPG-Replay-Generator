@@ -80,6 +80,10 @@ class Pos:
             },
         }
         return pos_dict
+    def configure(self, key: str, value, index: int = 0):
+        if key == 'pos':
+            self.x = int(value[0])
+            self.y = int(value[1])
 class FreePos(Pos):
     # 重设位置
     def set(self,others):
@@ -147,3 +151,13 @@ class PosGrid:
             },
         }
         return pos_dict
+    def configure(self, key: str, value, index: int = 0):
+        if key == 'pos':
+            self.pos = value
+        elif key == 'end':
+            self.end = value
+        elif key == 'x_step':
+            self._size[0] = value
+        elif key == 'y_step':
+            self._size[1] = value
+        self.make_grid()
