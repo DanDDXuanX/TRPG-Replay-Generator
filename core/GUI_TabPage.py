@@ -11,10 +11,8 @@ from .ScriptParser import MediaDef, CharTable, RplGenLog, Script
 import ttkbootstrap as ttk
 import tkinter as tk
 from PIL import Image,ImageTk
-from chlorophyll import CodeView
 
-from .RplGenLogLexer import RplGenLogLexer
-from .GUI_PageElement import SearchBar, OutPutCommand
+from .GUI_PageElement import SearchBar, OutPutCommand, RGLCodeViewFrame
 from .GUI_Container import RGLContainer, MDFContainer, CTBContainer
 from .GUI_PreviewCanvas import MDFPreviewCanvas, CTBPreviewCanvas, RGLPreviewCanvas
 from .GUI_Edit import EditWindow, CharactorEdit, MediaEdit, LogEdit
@@ -208,10 +206,9 @@ class RGLPage(ttk.Frame):
         except Exception:
             pass
         # 脚本模式
-        self.codeview = CodeView(master=self, lexer=RplGenLogLexer, color_scheme="monokai", font=('Sarasa Mono SC',12), undo=True)
-        self.codeview.insert("end",self.content.export()) # 插入脚本文本
+        self.codeviewframe = RGLCodeViewFrame(master=self,screenzoom=self.sz,rplgenlog=self.content)
         # 代码编辑区
-        self.codeview.place(x=0,y=0,relwidth=1,relheight=1)
+        self.codeviewframe.place(x=0,y=0,relwidth=1,relheight=1)
 
 # 页面视图：媒体定义文件
 class MDFPage(ttk.Frame):
