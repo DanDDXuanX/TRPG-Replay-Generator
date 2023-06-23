@@ -356,8 +356,13 @@ class MDFPreviewCanvas(PreviewCanvas):
                 new_end = self.selected_dot.get()[1]
                 NPV = np.array(new_end)-np.array(self.object_this.pos.get())
                 Z = get_vppr(new_pos=NPV, master_size=self.object_this.origin_size)
+                # 尺寸未改变
                 if Z == self.object_this.scale:
                     pass
+                # 尺寸改变，但是None
+                elif Z != 1 and self.object_this.filepath is None:
+                    pass
+                # 尺寸改变
                 else:
                     self.object_this.load_image(scale=round(Z,2))
                     self.edit_frame.elements['scale'].set( round(Z,2) )
