@@ -185,6 +185,9 @@ class NavigateBar(ttk.Frame):
         self.disabled = False
         # self.titles
         self.place_widgets(self.is_wide)
+        # 置顶
+        self.lift()
+        self.focus_set()
     # 放置元件
     def place_widgets(self,is_wide:bool):
         self.is_wide = is_wide

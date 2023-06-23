@@ -11,12 +11,14 @@ from PIL import Image, ImageTk
 
 class RplGenStudioWelcome(ttk.Window):
     # 初始化
-    def __init__(self):
+    def __init__(self, mulitproc_connect):
         # 获取尺寸
         self.get_screen()
         SZ_5 = int(self.sz * 6)
         window_width = int(800*self.sz) + 2 * SZ_5
         window_height = int(450*self.sz) + 2 * SZ_5
+        # 多进程的信号
+        self.pipe = mulitproc_connect
         # 窗口位置为居中
         x = int((self.screen_width/2) - (window_width/2))
         y = int((self.screen_height/2) - (window_height/2))
@@ -51,7 +53,7 @@ class RplGenStudioWelcome(ttk.Window):
     def fade_out(self):
         alpha = self.attributes('-alpha')
         if alpha > 0:
-            alpha -= 0.02
+            alpha -= 0.04
             self.attributes('-alpha', alpha)
             self.after(20, self.fade_out)
         else:
@@ -60,8 +62,17 @@ class RplGenStudioWelcome(ttk.Window):
     def fade_in(self):
         alpha = self.attributes('-alpha')
         if alpha < 1:
-            alpha += 0.02
+            alpha += 0.04
             self.attributes('-alpha', alpha)
             self.after(20, self.fade_in)
         else:
-            self.after(3000, self.fade_out)
+            self.check_pipe()
+    # 检查信号
+    def check_pipe(self):
+        # 如果接收到了信号
+        if self.pipe.poll():
+            msg = self.pipe.recv()
+            if msg == 'terminate':
+                # 淡出
+                self.fade_out()
+        self.after(100, self.check_pipe)
