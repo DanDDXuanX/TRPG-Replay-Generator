@@ -50,11 +50,12 @@ class DictCombobox(ttk.Combobox):
 
 # 一个键、值、描述的最小单位。
 class KeyValueDescribe(ttk.Frame):
-    def __init__(self,master,screenzoom:float,key:str,value:dict,describe:dict,tooltip:str=None):
+    def __init__(self,master,screenzoom:float,key:str,value:dict,describe:dict,tooltip:str=None,callback=None):
         self.sz = screenzoom
         super().__init__(master=master)
         SZ_5 = int(self.sz * 5)
         padding = (0,SZ_5,0,SZ_5)
+        # 当前
         # 数值类型
         if value['type'] == 'int':
             self.value = tk.IntVar(master=self,value=value['value'])
@@ -66,6 +67,9 @@ class KeyValueDescribe(ttk.Frame):
             self.value = tk.StringVar(master=self,value=value['value'])
         else:
             self.value = tk.StringVar(master=self,value=value['value'])
+        # 数值受到更改
+        self.value.trace_variable("w", self.config_content) # 检查是否发生了变更，如果变更了则刷新text
+        self.callback = callback
         # 关键字
         self.key = ttk.Label(master=self,text=key,width=8,anchor='e',padding=padding)
         if tooltip is not None:
@@ -96,6 +100,14 @@ class KeyValueDescribe(ttk.Frame):
         self.key.pack(fill='none',side='left',padx=SZ_5)
         self.input.pack(fill='x',side='left',padx=SZ_5,expand=True)
         self.describe.pack(fill='none',side='left',padx=SZ_5)
+    def config_content(self, *args):
+        print(self.get())
+        # 回调函数
+        if self.callback:
+            self.callback()
+        # TODO：怎么写这个回调？
+        # 每次修改值都刷新小节内容和显示，性能上是允许的吗？
+        # 当然，每次媒体类的实例化只做一次，性能应该是可以接受的？
     def get(self):
         return self.value.get()
     def set(self,value):
@@ -114,7 +126,7 @@ class KeyValueDescribe(ttk.Frame):
         self.describe.configure(command=command)
 # 一个比上面的KVD更详细的最小单位，常用于设置
 class DetailedKeyValueDescribe(KeyValueDescribe):
-    def __init__(self,master,screenzoom:float,key:str,value:dict,describe:dict,tooltip:str=None):
+    def __init__(self,master,screenzoom:float,key:str,value:dict,describe:dict,tooltip:str=None,callback=None):
         super().__init__(master=master,screenzoom=screenzoom,key=key,value=value,describe=describe,tooltip=None)
         SZ_5 = int(self.sz * 5)
         padding = (0,SZ_5,0,SZ_5)

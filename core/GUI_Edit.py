@@ -113,7 +113,14 @@ class EditWindow(ScrolledFrame):
                             print(E)
                             this_value = this_kvd['default']
                     self.elements[key] = self.seperator[sep].add_element(key=key, value=this_value, kvd=this_kvd)
-
+    # 从窗体内容更新小节：回调函数在哪个时间点调用最合适？
+    # 每次内容发生变更就回调明显是不合适的，Entry输入到一半的时候，结果很多时候都是不合法的。
+    # 在Entry失去焦点的时候
+    # 在Combox和Spine确实发生了变化的时候
+    # 在Button刷新了值的时候
+    def update_section_from(self):
+        # TODO: 从窗体完整读取一次内容，并更新到content
+        pass
     # 从section的值转为显示的value
     def struct_2_value(self,section):
         return section
