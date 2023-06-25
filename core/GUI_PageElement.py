@@ -13,9 +13,10 @@ import re
 from PIL import Image, ImageTk
 from chlorophyll import CodeView
 from .RplGenLogLexer import RplGenLogLexer
+from .GUI_Snippets import RGLSnippets
 from .GUI_Container import Container
 from .OutputType import PreviewDisplay, ExportVideo, ExportXML
-from .ScriptParser import RplGenLog
+from .ScriptParser import RplGenLog, CharTable, MediaDef
 from .Medias import MediaObj
 
 # 搜索窗口
@@ -323,16 +324,20 @@ class SearchReplaceBar(ttk.Frame):
         Messagebox().show_info(message=f'已替换{str(replace_count)}处文本。',title='全部替换',parent=self.master)
 # 脚本模式
 class RGLCodeViewFrame(ttk.Frame):
-    def __init__(self,master,screenzoom,rplgenlog:RplGenLog):
+    def __init__(self,master,screenzoom,rplgenlog:RplGenLog,chartab:CharTable,mediadef:MediaDef):
         # 继承
         self.sz = screenzoom
         super().__init__(master)
+        # 引用的角色和媒体资源
+        self.chartab = chartab
+        self.mediadef = mediadef
         # 代码
         self.content:RplGenLog = rplgenlog
         self.codeview = CodeView(master=self, lexer=RplGenLogLexer, color_scheme="monokai", font=('Sarasa Mono SC',12), undo=True)
         self.codeview.insert("end",self.content.export()) # 插入脚本文本
         self.codeview.bind('<Control-Key-f>',self.show_search)
         self.codeview.bind('<FocusIn>',self.clear_search)
+        self.codeview.bind('<Tab>',self.show_snippets)
         # 搜索高亮
         self.codeview.tag_config('search', background='#904f1e')
         # 查找替换
@@ -356,4 +361,7 @@ class RGLCodeViewFrame(ttk.Frame):
         self.matches = []
         self.codeview.tag_remove('search','1.0','end')
         self.search_replace.is_searched = False
-
+    # 显示代码自动补全
+    def show_snippets(self,event):
+        RGLSnippets(master=self.codeview,mediadef=self.mediadef,chartab=self.chartab)
+        return "break"

@@ -206,7 +206,13 @@ class RGLPage(ttk.Frame):
         except Exception:
             pass
         # 脚本模式
-        self.codeviewframe = RGLCodeViewFrame(master=self,screenzoom=self.sz,rplgenlog=self.content)
+        self.codeviewframe = RGLCodeViewFrame(
+            master      = self,
+            screenzoom  = self.sz,
+            rplgenlog   = self.content,
+            mediadef    = self.ref_medef,
+            chartab     = self.ref_chartab
+        )
         # 代码编辑区
         self.codeviewframe.place(x=0,y=0,relwidth=1,relheight=1)
 

@@ -385,12 +385,16 @@ class MediaDef(Script):
                 self.Medias[obj_name] = object_this
         return self.Medias
     # 访问:
-    def get_type(self,_type) -> list:
+    def get_type(self,_type,cw=True) -> list:
         type_name = {
             'anime'     :['Animation'],
             'bubble'    :['Bubble','Balloon','DynamicBubble'],
             'text'      :['Text','StrokeText','RichText'],
-            'pos'       :['Pos','FreePos']
+            'pos'       :['Pos','FreePos'],
+            'background':['Background'],
+            'audio'     :['Audio'],
+            'bgm'       :['BGM'],
+            'chatwindow':['ChatWindow']
         }
         output = []
         type_this:list = type_name[_type]
@@ -398,7 +402,8 @@ class MediaDef(Script):
             section_this = self.struct[keys]
             if section_this['type'] in type_this:
                 output.append(keys)
-            elif _type == 'bubble' and section_this['type'] == 'ChatWindow':
+            # 在bubble类里的ChatWindow
+            elif cw and _type == 'bubble' and section_this['type'] == 'ChatWindow':
                 for sub_key in section_this['sub_key']:
                     output.append(keys + ':' + sub_key)
         output.sort()
@@ -522,6 +527,17 @@ class CharTable(Script):
                 'SpeechRate': 0,
                 'PitchRate' : 0,
             }
+    # 读取
+    # 获取所有可用角色、差分名
+    def get_names(self)->list:
+        table = self.execute()
+        return table['Name'].unique().tolist()
+    def get_subtype(self, name)->list:
+        table = self.execute()
+        try:
+            return table[table['Name'] == name]['Subtype'].unique().tolist()
+        except:
+            return []
 # log文件
 class RplGenLog(Script):
     # RGL -> struct
