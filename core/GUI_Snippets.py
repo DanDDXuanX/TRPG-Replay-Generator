@@ -10,6 +10,7 @@ from chlorophyll import CodeView
 from .ScriptParser import CharTable, MediaDef
 
 class RGLSnippets(ttk.Menu):
+    # TODO: 继续添加对method代码片段的支持
     Snippets = {
         "command":{
             "dialog"        :['对话行','[]:',1],
@@ -27,24 +28,77 @@ class RGLSnippets(ttk.Menu):
             "comment"       :['注释','# ',2]
         },
         "set":{
-            "am_method_default"     :["默认切换效果-立绘","am_method_default",17],
-            "bb_method_default"     :["默认切换效果-气泡","bb_method_default",17],
-            "bg_method_default"     :["默认切换效果-背景","bg_method_default",17],
-            "tx_method_default"     :["默认文字效果","tx_method_default",17],
-            "speech_speed"          :["无语音句子的语速","speech_speed",12],
-            "asterisk_pause"        :["星标间隔时间","asterisk_pause",14],
-            "secondary_alpha"       :["默认次要立绘透明度","secondary_alpha",15],
-            "inline_method_apply"   :["对话行类效果的作用对象","inline_method_apply",19],
-            "am_dur_default"        :["默认切换时间-立绘","am_dur_default",14],
-            "bb_dur_default"        :["默认切换时间-气泡","bb_dur_default",14],
-            "bg_dur_default"        :["默认切换时间-背景","bg_dur_default",14],
-            "tx_dur_default"        :["默认文字效果时间","tx_dur_default",14],
-            "formula"               :["动画曲线","formula",7],
-        }
+            "am_method_default"     :["默认切换效果-立绘","am_method_default",19],
+            "bb_method_default"     :["默认切换效果-气泡","bb_method_default",19],
+            "bg_method_default"     :["默认切换效果-背景","bg_method_default",19],
+            "tx_method_default"     :["默认文字效果","tx_method_default",19],
+            "speech_speed"          :["无语音句子的语速","speech_speed",14],
+            "asterisk_pause"        :["星标间隔时间","asterisk_pause",16],
+            "secondary_alpha"       :["默认次要立绘透明度","secondary_alpha",17],
+            "inline_method_apply"   :["对话行类效果的作用对象","inline_method_apply",21],
+            "am_dur_default"        :["默认切换时间-立绘","am_dur_default",16],
+            "bb_dur_default"        :["默认切换时间-气泡","bb_dur_default",16],
+            "bg_dur_default"        :["默认切换时间-背景","bg_dur_default",16],
+            "tx_dur_default"        :["默认文字效果时间","tx_dur_default",16],
+            "formula"               :["动画曲线","formula",9],
+        },
+        "am_dur":{
+            "10"    : ["10","10",2],
+            "20"    : ["20","20",2],
+            "30"    : ["30","30",2],
+            "60"    : ["60","60",2],
+            "100"   : ["100","100",3],
+        },
+        "tx_dur":{
+            "1"     : ["1","1",1],
+            "2"     : ["2","2",1],
+            "3"     : ["3","3",1],
+            "10"    : ["10","10",2],
+            "30"    : ["30","30",2],
+        },
+        "speed":{
+            "220"   : ["220","220",3],
+            "300"   : ["300","300",3],
+            "600"   : ["600","600",3],
+            "900"   : ["900","900",3],
+            "1800"  : ["1800","1800",4],
+        },
+        "formula":{
+            "linear"    : ["线性","linear",6],
+            "quadratic" : ["二次","quadratic",9],
+            "quadraticR": ["反二次","quadraticR",10],
+            "sigmoid"   : ["正S形","sigmoid",7],
+            "right"     : ["右S形","right",5],
+            "left"      : ["左S形","left",4],
+            "sincurve"  : ["正弦","sincurve",8],
+        },
+        "inline":{
+            "both"      : ["全部","both",4],
+            "amimation" : ["立绘","animation",9],
+            "bubble"    : ["气泡","bubble",6],
+            "none"      : ["禁用","none",4],
+        },
+        "tx_met":{
+            "all"   : ["全部","<all=>",5],
+            "w2w"   : ["逐字","<w2w=>",5],
+            "s2s"   : ["逐句","<s2s=>",5],
+            "l2l"   : ["逐行","<l2l=>",5],
+            "run"   : ["滚动","<run=>",5],
+        },
+        "bg_met":{
+            "replace"   : ["直接替换","<replace=>",9],
+            "delay"     : ["延迟替换","<delay=>",7],
+            "cross"     : ["交叉溶解","<cross=>",7],
+            "black"     : ["黑场","<black=>",7],
+            "white"     : ["白场","<white=>",7],
+            "push"      : ["推入","<push=>",6],
+            "cover"     : ["覆盖","<cover=>",7],
+        },
+        "ab_met":{},
     }
     def __init__(self, master, mediadef:MediaDef, chartab:CharTable):
         # 初始化菜单
-        super().__init__(master=master, tearoff=0)
+        super().__init__(master=master, tearoff=0, font=('Sarasa Mono SC',10)) # FIXME：注意，这里指定使用更纱黑体的话，会导致第一次启动时延迟约半秒
         self.codeview:CodeView = master
         # 引用媒体
         self.ref_media = mediadef
@@ -83,6 +137,9 @@ class RGLSnippets(ttk.Menu):
             # 提取角色名
             name = re.fullmatch('^\[([\w\ \.\(\)]+,)*([\w\ ]+(\(\d+\))?)\.',text_upstream).group(2)
             self.init_snippets_options('subtype',name=name)
+        # 停顿
+        elif text_upstream == '<wait>:' and text_downstream == '':
+            self.init_snippets_options('am_dur')
         # 背景、立绘、气泡、bgm
         elif re.fullmatch('<background>(<\w+(=\d+)?>)?:',text_upstream) and text_downstream == '':
             self.init_snippets_options('background')
@@ -92,54 +149,98 @@ class RGLSnippets(ttk.Menu):
             self.init_snippets_options('bubble')
         elif re.fullmatch('<(BGM|bgm)>:',text_upstream) and text_downstream == '':
             self.init_snippets_options('bgm')
+        # 音效
+        elif re.fullmatch('^\[[\w\ \.\,\(\)]+\](<\w+(=\d+))?:[^\\"]+',text_upstream) and text_downstream=='':
+            self.init_snippets_options('audio')
+        elif re.fullmatch('^\[[\w\ \.\(\)]+\](<\w+(=\d+))?:[^\\"]+\{\w+;',text_upstream) and text_downstream[0]=='}':
+            self.init_snippets_options('am_dur')
+        # 清除
+        elif text_upstream == '<clear>:' and text_downstream == '':
+            self.init_snippets_options('chatwindow')
         # 设置
         elif text_upstream == '<set:' and text_downstream[0:2]=='>:':
             self.init_snippets_options('set')
+        elif re.fullmatch('^<set:(\w+)>:',text_upstream) and text_downstream=='':
+            to_set = re.fullmatch('^<set:(\w+)>:',text_upstream).group(1)
+            if to_set in ['am_dur_default','bb_dur_default','bg_dur_default','asterisk_pause','secondary_alpha']:
+                self.init_snippets_options('am_dur')
+            elif to_set == 'tx_dur_default':
+                self.init_snippets_options('tx_dur')
+            elif to_set == 'formula':
+                self.init_snippets_options('formula')
+            elif to_set == 'inline_method_apply':
+                self.init_snippets_options('inline')
+            elif to_set == 'speech_speed':
+                self.init_snippets_options('speed')
+        # 移动
+        elif text_upstream == '<move:' and text_downstream[0:2]=='>:':
+            self.init_snippets_options('move')
+        elif re.fullmatch("^<move:(\w+)>:(.+)?",text_upstream) and text_downstream == '':
+            self.init_snippets_options('posexp') # FIXME
     def init_snippets_options(self,type_='command',**kw_args):
         self.snippets_type = type_
         # 行命令
-        if self.snippets_type=='command':
+        if self.snippets_type in ['command','set','am_dur','tx_dur','formula','inline','speed']:
             self.snippets_content = self.Snippets[self.snippets_type]
             for keyword in self.snippets_content:
                 option, snippet, cpos = self.snippets_content[keyword]
                 self.add_command(label=option, command=self.insert_snippets(snippet, cpos))
-        # 设置
-        if self.snippets_type=='set':
-            self.snippets_content = self.Snippets[self.snippets_type]
-            for keyword in self.snippets_content:
-                option, snippet, cpos = self.snippets_content[keyword]
-                self.add_command(label=option, command=self.insert_snippets(snippet, cpos+2))
         # 角色联想
         elif self.snippets_type=='charactor':
-            char_names = self.ref_char.get_names()
-            for name in char_names:
+            list_of_snippets = self.ref_char.get_names()
+            for name in list_of_snippets:
                 self.add_command(label=name, command=self.insert_snippets(name, len(name)))
         # 差分联想
         elif self.snippets_type=='subtype':
             char_name = kw_args['name']
-            char_subtypes = self.ref_char.get_subtype(char_name)
-            for name in char_subtypes:
+            list_of_snippets = self.ref_char.get_subtype(char_name)
+            for name in list_of_snippets:
                 self.add_command(label=name, command=self.insert_snippets(name, len(name)))
         # 背景
         elif self.snippets_type=='background':
-            char_subtypes = self.ref_media.get_type('background')
-            for name in char_subtypes:
+            self.add_command(label='（黑）', command=self.insert_snippets("black", 5))
+            self.add_command(label='（白）', command=self.insert_snippets("white", 5))
+            list_of_snippets = self.ref_media.get_type('background')
+            for name in list_of_snippets:
                 self.add_command(label=name, command=self.insert_snippets(name, len(name)))
         # 立绘
         elif self.snippets_type=='animation':
-            char_subtypes = self.ref_media.get_type('anime')
-            for name in char_subtypes:
+            self.add_command(label='（无）', command=self.insert_snippets("NA", 2))
+            list_of_snippets = self.ref_media.get_type('anime')
+            for name in list_of_snippets:
                 self.add_command(label=name, command=self.insert_snippets(name, len(name)))
         # 气泡联想，聊天窗以对象而不是关键字的形式返回
         elif self.snippets_type=='bubble':
-            char_subtypes = self.ref_media.get_type('bubble',cw=False) + self.ref_media.get_type('chatwindow')
-            for name in char_subtypes:
+            self.add_command(label='（无）', command=self.insert_snippets("NA", 2))
+            list_of_snippets = self.ref_media.get_type('bubble',cw=False) + self.ref_media.get_type('chatwindow')
+            for name in list_of_snippets:
                 self.add_command(label=name, command=self.insert_snippets(name+'("","")', len(name)+2))
         # 背景音乐
         elif self.snippets_type=='bgm':
-            char_subtypes = self.ref_media.get_type('bgm')
-            for name in char_subtypes:
+            self.add_command(label='（停止）', command=self.insert_snippets("stop", 4))
+            list_of_snippets = self.ref_media.get_type('bgm')
+            for name in list_of_snippets:
                 self.add_command(label=name, command=self.insert_snippets(name, len(name)))
+        # 音效
+        elif self.snippets_type=='audio':
+            self.add_command(label='（语音合成）', command=self.insert_snippets("{*}", 3))
+            self.add_command(label='（无）', command=self.insert_snippets(r"{NA}", 4))
+            list_of_snippets = self.ref_media.get_type('audio')
+            for name in list_of_snippets:
+                self.add_command(label=name, command=self.insert_snippets("{"+name+"}", len(name)+2))
+        # 清除对话框
+        elif self.snippets_type=='chatwindow':
+            list_of_snippets = self.ref_media.get_type('chatwindow')
+            for name in list_of_snippets:
+                self.add_command(label=name, command=self.insert_snippets(name, len(name)))
+        # 移动
+        elif self.snippets_type=='move':
+            list_of_snippets = self.ref_media.get_moveable()
+            for name in list_of_snippets:
+                self.add_command(label=name, command=self.insert_snippets(name, len(name)))
+        elif self.snippets_type=='posexp':
+            # TODO 位置表达式！
+            pass
     # 闭包
     def insert_snippets(self, snippet, cpos):
         # 命令内容
@@ -148,5 +249,3 @@ class RGLSnippets(ttk.Menu):
             self.codeview.mark_set("insert",f'{self.curser_idx}+{cpos}c')
             self.codeview.highlight_all()
         return command
-
-    

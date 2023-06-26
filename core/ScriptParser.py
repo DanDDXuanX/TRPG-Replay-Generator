@@ -391,6 +391,7 @@ class MediaDef(Script):
             'bubble'    :['Bubble','Balloon','DynamicBubble'],
             'text'      :['Text','StrokeText','RichText'],
             'pos'       :['Pos','FreePos'],
+            'freepos'   :['FreePos'],
             'background':['Background'],
             'audio'     :['Audio'],
             'bgm'       :['BGM'],
@@ -408,6 +409,14 @@ class MediaDef(Script):
                     output.append(keys + ':' + sub_key)
         output.sort()
         return output
+    def get_moveable(self):
+        return (
+            self.get_type('freepos') + 
+            self.get_type('anime') + 
+            self.get_type('bubble',cw=False) + 
+            self.get_type('chatwindow') + 
+            self.get_type('background')
+        )
     def update_media_file(self,name:str,old_path:str,new_path:str):
         this_section = self.struct[name]
         # 获取关键字
