@@ -43,6 +43,7 @@ class RGLSnippets(ttk.Menu):
             "formula"               :["动画曲线","formula",9],
         },
         "am_dur":{
+            "0"    : ["0","0",1],
             "10"    : ["10","10",2],
             "20"    : ["20","20",2],
             "30"    : ["30","30",2],
@@ -94,7 +95,13 @@ class RGLSnippets(ttk.Menu):
             "push"      : ["推入","<push=>",6],
             "cover"     : ["覆盖","<cover=>",7],
         },
-        "ab_met":{},
+        "ab_met":{
+            "replace"   : ["直接替换","<replace=>",9],
+            "cross"     : ["交叉溶解","<cross=>",7],
+            "black"     : ["淡入淡出","<black=>",7],
+            "pass"      : ["左进右出","<black_pass_left_minor=>",23],
+            "leap"      : ["上进上出","<black_leap_down_minor=>",23]
+        },
     }
     def __init__(self, master, mediadef:MediaDef, chartab:CharTable):
         # 初始化菜单
@@ -150,10 +157,15 @@ class RGLSnippets(ttk.Menu):
         elif re.fullmatch('<(BGM|bgm)>:',text_upstream) and text_downstream == '':
             self.init_snippets_options('bgm')
         # 音效
-        elif re.fullmatch('^\[[\w\ \.\,\(\)]+\](<\w+(=\d+))?:[^\\"]+',text_upstream) and text_downstream=='':
-            self.init_snippets_options('audio')
-        elif re.fullmatch('^\[[\w\ \.\(\)]+\](<\w+(=\d+))?:[^\\"]+\{\w+;',text_upstream) and text_downstream[0]=='}':
+        elif re.fullmatch('^\[[\w\ \.\,\(\)]+\](<\w+(=\d+)>)?:[^\\"]+',text_upstream) and text_downstream=='':
+            if text_upstream[-1] in ['>','}']:
+                self.init_snippets_options('audio')
+            else:
+                self.init_snippets_options('audio|tx_met')
+        elif re.fullmatch('^\[[\w\ \.\,\(\)]+\](<\w+(=\d+)>)?:[^\\"]+\{\w+;',text_upstream) and text_downstream[0]=='}':
             self.init_snippets_options('am_dur')
+        # 文字效果
+
         # 清除
         elif text_upstream == '<clear>:' and text_downstream == '':
             self.init_snippets_options('chatwindow')
@@ -164,8 +176,14 @@ class RGLSnippets(ttk.Menu):
             to_set = re.fullmatch('^<set:(\w+)>:',text_upstream).group(1)
             if to_set in ['am_dur_default','bb_dur_default','bg_dur_default','asterisk_pause','secondary_alpha']:
                 self.init_snippets_options('am_dur')
+            elif to_set in ['am_method_default','bb_method_default']:
+                self.init_snippets_options('ab_met')
+            elif to_set == 'bg_method_default':
+                self.init_snippets_options('bg_met')
             elif to_set == 'tx_dur_default':
                 self.init_snippets_options('tx_dur')
+            elif to_set == 'tx_method_default':
+                self.init_snippets_options('tx_met')
             elif to_set == 'formula':
                 self.init_snippets_options('formula')
             elif to_set == 'inline_method_apply':
@@ -177,14 +195,28 @@ class RGLSnippets(ttk.Menu):
             self.init_snippets_options('move')
         elif re.fullmatch("^<move:(\w+)>:(.+)?",text_upstream) and text_downstream == '':
             self.init_snippets_options('posexp') # FIXME
+        # 效果
+        elif text_upstream == '<background>' and text_downstream[0]==':':
+            self.init_snippets_options('bg_met')
+        elif text_upstream in ['<animation>','bubble'] or re.fullmatch('^\[[\w\ \.\,\(\)]+\]',text_upstream) and text_downstream[0]==':':
+            self.init_snippets_options('ab_met')
+        elif re.fullmatch("(.+)<(\w+)=",text_upstream) and text_downstream[0]=='>':
+            method = re.fullmatch("(.+)<(\w+)=",text_upstream).group(2)
+            if method in ['w2w','l2l','s2s','all']:
+                self.init_snippets_options('tx_dur')
+            else:
+                self.init_snippets_options('am_dur')
     def init_snippets_options(self,type_='command',**kw_args):
         self.snippets_type = type_
         # 行命令
-        if self.snippets_type in ['command','set','am_dur','tx_dur','formula','inline','speed']:
+        if self.snippets_type in ['command','set','am_dur','tx_dur','formula','inline','speed','bg_met','ab_met','tx_met']:
             self.snippets_content = self.Snippets[self.snippets_type]
             for keyword in self.snippets_content:
                 option, snippet, cpos = self.snippets_content[keyword]
                 self.add_command(label=option, command=self.insert_snippets(snippet, cpos))
+            # 立绘切换效果的特殊之处
+            if self.snippets_type == 'ab_met':
+                self.add_command(label='（自定义）',command=self.custom_ab_method())
         # 角色联想
         elif self.snippets_type=='charactor':
             list_of_snippets = self.ref_char.get_names()
@@ -241,6 +273,23 @@ class RGLSnippets(ttk.Menu):
         elif self.snippets_type=='posexp':
             # TODO 位置表达式！
             pass
+        # 音效和文字效果组合
+        elif self.snippets_type=='audio|tx_met':
+            tx_met_menu = ttk.Menu(master=self)
+            audio_menu = ttk.Menu(master=self)
+            self.add_cascade(label='文字效果',menu=tx_met_menu)
+            self.add_cascade(label='音效',menu=audio_menu)
+            # 文字效果
+            dict_of_snippets = self.Snippets['tx_met']
+            for keyword in dict_of_snippets:
+                option, snippet, cpos = dict_of_snippets[keyword]
+                tx_met_menu.add_command(label=option, command=self.insert_snippets(snippet, cpos))
+            # 音效
+            audio_menu.add_command(label='（语音合成）', command=self.insert_snippets("{*}", 3))
+            audio_menu.add_command(label='（无）', command=self.insert_snippets(r"{NA}", 4))
+            list_of_snippets = self.ref_media.get_type('audio')
+            for name in list_of_snippets:
+                audio_menu.add_command(label=name, command=self.insert_snippets("{"+name+"}", len(name)+2))
     # 闭包
     def insert_snippets(self, snippet, cpos):
         # 命令内容
@@ -249,3 +298,6 @@ class RGLSnippets(ttk.Menu):
             self.codeview.mark_set("insert",f'{self.curser_idx}+{cpos}c')
             self.codeview.highlight_all()
         return command
+    # 自定义切换效果
+    def custom_ab_method(self):
+        pass

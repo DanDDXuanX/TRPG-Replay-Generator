@@ -14,9 +14,9 @@ class RplGenStudioWelcome(ttk.Window):
     def __init__(self, mulitproc_connect):
         # 获取尺寸
         self.get_screen()
-        SZ_5 = int(self.sz * 6)
-        window_width = int(800*self.sz) + 2 * SZ_5
-        window_height = int(450*self.sz) + 2 * SZ_5
+        border = int(self.sz * 0)
+        window_width = int(800*self.sz) + 2 * border
+        window_height = int(450*self.sz) + 2 * border
         # 多进程的信号
         self.pipe = mulitproc_connect
         # 窗口位置为居中
@@ -30,8 +30,8 @@ class RplGenStudioWelcome(ttk.Window):
             overrideredirect    = True,
         )
         # 画面
-        self.image = ImageTk.PhotoImage(name='welcome',image=Image.open('./toy/toy_cover.jpg').resize([window_width-2*SZ_5,window_height-2*SZ_5]))
-        self.image_show = ttk.Label(master=self,image='welcome',borderwidth=SZ_5,anchor='center',background='#963fff')
+        self.image = ImageTk.PhotoImage(name='welcome',image=Image.open('./media/cover.jpg').resize([window_width-2*border,window_height-2*border]))
+        self.image_show = ttk.Label(master=self,image='welcome',borderwidth=border,anchor='center',background='#963fff')
         self.image_show.pack(fill='both',expand=True)
         # 主循环
         self.attributes('-alpha', 0)

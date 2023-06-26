@@ -77,7 +77,7 @@ class FileManager(ttk.Frame):
         SZ_180 = int(self.sz * 168.75)
         icon_size = [SZ_30,SZ_30]
         self.image = {
-            'title'     : ImageTk.PhotoImage(name='title',   image=Image.open('./toy/toy_cover.jpg').resize([SZ_300,SZ_180])),
+            'title'     : ImageTk.PhotoImage(name='title',   image=Image.open('./media/cover.jpg').resize([SZ_300,SZ_180])),
             'save'      : ImageTk.PhotoImage(name='save' ,   image=Image.open('./media/icon/save.png').resize(icon_size)),
             'config'    : ImageTk.PhotoImage(name='config',   image=Image.open('./media/icon/setting.png').resize(icon_size)),
             'import'    : ImageTk.PhotoImage(name='import',   image=Image.open('./media/icon/import.png').resize(icon_size)),
