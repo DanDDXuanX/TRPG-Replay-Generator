@@ -7,13 +7,25 @@ import pandas as pd
 import sys
 import os
 import pydub
+import base64
+import wave
+import requests
+import json
+import time
 
 from .Exceptions import SynthesisError, WarningPrint
 
 voice_lib = pd.read_csv('./media/voice_volume.tsv',sep='\t').set_index('Voice')
 
+# 没用的基类
+class TTS_engine:
+    def __init__(self,name='unnamed',voice = 'ailun',speech_rate=0,pitch_rate=0,aformat='wav'):
+        pass
+    def start(self,text,ofile):
+        pass
+
 # 阿里云的TTS引擎
-class Aliyun_TTS_engine:
+class Aliyun_TTS_engine(TTS_engine):
     # Keys
     AKID = 'Your_AccessKey'
     AKKEY = 'Your_AccessKey_Secret'
@@ -79,7 +91,7 @@ class Aliyun_TTS_engine:
             print(SynthesisError('AliWrite',E))
 
 # Azure 语音合成 alpha 1.10.3
-class Azure_TTS_engine:
+class Azure_TTS_engine(TTS_engine):
     # Key
     AZUKEY = 'Your_Azurekey'
     service_region = 'eastasia'
@@ -186,7 +198,7 @@ class Azure_TTS_engine:
             raise SynthesisError('AzuErrRetu',cancellation_details.reason)
 
 # 节奏音 alpha 1.22
-class Beats_engine:
+class Beats_engine(TTS_engine):
     voice_list = {
         'dadada': './media/beats/da.wav',
         'dududu': './media/beats/dang.wav',
@@ -233,3 +245,11 @@ class Beats_engine:
             print_text = text
         print("[{0}({1})]: {2} -> '{3}'".format(self.ID,self.voice,print_text,ofile))            
         this_Track.export(ofile,format='wav')
+
+# 腾讯云的TTS
+
+# 百度的TTS
+
+# 讯飞的TTS
+
+# 标贝的TTS？

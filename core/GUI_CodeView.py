@@ -125,11 +125,12 @@ class SearchReplaceBar(ttk.Frame):
         # 执行一次
         index = self.codeview.search(search_text, start_index, stopindex='end',regexp=is_regex)
         # If the search text is not found, stop searching
+        # 添加撤回点
+        self.codeview.configure(autoseparators=False)
+        self.codeview.edit_separator()
         if index == '':
             pass
         else:
-            # 添加撤回点
-            self.codeview.edit_separator()
             if is_regex:
                 end_index, Match = self.regex_match_end(search_text=search_text,index=index)
                 # 替换文本
@@ -141,6 +142,7 @@ class SearchReplaceBar(ttk.Frame):
                 self.codeview.delete(index, end_index)
                 self.codeview.insert(index, replace_text)
         # 更新代码高亮
+        self.codeview.configure(autoseparators=True)
         self.codeview.highlight_all()
     def replace_all(self):
         # 如果还没搜索，先搜索，不替换
@@ -156,6 +158,7 @@ class SearchReplaceBar(ttk.Frame):
         # 计数
         replace_count = 0
         # 添加撤回点
+        self.codeview.configure(autoseparators=False)
         self.codeview.edit_separator()
         while True:
             # 全部执行
@@ -178,6 +181,7 @@ class SearchReplaceBar(ttk.Frame):
                 start_index = end_index
                 replace_count += 1
         # 更新代码高亮
+        self.codeview.configure(autoseparators=True)
         self.codeview.highlight_all()
         # 弹出消息
         Messagebox().show_info(message=f'已替换{str(replace_count)}处文本。',title='全部替换',parent=self.master)
@@ -249,11 +253,14 @@ class RGLCodeViewFrame(ttk.Frame):
         swap_line_text = self.codeview.get(f"{line_to_swap}.0", f"{line_to_swap}.end")
         # 创建撤销点
         self.codeview.edit_separator()
+        self.codeview.configure(autoseparators=False)
         # 互换两行的文本
         self.codeview.delete(f"{current_line}.0", f"{current_line}.end")
         self.codeview.insert(f"{current_line}.0", swap_line_text)
         self.codeview.delete(f"{line_to_swap}.0", f"{line_to_swap}.end")
         self.codeview.insert(f"{line_to_swap}.0", current_line_text)
+        # 恢复自动撤销点
+        self.codeview.configure(autoseparators=True)
         # 更新高亮
         self.codeview.highlight_all()
         # 移动光标
