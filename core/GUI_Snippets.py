@@ -10,7 +10,6 @@ from chlorophyll import CodeView
 from .ScriptParser import CharTable, MediaDef
 
 class RGLSnippets(ttk.Menu):
-    # TODO: 继续添加对method代码片段的支持
     Snippets = {
         "command":{
             "dialog"        :['对话行','[]:',1],
@@ -158,8 +157,12 @@ class RGLSnippets(ttk.Menu):
             self.init_snippets_options('bgm')
         # 音效
         elif re.fullmatch('^\[[\w\ \.\,\(\)]+\](<\w+(=\d+)>)?:[^\\"]+',text_upstream) and text_downstream=='':
+            # 检查上游是否已经包含了星标了
             if text_upstream[-1] in ['>','}']:
-                self.init_snippets_options('audio')
+                if re.findall('{.*?\*.*?}',text_upstream):
+                    self.init_snippets_options('audio',asterisk=False)
+                else:
+                    self.init_snippets_options('audio',asterisk=True)
             else:
                 self.init_snippets_options('audio|tx_met')
         elif re.fullmatch('^\[[\w\ \.\,\(\)]+\](<\w+(=\d+)>)?:[^\\"]+\{\w+;',text_upstream) and text_downstream[0]=='}':
@@ -255,7 +258,10 @@ class RGLSnippets(ttk.Menu):
                 self.add_command(label=name, command=self.insert_snippets(name, len(name)))
         # 音效
         elif self.snippets_type=='audio':
-            self.add_command(label='（语音合成）', command=self.insert_snippets("{*}", 3))
+            if kw_args['asterisk']:
+                self.add_command(label='（语音合成）', command=self.insert_snippets("{*}", 3))
+            else:
+                self.add_command(label='（语音合成）', command=self.insert_snippets("{*}", 3), state='disabled')
             self.add_command(label='（无）', command=self.insert_snippets(r"{NA}", 4))
             list_of_snippets = self.ref_media.get_type('audio')
             for name in list_of_snippets:
@@ -275,6 +281,8 @@ class RGLSnippets(ttk.Menu):
             pass
         # 音效和文字效果组合
         elif self.snippets_type=='audio|tx_met':
+            self.add_command(label='（语音合成）', command=self.insert_snippets("{*}", 3))
+            self.add_separator()
             tx_met_menu = ttk.Menu(master=self)
             audio_menu = ttk.Menu(master=self)
             self.add_cascade(label='文字效果',menu=tx_met_menu)
@@ -285,7 +293,6 @@ class RGLSnippets(ttk.Menu):
                 option, snippet, cpos = dict_of_snippets[keyword]
                 tx_met_menu.add_command(label=option, command=self.insert_snippets(snippet, cpos))
             # 音效
-            audio_menu.add_command(label='（语音合成）', command=self.insert_snippets("{*}", 3))
             audio_menu.add_command(label='（无）', command=self.insert_snippets(r"{NA}", 4))
             list_of_snippets = self.ref_media.get_type('audio')
             for name in list_of_snippets:

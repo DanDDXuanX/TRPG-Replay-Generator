@@ -3,7 +3,6 @@
 
 # 页面，项目视图的元素之一。
 # 包含：标签页、文件内容页面内容：
-from .ScriptParser import MediaDef, CharTable, RplGenLog, Script
 # MDF页面
 # CTB页面
 # RGL页面
@@ -12,7 +11,9 @@ import ttkbootstrap as ttk
 import tkinter as tk
 from PIL import Image,ImageTk
 
-from .GUI_PageElement import SearchBar, OutPutCommand, RGLCodeViewFrame
+from .ScriptParser import MediaDef, CharTable, RplGenLog, Script
+from .GUI_PageElement import SearchBar, OutPutCommand
+from .GUI_CodeView import RGLCodeViewFrame
 from .GUI_Container import RGLContainer, MDFContainer, CTBContainer
 from .GUI_PreviewCanvas import MDFPreviewCanvas, CTBPreviewCanvas, RGLPreviewCanvas
 from .GUI_Edit import EditWindow, CharactorEdit, MediaEdit, LogEdit
