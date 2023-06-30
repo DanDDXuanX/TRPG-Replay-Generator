@@ -48,7 +48,6 @@ class Container(ScrolledFrame):
     def get_container_height(self)->int:
         return 0
     def reset_container_height(self):
-        # 重设容器高度：# BUG：会导致闪烁！
         this_height = self.get_container_height()
         if self.container_height != this_height:
             self.config(height=this_height)
@@ -342,8 +341,9 @@ class MDFContainer(Container):
                 continue
             self.element_keys.append(key)
             self.element[key] = self.new_element(key=key,section=this_section)
-        # 根据内容物，调整容器总高度
-        # self.config(height=int(200*self.sz*np.ceil(len(self.element_keys)/3)))
+        # 初始的列数
+        self.colnum:int = 3
+        self.container.bind('<Configure>', self.update_container_colnum, '+')
         # 将内容物元件显示出来
         self.display_filter = self.element_keys.copy()
         self.update_item()
@@ -355,14 +355,29 @@ class MDFContainer(Container):
             text=key,
             section=section,
             screenzoom=self.sz)
+    def update_container_colnum(self,event) -> int:
+        # 一个col最窄190？
+        SZ_200 = int(self.sz * 200)
+        FW = self.container.winfo_width()
+        colnum = FW // SZ_200
+        # 设置列数
+        if colnum < 1:
+            self.colnum = 1
+        else:
+            self.colnum = colnum
+        # 刷新整个显示
+        self.update_item()
+        self.reset_container_height()
+        # 返回
+        return self.colnum
     def get_container_height(self) -> int:
-        return int(200*self.sz*np.ceil(len(self.display_filter)/3))
+        return int(200*self.sz*np.ceil(len(self.display_filter)/self.colnum))
     def place_item(self,key,idx):
-        SZ_100 = int(self.sz * 200)
-        SZ_95 = int(self.sz * 190)
+        SZ_200 = int(self.sz * 200)
+        SZ_190 = int(self.sz * 190)
         sz_10 = int(self.sz * 10)
         this_section_frame:MDFSectionElement = self.element[key]
-        this_section_frame.place(relx=idx%3 * 0.33,y=idx//3*SZ_100,width=-sz_10,height=SZ_95,relwidth=0.33)
+        this_section_frame.place(relx=idx%self.colnum * (1/self.colnum),y=idx//self.colnum*SZ_200,width=-sz_10,height=SZ_190,relwidth=(1/self.colnum))
     def edit_select(self,to_preview):
         section_2_preview:dict = self.content.struct[to_preview]
         self.edit_window.update_from_section(index=to_preview, section=section_2_preview, line_type=section_2_preview['type'])
