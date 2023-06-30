@@ -44,6 +44,16 @@ class Container(ScrolledFrame):
         self.display_recode:list = []
         # 当前选中的对象
         self.selected:list = []
+    # 刷新整个容器的内容，和content同步
+    def refresh_item(self):
+        # 清除筛选条件
+        self.reset_search()
+        # 删除现有的所有page_element
+        for item in self.element_keys:
+            self.element[item].destroy()
+        # 清除目前的所有keyword
+        self.element.clear()
+        self.element_keys.clear()
     # 容器的高度
     def get_container_height(self)->int:
         return 0
@@ -181,7 +191,11 @@ class Container(ScrolledFrame):
         self.reset_container_height()
         self.update_item()
     def reset_search(self):
-        self.page.searchbar.click_clear()
+        # 在初始化调用时，searchbar还没定义
+        try:
+            self.page.searchbar.click_clear()
+        except AttributeError:
+            pass
     # 复制项目
     def copy_element(self,event):
         self.__class__.element_clipboard.clear()
@@ -201,6 +215,12 @@ class RGLContainer(Container):
         # 按键绑定
         self.container.bind('<Control-Up>',lambda event:self.move(event,up=True),"+")
         self.container.bind('<Control-Down>',lambda event:self.move(event,up=False),"+")
+        # 遍历内容物，新建元件
+        self.refresh_item()
+    # 整个容器的内容，和content保持一致
+    def refresh_item(self):
+        # 继承，清空列表
+        super().refresh_item()
         # 遍历内容物，新建元件
         for key in self.content.struct:
             this_section = self.content.struct[key]
@@ -332,18 +352,26 @@ class RGLContainer(Container):
         self.reset_container_height()
 class MDFContainer(Container):
     def __init__(self,master,content:MediaDef,typelist:list,screenzoom):
+        # 类型的列表
+        self.typelist = typelist
         # 初始化基类
         super().__init__(master=master,content=content,screenzoom=screenzoom)
-        # 遍历内容物，新建元件
-        for key in self.content.struct:
-            this_section = self.content.struct[key]
-            if this_section['type'] not in typelist:
-                continue
-            self.element_keys.append(key)
-            self.element[key] = self.new_element(key=key,section=this_section)
         # 初始的列数
         self.colnum:int = 3
         self.container.bind('<Configure>', self.update_container_colnum, '+')
+        # 遍历内容物，新建元件
+        self.refresh_item()
+    # 整个容器的内容，和content保持一致
+    def refresh_item(self):
+        # 继承，清空列表
+        super().refresh_item()
+        # 在基类初始化的时候第一次调用
+        for key in self.content.struct:
+            this_section = self.content.struct[key]
+            if this_section['type'] not in self.typelist:
+                continue
+            self.element_keys.append(key)
+            self.element[key] = self.new_element(key=key,section=this_section)
         # 将内容物元件显示出来
         self.display_filter = self.element_keys.copy()
         self.update_item()
@@ -415,20 +443,24 @@ class MDFContainer(Container):
         self.reset_container_height()
 class CTBContainer(Container):
     def __init__(self,master,content:CharTable,name:str,screenzoom):
+        # 角色名
+        self.name:str = name
         # 初始化基类
         super().__init__(master=master,content=content,screenzoom=screenzoom)
-        self.name:str = name
-        # 可引用对象
-        self.ref_medef = self.master.master.ref_medef
         # 遍历内容物，新建元件
+        self.ref_medef = self.master.master.ref_medef
+        self.refresh_item()
+    # 整个容器的内容，和content保持一致
+    def refresh_item(self):
+        # 继承，清空列表
+        super().refresh_item()
+        # 在基类初始化的时候第一次调用
         for key in self.content.struct:
             this_section = self.content.struct[key]
             if this_section['Name'] != self.name:
                 continue
             self.element_keys.append(key)
             self.element[key] = self.new_element(key=key,section=this_section)
-        # 根据内容物，调整容器总高度
-        # self.config(height=int(100*self.sz*len(self.element_keys)))
         # 将内容物元件显示出来
         self.display_filter = self.element_keys.copy()
         self.update_item()

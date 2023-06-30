@@ -39,8 +39,8 @@ class PageFrame(ttk.Frame):
         self.page_notebook.place(x=0,y=0,height=SZ_30,relwidth=1)
         # 初始化显示
         self.page_show.place(x=0,y=SZ_30,relheight=1,height=-SZ_30,relwidth=1)
+    # 将对象添加到 page_dict
     def add_active_page(self,name:str,image:str,file_type:str,content_obj:Script,content_type=False):
-        # 将对象添加到 page_dict
         PageType = {
             'MDF' : MDFPage,
             'CTB' : CTBPage,
@@ -54,15 +54,28 @@ class PageFrame(ttk.Frame):
             )
         # 在标签页中新建一个标签
         self.page_notebook.add(name=name,image=image)
+    # 切换页面
     def switch_page(self,name:str):
-        # 切换页面
         SZ_30 = int(self.sz * 30)
         self.page_show.place_forget()
         self.page_show = self.page_dict[name]
         self.page_show.place(x=0,y=SZ_30,relheight=1,height=-SZ_30,relwidth=1)
     def goto_page(self,name:str):
         self.page_notebook.active_tabs[name].get_pressed()
-
+    # 刷新目前某一类标签页的显示，导入文件时需要调用
+    def update_pages_elements(self,ftype='medef'):
+        # 设置目标类型
+        if ftype == 'medef':
+            page_type = MDFPage
+        elif ftype == 'chartab':
+            page_type = CTBPage
+        else:
+            return
+        # 执行刷新
+        for keyword in self.page_dict:
+            page_this:MDFPage = self.page_dict[keyword]
+            if type(page_this) == page_type:
+                page_this.container.refresh_item()
 # 项目视图-页面标签
 class PageNotes(ttk.Frame):
     """
@@ -174,7 +187,7 @@ class RGLPage(ttk.Frame):
         self.ref_chartab = self.master.ref_chartab
         self.ref_config = self.master.ref_config
         # 初始化
-        self.update_items_codeview()
+        self.update_items_visual()
     # 放置元件
     def update_items_visual(self):
         SZ_40 = int(self.sz * 40)

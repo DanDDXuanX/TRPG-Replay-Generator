@@ -214,6 +214,8 @@ class FileManager(ttk.Frame):
                     # 最后，检查所有新建角色，有没有default，没有则新建
                     for chara in new_charactor:
                         self.project.chartab.add_chara_default(name=chara)
+                    # 刷新已有标签页的page_element
+                    self.update_pages_elements(ftype='chartab')
                 elif top_parse is MediaDef:
                     showname = '媒体库'
                     imported:MediaDef = Types[top_parse]
@@ -230,6 +232,8 @@ class FileManager(ttk.Frame):
                             self.project.mediadef.struct[keyword_new] = imported.struct[keyword]
                     # 检查是否有脱机素材，如果有则启动重定位
                     self.check_project_media_exist()
+                    # 刷新已有标签页的page_element
+                    self.update_pages_elements(ftype='medef')
                 else:
                     return 0
                 Messagebox().show_info(title='导入成功',message='成功向{showname}中导入共计{number}个小节/项目。'.format(showname=showname,number=len(imported.struct)))
@@ -260,6 +264,10 @@ class FileManager(ttk.Frame):
                 self.project_file = select_path
         else:
             self.project.dump_json(filepath=self.project_file)
+    # 刷新目前某一类标签页的显示，导入文件时需要调用
+    def update_pages_elements(self,ftype='medef'):
+        # -> page_frame
+        return self.page_frame.update_pages_elements(ftype)
 # 项目视图-可折叠类容器-基类
 class FileCollapsing(ttk.Frame):
     def __init__(self,master,screenzoom:float,fileclass:str,content,page_frame:PageFrame):
