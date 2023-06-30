@@ -26,7 +26,7 @@ class SearchBar(ttk.Frame):
         self.is_regex = tk.BooleanVar(master=self,value=False)
         self.left = {
             'entry' : ttk.Entry(master=self,width=30,textvariable=self.search_text),
-            'regex' : ttk.Checkbutton(master=self, text='正则', variable=self.is_regex),
+            'regex' : ttk.Checkbutton(master=self, text='正则', bootstyle='round-toggle', variable=self.is_regex),
             'search' : ttk.Button(master=self,text='搜索',command=self.click_search,bootstyle='primary')
         }
         self.right = {
@@ -35,13 +35,13 @@ class SearchBar(ttk.Frame):
         }
         self.update_item()
     def update_item(self):
-        SZ_10 = int(self.sz * 10)
+        SZ_5 = int(self.sz * 5)
         for key in self.left:
             item:ttk.Button = self.left[key]
-            item.pack(padx=SZ_10, fill='y',side='left')
+            item.pack(padx=[SZ_5,0], fill='y',side='left')
         for key in self.right:
             item:ttk.Button = self.right[key]
-            item.pack(padx=SZ_10, fill='y',side='right')
+            item.pack(padx=[0,SZ_5], fill='y',side='right')
     def click_search(self):
         if self.is_regex.get():
             self.right['info'].config(text = '正则搜索：'+self.search_text.get())
