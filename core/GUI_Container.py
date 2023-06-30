@@ -180,6 +180,7 @@ class Container(ScrolledFrame):
         self.reset_container_height()
     # 搜索筛选
     def search(self,to_search,regex=False):
+        # 执行搜索
         if to_search == '':
             is_match = self.element_keys.copy()
         else:
@@ -187,9 +188,16 @@ class Container(ScrolledFrame):
             for ele in self.element_keys:
                 if self.element[ele].rearch_is_match(to_search, regex):
                     is_match.append(ele)
-        self.display_filter = is_match
-        self.reset_container_height()
-        self.update_item()
+        # 分析结果
+        if len(is_match) == 0 and to_search != '':
+            # 没有匹配到任何内容，重置搜索
+            Messagebox().show_info(message='没有匹配到任何小节！',title='无匹配',parent=self)
+            self.reset_search()
+        else:
+            # 应用搜索
+            self.display_filter = is_match
+            self.reset_container_height()
+            self.update_item()
     def reset_search(self):
         # 在初始化调用时，searchbar还没定义
         try:

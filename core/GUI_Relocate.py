@@ -114,7 +114,7 @@ class RelocateFile(ttk.Frame):
     def comfirm(self):
         # 如不不为空
         if len(self.get_file_to_search('relocate_path'))!=0:
-            Messagebox().show_info(message='还有尚未处理的待定位文件！\n请完成搜索，或将设置为脱机。',title='还未完成重定位')
+            Messagebox().show_info(message='还有尚未处理的待定位文件！\n请完成搜索，或将设置为脱机。',title='还未完成重定位',parent=self)
         else:
             self.close_func(result=self.data)
     def update_relocate_path(self,idx,path):

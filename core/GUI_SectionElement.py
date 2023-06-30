@@ -109,7 +109,7 @@ class SectionElement:
     def rearch_is_match(self,to_search,regex=False)->bool:
         if regex:
             try:
-                if re.match(to_search,self.search_text):
+                if re.findall(to_search,self.search_text):
                     return True
                 else:
                     return False
