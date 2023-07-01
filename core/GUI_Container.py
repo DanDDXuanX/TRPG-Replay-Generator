@@ -40,8 +40,6 @@ class Container(ScrolledFrame):
         self.element_keys = []
         # 当前条件过滤的对象
         self.display_filter:list = []
-        # 当前显示内容的列表记录
-        self.display_recode:list = []
         # 当前选中的对象
         self.selected:list = []
     # 刷新整个容器的内容，和content同步
@@ -54,6 +52,29 @@ class Container(ScrolledFrame):
         # 清除目前的所有keyword
         self.element.clear()
         self.element_keys.clear()
+    # 刷新一个元素，允许改名
+    def refresh_element(self,keyword,new_keyword=None):
+        # 删除原来的小节
+        self.element[keyword].destroy()
+        if new_keyword == None:
+            # 如果不存在小节更名
+            self.element[keyword] = self.new_element(key=keyword,section=self.content.struct[keyword])
+            new_keyword = keyword
+        else:
+            # 使用新keyword新建
+            self.element[new_keyword] = self.new_element(key=new_keyword,section=self.content.struct[new_keyword])
+            # 更新控制变量
+            for controls in [self.element_keys, self.selected, self.display_filter]:
+                try:
+                    index = controls.index(keyword) # 获取要替换的元素的索引
+                    controls[index] = new_keyword # 使用新值替换旧值
+                except ValueError:
+                    pass
+        # 更新显示
+        self.update_item(to_update=[new_keyword])
+    def new_element(self,key:str,section:dict):
+        # 从数据结构中新建一个page_element
+        pass
     # 容器的高度
     def get_container_height(self)->int:
         return 0
@@ -67,7 +88,7 @@ class Container(ScrolledFrame):
     def place_item(self,key,idx):
         # 待重载
         pass
-    def update_item(self,to_update=None):
+    def update_item(self,to_update:list=None):
         if to_update is None:
             for ele in self.element_keys:
                 self.element[ele].place_forget()
@@ -216,6 +237,7 @@ class Container(ScrolledFrame):
         if self.display_filter != self.element_keys:
             self.reset_search()
         # 待重载
+
 class RGLContainer(Container):
     def __init__(self,master,content:RplGenLog,screenzoom):
         # 初始化基类

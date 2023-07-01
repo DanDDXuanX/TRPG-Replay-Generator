@@ -187,7 +187,7 @@ class RGLPage(ttk.Frame):
         self.ref_chartab = self.master.ref_chartab
         self.ref_config = self.master.ref_config
         # 初始化
-        self.update_items_visual()
+        self.update_items_codeview()
     # 放置元件
     def update_items_visual(self):
         SZ_40 = int(self.sz * 40)

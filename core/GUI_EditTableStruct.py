@@ -109,11 +109,20 @@ TableStruct:dict = {
                         "valuekey": "{template}",
                         "vitem": "entry",
                         "vtype": "str",
-                        "default": "Init"
+                        "default": "init"
                     }
                 }
             }
         },
+        'charactor.args':{
+            "Name":"Name",
+            "Subtype":"Subtype",
+            "Animation":"Animation",
+            "Bubble":"Bubble",
+            "Voice":"Voice",
+            "SpeechRate":"SpeechRate",
+            "PitchRate":"PitchRate"
+        }
     },
     # 媒体定义
     'MediaDef':{

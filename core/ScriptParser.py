@@ -431,6 +431,7 @@ class MediaDef(Script):
             print(name, old_path, this_section[keyword])
 # 角色配置文件
 class CharTable(Script):
+    table_col = ['Name','Subtype','Animation','Bubble','Voice','SpeechRate','PitchRate']
     # 初始化
     def __init__(self,table_input=None,dict_input=None,file_input=None,json_input=None) -> None:
         # DataFrame 输入
@@ -493,13 +494,13 @@ class CharTable(Script):
     # 将 dict 转为 DataFrame
     def export(self)->pd.DataFrame:
         # dict -> 转为 DataFrame，把潜在的缺失值处理为'NA'
-        table_col = ['Name','Subtype','Animation','Bubble','Voice','SpeechRate','PitchRate']
+        table_col = self.table_col
         chartab = pd.DataFrame(self.struct).T.fillna('NA')
         if len(chartab) == 0:
             chartab = pd.DataFrame(columns=table_col)
             return chartab
         else:
-            customize_col = [col for col in chartab.columns if col not in table_col]
+            customize_col = self.get_customize(chartab)
             return chartab[table_col+customize_col]
     # 保存为文本文件 (tsv)
     def dump_file(self,filepath:str)->None:
@@ -514,6 +515,10 @@ class CharTable(Script):
         chartable['Name'] = chartable['Name'].replace(to_rename,new_name)
         chartable.index = chartable['Name']+'.'+chartable['Subtype']
         self.struct = self.parser(chartable)
+    def resubtype(self,to_resubtype:str,new_subtype:str)->dict:
+        # 新建项目
+        self.struct[new_subtype] = self.struct.pop(to_resubtype)
+        return self.struct[new_subtype]
     # 删除整个角色
     def delete_chara(self,name:str):
         # 获取需要删除的列表
@@ -536,6 +541,18 @@ class CharTable(Script):
                 'SpeechRate': 0,
                 'PitchRate' : 0,
             }
+    # 添加一个自定义
+    def add_customize(self,colname):
+        # 如果这个列名已经使用过了
+        if colname in self.table_col or colname in self.customize_col:
+            return
+        else:
+            for keyword in self.struct:
+                self.struct[keyword][colname] = 'init'
+    # 修改一个角色的内容
+    def configure(self,key:str,section:dict):
+        # 修改内容
+        self.struct[key].update(section)
     # 读取
     # 获取所有可用角色、差分名
     def get_names(self)->list:
@@ -547,6 +564,16 @@ class CharTable(Script):
             return table[table['Name'] == name]['Subtype'].unique().tolist()
         except:
             return []
+    def get_customize(self,df:pd.DataFrame=None)->list:
+        try:
+            return self.customize_col
+        except AttributeError:
+            if df is not None:
+                chartab = df
+            else:
+                chartab = pd.DataFrame(self.struct).T.fillna('NA')
+            self.customize_col = [col for col in chartab.columns if col not in self.table_col]
+            return self.customize_col
 # log文件
 class RplGenLog(Script):
     # RGL -> struct

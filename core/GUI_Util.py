@@ -68,7 +68,7 @@ class KeyValueDescribe(ttk.Frame):
         else:
             self.value = tk.StringVar(master=self,value=value['value'])
         # 数值受到更改
-        self.value.trace_variable("w", self.config_content) # 检查是否发生了变更，如果变更了则刷新text
+        # self.value.trace_variable("w", self.config_content) # 检查是否发生了变更，如果变更了则刷新text
         self.callback = callback
         # 关键字
         self.key = ttk.Label(master=self,text=key,width=8,anchor='e',padding=padding)
@@ -77,14 +77,19 @@ class KeyValueDescribe(ttk.Frame):
         # 容器
         if value['style'] == 'entry':
             self.input = ttk.Entry(master=self,textvariable=self.value,width=30)
+            self.input.bind("<FocusOut>",self.config_content,'+')
         elif value['style'] == 'spine':
             self.input = ttk.Spinbox(master=self,textvariable=self.value,width=30)
+            self.input.bind("<<SpinboxSelected>>",self.config_content,'+')
         elif value['style'] == 'combox':
             self.input = DictCombobox(master=self,textvariable=self.value,width=30)
+            self.input.bind("<<ComboboxSelected>>",self.config_content,'+')
         elif value['style'] == 'label':
             self.input = ttk.Label(master=self,textvariable=self.value,width=30)
         else:
             self.input = ttk.Label(master=self,textvariable=self.value,width=30)
+        # 通用的，按回车键刷新
+        self.input.bind("<Return>",self.config_content)
         # 描述
         if describe['type'] == 'label':
             self.describe = ttk.Label(master=self,text=describe['text'],width=8,anchor='center',padding=padding)
@@ -101,7 +106,6 @@ class KeyValueDescribe(ttk.Frame):
         self.input.pack(fill='x',side='left',padx=SZ_5,expand=True)
         self.describe.pack(fill='none',side='left',padx=SZ_5)
     def config_content(self, *args):
-        print(self.get())
         # 回调函数
         if self.callback:
             self.callback()
@@ -115,19 +119,21 @@ class KeyValueDescribe(ttk.Frame):
     def bind_button(self,dtype='picture-file',quote=True):
         if type(self.describe) != ttk.Button:
             return
-        # type=file
-        if dtype == 'dir':
-            command = lambda:browse_file(master=self.winfo_toplevel(), text_obj=self.value, method='dir', filetype=None, quote=quote)
-        elif 'file' in dtype:
-            filetype = dtype.split('-')[0]
-            command = lambda:browse_file(master=self.winfo_toplevel(), text_obj=self.value, method='file', filetype=filetype, quote=quote)
-        elif 'color' in dtype:
-            command = lambda:color_chooser(master=self.winfo_toplevel(), text_obj=self.value)
+        def command():
+            if dtype == 'dir':
+                browse_file(master=self.winfo_toplevel(), text_obj=self.value, method='dir', filetype=None, quote=quote)
+            elif 'file' in dtype:
+                filetype = dtype.split('-')[0]
+                browse_file(master=self.winfo_toplevel(), text_obj=self.value, method='file', filetype=filetype, quote=quote)
+            elif 'color' in dtype:
+                color_chooser(master=self.winfo_toplevel(), text_obj=self.value)
+            # 更新
+            self.config_content()
         self.describe.configure(command=command)
 # 一个比上面的KVD更详细的最小单位，常用于设置
 class DetailedKeyValueDescribe(KeyValueDescribe):
     def __init__(self,master,screenzoom:float,key:str,value:dict,describe:dict,tooltip:str=None,callback=None):
-        super().__init__(master=master,screenzoom=screenzoom,key=key,value=value,describe=describe,tooltip=None)
+        super().__init__(master=master,screenzoom=screenzoom,key=key,value=value,describe=describe,tooltip=None,callback=callback)
         SZ_5 = int(self.sz * 5)
         padding = (0,SZ_5,0,SZ_5)
         self.key.configure(font='-family 微软雅黑 -size 11 -weight bold',foreground='#000000',anchor='w',width=30)
@@ -170,6 +176,7 @@ class TextSeparator(ttk.Frame):
         self.content = {}
         self.content_index = []
         self.content_frame = ttk.Frame(master=self)
+        self.buttons = []
         # 显示
         self.update_item()
     # 刷新显示
@@ -192,7 +199,7 @@ class TextSeparator(ttk.Frame):
             self.content_frame.pack(fill='x',side='top')
             self.expand:bool = True
     # 添加KVD
-    def add_element(self,key:str,value:str,kvd:dict,detail:bool=False)->KeyValueDescribe:
+    def add_element(self,key:str,value:str,kvd:dict,detail:bool=False,callback=None)->KeyValueDescribe:
         SZ_5 = int(self.sz * 5)
         if detail:
             this_kvd = DetailedKeyValueDescribe(
@@ -207,7 +214,8 @@ class TextSeparator(ttk.Frame):
                     'type':kvd['ditem'],
                     'text':kvd['dtext']
                 },
-                tooltip=kvd['tooltip']
+                tooltip=kvd['tooltip'],
+                callback=callback
             )
         else:
             this_kvd = KeyValueDescribe(
@@ -222,14 +230,23 @@ class TextSeparator(ttk.Frame):
                     'type':kvd['ditem'],
                     'text':kvd['dtext']
                 },
-                tooltip=kvd['tooltip']
+                tooltip=kvd['tooltip'],
+                callback=callback
             )
         self.content_index.append(key)
         self.content[key] = this_kvd
         # 摆放
         this_kvd.pack(side='top',anchor='n',fill='x',pady=(SZ_5 + detail*SZ_5 ,0))
         return this_kvd
-
+    # 添加按钮
+    def add_button(self,text,command):
+        self.buttons.append(ttk.Button(master=self.label,text=text,command=command,bootstyle='primary-link'))
+        self.buttons[-1].pack(side='right',fill='y',expand=False)
+    # 移除按钮
+    def remove_button(self):
+        for button in self.buttons:
+            button.destroy()
+        self.buttons.clear()
 # 纹理背景
 class Texture(tk.Frame):
     def __init__(self,master,screenzoom,file='./media/icon/texture4.png'):
