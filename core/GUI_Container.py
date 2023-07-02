@@ -54,15 +54,13 @@ class Container(ScrolledFrame):
         self.element_keys.clear()
     # 刷新一个元素，允许改名
     def refresh_element(self,keyword,new_keyword=None):
-        # 删除原来的小节
-        self.element[keyword].destroy()
         if new_keyword == None:
-            # 如果不存在小节更名
-            self.element[keyword] = self.new_element(key=keyword,section=self.content.struct[keyword])
+            # 如果不存在小节更名，使用刷新显示方法
+            self.element[keyword].refresh_item(keyword=keyword)
             new_keyword = keyword
         else:
-            # 使用新keyword新建
-            self.element[new_keyword] = self.new_element(key=new_keyword,section=self.content.struct[new_keyword])
+            # 从element中移出keyword，新建new_keyword
+            self.element[new_keyword] = self.element.pop(keyword).refresh_item(keyword=new_keyword)
             # 更新控制变量
             for controls in [self.element_keys, self.selected, self.display_filter]:
                 try:
@@ -71,7 +69,7 @@ class Container(ScrolledFrame):
                 except ValueError:
                     pass
         # 更新显示
-        self.update_item(to_update=[new_keyword])
+        # self.update_item(to_update=[new_keyword])
     def new_element(self,key:str,section:dict):
         # 从数据结构中新建一个page_element
         pass
@@ -547,3 +545,12 @@ class CTBContainer(Container):
         # 更新显示
         self.update_item()
         self.reset_container_height()
+    def del_select(self, event):
+        # 删除前先移除default差分
+        for keyword in self.selected:
+            if keyword.split('.')[1] == 'default':
+                self.selected.remove(keyword)
+                self.element[keyword].drop_select()
+                Messagebox().show_warning(title='警告',message='无法删除default差分！',parent=self)
+        # 继承
+        return super().del_select(event)

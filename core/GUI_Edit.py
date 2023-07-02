@@ -205,6 +205,7 @@ class CharactorEdit(EditWindow):
         self.TableStruct = TableStruct['CharTable']
         # 初始化时的角色名
         self.name:str = ''
+    # 从角色表更新表结构，初始化时
     def update_from_section(self,index:str,section:dict,line_type='charactor'):
         # 继承
         super().update_from_section(index,section,line_type=line_type)
@@ -241,10 +242,7 @@ class CharactorEdit(EditWindow):
             new_section[custom] = self.value_2_struct(self.elements[custom].get())
         # 是否发生变化？
         if new_section == self.section:
-            # print('无事发生')
             return self.section
-        # 更新角色表的内容
-        # self.page.content.configure(key=self.section_index,section=new_section)
         # 新小节的keyword
         new_keyword = new_section['Name']+'.'+new_section['Subtype']
         # 检查是否是更名？
@@ -253,7 +251,6 @@ class CharactorEdit(EditWindow):
             if new_keyword in self.page.content.struct:
                 Messagebox().show_warning(message='这个差分名已经被使用了！',title='重名',parent=self)
                 self.elements['Subtype'].value.set(self.section['Subtype'])
-                # print('名字被使用')
                 return self.section
             else:
                 # 更新角色表的内容
@@ -263,21 +260,19 @@ class CharactorEdit(EditWindow):
                 # 视图刷新显示
                 self.page.container.refresh_element(keyword=self.section_index,new_keyword=new_keyword)
                 self.section_index = new_keyword
-                # print('变更了名字')
         else:
             # 更新角色表的内容
             self.section.update(new_section)
             self.page.container.refresh_element(keyword=self.section_index)
-            # print('更新了内容')
         return self.section
+    # 立绘和角色发生变动的时候，刷新预览
+    def update_preview(self,event):
+        self.page.preview.preview(char_name=self.section_index)
     # 打开音源选择窗
     def open_voice_selection(self, master, voice, speech_rate, pitch_rate):
         voice_chooser(master=master,voice_obj=voice,speech_obj=speech_rate,pitch_obj=pitch_rate)
         # def 这个时候应有回调
         self.update_section_from()
-    # 立绘和角色发生变动的时候，刷新预览
-    def update_preview(self,event):
-        self.page.preview.preview(char_name=self.section_index)
     # 添加一个自定义列
     def add_customs(self):
         get_string = Querybox().get_string(prompt="请输入自定义列名",title='新建自定义列',parent=self)

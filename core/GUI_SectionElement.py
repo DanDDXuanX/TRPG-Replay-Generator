@@ -117,6 +117,9 @@ class SectionElement:
                 return False
         else:
             return to_search in self.search_text
+    # 使用一个新的小节，更新显示
+    def refresh_item(self,keyword:str):
+        return self
 class RGLSectionElement(ttk.LabelFrame,SectionElement):
     def __init__(self,master,bootstyle,text,section:dict,screenzoom):
         self.sz = screenzoom
@@ -364,10 +367,11 @@ class CTBSectionElement(ttk.Frame,SectionElement):
     thumbnail_idx = 0
     def __init__(self,master,bootstyle,text,section:dict,screenzoom):
         self.sz = screenzoom
-        icon_size = int(self.sz * 93)
         self.name = text # 序号
         super().__init__(master=master,bootstyle=bootstyle,borderwidth=int(1*self.sz))
         self.section = section
+        # 搜索标志
+        self.search_text = ''
         # 初始化错误和空白的缩略图
         self.init_thumbnail()
         # 媒体定义对象
@@ -375,19 +379,16 @@ class CTBSectionElement(ttk.Frame,SectionElement):
         # 容器
         self.table = ttk.Frame(master=self,bootstyle=bootstyle,borderwidth=0)
         self.thumbnail = ttk.Frame(master=self,bootstyle=bootstyle,borderwidth=0)
-        # 搜索标志
-        self.search_text = self.name + '\n' + self.section['Animation'] + '\n' + self.section['Bubble'] + '\n' + self.section['Voice']
-        # 缩略图
-        am_thumbname = self.update_image_from_section(media_name=section['Animation'])
-        bb_thumbname = self.update_image_from_section(media_name=section['Bubble'])
         self.items = {
-            'head'  : ttk.Label(master=self.table,text=self.name,style='CharHead.TLabel'),
-            'anime' : ttk.Label(master=self.table,text='立绘：'+self.section['Animation'],style='main.TLabel'),
-            'bubble': ttk.Label(master=self.table,text='气泡：'+self.section['Bubble'],style='main.TLabel'),
-            'voice' : ttk.Label(master=self.table,text='语音：'+self.section['Voice']+'|'+str(self.section['SpeechRate'])+'|'+str(self.section['PitchRate']),style='main.TLabel'),
-            'AMThB' : ttk.Label(master=self.thumbnail,image=am_thumbname,anchor='center',padding=0),
-            'BBThB' : ttk.Label(master=self.thumbnail,image=bb_thumbname,anchor='center',padding=0)
+            'head'  : ttk.Label(master=self.table,style='CharHead.TLabel'),
+            'anime' : ttk.Label(master=self.table,style='main.TLabel'),
+            'bubble': ttk.Label(master=self.table,style='main.TLabel'),
+            'voice' : ttk.Label(master=self.table,style='main.TLabel'),
+            'AMThB' : ttk.Label(master=self.thumbnail,anchor='center',padding=0),
+            'BBThB' : ttk.Label(master=self.thumbnail,anchor='center',padding=0)
         }
+        # 初始化刷新
+        self.refresh_item(keyword=self.name)
         # 被选中的标志
         self.select_symbol = ttk.Frame(master=self,bootstyle='primary')
         self.update_item()
@@ -436,3 +437,22 @@ class CTBSectionElement(ttk.Frame,SectionElement):
             return 'MediaNotFound'
         else:
             return super().update_image_from_section(section=section_this,icon_size=icon_size,thumbname='CTBthumb%d')
+    # 刷新当前显示的内容
+    def refresh_item(self,keyword:str):
+        # 更新小节关键字
+        self.name = keyword
+        # key == 'Animation':
+        am_thumbname = self.update_image_from_section(media_name=self.section['Animation'])
+        self.items['anime'].configure(text='立绘：'+self.section['Animation'])
+        self.items['AMThB'].configure(image=am_thumbname)
+        # key == 'Bubble':
+        bb_thumbname = self.update_image_from_section(media_name=self.section['Bubble'])
+        self.items['bubble'].configure(text='气泡：'+self.section['Bubble'])
+        self.items['BBThB'].configure(image=bb_thumbname)
+        # key in ['Voice','SpeechRate','PitchRate']:
+        self.items['voice'].configure(text='语音：'+self.section['Voice']+'|'+str(self.section['SpeechRate'])+'|'+str(self.section['PitchRate']))
+        self.items['head'].configure(text=self.name)
+        # 搜索关键字
+        self.search_text = self.name + '\n' + self.section['Animation'] + '\n' + self.section['Bubble'] + '\n' + self.section['Voice']
+        # 返回本体
+        return super().refresh_item(keyword=keyword)
