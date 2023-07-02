@@ -331,22 +331,14 @@ class MDFSectionElement(ttk.Frame,SectionElement):
         self.sz = screenzoom
         self.line_type = section['type']
         self.name = text # 序号
+        self.section = section
         super().__init__(master=master,bootstyle=bootstyle,borderwidth=int(1*self.sz))
-        # 颜色标签
-        if 'label_color' not in section.keys():
-            self.labelcolor = 'Lavender'
-        elif section['label_color'] is None:
-            self.labelcolor = 'Lavender'
-        else:
-            self.labelcolor = section['label_color']
-        # 搜索标志
-        self.search_text = self.name + '\n' + self.line_type + '\n' + self.labelcolor
         # 从小节中获取缩略图
-        self.update_image_from_section(section=section)
         self.items = {
-            'head' : ttk.Label(master=self,text=self.name,anchor='center',style=self.labelcolor+'.TLabel'),
-            'thumbnail' : ttk.Label(master=self,image=self.thumb,anchor='center')
+            'head' : ttk.Label(master=self,anchor='center'),
+            'thumbnail' : ttk.Label(master=self,anchor='center')
         }
+        self.refresh_item(keyword=self.name)
         # 被选中的标志
         self.select_symbol = ttk.Frame(master=self,bootstyle='primary')
         self.update_item()
@@ -361,6 +353,23 @@ class MDFSectionElement(ttk.Frame,SectionElement):
             this_item.bind('<Button-1>',lambda event:self.master.select_item(event,index=self.name,add=False))
             this_item.bind('<Control-Button-1>',lambda event:self.master.select_item(event,index=self.name,add=True))
             this_item.bind('<Shift-Button-1>',lambda event:self.master.select_range(event,index=self.name))
+    def refresh_item(self, keyword: str):
+        # 更新小节关键字
+        self.name = keyword
+        # 颜色标签
+        if 'label_color' not in self.section.keys():
+            self.labelcolor = 'Lavender'
+        elif self.section['label_color'] is None:
+            self.labelcolor = 'Lavender'
+        else:
+            self.labelcolor = self.section['label_color']
+        # 刷新
+        self.update_image_from_section(section=self.section)
+        self.items['thumbnail'].configure(image=self.thumb)
+        self.items['head'].configure(text=self.name, style=self.labelcolor+'.TLabel')
+        # 搜索关键字
+        self.search_text = self.name + '\n' + self.line_type + '\n' + self.labelcolor
+        return super().refresh_item(keyword)
 class CTBSectionElement(ttk.Frame,SectionElement):
     thumbnail_image = {}
     thumbnail_name = {}

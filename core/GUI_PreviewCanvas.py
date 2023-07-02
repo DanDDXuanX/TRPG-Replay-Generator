@@ -187,7 +187,13 @@ class PreviewCanvas(ttk.Frame):
     def preview(self):
         # 重置背景
         self.canvas.blit(self.empty_canvas,(0,0))
-        
+    def show_error(self):
+        # 错误背景
+        RGB = pygame.surfarray.pixels3d(self.empty_canvas)
+        RGB[...,1] = 0
+        RGB[...,2] = 0
+        error_canvas = pygame.surfarray.make_surface(RGB)
+        self.canvas.blit(error_canvas,(0,0))
 class MDFPreviewCanvas(PreviewCanvas):
     def __init__(self, master, screenzoom, mediadef):
         # 继承
@@ -229,7 +235,7 @@ class MDFPreviewCanvas(PreviewCanvas):
         # 刷新显示
         self.update_canvas()
     # 拖拽中实时刷新点视图的内容
-    def update_preview(self,pressed:tuple):
+    def update_preview(self,pressed:tuple=None):
         # 重置背景
         self.canvas.blit(self.empty_canvas,(0,0))
         # 刷新媒体
@@ -242,7 +248,9 @@ class MDFPreviewCanvas(PreviewCanvas):
         self.selected_dot_name = None
         for dot in self.dots:
             this_dot:InteractiveDot = self.dots[dot]
-            if this_dot.check(pos=pressed,canvas_zoom=self.canvas_zoom.get()):
+            if pressed is None:
+                pass
+            elif this_dot.check(pos=pressed,canvas_zoom=self.canvas_zoom.get()):
                 self.selected_dot = this_dot
                 self.selected_dot_name = dot
             self.dots[dot].draw(self.canvas,self.canvas_zoom.get())
@@ -317,6 +325,7 @@ class MDFPreviewCanvas(PreviewCanvas):
     def get_focus(self,event):
         self.configure(bootstyle='primary')
     def lost_focus(self,event):
+        self.update_preview()
         self.configure(bootstyle='secondary')
     def get_coordinates(self,event):
         zoom = self.canvas_zoom.get()
@@ -326,8 +335,8 @@ class MDFPreviewCanvas(PreviewCanvas):
     # 被点击的功能：输入焦点、点选一个可拖动点
     def get_pressed(self,event):
         self.canvas_label.focus_set()
-        pressd = self.get_coordinates(event=event)
-        self.update_preview(pressed=pressd)
+        pressed = self.get_coordinates(event=event)
+        self.update_preview(pressed=pressed)
     # 拖动中的功能：渲染点被拖动中的位置
     def get_drag(self,event):
         pressd = self.get_coordinates(event=event)
@@ -336,35 +345,32 @@ class MDFPreviewCanvas(PreviewCanvas):
         self.update_preview(pressed=pressd)
     # 释放鼠标的功能：确定最终修改的位置，并重置预览的画面渲染
     def get_drag_done(self,event):
-        pressd = self.get_coordinates(event=event)
+        pressed = self.get_coordinates(event=event)
         # 根据当前选点，刷新媒体对象
-        self.update_media_object()
-        # 整个重载点视图
-        self.update_dotview()
-        self.update_preview(pressed=pressd)
-    # 将变更同步到编辑区和媒体对象的成员
-    def update_media_object(self,):
+        self.update_media_object(pressed=pressed)
+    # 将变更同步到编辑区和媒体对象的成员，并更新显示
+    def update_edit(self):
         # 如果有选中点
         if self.selected_dot:
             # 绿点，影响pos
             if self.selected_dot_name == 'g0':
                 # POS
                 new_pos = self.selected_dot.get()[0]
-                self.object_this.pos = Pos(*new_pos)
+                # self.object_this.pos = Pos(*new_pos)
                 self.edit_frame.elements['pos'].set( '({},{})'.format(new_pos[0], new_pos[1]) )
                 # scale：投影到对角线上
                 new_end = self.selected_dot.get()[1]
-                NPV = np.array(new_end)-np.array(self.object_this.pos.get())
+                NPV = np.array(new_end)-np.array(new_pos)
                 Z = get_vppr(new_pos=NPV, master_size=self.object_this.origin_size)
                 # 尺寸未改变
                 if Z == self.object_this.scale:
                     pass
                 # 尺寸改变，但是None
                 elif Z != 1 and self.object_this.filepath is None:
-                    pass
+                    self.edit_frame.elements['scale'].set(1.0)
                 # 尺寸改变
                 else:
-                    self.object_this.load_image(scale=round(Z,2))
+                    # self.object_this.load_image(scale=round(Z,2))
                     self.edit_frame.elements['scale'].set( round(Z,2) )
             # 蓝点，影响字体位置
             elif self.selected_dot_name == 'b0':
@@ -400,21 +406,21 @@ class MDFPreviewCanvas(PreviewCanvas):
                 self.edit_frame.elements['sub_end'].set('({},{})'.format(new_end[0], new_end[1]))
             elif self.selected_dot_name == 'o0':
                 new_pos = self.selected_dot.get()[0]
-                if type(self.object_this) is PosGrid:
-                    self.object_this.pos = new_pos
-                    self.object_this.make_grid()
-                else:
-                    self.object_this.x = new_pos[0]
-                    self.object_this.y = new_pos[1]
                 self.edit_frame.elements['pos'].set('({},{})'.format(new_pos[0], new_pos[1]))
             elif self.selected_dot_name == 'o1':
                 new_pos = self.selected_dot.get()[0]
-                self.object_this.end = new_pos
-                self.object_this.make_grid()
                 self.edit_frame.elements['end'].set('({},{})'.format(new_pos[0], new_pos[1]))
             else:
                 pass
-
+        # 唤起编辑区的输出结果
+        # update_dotview, update_preview 在 update_section_from中已经调用过一次了
+        self.edit_frame.update_section_from()
+    # 刷新媒体对象
+    def update_media_object(self,pressed):
+        # dot -> edit
+        self.update_edit()
+        # 需要额外刷新一次带press的
+        self.update_preview(pressed=pressed)
     # 切换全屏视图
     def switch_fullview(self,event):
         self.master.set_fullview()
@@ -432,10 +438,7 @@ class MDFPreviewCanvas(PreviewCanvas):
             p_y = r_y+direction_key[event.keysym][1]*multi
             self.selected_dot.move(new_pos=(p_x, p_y))
             # 刷新媒体对象
-            self.update_media_object()
-            # 整个重载点视图
-            self.update_dotview()
-            self.update_preview(pressed=(p_x, p_y))
+            self.update_media_object(pressed=(p_x, p_y))
         else:
             pass
 class CTBPreviewCanvas(PreviewCanvas):

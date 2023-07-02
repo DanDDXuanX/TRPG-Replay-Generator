@@ -23,6 +23,7 @@ class DictCombobox(ttk.Combobox):
         # 初始化
         super().__init__(master, textvariable=self.text, **kw)
         self.bind('<<ComboboxSelected>>', self.update_var)
+        self.bind('<KeyRelease>',self.update_var)
     def update_dict(self, dict:dict):
         # 显示的内容：实际的内容
         self.dictionary = dict
@@ -79,8 +80,7 @@ class KeyValueDescribe(ttk.Frame):
             self.input = ttk.Entry(master=self,textvariable=self.value,width=30)
             self.input.bind("<FocusOut>",self.config_content,'+')
         elif value['style'] == 'spine':
-            self.input = ttk.Spinbox(master=self,textvariable=self.value,width=30)
-            self.input.bind("<<SpinboxSelected>>",self.config_content,'+')
+            self.input = ttk.Spinbox(master=self,textvariable=self.value,width=30,command=self.config_content)
         elif value['style'] == 'combox':
             self.input = DictCombobox(master=self,textvariable=self.value,width=30)
             self.input.bind("<<ComboboxSelected>>",self.config_content,'+')

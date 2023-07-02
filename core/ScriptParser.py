@@ -429,6 +429,10 @@ class MediaDef(Script):
             this_section[keyword] = new_path
         else:
             print(name, old_path, this_section[keyword])
+    # 操作：
+    def rename(self,to_rename:str,new_name:str)->dict:
+        self.struct[new_name] = self.struct.pop(to_rename)
+        return self.struct[new_name]
 # 角色配置文件
 class CharTable(Script):
     table_col = ['Name','Subtype','Animation','Bubble','Voice','SpeechRate','PitchRate']

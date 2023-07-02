@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+import re
 import ttkbootstrap as ttk
 from ttkbootstrap.scrolled import ScrolledFrame
 from .GUI_Util import KeyValueDescribe, TextSeparator
 from .GUI_EditTableStruct import TableStruct, label_colors, projection, alignments, charactor_columns, fill_mode, fit_axis, True_False
 from .ScriptParser import MediaDef, RplGenLog, CharTable
 from .GUI_CustomDialog import voice_chooser
+from .Exceptions import SyntaxsError
 from ttkbootstrap.dialogs import Messagebox, Querybox
 # 编辑区
 
@@ -27,6 +29,7 @@ class EditWindow(ScrolledFrame):
         self.seperator = {}
         # 小节的字典结构
         self.section:dict = None
+        self.section_index:str = ''
         # 小节的表结构
         self.table_struct:dict = None
         # 小节的表结构->字典结构的对应关系
@@ -146,18 +149,14 @@ class EditWindow(ScrolledFrame):
                         kvd=this_kvd,
                         callback=self.update_section_from
                         )
-    # 从窗体内容更新小节：回调函数在哪个时间点调用最合适？
-    # 每次内容发生变更就回调明显是不合适的，Entry输入到一半的时候，结果很多时候都是不合法的。
-    # 在Entry失去焦点的时候
-    # 在Combox和Spine确实发生了变化的时候
-    # 在Button刷新了值的时候
+    # 从窗体内容更新小节
     def update_section_from(self)->dict:
-        section_geted:dict = {}
+        section_got:dict = {}
         for keyword in self.keyword_arguments:
             element_key = self.keyword_arguments[keyword]
             if '%d' not in element_key:
                 # 一对一的参数
-                section_geted[keyword] = self.value_2_struct(self.elements[element_key].get())
+                section_got[keyword] = self.value_2_struct(self.elements[element_key].get())
             else:
                 # 一对多的列表参数（Balloon，ChatWindow）
                 list_of_args = []
@@ -173,16 +172,13 @@ class EditWindow(ScrolledFrame):
                     else:
                         break
                 # 将多次出现的参数以列表的形式返回
-                section_geted[keyword] = list_of_args
-        return section_geted
+                section_got[keyword] = list_of_args
+        return section_got
     # 从section的值转为显示的value
     def struct_2_value(self,section):
         return section
     def value_2_struct(self,value):
         return value
-    # 将窗体内容覆盖到小节
-    def write_section(self):
-        self.section.clear()
     # 获取可用立绘、气泡名
     def get_avaliable_anime(self)->list:
         return self.page.ref_medef.get_type('anime')
@@ -197,14 +193,16 @@ class EditWindow(ScrolledFrame):
         for key in CharactorEdit.custom_col:
             charactor_columns_this["{}（自定义）".format(key)] = "'{}'".format(key)
         return charactor_columns_this
+    # 刷新预览
+    def update_preview(self,keywords:list):
+        # 待重载
+        pass
 class CharactorEdit(EditWindow):
     custom_col = []
     table_col = CharTable.table_col
     def __init__(self, master, screenzoom):
         super().__init__(master, screenzoom)
         self.TableStruct = TableStruct['CharTable']
-        # 初始化时的角色名
-        self.name:str = ''
     # 从角色表更新表结构，初始化时
     def update_from_section(self,index:str,section:dict,line_type='charactor'):
         # 继承
@@ -221,8 +219,6 @@ class CharactorEdit(EditWindow):
         # 媒体
         self.elements['Animation'].input.configure(values=['NA']+self.get_avaliable_anime(),state='readonly')
         self.elements['Bubble'].input.configure(values=['NA']+self.get_avaliable_bubble(),state='readonly')
-        self.elements['Animation'].input.bind("<<ComboboxSelected>>",self.update_preview,'+')
-        self.elements['Bubble'].input.bind("<<ComboboxSelected>>",self.update_preview,'+')
         # 音源
         for ele in ['Voice','SpeechRate','PitchRate']:
             self.elements[ele].describe.configure(command=lambda :self.open_voice_selection(
@@ -243,6 +239,14 @@ class CharactorEdit(EditWindow):
         # 是否发生变化？
         if new_section == self.section:
             return self.section
+        else:
+            # 发生变化的关键字
+            changed_key = []
+            for key in new_section:
+                if key not in self.section:
+                    changed_key.append(key)
+                if new_section[key] != self.section[key]:
+                    changed_key.append(key)
         # 新小节的keyword
         new_keyword = new_section['Name']+'.'+new_section['Subtype']
         # 检查是否是更名？
@@ -250,6 +254,10 @@ class CharactorEdit(EditWindow):
             # 检查新名字是否可用
             if new_keyword in self.page.content.struct:
                 Messagebox().show_warning(message='这个差分名已经被使用了！',title='重名',parent=self)
+                self.elements['Subtype'].value.set(self.section['Subtype'])
+                return self.section
+            elif re.fullmatch("^\w+$",new_keyword) is None:
+                Messagebox().show_warning(message='这个差分名是非法的！',title='非法名',parent=self)
                 self.elements['Subtype'].value.set(self.section['Subtype'])
                 return self.section
             else:
@@ -264,10 +272,13 @@ class CharactorEdit(EditWindow):
             # 更新角色表的内容
             self.section.update(new_section)
             self.page.container.refresh_element(keyword=self.section_index)
+        # 刷新预览
+        self.update_preview(keywords=changed_key)
         return self.section
     # 立绘和角色发生变动的时候，刷新预览
-    def update_preview(self,event):
-        self.page.preview.preview(char_name=self.section_index)
+    def update_preview(self,keywords:list=[]):
+        if 'Animation' in keywords or 'Bubble' in keywords:
+            self.page.preview.preview(char_name=self.section_index)
     # 打开音源选择窗
     def open_voice_selection(self, master, voice, speech_rate, pitch_rate):
         voice_chooser(master=master,voice_obj=voice,speech_obj=speech_rate,pitch_obj=pitch_rate)
@@ -325,14 +336,57 @@ class MediaEdit(EditWindow):
         # 更新
         self.update_media_element_prop(line_type)
         self.update_item()
+    def update_section_from(self) -> dict:
+        # 获取新小节
+        new_section = super().update_section_from()
+        print(new_section)
+        # 新小节的keyword
+        new_keyword:str = self.elements['Name'].get()
+        # 是否发生变化？
+        if new_section == self.section and new_keyword==self.section_index:
+            return self.section
+        else:
+            # 发生变化的关键字
+            changed_key = []
+            for key in new_section:
+                if key not in self.section:
+                    changed_key.append(key)
+                elif new_section[key] != self.section[key]:
+                    changed_key.append(key)
+        # 检查是否更名
+        if new_keyword != self.section_index:
+            # 检查新名字是否可用
+            if new_keyword in self.page.content.struct:
+                Messagebox().show_warning(message='这个媒体名已经被使用了！',title='重名',parent=self)
+                self.elements['Name'].value.set(self.section_index)
+                return self.section
+            elif re.fullmatch("^\w+$",new_keyword) is None or new_keyword[0].isdigit():
+                Messagebox().show_warning(message='这个媒体名是非法的！',title='非法名',parent=self)
+                self.elements['Name'].value.set(self.section_index)
+                return self.section
+            else:
+                # 更新媒体库的内容
+                self.section.update(new_section)
+                # 媒体库执行重命名
+                self.section:dict = self.page.content.rename(to_rename=self.section_index,new_name=new_keyword)
+                # 视图刷新显示
+                self.page.container.refresh_element(keyword=self.section_index,new_keyword=new_keyword)
+                self.section_index = new_keyword
+        else:
+            # 更新媒体库内容
+            self.section.update(new_section)
+            self.page.container.refresh_element(keyword=self.section_index)
+        # 刷新预览的显示
+        self.update_preview(keywords=changed_key)
+        return self.section
     def update_media_element_prop(self,line_type):
         # 标签色
         if line_type not in ['Pos','FreePos','PosGrid']:
             self.elements['label_color'].input.update_dict(label_colors)
         # PosGrid
         if line_type == 'PosGrid':
-            self.elements['x_step'].input.configure(from_=0,to=100,increment=1)
-            self.elements['y_step'].input.configure(from_=0,to=100,increment=1)
+            self.elements['x_step'].input.configure(from_=1,to=100,increment=1)
+            self.elements['y_step'].input.configure(from_=1,to=100,increment=1)
         # 字体
         if line_type in ['Text','StrokeText','RichText']:
             self.elements['line_limit'].input.configure(from_=0,to=100,increment=1)
@@ -372,6 +426,23 @@ class MediaEdit(EditWindow):
             self.elements['loop'].input.update_dict(True_False)
     def struct_2_value(self,section):
         return self.medef_tool.value_export(section)
+    def value_2_struct(self, value):
+        try:
+            return self.medef_tool.value_parser(str(value))
+        except SyntaxsError:
+            # TODO: 面对非法值的异常处理！
+            Messagebox().show_error(message='无效的值：{}'.format(value),title='错误',parent=self)
+            return value
+    def update_preview(self, keywords: list):
+        # 更新对象
+        ref_medef:MediaDef = self.page.content
+        for key in keywords:
+            # 使用了MediaDef的value_execute，将字典类型解析为对象
+            exec_value = ref_medef.value_execute(self.section[key])
+            self.page.preview.object_this.configure(key=key,value=exec_value)
+        # 更新显示
+        self.page.preview.update_dotview()
+        self.page.preview.update_preview()
 class LogEdit(EditWindow):
     def __init__(self, master, screenzoom):
         super().__init__(master, screenzoom)

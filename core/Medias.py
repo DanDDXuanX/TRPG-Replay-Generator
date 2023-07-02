@@ -110,7 +110,10 @@ class MediaObj:
             else:
                 self.filepath = Filepath(filepath=value)
         elif key == 'pos':
-            self.pos = Pos(*value)
+            if type(value) in [Pos,FreePos]:
+                self.pos = value
+            else:
+                self.pos = Pos(*value)
         elif key == 'scale':
             self.scale = value
             self.load_image(scale=self.scale)
@@ -171,6 +174,9 @@ class Text(MediaObj):
     def configure(self, key: str, value, index: int = 0):
         if key == 'fontfile':
             super().configure(key='filepath',value=value)
+            self.text_render = pygame.font.Font(self.filepath.exact(), self.size)
+        elif key == 'fontsize':
+            self.size = value
             self.text_render = pygame.font.Font(self.filepath.exact(), self.size)
         else:
             # 继承

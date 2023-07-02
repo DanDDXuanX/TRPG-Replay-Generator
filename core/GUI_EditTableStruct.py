@@ -115,13 +115,13 @@ TableStruct:dict = {
             }
         },
         'charactor.args':{
-            "Name":"Name",
-            "Subtype":"Subtype",
-            "Animation":"Animation",
-            "Bubble":"Bubble",
-            "Voice":"Voice",
+            "Name"      :"Name",
+            "Subtype"   :"Subtype",
+            "Animation" :"Animation",
+            "Bubble"    :"Bubble",
+            "Voice"     :"Voice",
             "SpeechRate":"SpeechRate",
-            "PitchRate":"PitchRate"
+            "PitchRate" :"PitchRate"
         }
     },
     # 媒体定义
@@ -170,6 +170,10 @@ TableStruct:dict = {
                 }
             }
         },
+        "Pos.args":{
+            "type"  :'type',
+            "pos"   :'pos',
+        },
         "FreePos":{
             "InfoSep":{
                 "Text": "基本信息",
@@ -213,6 +217,10 @@ TableStruct:dict = {
                     },
                 },
             },
+        },
+        "FreePos.args":{
+            "type"  :'type',
+            "pos"   :'pos',
         },
         "PosGrid":{
             "InfoSep":{
@@ -287,6 +295,13 @@ TableStruct:dict = {
                     }
                 }
             }
+        },
+        "PosGrid.args":{
+            "type"  : "type",
+            "pos"   : "pos",
+            "end"   : "end",
+            "x_step": "x_step",
+            "y_step": "y_step"
         },
         "Text":{
             "InfoSep":{
@@ -377,6 +392,14 @@ TableStruct:dict = {
                     },
                 }
             }
+        },
+        "Text.args":{
+            "type"          : "type",
+            "fontfile"      : "fontfile",
+            "fontsize"      : "fontsize",
+            "color"         : "color",
+            "line_limit"    : "line_limit",
+            "label_color"   : "label_color"
         },
         "StrokeText":{
             "InfoSep":{
@@ -504,6 +527,17 @@ TableStruct:dict = {
                 }
             },
         },
+        "StrokeText.args":{
+            "type"          : "type",
+            "fontfile"      : "fontfile",
+            "fontsize"      : "fontsize",
+            "color"         : "color",
+            "line_limit"    : "line_limit",
+            "edge_color"    : "edge_color",
+            "edge_width"    : "edge_width",
+            "projection"    : "projection",
+            "label_color"   : "label_color"
+        },
         "RichText":{
             "InfoSep":{
                 "Text": "基本信息",
@@ -593,6 +627,14 @@ TableStruct:dict = {
                     },
                 }
             }
+        },
+        "RichText.args":{
+            "type"          : "type",
+            "fontfile"      : "fontfile",
+            "fontsize"      : "fontsize",
+            "color"         : "color",
+            "line_limit"    : "line_limit",
+            "label_color"   : "label_color"
         },
         "Bubble":{
             "InfoSep":{
@@ -750,6 +792,7 @@ TableStruct:dict = {
                 }
             },
         },
+        "Bubble.args":{},
         "Balloon":{
             "InfoSep":{
                 "Text": "基本信息",
@@ -909,6 +952,7 @@ TableStruct:dict = {
                 }
             },
         },
+        "Balloon.args":{},
         "DynamicBubble":{
             "InfoSep":{
                 "Text": "基本信息",
@@ -1091,6 +1135,7 @@ TableStruct:dict = {
                 }
             },
         },
+        "DynamicBubble.args":{},
         "ChatWindow":{
             "InfoSep":{
                 "Text": "基本信息",
@@ -1276,6 +1321,7 @@ TableStruct:dict = {
                 }
             }
         },
+        "ChatWindow.args":{},
         "Animation":{
             "InfoSep":{
                 "Text": "基本信息",
@@ -1376,6 +1422,14 @@ TableStruct:dict = {
                 }
             }
         },
+        "Animation.args":{
+            "filepath"      : "filepath",
+            "scale"         : "scale",
+            "pos"           : "pos",
+            "tick"          : "tick",
+            "loop"          : "loop",
+            "label_color"   : "label_color"
+        },
         "Background":{
             "InfoSep":{
                 "Text": "基本信息",
@@ -1450,6 +1504,12 @@ TableStruct:dict = {
                 }
             },
         },
+        "Background.args":{
+            "filepath"      : "filepath",
+            "scale"         : "scale",
+            "pos"           : "pos",
+            "label_color"   : "label_color"
+        },
         "Audio":{
             "InfoSep":{
                 "Text": "基本信息",
@@ -1503,6 +1563,10 @@ TableStruct:dict = {
                     }
                 }
             }
+        },
+        "Audio.args":{
+            "filepath"      : "filepath",
+            "label_color"   : "label_color"
         },
         "BGM":{
             "InfoSep":{
@@ -1577,6 +1641,12 @@ TableStruct:dict = {
                     }
                 }
             }
+        },
+        "BGM.args":{
+            "filepath"      : "filepath",
+            "volume"        : "volume",
+            "loop"          : "loop",
+            "label_color"   : "label_color"
         },
     },
     # 剧本

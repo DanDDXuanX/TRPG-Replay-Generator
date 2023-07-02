@@ -109,7 +109,7 @@ class PosGrid:
         else:
             self.pos = pos
             self.end = end
-        self._size = (x_step,y_step)
+        self._size = [x_step,y_step]
         self.make_grid()
     def __getitem__(self,key)->Pos:
         return self._grid[key[0],key[1]]
