@@ -349,6 +349,7 @@ class MediaEdit(EditWindow):
             # 发生变化的关键字
             changed_key = []
             for key in new_section:
+                # KEY
                 if key not in self.section:
                     changed_key.append(key)
                 elif new_section[key] != self.section[key]:
@@ -439,7 +440,12 @@ class MediaEdit(EditWindow):
         for key in keywords:
             # 使用了MediaDef的value_execute，将字典类型解析为对象
             exec_value = ref_medef.value_execute(self.section[key])
+            print(key,exec_value)
             self.page.preview.object_this.configure(key=key,value=exec_value)
+        # BUG
+        # 1. 气泡类，主文本修改后不生效
+        # 2. 气球类，修改头文本时报错
+        # 3. 引用对象，当发生变动时，应该如何刷新？
         # 更新显示
         self.page.preview.update_dotview()
         self.page.preview.update_preview()

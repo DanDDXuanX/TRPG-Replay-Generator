@@ -116,7 +116,8 @@ class MediaObj:
                 self.pos = Pos(*value)
         elif key == 'scale':
             self.scale = value
-            self.load_image(scale=self.scale)
+            if self.filepath:
+                self.load_image(scale=self.scale)
         else:
             try:
                 self.__setattr__(key,value)

@@ -370,40 +370,32 @@ class MDFPreviewCanvas(PreviewCanvas):
                     self.edit_frame.elements['scale'].set(1.0)
                 # 尺寸改变
                 else:
-                    # self.object_this.load_image(scale=round(Z,2))
                     self.edit_frame.elements['scale'].set( round(Z,2) )
             # 蓝点，影响字体位置
             elif self.selected_dot_name == 'b0':
                 new_pos = self.selected_dot.get()[0] 
-                self.object_this.mt_pos = tuple([x for x in new_pos])
                 self.edit_frame.elements['mt_pos'].set( '({},{})'.format(new_pos[0], new_pos[1]) )
             elif self.selected_dot_name[0] == 'b':
                 header_index = int(self.selected_dot_name[1:])-1
                 new_pos = self.selected_dot.get()[0]
                 if type(self.object_this) is Balloon:
-                    ht_pos:list = self.object_this.ht_pos
-                    ht_pos[header_index] = tuple([x for x in new_pos])
-                    self.object_this.ht_pos = ht_pos
                     self.edit_frame.elements['ht_pos_%d'%(header_index+1)].set( '({},{})'.format(new_pos[0], new_pos[1]) )
                 else:
-                    self.object_this.ht_pos = tuple([x for x in new_pos])
                     self.edit_frame.elements['ht_pos'].set( '({},{})'.format(new_pos[0], new_pos[1]) )
             # 红点，影响am_left_right
             elif self.selected_dot_name == 'r0':
                 new_pos = self.selected_dot.get()[0]
-                self.object_this.am_left = new_pos[0]
                 self.edit_frame.elements['am_left'].set(new_pos[0])
             elif self.selected_dot_name == 'r1':
                 new_pos = self.selected_dot.get()[0]
-                self.object_this.am_right = new_pos[0]
                 self.edit_frame.elements['am_right'].set(new_pos[0])
+            # 紫色点，影响ChatWindow
             elif self.selected_dot_name == 'p0':
                 new_pos = self.selected_dot.get()[0]
                 new_end = self.selected_dot.get()[1]
-                self.object_this.sub_pos = new_pos
-                self.object_this.sub_size = new_end - new_pos
                 self.edit_frame.elements['sub_pos'].set('({},{})'.format(new_pos[0], new_pos[1]))
                 self.edit_frame.elements['sub_end'].set('({},{})'.format(new_end[0], new_end[1]))
+            # 橙色点，影响PosGrid
             elif self.selected_dot_name == 'o0':
                 new_pos = self.selected_dot.get()[0]
                 self.edit_frame.elements['pos'].set('({},{})'.format(new_pos[0], new_pos[1]))

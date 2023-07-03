@@ -792,7 +792,19 @@ TableStruct:dict = {
                 }
             },
         },
-        "Bubble.args":{},
+        "Bubble.args":{
+            "filepath"      : "filepath",
+            "scale"         : "scale",
+            "pos"           : "pos",
+            "Main_Text"     : "Main_Text",
+            "mt_pos"        : "mt_pos",
+            "align"         : "align",
+            "line_distance" : "line_distance",
+            "Header_Text"   : "Header_Text",
+            "ht_pos"        : "ht_pos",
+            "ht_target"     : "ht_target",
+            "label_color"   : "label_color",
+        },
         "Balloon":{
             "InfoSep":{
                 "Text": "基本信息",
@@ -952,7 +964,19 @@ TableStruct:dict = {
                 }
             },
         },
-        "Balloon.args":{},
+        "Balloon.args":{
+            "filepath"      : "filepath",
+            "scale"         : "scale",
+            "pos"           : "pos",
+            "Main_Text"     : "Main_Text",
+            "mt_pos"        : "mt_pos",
+            "align"         : "align",
+            "line_distance" : "line_distance",
+            "Header_Text"   : "Header_Text_%d",
+            "ht_pos"        : "ht_pos_%d",
+            "ht_target"     : "ht_target_%d",
+            "label_color"   : "label_color",
+        },
         "DynamicBubble":{
             "InfoSep":{
                 "Text": "基本信息",
