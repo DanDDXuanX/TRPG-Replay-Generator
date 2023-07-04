@@ -5,7 +5,7 @@ import re
 import ttkbootstrap as ttk
 from ttkbootstrap.scrolled import ScrolledFrame
 from .GUI_Util import KeyValueDescribe, TextSeparator
-from .GUI_EditTableStruct import TableStruct, label_colors, projection, alignments, charactor_columns, fill_mode, fit_axis, True_False
+from .GUI_EditTableStruct import TableStruct, label_colors, projection, alignments, chatalign, charactor_columns, fill_mode, fit_axis, True_False
 from .ScriptParser import MediaDef, RplGenLog, CharTable
 from .GUI_CustomDialog import voice_chooser
 from .Exceptions import SyntaxsError
@@ -425,12 +425,14 @@ class MediaEdit(EditWindow):
                 else:
                     break
         if self.line_type == 'ChatWindow':
-            # BUG:无法正常绑定
+            self.elements["sub_distance"].input.configure(from_=0,to=1000,increment=10)
             for idx in range(1,999):
                 if "sub_key_%d"%idx in self.elements:
                     self.elements["sub_Bubble_%d"%idx].input.configure(values=['Bubble()']+self.get_avaliable_bubble(cw=False))
                     self.elements["sub_Anime_%d"%idx].input.configure(values=['None']+self.get_avaliable_anime())
-                    self.elements["sub_align_%d"%idx].input.update_dict(alignments)
+                    self.elements["sub_align_%d"%idx].input.update_dict(chatalign)
+                else:
+                    break
         if self.line_type == 'Animation':
             self.elements['tick'].input.configure(from_=1,to=30,increment=1)
             self.elements['loop'].input.update_dict(True_False)

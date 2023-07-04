@@ -649,7 +649,7 @@ class Bubble(MediaObj):
                 # 读取图片文件
                 self.load_image(scale=self.scale)
         elif key == 'Main_Text':
-            self.MainText == value
+            self.MainText = value
         elif key == 'Header_Text':
             self.Header = value
         elif key == 'ht_target':

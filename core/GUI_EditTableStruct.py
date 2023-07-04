@@ -1194,7 +1194,7 @@ TableStruct:dict = {
                         "tooltip":None,
                         "dtext": "（输入）",
                         "ditem": "label",
-                        "valuekey": "key",
+                        "valuekey": "$key",
                         "vitem": "entry",
                         "vtype": "str",
                         "default": "新建聊天窗"
@@ -1313,10 +1313,10 @@ TableStruct:dict = {
                 "Text": "子气泡-%d",
                 "Command":{
                     "type":'add_sep',
-                    "key":"sub_key-%d"
+                    "key":"sub_key_%d"
                 },
                 "Content":{
-                    "sub_key-%d": {
+                    "sub_key_%d": {
                         "ktext": "关键字：",
                         "tooltip":None,
                         "dtext": "（输入）",
@@ -1326,7 +1326,7 @@ TableStruct:dict = {
                         "vtype": "str",
                         "default": "Key1"
                     },
-                    "sub_Bubble-%d": {
+                    "sub_Bubble_%d": {
                         "ktext": "气泡：",
                         "tooltip":None,
                         "dtext": "（选择）",
@@ -1336,7 +1336,7 @@ TableStruct:dict = {
                         "vtype": "str",
                         "default": "Bubble()"
                     },
-                    "sub_Anime-%d": {
+                    "sub_Anime_%d": {
                         "ktext": "头像：",
                         "tooltip":None,
                         "dtext": "（选择）",
@@ -1346,7 +1346,7 @@ TableStruct:dict = {
                         "vtype": "str",
                         "default": "None"
                     },
-                    "sub_align-%d": {
+                    "sub_align_%d": {
                         "ktext": "对齐：",
                         "tooltip":None,
                         "dtext": "（选择）",
@@ -2105,6 +2105,11 @@ projection = {
 alignments = {
     "左对齐" : "'left'",
     "居中对齐": "'center'"
+}
+
+chatalign = {
+    "靠左" : "'left'",
+    "靠右" : "'right'"
 }
 
 charactor_columns={
