@@ -1159,7 +1159,21 @@ TableStruct:dict = {
                 }
             },
         },
-        "DynamicBubble.args":{},
+        "DynamicBubble.args":{
+            "filepath"      : "filepath",
+            "scale"         : "scale",
+            "pos"           : "pos",
+            "Main_Text"     : "Main_Text",
+            "mt_pos"        : "mt_pos",
+            "mt_end"        : "mt_end",
+            "line_distance" : "line_distance",
+            "Header_Text"   : "Header_Text",
+            "ht_pos"        : "ht_pos",
+            "ht_target"     : "ht_target",
+            "fill_mode"     : "fill_mode",
+            "fit_axis"      : "fit_axis",
+            "label_color"   : "label_color",
+        },
         "ChatWindow":{
             "InfoSep":{
                 "Text": "基本信息",
@@ -1345,7 +1359,21 @@ TableStruct:dict = {
                 }
             }
         },
-        "ChatWindow.args":{},
+        "ChatWindow.args":{
+            "filepath"      : "filepath",
+            "scale"         : "scale",
+            "pos"           : "pos",
+            "sub_pos"       : "sub_pos",
+            "sub_end"       : "sub_end",
+            "am_left"       : "am_left",
+            "am_right"      : "am_right",
+            "sub_distance"  : "sub_distance",
+            "sub_key"       : "sub_key_%d",
+            "sub_Bubble"    : "sub_Bubble_%d",
+            "sub_Anime"     : "sub_Anime_%d",
+            "sub_align"     : "sub_align_%d",
+            "label_color"   : "label_color",
+        },
         "Animation":{
             "InfoSep":{
                 "Text": "基本信息",

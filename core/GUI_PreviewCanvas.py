@@ -36,6 +36,10 @@ class InteractiveDot:
         elif self.color == 'orange':
             self.p1 = np.array(p1)
             self.p2 = np.array([-np.inf,-np.inf]) # 无效的占位符
+        # ht_pos/ht_end 自适应气泡的分划线
+        elif self.color == 'magenta':
+            self.p1 = np.array(p1) + np.array(master.pos.get())
+            self.p2 = np.array(p2) + np.array(master.pos.get())
         else: # am left / right 一条竖线
             self.p1 = np.array([p1[0], int(self.master.size[1]/2)]) + np.array(master.pos.get())
             self.p2 = np.array([-np.inf,-np.inf]) # 无效的占位符
@@ -51,9 +55,14 @@ class InteractiveDot:
             self.selected['p2'] = False
             return True
         elif np.max(np.abs(np.array(pos) - self.p2)) < rw:
-            self.selected['p1'] = False
-            self.selected['p2'] = True
-            return True
+            if self.color != 'blue':
+                self.selected['p1'] = False
+                self.selected['p2'] = True
+                return True
+            else:
+                self.selected['p1'] = False
+                self.selected['p2'] = False
+                return False
         else:
             self.selected['p1'] = False
             self.selected['p2'] = False
@@ -84,6 +93,39 @@ class InteractiveDot:
         elif self.color == 'orange':
             p1_rect = [self.p1[0]-rw, self.p1[1]-rw, 2*rw, 2*rw]
             rect(surface=surface,color='#ddaa00',rect=p1_rect,width=dlw[self.selected['p1']])
+        elif self.color == 'magenta':
+            color = '#dd00aa'
+            element_rect = [self.p1[0], self.p1[1], self.p2[0]-self.p1[0], self.p2[1]-self.p1[1]]
+            p1_rect = [self.p1[0]-rw, self.p1[1]-rw, 2*rw, 2*rw]
+            p2_rect = [self.p2[0]-rw, self.p2[1]-rw, 2*rw, 2*rw]
+            # 点1
+            line(
+                surface=surface,
+                start_pos=(self.p1[0], self.master.pos.get()[1]),
+                end_pos=(self.p1[0], self.master.pos.get()[1] + self.master.size[1]),
+                width=lw, color=color
+                )
+            line(
+                surface=surface,
+                start_pos=(self.master.pos.get()[0], self.p1[1]),
+                end_pos=(self.master.pos.get()[0] + self.master.size[0], self.p1[1]),
+                width=lw, color=color
+                )
+            # 点2
+            line(
+                surface=surface,
+                start_pos=(self.p2[0], self.master.pos.get()[1]),
+                end_pos=(self.p2[0], self.master.pos.get()[1] + self.master.size[1]),
+                width=lw, color=color
+                )
+            line(
+                surface=surface,
+                start_pos=(self.master.pos.get()[0], self.p2[1]),
+                end_pos=(self.master.pos.get()[0] + self.master.size[0], self.p2[1]),
+                width=lw, color=color
+                )            
+            rect(surface=surface,color=color,rect=p1_rect,width=dlw[self.selected['p1']])
+            rect(surface=surface,color=color,rect=p2_rect,width=dlw[self.selected['p2']])
         else:
             # center = self.master.pos.get()[1] + int(self.master.size[1]/2)
             p1_rect = [self.p1[0]-rw, self.p1[1]-rw, 2*rw, 2*rw]
@@ -283,6 +325,14 @@ class MDFPreviewCanvas(PreviewCanvas):
                         master=self.object_this,
                         screen_zoom=self.sz
                         )
+                elif color == 'magenta':
+                    self.dots[dot] = InteractiveDot(
+                        p1=this_color[dot]['mt_pos'],
+                        p2=this_color[dot]['mt_end'],
+                        color=color,
+                        master=self.object_this,
+                        screen_zoom=self.sz
+                        )
                 elif color == 'red':
                     if 'am_left' in this_color[dot]:
                         keyword = 'am_left'
@@ -395,6 +445,12 @@ class MDFPreviewCanvas(PreviewCanvas):
                 new_end = self.selected_dot.get()[1]
                 self.edit_frame.elements['sub_pos'].set('({},{})'.format(new_pos[0], new_pos[1]))
                 self.edit_frame.elements['sub_end'].set('({},{})'.format(new_end[0], new_end[1]))
+            # 品红点，影响DynamicBubble
+            elif self.selected_dot_name == 'm0':
+                new_pos = self.selected_dot.get()[0]
+                new_end = self.selected_dot.get()[1]
+                self.edit_frame.elements['mt_pos'].set('({},{})'.format(new_pos[0], new_pos[1]))
+                self.edit_frame.elements['mt_end'].set('({},{})'.format(new_end[0], new_end[1]))
             # 橙色点，影响PosGrid
             elif self.selected_dot_name == 'o0':
                 new_pos = self.selected_dot.get()[0]

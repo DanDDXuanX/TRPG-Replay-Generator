@@ -732,6 +732,13 @@ class Balloon(Bubble):
             self.target[index] = value
         elif key == 'ht_pos':
             self.ht_pos[index] = value
+        # 暂时禁用index，代价是性能
+        # if key == 'Header_Text':
+        #     self.Header = value
+        # elif key == 'ht_target':
+        #     self.target = value
+        # elif key == 'ht_pos':
+        #     self.ht_pos = value
         else:
             super().configure(key, value, index)
 # 自适应气泡
@@ -950,13 +957,15 @@ class DynamicBubble(Bubble):
         super().convert()
         self.bubble_clip = np.frompyfunc(lambda x:x.convert_alpha(),1,1)(self.bubble_clip)
     # 预览
-    def preview(self, surface: pygame.Surface, key=None):
-        # 主文本
-        test_text = self.test_maintext(lines=np.random.randint(1,5))
-        # 头文本
-        test_head = self.test_header()
-        self.display(surface, text=test_text, header=test_head)
-    # TODO: 目前自适应气泡只能选择绿色
+    def preview(self, surface: pygame.Surface, key='#edit'):
+        if key is None:
+            # 主文本
+            test_text = self.test_maintext(lines=np.random.randint(1,5))
+            # 头文本
+            test_head = self.test_header()
+            self.display(surface, text=test_text, header=test_head)
+        else:
+            surface.blit(self.media,self.pos.get())
     def get_pos(self) -> dict:
         pos_dict = {
             'green': {
@@ -965,7 +974,23 @@ class DynamicBubble(Bubble):
                     'scale' : (self.pos + self.media.get_size()).get()
                 }
             },
+            'magenta':{
+                'm0':{
+                    'mt_pos' : self.mt_pos,
+                    'mt_end' : self.mt_end,
+                }
+            },
         }
+        blue_dot = {}
+        # 如果有头文本
+        if type(self.Header) in [Text, StrokeText, RichText]:
+            blue_dot['b1'] = {}
+            blue_dot['b1']['ht_pos'] = self.ht_pos
+            blue_dot['b1']['ht_end'] = (
+                    self.ht_pos[0] + self.Header.line_limit*self.Header.size,
+                    self.ht_pos[1] + self.Header.size * 1.5
+                )
+            pos_dict['blue'] = blue_dot
         return pos_dict
     # 调整
     def configure(self, key: str, value, index: int = 0):
@@ -1195,12 +1220,12 @@ class ChatWindow(Bubble):
         return pos_dict
     # 修改
     def configure(self, key: str, value, index: int = 0):
-        # 注意，这两个要同时做！
         if key == 'sub_pos':
+            self.sub_size = (self.sub_pos[0] + self.sub_size[0] - value[0], self.sub_pos[1] + self.sub_size[1] - value[1])
             self.sub_pos = value
         elif key == 'sub_end':
             self.sub_size = (value[0]-self.sub_pos[0],value[1]-self.sub_pos[1])
-        # 关键词参数们
+        # 关键词参数们:
         elif key == 'sub_key':
             self.sub_key[index] = value
         elif key == 'sub_Bubble':

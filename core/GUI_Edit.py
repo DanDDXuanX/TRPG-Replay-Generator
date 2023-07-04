@@ -58,6 +58,7 @@ class EditWindow(ScrolledFrame):
         self.section = section
         self.section_index = index
         # 确定页类型
+        self.line_type = line_type
         self.table_struct:dict = self.TableStruct[line_type]
         self.keyword_arguments:dict = self.TableStruct[line_type+'.args']
         # 编辑区
@@ -182,8 +183,8 @@ class EditWindow(ScrolledFrame):
     # 获取可用立绘、气泡名
     def get_avaliable_anime(self)->list:
         return self.page.ref_medef.get_type('anime')
-    def get_avaliable_bubble(self)->list:
-        return self.page.ref_medef.get_type('bubble')
+    def get_avaliable_bubble(self,cw=True)->list:
+        return self.page.ref_medef.get_type('bubble',cw)
     def get_avaliable_text(self)->list:
         return self.page.ref_medef.get_type('text')
     def get_avaliable_pos(self)->list:
@@ -218,7 +219,7 @@ class CharactorEdit(EditWindow):
             self.elements['Subtype'].input.configure(state='disable')
         # 媒体
         self.elements['Animation'].input.configure(values=['NA']+self.get_avaliable_anime(),state='readonly')
-        self.elements['Bubble'].input.configure(values=['NA']+self.get_avaliable_bubble(),state='readonly')
+        self.elements['Bubble'].input.configure(values=['NA']+self.get_avaliable_bubble(cw=True),state='readonly')
         # 音源
         for ele in ['Voice','SpeechRate','PitchRate']:
             self.elements[ele].describe.configure(command=lambda :self.open_voice_selection(
@@ -382,46 +383,60 @@ class MediaEdit(EditWindow):
         return self.section
     def update_media_element_prop(self,line_type):
         # 标签色
-        if line_type not in ['Pos','FreePos','PosGrid']:
+        if self.line_type not in ['Pos','FreePos','PosGrid']:
             self.elements['label_color'].input.update_dict(label_colors)
         # PosGrid
-        if line_type == 'PosGrid':
+        if self.line_type == 'PosGrid':
             self.elements['x_step'].input.configure(from_=1,to=100,increment=1)
             self.elements['y_step'].input.configure(from_=1,to=100,increment=1)
         # 字体
-        if line_type in ['Text','StrokeText','RichText']:
+        if self.line_type in ['Text','StrokeText','RichText']:
             self.elements['line_limit'].input.configure(from_=0,to=100,increment=1)
             self.elements['fontsize'].input.configure(from_=0,to=300,increment=5)
             self.elements['fontfile'].bind_button(dtype='fontfile-file')
             self.elements['color'].bind_button(dtype='color')
-            if line_type == 'StrokeText':
+            if self.line_type == 'StrokeText':
                 self.elements['edge_color'].bind_button(dtype='color')
                 self.elements['edge_width'].input.configure(from_=0,to=30,increment=1)
                 self.elements['projection'].input.update_dict(projection)
         # Pos
-        if line_type in ['Bubble','Balloon','DynamicBubble','ChatWindow','Animation','Background']:
+        if self.line_type in ['Bubble','Balloon','DynamicBubble','ChatWindow','Animation','Background']:
             self.elements['filepath'].bind_button(dtype='picture-file')
             self.elements['pos'].input.configure(values=self.get_avaliable_pos())
             self.elements['scale'].input.configure(from_=0.1,to=3,increment=0.1)
         # MainText HeadText
-        if line_type in ['Bubble','Balloon','DynamicBubble']:
+        if self.line_type in ['Bubble','Balloon','DynamicBubble']:
             self.elements['Main_Text'].input.configure(values=['Text()']+self.get_avaliable_text())
             self.elements['line_distance'].input.configure(from_=0.8,to=3,increment=0.1)
-        if line_type in ['Bubble','Balloon']:
+        if self.line_type in ['Bubble','Balloon']:
             self.elements['align'].input.update_dict(alignments)
-        if line_type in ['Bubble','DynamicBubble']:
+        if self.line_type in ['Bubble','DynamicBubble']:
             self.elements['Header_Text'].input.configure(values=['None','Text()']+self.get_avaliable_text())
             self.elements['ht_target'].input.update_dict(self.get_avaliable_charcol())
-        if line_type == 'DynamicBubble':
+        if self.line_type == 'DynamicBubble':
             self.elements['fill_mode'].input.update_dict(fill_mode)
             self.elements['fit_axis'].input.update_dict(fit_axis)
         # TODO: Balloon 的每一个Header_Text、ht_target
-        if line_type == 'Animation':
+        if self.line_type == 'Balloon':
+            for idx in range(1,999):
+                if "Header_Text_%d"%idx in self.elements:
+                    self.elements["Header_Text_%d"%idx].input.configure(values=['None','Text()']+self.get_avaliable_text())
+                    self.elements['ht_target_%d'%idx].input.update_dict(self.get_avaliable_charcol())
+                else:
+                    break
+        if self.line_type == 'ChatWindow':
+            # BUG:无法正常绑定
+            for idx in range(1,999):
+                if "sub_key_%d"%idx in self.elements:
+                    self.elements["sub_Bubble_%d"%idx].input.configure(values=['Bubble()']+self.get_avaliable_bubble(cw=False))
+                    self.elements["sub_Anime_%d"%idx].input.configure(values=['None']+self.get_avaliable_anime())
+                    self.elements["sub_align_%d"%idx].input.update_dict(alignments)
+        if self.line_type == 'Animation':
             self.elements['tick'].input.configure(from_=1,to=30,increment=1)
             self.elements['loop'].input.update_dict(True_False)
-        if line_type == 'Audio':
+        if self.line_type == 'Audio':
             self.elements['filepath'].bind_button(dtype='soundeff-file')
-        if line_type == 'BGM':
+        if self.line_type == 'BGM':
             self.elements['filepath'].bind_button(dtype='BGM-file')
             self.elements['volume'].input.configure(from_=0,to=100,increment=10)
             self.elements['loop'].input.update_dict(True_False)
@@ -435,15 +450,21 @@ class MediaEdit(EditWindow):
             Messagebox().show_error(message='无效的值：{}'.format(value),title='错误',parent=self)
             return value
     def update_preview(self, keywords: list):
+        # 列表化的关键字
+        list_type = ['Balloon','ChatWindow']
+        list_key = ['Header_Text','ht_pos','ht_target','sub_key','sub_Bubble','sub_Anime','sub_align']
         # 更新对象
         ref_medef:MediaDef = self.page.content
         for key in keywords:
             # 使用了MediaDef的value_execute，将字典类型解析为对象
             exec_value = ref_medef.value_execute(self.section[key])
-            print(key,exec_value)
-            self.page.preview.object_this.configure(key=key,value=exec_value)
+            print(self.line_type,key,exec_value)
+            if key in list_key and self.line_type in list_type:
+                for idx,value in enumerate(exec_value):
+                    self.page.preview.object_this.configure(key=key,value=value,index=idx)
+            else:
+                self.page.preview.object_this.configure(key=key,value=exec_value)
         # BUG
-        # 1. 气泡类，主文本修改后不生效
         # 2. 气球类，修改头文本时报错
         # 3. 引用对象，当发生变动时，应该如何刷新？
         # 更新显示
