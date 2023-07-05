@@ -8,8 +8,10 @@ import tkinter as tk
 import ttkbootstrap as ttk
 import threading
 import pygame
+from ttkbootstrap.tooltip import ToolTip
 from PIL import Image, ImageTk
 from .GUI_Container import Container
+from .GUI_EditTableStruct import NewElement
 from .OutputType import PreviewDisplay, ExportVideo, ExportXML
 from .Medias import MediaObj
 
@@ -152,3 +154,43 @@ class OutPutCommand(ttk.Frame):
             self.runing_thread = threading.Thread(target=lambda:print("无效的执行"))
         # 开始执行
         self.runing_thread.start()
+# 新建指令
+class NewElementCommand(ttk.Frame):
+    struct = NewElement
+    def __init__(self,master,screenzoom,pagetype):
+        # 缩放尺度
+        self.sz = screenzoom
+        super().__init__(master,borderwidth=0,bootstyle='light')
+        # 引用
+        self.page = self.master
+        self.pagetype = pagetype
+        self.section_struct = self.struct[self.pagetype]
+        # 初始化的容器
+        self.image = {}
+        self.buttons = {}
+        self.buttons_tooltip = {}
+        # 载入表结构
+        self.init_buttons()
+        self.update_item()
+    def init_buttons(self):
+        icon_size = [int(30*self.sz),int(30*self.sz)]
+        for keyword in self.section_struct:
+            button_this = self.section_struct[keyword]
+            self.buttons[keyword] = ttk.Button(
+                master=self,
+                # image='display',
+                text=button_this['text'],
+                compound='left',
+                style='output.TButton',
+                width=5,
+                # command=
+            )
+            self.buttons_tooltip[keyword] = ToolTip(
+                widget=self.buttons[keyword],
+                text=button_this['tooltip'],
+                bootstyle='secondary-inverse',
+            )
+    def update_item(self):
+        for key in self.buttons:
+            item:ttk.Button = self.buttons[key]
+            item.pack(fill='both',side='left',expand=True,pady=0)

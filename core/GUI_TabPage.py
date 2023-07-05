@@ -12,7 +12,7 @@ import tkinter as tk
 from PIL import Image,ImageTk
 
 from .ScriptParser import MediaDef, CharTable, RplGenLog, Script
-from .GUI_PageElement import SearchBar, OutPutCommand
+from .GUI_PageElement import SearchBar, OutPutCommand, NewElementCommand
 from .GUI_CodeView import RGLCodeViewFrame
 from .GUI_Container import RGLContainer, MDFContainer, CTBContainer
 from .GUI_PreviewCanvas import MDFPreviewCanvas, CTBPreviewCanvas, RGLPreviewCanvas
@@ -254,6 +254,7 @@ class MDFPage(ttk.Frame):
         self.preview = MDFPreviewCanvas(master=self,screenzoom=self.sz,mediadef=self.content)
         self.container = MDFContainer(master=self,content=content_obj,typelist=self.categroy_dict[content_type],screenzoom=self.sz)
         self.searchbar = SearchBar(master=self,screenzoom=self.sz,container=self.container)
+        self.newelementcommand = NewElementCommand(master=self,screenzoom=self.sz,pagetype=content_type)
         # 初始显示
         self.update_items()
     def update_items(self):
@@ -261,8 +262,13 @@ class MDFPage(ttk.Frame):
         self.preview.pack_forget()
         # 放置元件
         SZ_40 = int(self.sz * 40)
+        # self.searchbar.place(x=0,y=0,relwidth=0.5,height=SZ_40)
+        # self.container.place(x=0,y=SZ_40,relwidth=0.5,relheight=1,height=-SZ_40)
+        # self.preview.place(relx=0.5,rely=0,relwidth=0.5,relheight=0.44)
+        # self.edit.place(relx=0.5,rely=0.44,relwidth=0.5,relheight=0.56)
         self.searchbar.place(x=0,y=0,relwidth=0.5,height=SZ_40)
-        self.container.place(x=0,y=SZ_40,relwidth=0.5,relheight=1,height=-SZ_40)
+        self.container.place(x=0,y=SZ_40,relwidth=0.5,relheight=1,height=-2*SZ_40)
+        self.newelementcommand.place(x=0,y=-SZ_40,rely=1,relwidth=0.5,height=SZ_40)
         self.preview.place(relx=0.5,rely=0,relwidth=0.5,relheight=0.44)
         self.edit.place(relx=0.5,rely=0.44,relwidth=0.5,relheight=0.56)
         # 标志
@@ -300,9 +306,25 @@ class CTBPage(ttk.Frame):
         self.edit = CharactorEdit(master=self,screenzoom=self.sz)
         self.container = CTBContainer(master=self,content=content_obj,name=content_type,screenzoom=self.sz)
         self.searchbar = SearchBar(master=self,screenzoom=self.sz,container=self.container)
+        self.newelementcommand = NewElementCommand(master=self,screenzoom=self.sz,pagetype='charactor')
+        # 放置元件
+        # SZ_40 = int(self.sz * 40)
+        # self.searchbar.place(x=0,y=0,relwidth=0.5,height=SZ_40)
+        # self.container.place(x=0,y=SZ_40,relwidth=0.5,relheight=1,height=-SZ_40)
+        # self.preview.place(relx=0.5,rely=0,relwidth=0.5,relheight=0.44)
+        # self.edit.place(relx=0.5,rely=0.44,relwidth=0.5,relheight=0.56)
+        self.update_items()
+    def update_items(self):
+        # 取消全屏预览（假如）
+        # self.preview.pack_forget()
         # 放置元件
         SZ_40 = int(self.sz * 40)
+        # self.searchbar.place(x=0,y=0,relwidth=0.5,height=SZ_40)
+        # self.container.place(x=0,y=SZ_40,relwidth=0.5,relheight=1,height=-SZ_40)
+        # self.preview.place(relx=0.5,rely=0,relwidth=0.5,relheight=0.44)
+        # self.edit.place(relx=0.5,rely=0.44,relwidth=0.5,relheight=0.56)
         self.searchbar.place(x=0,y=0,relwidth=0.5,height=SZ_40)
-        self.container.place(x=0,y=SZ_40,relwidth=0.5,relheight=1,height=-SZ_40)
+        self.container.place(x=0,y=SZ_40,relwidth=0.5,relheight=1,height=-2*SZ_40)
+        self.newelementcommand.place(x=0,y=-SZ_40,rely=1,relwidth=0.5,height=SZ_40)
         self.preview.place(relx=0.5,rely=0,relwidth=0.5,relheight=0.44)
         self.edit.place(relx=0.5,rely=0.44,relwidth=0.5,relheight=0.56)
