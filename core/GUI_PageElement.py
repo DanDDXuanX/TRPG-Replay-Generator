@@ -14,6 +14,7 @@ from .GUI_Container import Container
 from .GUI_EditTableStruct import NewElement
 from .OutputType import PreviewDisplay, ExportVideo, ExportXML
 from .Medias import MediaObj
+from .ScriptParser import Script
 
 # 搜索窗口
 class SearchBar(ttk.Frame):
@@ -163,6 +164,7 @@ class NewElementCommand(ttk.Frame):
         super().__init__(master,borderwidth=0,bootstyle='light')
         # 引用
         self.page = self.master
+        self.container = self.page.container
         self.pagetype = pagetype
         self.section_struct = self.struct[self.pagetype]
         # 初始化的容器
@@ -176,6 +178,9 @@ class NewElementCommand(ttk.Frame):
         icon_size = [int(30*self.sz),int(30*self.sz)]
         for keyword in self.section_struct:
             button_this = self.section_struct[keyword]
+            # 新建按钮绑定的命令
+            new_element = self.create_command(button_this=button_this,keyword=keyword)
+            # 按钮
             self.buttons[keyword] = ttk.Button(
                 master=self,
                 # image='display',
@@ -183,13 +188,26 @@ class NewElementCommand(ttk.Frame):
                 compound='left',
                 style='output.TButton',
                 width=5,
-                # command=
+                command=new_element
             )
             self.buttons_tooltip[keyword] = ToolTip(
                 widget=self.buttons[keyword],
                 text=button_this['tooltip'],
                 bootstyle='secondary-inverse',
             )
+    # 生成按钮命令的闭包
+    def create_command(self,button_this,keyword):
+        def command():
+            if self.pagetype == 'charactor':
+                name_this = self.container.name
+                element_name = self.page.content.new_subtype(name=name_this,subtype='新建差分')
+            elif self.pagetype in Script.Media_type:
+                element_name = self.page.content.new_element(name='新建'+button_this['text'],element_type=keyword)
+            else:
+                pass
+            # 新建原件
+            self.container.new_section(key=element_name)
+        return command
     def update_item(self):
         for key in self.buttons:
             item:ttk.Button = self.buttons[key]

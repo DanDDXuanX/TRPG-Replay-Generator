@@ -30,18 +30,38 @@ class Script:
         'BGM':BGM,'Audio':Audio
         }
     # 类型名对应的参数列表
-    type_keyword_position = {'Pos':['pos'],'FreePos':['pos'],'PosGrid':['pos','end','x_step','y_step'],
-                            'Text':['fontfile','fontsize','color','line_limit','label_color'],
-                            'StrokeText':['fontfile','fontsize','color','line_limit','edge_color','edge_width','projection','label_color'],
-                            'RichText':['fontfile','fontsize','color','line_limit','label_color'],
-                            'Bubble':['filepath','scale','Main_Text','Header_Text','pos','mt_pos','ht_pos','ht_target','align','line_distance','label_color'],
-                            'Balloon':['filepath','scale','Main_Text','Header_Text','pos','mt_pos','ht_pos','ht_target','align','line_distance','label_color'],
-                            'DynamicBubble':['filepath','scale','Main_Text','Header_Text','pos','mt_pos','mt_end','ht_pos','ht_target','fill_mode','fit_axis','line_distance','label_color'],
-                            'ChatWindow':['filepath','scale','sub_key','sub_Bubble','sub_Anime','sub_align','pos','sub_pos','sub_end','am_left','am_right','sub_distance','label_color'],
-                            'Background':['filepath','scale','pos','label_color'],
-                            'Animation':['filepath','scale','pos','tick','loop','label_color'],
-                            'Audio':['filepath','label_color'],
-                            'BGM':['filepath','volume','loop','label_color']}
+    type_keyword_position = {
+        'Pos'           :['pos'],
+        'FreePos'       :['pos'],
+        'PosGrid'       :['pos','end','x_step','y_step'],
+        'Text'          :['fontfile','fontsize','color','line_limit','label_color'],
+        'StrokeText'    :['fontfile','fontsize','color','line_limit','edge_color','edge_width','projection','label_color'],
+        'RichText'      :['fontfile','fontsize','color','line_limit','label_color'],
+        'Bubble'        :['filepath','scale','Main_Text','Header_Text','pos','mt_pos','ht_pos','ht_target','align','line_distance','label_color'],
+        'Balloon'       :['filepath','scale','Main_Text','Header_Text','pos','mt_pos','ht_pos','ht_target','align','line_distance','label_color'],
+        'DynamicBubble' :['filepath','scale','Main_Text','Header_Text','pos','mt_pos','mt_end','ht_pos','ht_target','fill_mode','fit_axis','line_distance','label_color'],
+        'ChatWindow'    :['filepath','scale','sub_key','sub_Bubble','sub_Anime','sub_align','pos','sub_pos','sub_end','am_left','am_right','sub_distance','label_color'],
+        'Background'    :['filepath','scale','pos','label_color'],
+        'Animation'     :['filepath','scale','pos','tick','loop','label_color'],
+        'Audio'         :['filepath','label_color'],
+        'BGM'           :['filepath','volume','loop','label_color']
+        }
+    type_keyword_default = {
+        'Pos'           :[[0,0]],
+        'FreePos'       :[[0,0]],
+        'PosGrid'       :[[0,0],[100,100],2,2],
+        'Text'          :['./media/SourceHanSansCN-Regular.otf',40,[0,0,0,255],20,'Lavender'],
+        'StrokeText'    :['./media/SourceHanSansCN-Regular.otf',40,[0,0,0,255],20,[255,255,255,255],1,'C','Lavender'],
+        'RichText'      :['./media/SourceHanSansCN-Regular.otf',40,[0,0,0,255],20,'Lavender'],
+        'Bubble'        :[None,1.0,{'type':'Text'},None,[0,0],[0,0],[0,0],'Name','left',1.5,'Lavender'],
+        'Balloon'       :[None,1.0,{'type':'Text'},[None],[0,0],[0,0],[[0,0]],['Name'],'left',1.5,'Lavender'],
+        'DynamicBubble' :[None,1.0,{'type':'Text'},None,[0,0],[0,0],[100,100],[0,0],'Name','stretch','free',1.5,'Lavender'],
+        'ChatWindow'    :[None,1.0,['关键字'],[{'type':'Bubble'}],[None],['left'],[0,0],[0,0],[100,100],0,100,0,'Lavender'],
+        'Background'    :['black',1.0,[0,0],'Lavender'],
+        'Animation'     :['./media/heart_shape.png',1.0,[0,0],1,True,'Lavender'], # TODO:这个默认的filepath应该修改！
+        'Audio'         :['./media/SE_dice.wav','Caribbean'], # TODO:这个默认的filepath应该修改！
+        'BGM'           :['./toy/media/BGM.ogg',100,True,'Caribbean'] # TODO:这个默认的filepath应该修改！
+        }
     # 初始化
     def __init__(self,string_input=None,dict_input=None,file_input=None,json_input=None) -> None:
         # 字符串输入
@@ -433,6 +453,20 @@ class MediaDef(Script):
     def rename(self,to_rename:str,new_name:str)->dict:
         self.struct[new_name] = self.struct.pop(to_rename)
         return self.struct[new_name]
+    def new_element(self,name:str,element_type:str)->str:
+        while name in self.struct:
+            name += '_new'
+        else:
+            new_struct = {
+                'type' : element_type,
+            }
+            for key,args in zip(self.type_keyword_position[element_type],self.type_keyword_default[element_type]):
+                new_struct[key] = args
+            # 应用变更
+            self.struct[name] = new_struct
+        # 返回关键字
+        return name
+
 # 角色配置文件
 class CharTable(Script):
     table_col = ['Name','Subtype','Animation','Bubble','Voice','SpeechRate','PitchRate']
@@ -545,6 +579,30 @@ class CharTable(Script):
                 'SpeechRate': 0,
                 'PitchRate' : 0,
             }
+    # 添加一个角色差分
+    def new_subtype(self,name:str,subtype:str)->str:
+        keyword  = name + '.' + subtype
+        while keyword in self.struct:
+            keyword += '_new'
+            subtype += '_new'
+        else:
+            # 基本项目
+            new_struct = {
+                'Name'      : name,
+                'Subtype'   : subtype,
+                'Animation' : 'NA',
+                'Bubble'    : 'NA',
+                'Voice'     : 'NA',
+                'SpeechRate': 0,
+                'PitchRate' : 0,
+            }
+            # 自定义项目
+            for custom in self.get_customize():
+                new_struct[custom] = 'init'
+            # 赋值
+            self.struct[keyword] = new_struct
+        # 返回关键字
+        return keyword
     # 添加一个自定义
     def add_customize(self,colname):
         # 如果这个列名已经使用过了

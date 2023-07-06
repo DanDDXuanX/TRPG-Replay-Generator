@@ -35,7 +35,7 @@ class SectionElement:
                 if section['filepath'] in [None,'None']:
                     image = Image.new(mode='RGBA',size=(icon_size,icon_size),color=(0,0,0,0))
                 elif section['filepath'] in MediaObj.cmap.keys():
-                    image = Image.new(mode='RGBA',size=(icon_size,icon_size),color=MediaObj.cmap[filepath])
+                    image = Image.new(mode='RGBA',size=(icon_size,icon_size),color=MediaObj.cmap[section['filepath']])
                 else:
                     # 万一图片路径是错误的，显示错误缩略图
                     try:

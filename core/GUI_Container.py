@@ -68,8 +68,16 @@ class Container(ScrolledFrame):
                     controls[index] = new_keyword # 使用新值替换旧值
                 except ValueError:
                     pass
-        # 更新显示
-        # self.update_item(to_update=[new_keyword])
+    # 新建一个小节
+    def new_section(self,key):
+        this_section = self.content.struct[key]
+        self.element_keys.append(key)
+        self.element[key] = self.new_element(key=key,section=this_section)
+        # 将内容物元件显示出来
+        self.display_filter = self.element_keys.copy()
+        self.update_item()
+        self.reset_container_height()
+    # 新建一个小节原件
     def new_element(self,key:str,section:dict):
         # 从数据结构中新建一个page_element
         pass
