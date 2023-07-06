@@ -185,7 +185,7 @@ class Container(ScrolledFrame):
                 from traceback import print_exc
                 print(to_preview)
                 print_exc()
-                Messagebox().show_error(message=str(E),title='预览错误')
+                Messagebox().show_error(message=str(E),title='预览错误',parent=self.page.preview)
     def edit_select(self,to_preview):
         self.edit_window.update_from_section(index=to_preview, section=self.content.struct[to_preview])
     # 删除项目
@@ -219,7 +219,7 @@ class Container(ScrolledFrame):
         # 分析结果
         if len(is_match) == 0 and to_search != '':
             # 没有匹配到任何内容，重置搜索
-            Messagebox().show_info(message='没有匹配到任何小节！',title='无匹配',parent=self)
+            Messagebox().show_info(message='没有匹配到任何小节！',title='无匹配',parent=self.page.searchbar)
             self.reset_search()
         else:
             # 应用搜索
@@ -472,7 +472,7 @@ class MDFContainer(Container):
         super().paste_element(event, key, ahead)
         idx = self.element_keys.index(key)
         if MDFContainer.element_clipboard_source != self:
-            Messagebox().show_warning(message='复制的内容无法黏贴到这个页面！',title='类型不正确')
+            Messagebox().show_warning(message='复制的内容无法黏贴到这个页面！',title='类型不正确',parent=self.page)
         else:
             for ele in MDFContainer.element_clipboard.keys():
                 # 不可以使用重名
@@ -577,6 +577,6 @@ class CTBContainer(Container):
             if keyword.split('.')[1] == 'default':
                 self.selected.remove(keyword)
                 self.element[keyword].drop_select()
-                Messagebox().show_warning(title='警告',message='无法删除default差分！',parent=self)
+                Messagebox().show_warning(title='警告',message='无法删除default差分！',parent=self.page)
         # 继承
         return super().del_select(event)
