@@ -14,6 +14,38 @@ from .Medias import MediaObj
 from .FilePaths import Filepath
 from .Exceptions import MediaError
 
+# 右键菜单
+class RightClickMenu(ttk.Menu):
+    # 
+    # 初始化菜单
+    def __init__(self,master,event):
+        super().__init__(master=master, tearoff=0)
+        self.container = master
+        # 常规
+        self.add_command(label='全选',accelerator='ctrl+A',command=lambda :self.container.select_range(None,index=False))
+        self.add_command(label='复制',accelerator='ctrl+C',command=lambda :self.container.copy_element(None))
+        self.add_command(label='粘贴',accelerator='ctrl+V',command=lambda :self.container.paste_element(None,key=self.container.selected[0],ahead=False))
+        self.add_command(label='粘贴（上方）',command=lambda :self.container.paste_element(None,key=self.container.selected[0],ahead=True))
+        # ------------------------
+        self.add_separator()
+        self.add_command(label='删除',accelerator='Del',command=lambda :self.container.del_select(None))
+        # ------------------------
+        self.add_separator()
+        sort_menu = ttk.Menu(master=self)
+        sort_menu.add_command(label='按名称',command=lambda :self.container.sort_element(by='name'))
+        if type(self.container.content) is MediaDef:
+            sort_menu.add_command(label='按类型',command=lambda :self.container.sort_element(by='type'))
+            sort_menu.add_command(label='按标签色',command=lambda :self.container.sort_element(by='label_color'))
+        elif type(self.container.content) is CharTable:
+            sort_menu.add_command(label='按立绘',command=lambda :self.container.sort_element(by='Animation'))
+            sort_menu.add_command(label='按气泡',command=lambda :self.container.sort_element(by='Bubble'))
+            sort_menu.add_command(label='按语音',command=lambda :self.container.sort_element(by='Voice'))
+        else:
+            pass
+        self.add_cascade(label='排序',menu=sort_menu)
+        # 显示
+        self.post(event.x_root, event.y_root)
+
 # 容器中的每个小节
 class SectionElement:
     MDFscript = MediaDef()
@@ -120,6 +152,12 @@ class SectionElement:
     # 使用一个新的小节，更新显示
     def refresh_item(self,keyword:str):
         return self
+    def right_click(self,event):
+        # 如果当前不是已经选中的小节，则等价于先点击一次鼠标左键
+        if self.name not in self.master.selected:
+            self.master.select_item(event,index=self.name,add=False) # 不兼容RGL
+        # 唤起右键菜单
+        RightClickMenu(master=self.master,event=event)
 class RGLSectionElement(ttk.LabelFrame,SectionElement):
     def __init__(self,master,bootstyle,text,section:dict,screenzoom):
         self.sz = screenzoom
@@ -291,7 +329,8 @@ class RGLSectionElement(ttk.LabelFrame,SectionElement):
             this_item.bind('<Button-1>',lambda event:self.master.select_item(event,index=self.idx,add=False))
             this_item.bind('<Control-Button-1>',lambda event:self.master.select_item(event,index=self.idx,add=True))
             this_item.bind('<Shift-Button-1>',lambda event:self.master.select_range(event,index=self.idx))
-            this_item.bind('<Button-3>',self.switch_to_script_text)
+            # this_item.bind('<Button-3>',self.switch_to_script_text)
+            this_item.bind('<Button-3>',self.right_click)
     def update_section_content(self,section:dict):
         # 更新单元格显示
         self.update_text_from_section(section=section)
@@ -353,6 +392,7 @@ class MDFSectionElement(ttk.Frame,SectionElement):
             this_item.bind('<Button-1>',lambda event:self.master.select_item(event,index=self.name,add=False))
             this_item.bind('<Control-Button-1>',lambda event:self.master.select_item(event,index=self.name,add=True))
             this_item.bind('<Shift-Button-1>',lambda event:self.master.select_range(event,index=self.name))
+            this_item.bind('<Button-3>',self.right_click)
     def refresh_item(self, keyword: str):
         # 更新小节关键字
         self.name = keyword
@@ -420,6 +460,7 @@ class CTBSectionElement(ttk.Frame,SectionElement):
             this_item.bind('<Button-1>',lambda event:self.master.select_item(event,index=self.name,add=False))
             this_item.bind('<Control-Button-1>',lambda event:self.master.select_item(event,index=self.name,add=True))
             this_item.bind('<Shift-Button-1>',lambda event:self.master.select_range(event,index=self.name))
+            this_item.bind('<Button-3>',self.right_click)
     def init_thumbnail(self):
         # 图标大小
         icon_size = int(self.sz * 93)

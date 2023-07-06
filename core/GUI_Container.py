@@ -5,7 +5,6 @@
 # 包含：可滚动的容器和对应的小节元素
 
 import numpy as np
-from ttkbootstrap import Menu
 from ttkbootstrap.scrolled import ScrolledFrame
 from ttkbootstrap.dialogs import Messagebox
 
@@ -245,9 +244,24 @@ class Container(ScrolledFrame):
         if self.display_filter != self.element_keys:
             self.reset_search()
         # 待重载
-    # 显示右键菜单
-    def right_click(self,event):
-        RightClickMenu(master=self,event=event)
+    # 排序
+    def sort_element(self,by='name'):
+        # 执行排序
+        if by == 'name':
+            self.element_keys.sort()
+        else:
+            key_value = {}
+            for key,value in self.element.items():
+                try:
+                    key_value[key] = value.section[by]
+                except KeyError:
+                    key_value[key] = 'AAA'
+            self.element_keys = sorted(key_value,key=key_value.get)
+        # 清除筛选
+        self.reset_search()
+        self.display_filter = self.element_keys.copy()
+        # 刷新显示
+        self.update_item()
 class RGLContainer(Container):
     def __init__(self,master,content:RplGenLog,screenzoom):
         # 初始化基类
@@ -419,7 +433,7 @@ class MDFContainer(Container):
     def new_element(self,key:str,section:dict)->MDFSectionElement:
         return MDFSectionElement(
             master=self,
-            bootstyle='secondary',
+            bootstyle='info',
             text=key,
             section=section,
             screenzoom=self.sz)
@@ -508,7 +522,7 @@ class CTBContainer(Container):
     def new_element(self,key:str,section:dict)->CTBSectionElement:
         return CTBSectionElement(
                 master=self,
-                bootstyle='primary',
+                bootstyle='info',
                 text=key,
                 section=section,
                 screenzoom=self.sz
@@ -566,24 +580,3 @@ class CTBContainer(Container):
                 Messagebox().show_warning(title='警告',message='无法删除default差分！',parent=self)
         # 继承
         return super().del_select(event)
-
-# 右键菜单
-class RightClickMenu(Menu):
-    # 
-    # 初始化菜单
-    def __init__(self,master:Container,event):
-        super().__init__(master=master, tearoff=0)
-        self.container = master
-        # 常规
-        self.add_command(label='全选',command=lambda :self.container.select_range(None,index=False))
-        self.add_command(label='复制',command=lambda :self.container.copy_element(None))
-        self.add_command(label='粘贴',command=lambda :self.container.paste_element(None,key=self.container.selected[0],ahead=False))
-        self.add_command(label='粘贴（上方）',command=lambda :self.container.paste_element(None,key=self.container.selected[0],ahead=True))
-        # ------------------------
-        self.add_separator()
-        self.add_command(label='删除',command=lambda :self.container.del_select(None))
-        # ------------------------
-        self.add_separator()
-        self.add_command(label='排序')
-        # 显示
-        self.post(event.x_root, event.y_root)
