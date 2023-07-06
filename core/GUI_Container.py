@@ -5,6 +5,7 @@
 # 包含：可滚动的容器和对应的小节元素
 
 import numpy as np
+from ttkbootstrap import Menu
 from ttkbootstrap.scrolled import ScrolledFrame
 from ttkbootstrap.dialogs import Messagebox
 
@@ -31,6 +32,7 @@ class Container(ScrolledFrame):
         self.container.bind('<Up>',lambda event:self.select_up(event),"+")
         self.container.bind('<Down>',lambda event:self.select_down(event),"+")
         self.container.bind('<Delete>',lambda event:self.del_select(event),"+")
+        self.container.bind('<Button-3>',lambda event:self.right_click(event),"+")
         # 容器高度
         self.container_height = 0
         # 内容物
@@ -238,12 +240,14 @@ class Container(ScrolledFrame):
         for sele in self.selected:
             self.__class__.element_clipboard[sele] = self.content.struct[sele].copy()
     # 黏贴项目
-    def paste_element(self,event,key:str,ahead=True):
+    def paste_element(self,event,key:str,ahead=False):
         # 是否是筛选状态？重置筛选！
         if self.display_filter != self.element_keys:
             self.reset_search()
         # 待重载
-
+    # 显示右键菜单
+    def right_click(self,event):
+        RightClickMenu(master=self,event=event)
 class RGLContainer(Container):
     def __init__(self,master,content:RplGenLog,screenzoom):
         # 初始化基类
@@ -450,7 +454,7 @@ class MDFContainer(Container):
         # 写入剪贴板
         self.clipboard_clear()
         self.clipboard_append(MediaDef(dict_input=MDFContainer.element_clipboard).export())
-    def paste_element(self, event, key: str, ahead=True):
+    def paste_element(self, event, key: str, ahead=False):
         super().paste_element(event, key, ahead)
         idx = self.element_keys.index(key)
         if MDFContainer.element_clipboard_source != self:
@@ -522,7 +526,7 @@ class CTBContainer(Container):
         # 写入剪贴板
         self.clipboard_clear()
         self.clipboard_append(CharTable(dict_input=CTBContainer.element_clipboard).export().to_csv(sep='\t',index=False,encoding='utf-8').replace('\r',''))
-    def paste_element(self, event, key: str, ahead=True):
+    def paste_element(self, event, key: str, ahead=False):
         super().paste_element(event, key, ahead)
         idx = self.element_keys.index(key)
         for ele in CTBContainer.element_clipboard.keys():
@@ -562,3 +566,24 @@ class CTBContainer(Container):
                 Messagebox().show_warning(title='警告',message='无法删除default差分！',parent=self)
         # 继承
         return super().del_select(event)
+
+# 右键菜单
+class RightClickMenu(Menu):
+    # 
+    # 初始化菜单
+    def __init__(self,master:Container,event):
+        super().__init__(master=master, tearoff=0)
+        self.container = master
+        # 常规
+        self.add_command(label='全选',command=lambda :self.container.select_range(None,index=False))
+        self.add_command(label='复制',command=lambda :self.container.copy_element(None))
+        self.add_command(label='粘贴',command=lambda :self.container.paste_element(None,key=self.container.selected[0],ahead=False))
+        self.add_command(label='粘贴（上方）',command=lambda :self.container.paste_element(None,key=self.container.selected[0],ahead=True))
+        # ------------------------
+        self.add_separator()
+        self.add_command(label='删除',command=lambda :self.container.del_select(None))
+        # ------------------------
+        self.add_separator()
+        self.add_command(label='排序')
+        # 显示
+        self.post(event.x_root, event.y_root)
