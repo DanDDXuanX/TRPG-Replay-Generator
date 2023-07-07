@@ -241,7 +241,7 @@ class TextSeparator(ttk.Frame):
     # 添加按钮
     def add_button(self,text,command):
         self.buttons.append(ttk.Button(master=self.label,text=text,command=command,bootstyle='primary-link'))
-        self.buttons[-1].pack(side='right',fill='y',expand=False)
+        self.buttons[-1].pack(side='right',expand=False)
     # 移除按钮
     def remove_button(self):
         for button in self.buttons:

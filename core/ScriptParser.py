@@ -56,7 +56,7 @@ class Script:
         'Bubble'        :[None,1.0,{'type':'Text'},None,[0,0],[0,0],[0,0],'Name','left',1.5,'Lavender'],
         'Balloon'       :[None,1.0,{'type':'Text'},[None],[0,0],[0,0],[[0,0]],['Name'],'left',1.5,'Lavender'],
         'DynamicBubble' :[None,1.0,{'type':'Text'},None,[0,0],[0,0],[100,100],[0,0],'Name','stretch','free',1.5,'Lavender'],
-        'ChatWindow'    :[None,1.0,['关键字'],[{'type':'Bubble'}],[None],['left'],[0,0],[0,0],[100,100],0,100,0,'Lavender'],
+        'ChatWindow'    :[None,1.0,['Key1'],[{'type':'Bubble'}],[None],['left'],[0,0],[0,0],[100,100],0,100,0,'Lavender'],
         'Background'    :['black',1.0,[0,0],'Lavender'],
         'Animation'     :['./media/heart_shape.png',1.0,[0,0],1,True,'Lavender'], # TODO:这个默认的filepath应该修改！
         'Audio'         :['./media/SE_dice.wav','Caribbean'], # TODO:这个默认的filepath应该修改！
@@ -611,6 +611,16 @@ class CharTable(Script):
         else:
             for keyword in self.struct:
                 self.struct[keyword][colname] = 'init'
+    # 移除一个自定义
+    def del_customize(self,colname):
+        if colname in self.customize_col:
+            for keyword in self.struct:
+                try:
+                    self.struct[keyword].pop(colname)
+                except KeyError:
+                    continue
+        else:
+            return
     # 修改一个角色的内容
     def configure(self,key:str,section:dict):
         # 修改内容

@@ -4,14 +4,72 @@
 # 自定义的会话框
 
 import pandas as pd
+import ttkbootstrap as ttk
+from ttkbootstrap.dialogs import Dialog,MessageCatalog
 from tkinter import StringVar, IntVar
 # 语音选择、重定位文件、新建项目
 from .GUI_VoiceChooser import VoiceChooserDialog
 from .GUI_Relocate import RelocateDialog
 from .GUI_NewProject import CreateProjectDialog
+from .GUI_Util import DictCombobox
 # 语法解释器
 from .ScriptParser import MediaDef
 
+# 包含一个选项的选择聊天框
+class SelectionQurey(Dialog):
+    def __init__(self, parent=None, title="选择", prompt="",choice={}, alert=False):
+        super().__init__(parent, title, alert)
+        self._prompt:str = prompt
+        self._choice:dict = choice
+        self._padding = (20,20)
+    def create_body(self, master):
+        frame = ttk.Frame(master, padding=self._padding)
+        if self._prompt:
+            prompt_label = ttk.Label(frame, text=self._prompt)
+            prompt_label.pack(pady=(0, 5), fill='x', anchor='n')
+        self.varible = StringVar()
+        entry = DictCombobox(master=frame, textvariable=self.varible, state='disable')
+        entry.update_dict(self._choice)
+        entry.pack(pady=(0, 5), fill='x')
+        entry.bind("<Return>", self.on_submit)
+        entry.bind("<KP_Enter>", self.on_submit)
+        entry.bind("<Escape>", self.on_cancel)
+        frame.pack(fill='x', expand=True)
+        self._initial_focus = entry
+    def create_buttonbox(self, master):
+        frame = ttk.Frame(master, padding=(5, 10))
+        # 确定
+        submit = ttk.Button(
+            master=frame,
+            bootstyle="primary",
+            text=MessageCatalog.translate("Submit"),
+            command=self.on_submit,
+        )
+        submit.pack(padx=5, side='right')
+        submit.lower()
+        # 取消
+        cancel = ttk.Button(
+            master=frame,
+            bootstyle="secondary",
+            text=MessageCatalog.translate("Cancel"),
+            command=self.on_cancel,
+        )
+        cancel.pack(padx=5, side='right')
+        cancel.lower()
+        ttk.Separator(self._toplevel).pack(fill='x')
+        frame.pack(side='bottom', fill='x', anchor='s')
+    def on_submit(self, *_):
+        self._result = self.varible.get()
+        self._toplevel.destroy()
+    def on_cancel(self, *_):
+        self._toplevel.destroy()
+        return
+def selection_query(master,prompt,choice:dict):
+    dialog_window = SelectionQurey(parent=master,prompt=prompt,choice=choice)
+    dialog_window.show()
+    # 获取结果
+    result_args = dialog_window.result
+    return result_args
 # 打开语音选择器，并把结果输出给 StringVar
 def voice_chooser(master,voice_obj:StringVar,speech_obj:IntVar,pitch_obj:IntVar):
     init_voice = voice_obj.get()

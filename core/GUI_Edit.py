@@ -7,7 +7,7 @@ from ttkbootstrap.scrolled import ScrolledFrame
 from .GUI_Util import KeyValueDescribe, TextSeparator
 from .GUI_EditTableStruct import TableStruct, label_colors, projection, alignments, chatalign, charactor_columns, fill_mode, fit_axis, True_False
 from .ScriptParser import MediaDef, RplGenLog, CharTable
-from .GUI_CustomDialog import voice_chooser
+from .GUI_CustomDialog import voice_chooser, selection_query
 from .Exceptions import SyntaxsError
 from ttkbootstrap.dialogs import Messagebox, Querybox
 # 编辑区
@@ -191,9 +191,14 @@ class EditWindow(ScrolledFrame):
         return self.page.ref_medef.get_type('pos')
     def get_avaliable_charcol(self)->dict:
         charactor_columns_this = charactor_columns.copy()
+        charactor_columns_this.update(self.get_avaliable_custom())
+        return charactor_columns_this
+    def get_avaliable_custom(self)->dict:
+        charactor_columns_this = {}
         for key in CharactorEdit.custom_col:
             charactor_columns_this["{}（自定义）".format(key)] = "'{}'".format(key)
         return charactor_columns_this
+
     # 刷新预览
     def update_preview(self,keywords:list):
         # 待重载
@@ -301,7 +306,15 @@ class CharactorEdit(EditWindow):
             self.add_a_custom_kvd(custom=get_string)
     # 移除一个自定义列
     def remove_customs(self):
-        pass
+        get_string = selection_query(master=self,prompt='请选择想要删除的自定义项',choice=self.get_avaliable_custom())
+        if get_string:
+            del_colname = get_string[1:-1]
+            if del_colname in self.custom_col:
+                # 在角色表中删除
+                self.page.content.del_customize(del_colname)
+                CharactorEdit.custom_col.remove(del_colname)
+                # 移除KVD
+                self.del_a_custom_kvd(custom=del_colname)
     # 在自定义区新建一个KVD
     def add_a_custom_kvd(self,custom):
         kvd_tplt:dict = self.table_struct['CustomSep']['Content']
@@ -327,6 +340,10 @@ class CharactorEdit(EditWindow):
             kvd=this_kvd,
             callback=self.update_section_from
             )
+    def del_a_custom_kvd(self,custom):
+        this_key = custom
+        # 直接pop接destroy
+        self.elements.pop(this_key).destroy()
 class MediaEdit(EditWindow):
     medef_tool = MediaDef()
     def __init__(self, master, screenzoom):
@@ -416,7 +433,6 @@ class MediaEdit(EditWindow):
         if self.line_type == 'DynamicBubble':
             self.elements['fill_mode'].input.update_dict(fill_mode)
             self.elements['fit_axis'].input.update_dict(fit_axis)
-        # TODO: Balloon 的每一个Header_Text、ht_target
         if self.line_type == 'Balloon':
             for idx in range(1,999):
                 if "Header_Text_%d"%idx in self.elements:
@@ -424,6 +440,7 @@ class MediaEdit(EditWindow):
                     self.elements['ht_target_%d'%idx].input.update_dict(self.get_avaliable_charcol())
                 else:
                     break
+            self.update_sep_button()
         if self.line_type == 'ChatWindow':
             self.elements["sub_distance"].input.configure(from_=0,to=1000,increment=10)
             for idx in range(1,999):
@@ -433,6 +450,7 @@ class MediaEdit(EditWindow):
                     self.elements["sub_align_%d"%idx].input.update_dict(chatalign)
                 else:
                     break
+            self.update_sep_button()
         if self.line_type == 'Animation':
             self.elements['tick'].input.configure(from_=1,to=30,increment=1)
             self.elements['loop'].input.update_dict(True_False)
@@ -462,16 +480,89 @@ class MediaEdit(EditWindow):
             exec_value = ref_medef.value_execute(self.section[key])
             print(self.line_type,key,exec_value)
             if key in list_key and self.line_type in list_type:
-                for idx,value in enumerate(exec_value):
-                    self.page.preview.object_this.configure(key=key,value=value,index=idx)
+                # 先清空列表
+                # self.page.preview.object_this.clear_configure(key=key)
+                # for idx,value in enumerate(exec_value):
+                #     self.page.preview.object_this.configure(key=key,value=value,index=idx)
+                self.page.preview.object_this.configure(key=key,value=exec_value)
             else:
                 self.page.preview.object_this.configure(key=key,value=exec_value)
-        # BUG
-        # 2. 气球类，修改头文本时报错
-        # 3. 引用对象，当发生变动时，应该如何刷新？
         # 更新显示
         self.page.preview.update_dotview()
         self.page.preview.update_preview()
+    # 新建一个多项sep
+    def update_sep_button(self):
+        if self.line_type == 'Balloon':
+            MultiSep = 'HeadSep-%d'
+        elif self.line_type == 'ChatWindow':
+            MultiSep = "SubSep-%d"
+        else:
+            return
+        # 定位到最后一个
+        for idx in range(1,999):
+            if MultiSep%idx in self.seperator:
+                # 先清除前面的
+                self.seperator[MultiSep%idx].remove_button()
+            else:
+                # 在最后一个小节建立
+                end = idx-1
+                self.seperator[MultiSep%end].add_button(text='添加+',command=self.add_a_sep)
+                if end > 1:
+                    self.seperator[MultiSep%end].add_button(text='删除-',command=self.del_a_sep)
+                # 结束循环
+                self.sep_end = end
+                self.multisep = MultiSep
+                break
+    def add_a_sep(self):
+        # BUG，气球类，新建了一个之后，并不会出现文字
+        this_sep:dict = self.TableStruct[self.line_type][self.multisep]
+        # 先添加小节分割线
+        sep_new = self.sep_end + 1
+        self.seperator[self.multisep%sep_new] = TextSeparator(
+            master=self,
+            screenzoom=self.sz,
+            describe=this_sep['Text']%sep_new
+        )
+        # 再添加KVD
+        for key in this_sep['Content']:
+            this_kvd = this_sep['Content'][key]
+            if r'%d' in this_kvd['default']:
+                value_this = this_kvd['default']%sep_new
+            else:
+                value_this = this_kvd['default']
+            self.elements[key%sep_new] = self.seperator[self.multisep%sep_new].add_element(
+                key=key%sep_new,
+                value=value_this,
+                kvd=this_kvd,
+                callback=self.update_section_from
+            )
+        # 添加内容
+        if self.line_type == 'Balloon':
+            self.elements["Header_Text_%d"%sep_new].input.configure(values=['None','Text()']+self.get_avaliable_text())
+            self.elements['ht_target_%d'%sep_new].input.update_dict(self.get_avaliable_charcol())
+        if self.line_type == 'ChatWindow':
+            self.elements["sub_Bubble_%d"%sep_new].input.configure(values=['Bubble()']+self.get_avaliable_bubble(cw=False))
+            self.elements["sub_Anime_%d"%sep_new].input.configure(values=['None']+self.get_avaliable_anime())
+            self.elements["sub_align_%d"%sep_new].input.update_dict(chatalign)
+        # 更新显示
+        SZ_5 = int(self.sz * 5)
+        SZ_15 = 3*SZ_5
+        self.seperator[self.multisep%sep_new].pack(side='top',anchor='n',fill='x',pady=(0,SZ_5),padx=(SZ_5,SZ_15))
+        # 更新按钮
+        self.update_sep_button()
+        # 最后更新小节内容
+        self.update_section_from()
+    def del_a_sep(self):
+        # 先删除小节内容
+        sep_struct:dict = self.TableStruct[self.line_type][self.multisep]['Content']
+        for keyword in sep_struct:
+            self.elements.pop(keyword%self.sep_end).destroy()
+        # 再删除小节分割线
+        self.seperator.pop(self.multisep%self.sep_end).destroy()
+        # 更新按钮
+        self.update_sep_button()
+        # 最后更新小节内容
+        self.update_section_from()
 class LogEdit(EditWindow):
     def __init__(self, master, screenzoom):
         super().__init__(master, screenzoom)

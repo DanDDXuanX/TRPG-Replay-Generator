@@ -726,21 +726,37 @@ class Balloon(Bubble):
                     )
         return pos_dict
     def configure(self, key: str, value, index: int = 0):
-        if key == 'Header_Text':
-            self.Header[index] = value
-        elif key == 'ht_target':
-            self.target[index] = value
-        elif key == 'ht_pos':
-            self.ht_pos[index] = value
-        # 暂时禁用index，代价是性能
         # if key == 'Header_Text':
-        #     self.Header = value
+        #     if index >= len(self.Header):
+        #         self.Header.append(value)
+        #     else:
+        #         self.Header[index] = value
         # elif key == 'ht_target':
-        #     self.target = value
+        #     if index >= len(self.target):
+        #         self.target.append(value)
+        #     else:
+        #         self.target[index] = value
         # elif key == 'ht_pos':
-        #     self.ht_pos = value
+        #     if index >= len(self.ht_pos):
+        #         self.target.append(tuple(value))
+        #     else:
+        #         self.ht_pos[index] = value
+        # 暂时禁用index，代价是性能
+        if key == 'Header_Text':
+            self.Header = value
+        elif key == 'ht_target':
+            self.target = value
+        elif key == 'ht_pos':
+            self.ht_pos = value
         else:
             super().configure(key, value, index)
+    def clear_configure(self,key:str):
+        if key == 'Header_Text':
+            self.Header.clear()
+        elif key == 'ht_target':
+            self.target.clear()
+        elif key == 'ht_pos':
+            self.ht_pos.clear()
 # 自适应气泡
 class DynamicBubble(Bubble):
     def __init__(
@@ -1226,20 +1242,48 @@ class ChatWindow(Bubble):
         elif key == 'sub_end':
             self.sub_size = (value[0]-self.sub_pos[0],value[1]-self.sub_pos[1])
         # 关键词参数们:
+        # elif key == 'sub_key':
+        #     try:
+        #         self.sub_key[index] = value
+        #     except IndexError:
+        #         self.sub_key.append(value)
+        # elif key == 'sub_Bubble':
+        #     keyword = self.sub_key[index]
+        #     self.sub_Bubble[keyword] = value
+        # elif key == 'sub_Anime':
+        #     keyword = self.sub_key[index]
+        #     self.sub_Anime[keyword] = value
+        # elif key == 'sub_align':
+        #     keyword = self.sub_key[index]
+        #     self.sub_align[keyword] = value
         elif key == 'sub_key':
-            self.sub_key[index] = value
-        elif key == 'sub_Bubble':
-            keyword = self.sub_key[index]
-            self.sub_Bubble[keyword] = value
-        elif key == 'sub_Anime':
-            keyword = self.sub_key[index]
-            self.sub_Anime[keyword] = value
-        elif key == 'sub_align':
-            keyword = self.sub_key[index]
-            self.sub_align[keyword] = value
+            # 变更关键
+            for idx,keyword in enumerate(key):
+                # 长度超出原来的关键字
+                if idx >= len(self.sub_key):
+                    self.sub_key.append(keyword)
+                # 关键字发生变动
+                elif keyword != self.sub_key[idx]:
+                    self.sub_Bubble[keyword] = self.sub_Bubble.pop(self.sub_key[idx])
+                    self.sub_Anime[keyword] = self.sub_Anime.pop(self.sub_key[idx])
+                    self.sub_align[keyword] = self.sub_align.pop(self.sub_key[idx])
+                    self.sub_key[idx] = keyword
+                # 无事发生
+                else:
+                    pass
+        elif key in ['sub_Bubble','sub_Anime','sub_align']:
+            self.clear_configure(key=key)
+            for idx,ele in enumerate(value):
+                if idx >= len(self.sub_key):
+                    break
+                else:
+                    keyword = self.sub_key[idx]
+                    self.__getattribute__(key)[keyword] = ele
         else:
             super().configure(key, value, index)
-
+    def clear_configure(self,key:str):
+        if key in ['sub_key','sub_Bubble','sub_Anime','sub_align']:
+            self.__getattribute__(key).clear()
 # 背景
 class Background(MediaObj):
     def __init__(

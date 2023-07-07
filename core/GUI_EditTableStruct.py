@@ -939,7 +939,7 @@ TableStruct:dict = {
                         "valuekey": "Header_Text",
                         "vitem": "combox",
                         "vtype": "str",
-                        "default": "None"
+                        "default": "Text()"
                     },
                     "ht_pos_%d": {
                         "ktext": "位置：",
@@ -1324,7 +1324,7 @@ TableStruct:dict = {
                         "valuekey": "sub_key",
                         "vitem": "entry",
                         "vtype": "str",
-                        "default": "Key1"
+                        "default": "'Key%d'"
                     },
                     "sub_Bubble_%d": {
                         "ktext": "气泡：",
