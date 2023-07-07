@@ -31,15 +31,16 @@ class TableEdit(ttk.Frame):
         # self.update_from_tablestruct()
         # self.update_item()
     def update_item(self):
-        SZ_15 = int(self.sz * 15)
         SZ_5 = int(self.sz * 5)
+        SZ_10 = 2 * SZ_5
+        SZ_20 = 4 * SZ_5
         self.title.pack(fill='x',side='top')
         self.options.pack(fill='both',expand=True,side='top')
         self.outputs.pack(fill='x',side='top')
         # 滚动窗项目下
         for key in self.seperator:
             item:TextSeparator = self.seperator[key]
-            item.pack(side='top',anchor='n',fill='x',pady=(0,SZ_5),padx=(SZ_5,SZ_15))
+            item.pack(side='top',anchor='n',fill='x',pady=(0,SZ_5),padx=(SZ_10,SZ_20))
     def update_from_tablestruct(self, detail=False):
         # 从EditWindow.update_from_section方法中简化而来的
         self.table_struct:dict = self.TableStruct

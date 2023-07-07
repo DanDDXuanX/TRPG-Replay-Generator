@@ -38,10 +38,11 @@ class EditWindow(ScrolledFrame):
         self.update_item()
     def update_item(self):
         SZ_5 = int(5*self.sz)
-        SZ_15 = int(15*self.sz)
+        SZ_10 = 2 * SZ_5
+        SZ_20 = 4 * SZ_5
         for key in self.seperator:
             item:TextSeparator = self.seperator[key]
-            item.pack(side='top',anchor='n',fill='x',pady=(0,SZ_5),padx=(SZ_5,SZ_15))
+            item.pack(side='top',anchor='n',fill='x',pady=(0,SZ_5),padx=(SZ_10,SZ_20))
     def clear_item(self):
         for key in self.elements:
             item:KeyValueDescribe = self.elements[key]
@@ -552,6 +553,9 @@ class MediaEdit(EditWindow):
         self.update_sep_button()
         # 最后更新小节内容
         self.update_section_from()
+        # 移动滚动条
+        self.update()
+        self.yview_moveto(1.0)
     def del_a_sep(self):
         # 先删除小节内容
         sep_struct:dict = self.TableStruct[self.line_type][self.multisep]['Content']
@@ -563,6 +567,9 @@ class MediaEdit(EditWindow):
         self.update_sep_button()
         # 最后更新小节内容
         self.update_section_from()
+        # 移动滚动条
+        self.update()
+        self.yview_moveto(1.0)
 class LogEdit(EditWindow):
     def __init__(self, master, screenzoom):
         super().__init__(master, screenzoom)

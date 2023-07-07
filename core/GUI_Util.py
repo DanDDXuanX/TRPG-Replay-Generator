@@ -198,6 +198,7 @@ class TextSeparator(ttk.Frame):
         else:
             self.content_frame.pack(fill='x',side='top')
             self.expand:bool = True
+        self.master.update()
     # 添加KVD
     def add_element(self,key:str,value:str,kvd:dict,detail:bool=False,callback=None)->KeyValueDescribe:
         SZ_5 = int(self.sz * 5)

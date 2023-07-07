@@ -397,7 +397,8 @@ class MDFPreviewCanvas(PreviewCanvas):
     def get_drag_done(self,event):
         pressed = self.get_coordinates(event=event)
         # 根据当前选点，刷新媒体对象
-        self.update_media_object(pressed=pressed)
+        if self.selected_dot:
+            self.update_media_object(pressed=pressed)
     # 将变更同步到编辑区和媒体对象的成员，并更新显示
     def update_edit(self):
         # 如果有选中点

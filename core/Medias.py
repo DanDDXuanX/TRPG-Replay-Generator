@@ -744,6 +744,7 @@ class Balloon(Bubble):
         # 暂时禁用index，代价是性能
         if key == 'Header_Text':
             self.Header = value
+            self.header_num = len(self.Header)
         elif key == 'ht_target':
             self.target = value
         elif key == 'ht_pos':
@@ -753,6 +754,7 @@ class Balloon(Bubble):
     def clear_configure(self,key:str):
         if key == 'Header_Text':
             self.Header.clear()
+            self.header_num = 0
         elif key == 'ht_target':
             self.target.clear()
         elif key == 'ht_pos':

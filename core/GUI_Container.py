@@ -226,10 +226,13 @@ class Container(ScrolledFrame):
             self.display_filter = is_match
             self.reset_container_height()
             self.update_item()
+            # 移动滚动条
+            self.yview_moveto(0.0)
     def reset_search(self):
         # 在初始化调用时，searchbar还没定义
         try:
             self.page.searchbar.click_clear()
+            self.yview_moveto(0.0)
         except AttributeError:
             pass
     # 复制项目

@@ -279,6 +279,7 @@ class MDFPage(ttk.Frame):
         self.container.place_forget()
         self.preview.place_forget()
         self.edit.place_forget()
+        self.newelementcommand.place_forget()
         # 显示全屏预览
         self.preview.pack(fill='both',expand=True)
         # 标志
