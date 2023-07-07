@@ -12,6 +12,7 @@ from chlorophyll import CodeView
 from .RplGenLogLexer import RplGenLogLexer
 from .ScriptParser import RplGenLog, CharTable, MediaDef
 from .GUI_Snippets import RGLSnippets
+from .GUI_PreviewCanvas import RGLPreviewCanvas
 
 # 查找且替换
 class SearchReplaceBar(ttk.Frame):
@@ -185,6 +186,55 @@ class SearchReplaceBar(ttk.Frame):
         self.codeview.highlight_all()
         # 弹出消息
         Messagebox().show_info(message=f'已替换{str(replace_count)}处文本。',title='全部替换',parent=self.master)
+
+# 右键预览
+class PreviewWindow(ttk.Toplevel):
+    def __init__(self,screenzoom,master,rplgenlog:RplGenLog,chartab:CharTable,mediadef:MediaDef,event):
+        self.sz = screenzoom
+        self.master = master
+        SZ_60 = int(self.sz * 60)
+        SZ_20 = int(self.sz * 20)
+        SZ_2 = int(self.sz*2)
+        # 尺寸
+        win_W = int(self.sz * 1920 / 2)
+        win_H = int(self.sz * 1080 / 2)
+        size = (win_W + 2*SZ_2, win_H + 2*SZ_2)
+        # 位置
+        mouse_y = event.y_root + SZ_20
+        scr_H = self.master.winfo_screenheight()
+        position_x = self.master.winfo_rootx() + SZ_60
+        if mouse_y + win_H > scr_H:
+            position_y = scr_H - win_H - SZ_60
+        else:
+            position_y = mouse_y
+        # 初始化
+        super().__init__(
+            resizable           = (False,False),
+            size                = size,
+            position            = (position_x, position_y),
+            overrideredirect    = True,
+        )
+        self.content = rplgenlog
+        self.ref_media = mediadef
+        self.ref_chartab = chartab
+        self.edit = None # 假装有edit
+        # 预览
+        self.preview = RGLPreviewCanvas(
+            master=self,
+            screenzoom=self.sz,
+            rplgenlog=self.content,
+            mediadef=self.ref_media,
+            chartab=self.ref_chartab
+            )
+        # 执行
+        self.update_items()
+    def update_items(self):
+        self.preview.pack(fill='both',expand=True)
+    def preview_line(self,line:int):
+        self.preview.preview(line_index=str(line-1))
+    def close(self):
+        self.destroy()
+        
 # 脚本模式
 class RGLCodeViewFrame(ttk.Frame):
     def __init__(self,master,screenzoom,rplgenlog:RplGenLog,chartab:CharTable,mediadef:MediaDef):
@@ -203,10 +253,19 @@ class RGLCodeViewFrame(ttk.Frame):
         self.codeview.bind('<Tab>',self.show_snippets)
         self.codeview.bind('<Alt-Up>',self.swap_lines)
         self.codeview.bind('<Alt-Down>',self.swap_lines)
+        # 代码视图
+        self.codeview._line_numbers.bind('<ButtonRelease-3>',self.click_2_preview,'+')
+        self.codeview._line_numbers.bind('<Leave>',self.close_preview,'+')
+        self.codeview._vs.configure(bootstyle='dark-round')
+        self.codeview._hs.configure(bootstyle='dark-round')
         # 搜索高亮
         self.codeview.tag_config('search', background='#904f1e')
+        self.codeview.tag_config('preview', background='#0072d6')
+        self.codeview.tag_config('error', background='#fc0303')
         # 查找替换
         self.search_replace = SearchReplaceBar(master=self,codeview=self.codeview,screenzoom=self.sz)
+        # 预览窗
+        self.preview_window = None
         # 显示
         self.matches = []
         self.is_show_search = False
@@ -267,3 +326,39 @@ class RGLCodeViewFrame(ttk.Frame):
         self.codeview.mark_set("insert", f"{line_to_swap}.0")
         self.codeview.see("insert")
         return "break"
+    # 预览
+    def click_2_preview(self,event):
+        self.codeview.tag_remove('preview','1.0','end')
+        # 获取当前选中的行号
+        preview_line = int(self.codeview.index(f'@{event.x},{event.y}').split('.')[0])
+        # 更新结构
+        try:
+            self.update_rplgenlog()
+        except Exception as E:
+            print(E)
+            return
+        if self.preview_window is None:
+            # 唤起
+            self.preview_window = PreviewWindow(
+                master=self,
+                screenzoom=self.sz,
+                rplgenlog=self.content,
+                chartab=self.chartab,
+                mediadef=self.mediadef,
+                event=event
+            )
+        # 高亮
+        self.codeview.tag_add('preview',f'{preview_line}.0',f'{preview_line}.end')
+        # 显示
+        self.preview_window.preview_line(preview_line)
+    def close_preview(self,event):
+        self.codeview.tag_remove('preview','1.0','end')
+        if self.preview_window:
+            self.preview_window.close()
+            self.preview_window = None
+    # 将当前文本更新到RplGenLog
+    def update_rplgenlog(self):
+        # 将log中，从开头到当前行的内容转为RplGenLog.struct
+        code_text = self.codeview.get('0.0','end')
+        # 脚本更新到content
+        self.content.struct = self.content.parser(code_text)
