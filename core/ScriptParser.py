@@ -411,6 +411,7 @@ class MediaDef(Script):
             'bubble'    :['Bubble','Balloon','DynamicBubble'],
             'text'      :['Text','StrokeText','RichText'],
             'pos'       :['Pos','FreePos'],
+            'posgrid'   :['PosGrid'],
             'freepos'   :['FreePos'],
             'background':['Background'],
             'audio'     :['Audio'],
@@ -429,14 +430,27 @@ class MediaDef(Script):
                     output.append(keys + ':' + sub_key)
         output.sort()
         return output
-    def get_moveable(self):
-        return (
-            self.get_type('freepos') + 
-            self.get_type('anime') + 
-            self.get_type('bubble',cw=False) + 
-            self.get_type('chatwindow') + 
-            self.get_type('background')
-        )
+    def get_moveable(self) -> dict:
+        return {
+            'Freepos'   : self.get_type('freepos'),
+            'Animation' : self.get_type('anime'),
+            'Bubble'    : self.get_type('bubble',cw=False) + self.get_type('chatwindow'),
+            'Background': self.get_type('background')
+        }
+    def get_pos_coord(self) -> dict:
+        all_used_pos_coord = []
+        for name in self.struct:
+            this_section:dict = self.struct[name]
+            if 'pos' in this_section.keys():
+                if type(this_section['pos']) in [list,tuple]:
+                    all_used_pos_coord.append('({},{})'.format(*this_section['pos']))
+        all_used_pos_coord = np.sort(np.unique(np.array(all_used_pos_coord)))
+        return {
+            'pos'       : self.get_type('pos'),
+            'posgrid'   : self.get_type('posgrid'),
+            'coord'     : all_used_pos_coord
+        }
+
     def update_media_file(self,name:str,old_path:str,new_path:str):
         this_section = self.struct[name]
         # 获取关键字

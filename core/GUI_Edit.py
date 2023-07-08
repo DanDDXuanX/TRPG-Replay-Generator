@@ -307,7 +307,7 @@ class CharactorEdit(EditWindow):
             self.add_a_custom_kvd(custom=get_string)
     # 移除一个自定义列
     def remove_customs(self):
-        get_string = selection_query(master=self,prompt='请选择想要删除的自定义项',choice=self.get_avaliable_custom())
+        get_string = selection_query(master=self,screenzoom=self.sz,prompt='请选择想要删除的自定义项',choice=self.get_avaliable_custom())
         if get_string:
             del_colname = get_string[1:-1]
             if del_colname in self.custom_col:

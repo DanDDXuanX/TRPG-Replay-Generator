@@ -8,22 +8,27 @@ import tkinter as tk
 import ttkbootstrap as ttk
 from chlorophyll import CodeView
 from .ScriptParser import CharTable, MediaDef
+from .GUI_CustomDialog import abmethod_query
 
 class RGLSnippets(ttk.Menu):
     Snippets = {
         "command":{
             "dialog"        :['对话行','[]:',1],
             "wait"          :['停顿','<wait>:',7],
+            "sep1"          :'sep',
             "background"    :['切换背景','<background>:',13],
             "animation"     :['显示立绘','<animation>:()',13],
             "bubble"        :['显示气泡','<bubble>:',9],
             "BGM"           :['背景音乐','<BGM>:',6],
+            "sep2"          :'sep',
             "set"           :['设置','<set:>:',5],
             "table"         :['修改角色表','<table:>:',7],
             "move"          :['移动媒体','<move:>:',6],
             "clear"         :['清空聊天窗','<clear>:',8],
-            "hitpoint"      :['血量动画','<hitpoint>:(描述,10,10,10)',14],
+            "sep3"          :'sep',
+            "hitpoint"      :['血量动画','<hitpoint>:(描述,10,10,5)',14],
             "dice"          :['骰子动画','<dice>:(描述,100,50,75),(描述,100,50,25)',10],
+            "sep4"          :'sep',
             "comment"       :['注释','# ',2]
         },
         "set":{
@@ -31,14 +36,17 @@ class RGLSnippets(ttk.Menu):
             "bb_method_default"     :["默认切换效果-气泡","bb_method_default",19],
             "bg_method_default"     :["默认切换效果-背景","bg_method_default",19],
             "tx_method_default"     :["默认文字效果","tx_method_default",19],
-            "speech_speed"          :["无语音句子的语速","speech_speed",14],
-            "asterisk_pause"        :["星标间隔时间","asterisk_pause",16],
-            "secondary_alpha"       :["默认次要立绘透明度","secondary_alpha",17],
-            "inline_method_apply"   :["对话行类效果的作用对象","inline_method_apply",21],
+            "sep1"                  :'sep',
+            "speech_speed"          :["无语音句子的播放速度","speech_speed",14],
+            "asterisk_pause"        :["句子的间隔时间","asterisk_pause",16],
+            "secondary_alpha"       :["非发言角色的立绘透明度","secondary_alpha",17],
+            "inline_method_apply"   :["对话行中效果的作用对象","inline_method_apply",21],
+            "sep2"                  :'sep',
             "am_dur_default"        :["默认切换时间-立绘","am_dur_default",16],
             "bb_dur_default"        :["默认切换时间-气泡","bb_dur_default",16],
             "bg_dur_default"        :["默认切换时间-背景","bg_dur_default",16],
             "tx_dur_default"        :["默认文字效果时间","tx_dur_default",16],
+            "sep3"                  :'sep',
             "formula"               :["动画曲线","formula",9],
         },
         "am_dur":{
@@ -104,7 +112,7 @@ class RGLSnippets(ttk.Menu):
     }
     def __init__(self, master, mediadef:MediaDef, chartab:CharTable):
         # 初始化菜单
-        super().__init__(master=master, tearoff=0, font=('Sarasa Mono SC',10)) # FIXME：注意，这里指定使用更纱黑体的话，会导致第一次启动时延迟约半秒
+        super().__init__(master=master, tearoff=0, font=('Sarasa Mono SC',10))
         self.codeview:CodeView = master
         # 引用媒体
         self.ref_media = mediadef
@@ -137,12 +145,12 @@ class RGLSnippets(ttk.Menu):
             self.init_snippets_options('command')
         # 对话行添加
         elif re.fullmatch('^\[([\w\ \.\(\)]+,)*',text_upstream):
-            self.init_snippets_options('charactor')
+            self.init_snippets_options('charactor',dot=False)
         # 差分添加
         elif re.fullmatch('^\[([\w\ \.\(\)]+,)*([\w\ ]+(\(\d+\))?)\.',text_upstream):
             # 提取角色名
             name = re.fullmatch('^\[([\w\ \.\(\)]+,)*([\w\ ]+(\(\d+\))?)\.',text_upstream).group(2)
-            self.init_snippets_options('subtype',name=name)
+            self.init_snippets_options('subtype',name=name,dot=False)
         # 停顿
         elif text_upstream == '<wait>:' and text_downstream == '':
             self.init_snippets_options('am_dur')
@@ -196,12 +204,22 @@ class RGLSnippets(ttk.Menu):
         # 移动
         elif text_upstream == '<move:' and text_downstream[0:2]=='>:':
             self.init_snippets_options('move')
-        elif re.fullmatch("^<move:(\w+)>:(.+)?",text_upstream) and text_downstream == '':
-            self.init_snippets_options('posexp') # FIXME
+        elif re.fullmatch("^<move:(\w+)>:([^\+\-]+?)",text_upstream) and text_downstream == '':
+            self.init_snippets_options('operator')
+        elif re.fullmatch("^<move:(\w+)>:((.+) *(\+|\-) *)?",text_upstream) and text_downstream == '':
+            self.init_snippets_options('posexp')
+        # 表格
+        elif text_upstream == '<table:' and text_downstream[0:2] == '>:':
+            self.init_snippets_options('charactor',dot=True)
+        elif re.fullmatch("<table:([\w\ ]+)\.",text_upstream) and text_downstream[0:2] == '>:':
+            name = re.fullmatch("<table:([\w\ ]+)\.",text_upstream).group(1)
+            self.init_snippets_options('subtype',name=name,dot=True)
+        elif re.fullmatch("<table:([\w\ ]+)\.(\w+)\.",text_upstream) and text_downstream[0:2] == '>:':
+            self.init_snippets_options('columns')
         # 效果
         elif text_upstream == '<background>' and text_downstream[0]==':':
             self.init_snippets_options('bg_met')
-        elif text_upstream in ['<animation>','bubble'] or re.fullmatch('^\[[\w\ \.\,\(\)]+\]',text_upstream) and text_downstream[0]==':':
+        elif (text_upstream in ['<animation>','<bubble>'] or re.fullmatch('^\[[\w\ \.\,\(\)]+\]',text_upstream)) and text_downstream[0]==':' and text_downstream[1:]!='NA':
             self.init_snippets_options('ab_met')
         elif re.fullmatch("(.+)<(\w+)=",text_upstream) and text_downstream[0]=='>':
             method = re.fullmatch("(.+)<(\w+)=",text_upstream).group(2)
@@ -215,22 +233,38 @@ class RGLSnippets(ttk.Menu):
         if self.snippets_type in ['command','set','am_dur','tx_dur','formula','inline','speed','bg_met','ab_met','tx_met']:
             self.snippets_content = self.Snippets[self.snippets_type]
             for keyword in self.snippets_content:
-                option, snippet, cpos = self.snippets_content[keyword]
-                self.add_command(label=option, command=self.insert_snippets(snippet, cpos))
+                if self.snippets_content[keyword] == 'sep':
+                    self.add_separator()
+                else:
+                    option, snippet, cpos = self.snippets_content[keyword]
+                    self.add_command(label=option, command=self.insert_snippets(snippet, cpos))
             # 立绘切换效果的特殊之处
             if self.snippets_type == 'ab_met':
-                self.add_command(label='（自定义）',command=self.custom_ab_method())
+                self.add_command(label='（自定义）',command=self.custom_ab_method)
         # 角色联想
         elif self.snippets_type=='charactor':
             list_of_snippets = self.ref_char.get_names()
             for name in list_of_snippets:
-                self.add_command(label=name, command=self.insert_snippets(name, len(name)))
+                if kw_args['dot']:
+                    self.add_command(label=name, command=self.insert_snippets(name+'.', len(name)+1))
+                else:
+                    self.add_command(label=name, command=self.insert_snippets(name, len(name)))
         # 差分联想
         elif self.snippets_type=='subtype':
             char_name = kw_args['name']
             list_of_snippets = self.ref_char.get_subtype(char_name)
             for name in list_of_snippets:
-                self.add_command(label=name, command=self.insert_snippets(name, len(name)))
+                if kw_args['dot']:
+                    self.add_command(label=name, command=self.insert_snippets(name+'.', len(name)+1))
+                else:
+                    self.add_command(label=name, command=self.insert_snippets(name, len(name)))
+            if kw_args['dot']:
+                menu = ttk.Menu(master=self)
+                list_of_columns = self.ref_char.get_customize()
+                for name in list_of_columns:
+                    menu.add_command(label=name, command=self.insert_snippets(name, len(name)+2))
+                self.add_separator()
+                self.add_cascade(label='（全部差分）',menu=menu)
         # 背景
         elif self.snippets_type=='background':
             self.add_command(label='（黑）', command=self.insert_snippets("black", 5))
@@ -240,13 +274,13 @@ class RGLSnippets(ttk.Menu):
                 self.add_command(label=name, command=self.insert_snippets(name, len(name)))
         # 立绘
         elif self.snippets_type=='animation':
-            self.add_command(label='（无）', command=self.insert_snippets("NA", 2))
+            self.add_command(label='（无）', command=self.force_line("<animation>:NA"))
             list_of_snippets = self.ref_media.get_type('anime')
             for name in list_of_snippets:
                 self.add_command(label=name, command=self.insert_snippets(name, len(name)))
         # 气泡联想，聊天窗以对象而不是关键字的形式返回
         elif self.snippets_type=='bubble':
-            self.add_command(label='（无）', command=self.insert_snippets("NA", 2))
+            self.add_command(label='（无）', command=self.force_line("<bubble>:NA"))
             list_of_snippets = self.ref_media.get_type('bubble',cw=False) + self.ref_media.get_type('chatwindow')
             for name in list_of_snippets:
                 self.add_command(label=name, command=self.insert_snippets(name+'("","")', len(name)+2))
@@ -273,12 +307,43 @@ class RGLSnippets(ttk.Menu):
                 self.add_command(label=name, command=self.insert_snippets(name, len(name)))
         # 移动
         elif self.snippets_type=='move':
-            list_of_snippets = self.ref_media.get_moveable()
-            for name in list_of_snippets:
-                self.add_command(label=name, command=self.insert_snippets(name, len(name)))
+            dict_of_snippets = self.ref_media.get_moveable()
+            # freepos
+            for name in dict_of_snippets['Freepos']:
+                self.add_command(label=name, command=self.insert_snippets(name, len(name)+2))
+            self.add_separator()
+            # animation，bubble，background
+            menus = {}
+            for label,keyword in zip(['立绘','气泡','背景'],['Animation','Bubble','Background']):
+                menus[keyword] = ttk.Menu(master=self)
+                for name in dict_of_snippets[keyword]:
+                    menus[keyword].add_command(label=name, command=self.insert_snippets(name, len(name)+2))
+                self.add_cascade(label=f'{label} ({keyword})',menu=menus[keyword])
+        elif self.snippets_type=='operator':
+            self.add_command(label='+', command=self.insert_snippets('+', 1))
+            self.add_command(label='-', command=self.insert_snippets('-', 1))
         elif self.snippets_type=='posexp':
-            # TODO 位置表达式！
-            pass
+            dict_of_snippets = self.ref_media.get_pos_coord()
+            # 媒体点
+            if dict_of_snippets['pos']:
+                for name in dict_of_snippets['pos']:
+                    self.add_command(label=name, command=self.insert_snippets(name, len(name)))
+                self.add_separator()
+            # 网格
+            if dict_of_snippets['posgrid']:
+                for name in dict_of_snippets['posgrid']:
+                    self.add_command(label=name, command=self.insert_snippets(name+'[0,0]', len(name)+5))
+                self.add_separator()
+            # 坐标
+            coord_menu = ttk.Menu(master=self)
+            for name in dict_of_snippets['coord']:
+                coord_menu.add_command(label=name, command=self.insert_snippets(name, len(name)))
+            self.add_cascade(label='（坐标）',menu=coord_menu)
+        # 角色表
+        elif self.snippets_type=='columns':
+            list_of_snippets = self.ref_char.get_customize()
+            for name in list_of_snippets:
+                self.add_command(label=name, command=self.insert_snippets(name, len(name)+2))
         # 音效和文字效果组合
         elif self.snippets_type=='audio|tx_met':
             self.add_command(label='（语音合成）', command=self.insert_snippets("{*}", 3))
@@ -305,6 +370,20 @@ class RGLSnippets(ttk.Menu):
             self.codeview.mark_set("insert",f'{self.curser_idx}+{cpos}c')
             self.codeview.highlight_all()
         return command
+    def force_line(self,snippet):
+        def command():
+            row = self.curser_idx.split('.')[0]
+            self.codeview.delete(f'{row}.0',f'{row}.end')
+            self.codeview.insert(f'{row}.0',chars=snippet)
+            self.codeview.mark_set("insert",f'{row}.end')
+            self.codeview.highlight_all()
+        return command
     # 自定义切换效果
     def custom_ab_method(self):
-        pass
+        method = abmethod_query(master=self.codeview,screenzoom=self.codeview.winfo_toplevel().sz)
+        if method:
+            snippet = f'<{method}=>'
+            cpos = len(method) + 2
+            self.codeview.insert(self.curser_idx,chars=snippet)
+            self.codeview.mark_set("insert",f'{self.curser_idx}+{cpos}c')
+            self.codeview.highlight_all()
