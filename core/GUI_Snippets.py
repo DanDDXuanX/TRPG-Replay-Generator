@@ -10,7 +10,11 @@ from chlorophyll import CodeView
 from .ScriptParser import CharTable, MediaDef
 from .GUI_CustomDialog import abmethod_query
 
-class RGLSnippets(ttk.Menu):
+class CodeSnippet(ttk.Menu):
+    def __init__(self,master):
+        super().__init__(master=master, tearoff=0, font=('Sarasa Mono SC',10))
+
+class RGLSnippets(CodeSnippet):
     Snippets = {
         "command":{
             "dialog"        :['对话行','[]:',1],
@@ -112,7 +116,7 @@ class RGLSnippets(ttk.Menu):
     }
     def __init__(self, master, mediadef:MediaDef, chartab:CharTable):
         # 初始化菜单
-        super().__init__(master=master, tearoff=0, font=('Sarasa Mono SC',10))
+        super().__init__(master=master)
         self.codeview:CodeView = master
         # 引用媒体
         self.ref_media = mediadef
@@ -163,20 +167,23 @@ class RGLSnippets(ttk.Menu):
             self.init_snippets_options('bubble')
         elif re.fullmatch('<(BGM|bgm)>:',text_upstream) and text_downstream == '':
             self.init_snippets_options('bgm')
-        # 音效
-        elif re.fullmatch('^\[[\w\ \.\,\(\)]+\](<\w+(=\d+)>)?:[^\\"]+',text_upstream) and text_downstream=='':
-            # 检查上游是否已经包含了星标了
+        # 音效:如果光标已经在最后
+        elif re.fullmatch('^\[[\w\ \.\,\(\)]+\](<\w+(=\d+)>)?:[^\\"]+',text_upstream) and text_downstream == '':
+            # 如果前面已经有切换效果和音效了
             if text_upstream[-1] in ['>','}']:
+                # 检查上游是否已经包含了星标了
                 if re.findall('{.*?\*.*?}',text_upstream):
                     self.init_snippets_options('audio',asterisk=False)
                 else:
                     self.init_snippets_options('audio',asterisk=True)
+            # 如果上游
             else:
                 self.init_snippets_options('audio|tx_met')
+        elif re.fullmatch('^\[[\w\ \.\,\(\)]+\](<\w+(=\d+)>)?:[^\\"]+',text_upstream) and re.fullmatch('\{.+\}',text_downstream):
+            self.init_snippets_options('tx_met')
         elif re.fullmatch('^\[[\w\ \.\,\(\)]+\](<\w+(=\d+)>)?:[^\\"]+\{\w+;',text_upstream) and text_downstream[0]=='}':
             self.init_snippets_options('am_dur')
         # 文字效果
-
         # 清除
         elif text_upstream == '<clear>:' and text_downstream == '':
             self.init_snippets_options('chatwindow')
@@ -259,7 +266,7 @@ class RGLSnippets(ttk.Menu):
                 else:
                     self.add_command(label=name, command=self.insert_snippets(name, len(name)))
             if kw_args['dot']:
-                menu = ttk.Menu(master=self)
+                menu = CodeSnippet(master=self)
                 list_of_columns = self.ref_char.get_customize()
                 for name in list_of_columns:
                     menu.add_command(label=name, command=self.insert_snippets(name, len(name)+2))
@@ -315,7 +322,7 @@ class RGLSnippets(ttk.Menu):
             # animation，bubble，background
             menus = {}
             for label,keyword in zip(['立绘','气泡','背景'],['Animation','Bubble','Background']):
-                menus[keyword] = ttk.Menu(master=self)
+                menus[keyword] = CodeSnippet(master=self)
                 for name in dict_of_snippets[keyword]:
                     menus[keyword].add_command(label=name, command=self.insert_snippets(name, len(name)+2))
                 self.add_cascade(label=f'{label} ({keyword})',menu=menus[keyword])
@@ -335,7 +342,7 @@ class RGLSnippets(ttk.Menu):
                     self.add_command(label=name, command=self.insert_snippets(name+'[0,0]', len(name)+5))
                 self.add_separator()
             # 坐标
-            coord_menu = ttk.Menu(master=self)
+            coord_menu = CodeSnippet(master=self)
             for name in dict_of_snippets['coord']:
                 coord_menu.add_command(label=name, command=self.insert_snippets(name, len(name)))
             self.add_cascade(label='（坐标）',menu=coord_menu)
@@ -348,8 +355,8 @@ class RGLSnippets(ttk.Menu):
         elif self.snippets_type=='audio|tx_met':
             self.add_command(label='（语音合成）', command=self.insert_snippets("{*}", 3))
             self.add_separator()
-            tx_met_menu = ttk.Menu(master=self)
-            audio_menu = ttk.Menu(master=self)
+            tx_met_menu = CodeSnippet(master=self)
+            audio_menu = CodeSnippet(master=self)
             self.add_cascade(label='文字效果',menu=tx_met_menu)
             self.add_cascade(label='音效',menu=audio_menu)
             # 文字效果
@@ -387,3 +394,57 @@ class RGLSnippets(ttk.Menu):
             self.codeview.insert(self.curser_idx,chars=snippet)
             self.codeview.mark_set("insert",f'{self.curser_idx}+{cpos}c')
             self.codeview.highlight_all()
+
+class VirtualEvent:
+    def __init__(self,key):
+        self.keysym = key
+
+class RGLRightClick(ttk.Menu):
+    def __init__(self, master:CodeView,frame, mediadef:MediaDef, chartab:CharTable, event):
+        # 初始化菜单
+        super().__init__(master=master, tearoff=0)
+        self.codeview:CodeView = master
+        self.codeframe = frame
+        # 固定的结构
+        self.TableStruct = {
+            'all'       : ['全选', 'ctrl+A',self.codeview._select_all],
+            'sep1'      : 'sep',
+            'copy'      : ['复制', 'ctrl+C', self.codeview._copy],
+            'paste'     : ['黏贴', 'ctrl+V', self.codeview._paste],
+            'cut'       : ['剪切', 'ctrl+X', lambda: self.codeview.event_generate("<<Cut>>")],
+            'sep2'      : 'sep',
+            're'        : ['撤回', 'ctrl+Z', self.codeview.edit_undo],
+            'redo'      : ['重做', 'ctrl+Y', self.codeview.redo],
+            'sep3'      : 'sep',
+            'up'        : ['上移', 'alt+↑', lambda: self.codeframe.swap_lines(VirtualEvent('Up'))],
+            'down'      : ['下移', 'alt+↓', lambda: self.codeframe.swap_lines(VirtualEvent('Down'))],
+            'sep4'      : 'sep',
+            'save'      : ['保存', 'ctrl+S', lambda: self.codeframe.save_command()],
+            'refresh'   : ['刷新', 'ctrl+R', lambda: self.codeframe.update_codeview()],
+            'search'    : ['查找替换','ctrl+F',lambda :self.codeframe.show_search(None)]
+        }
+        # 引用媒体
+        self.ref_media = mediadef
+        self.ref_char = chartab
+        # 鼠标位置
+        self.mouse_x = event.x_root
+        self.mouse_y = event.y_root
+        # 当前选中的文本
+        self.select_start = self.codeview.index("sel.first")
+        self.select_end = self.codeview.index("sel.last")
+        # 初始化
+        self.init_menu_options()
+        # 显示
+        self.post(
+            x = self.mouse_x,
+            y = self.mouse_y
+            )
+    def init_menu_options(self):
+        self.seperator = {}
+        self.element = {}
+        for keyword in self.TableStruct:
+            if self.TableStruct[keyword] == 'sep':
+                self.add_separator()
+            else:
+                label,accelerator,command = self.TableStruct[keyword]
+                self.add_command(label=label,accelerator=accelerator,command=command)

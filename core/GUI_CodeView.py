@@ -11,7 +11,7 @@ from chlorophyll import CodeView
 
 from .RplGenLogLexer import RplGenLogLexer
 from .ScriptParser import RplGenLog, CharTable, MediaDef
-from .GUI_Snippets import RGLSnippets
+from .GUI_Snippets import RGLSnippets, RGLRightClick
 from .GUI_PreviewCanvas import RGLPreviewCanvas
 
 # 查找且替换
@@ -253,6 +253,8 @@ class RGLCodeViewFrame(ttk.Frame):
         self.codeview.bind('<Tab>',self.show_snippets)
         self.codeview.bind('<Alt-Up>',self.swap_lines)
         self.codeview.bind('<Alt-Down>',self.swap_lines)
+        # self.codeview.bind('<Button-3>',self.click_right_menu)
+        self.codeview.bind_class("Text", "<Button-3>", self.click_right_menu)
         # 代码视图
         self.codeview._line_numbers.bind('<ButtonRelease-3>',self.click_2_preview,'+')
         self.codeview._line_numbers.bind('<Leave>',self.close_preview,'+')
@@ -356,6 +358,26 @@ class RGLCodeViewFrame(ttk.Frame):
         if self.preview_window:
             self.preview_window.close()
             self.preview_window = None
+    # 保存
+    def save_command(self):
+        # 刷新log对象
+        self.update_rplgenlog()
+        # 保存
+        mainwindow = self.winfo_toplevel()
+        # 找到保存项目的命令
+        mainwindow.view['project'].file_manager.save_file()
+    # 右键
+    def click_right_menu(self,event):
+        RGLRightClick(master=self.codeview,frame=self,mediadef=self.mediadef,chartab=self.chartab,event=event)
+        return "break"
+    # 刷新：从log对象重新加载所有文字
+    def update_codeview(self):
+        # 移除全部文本
+        self.codeview.delete("0.0",'end')
+        # 插入脚本文本
+        self.codeview.insert("end",self.content.export())
+        # 刷新高亮
+        self.codeview.highlight_all()
     # 将当前文本更新到RplGenLog
     def update_rplgenlog(self):
         # 将log中，从开头到当前行的内容转为RplGenLog.struct
