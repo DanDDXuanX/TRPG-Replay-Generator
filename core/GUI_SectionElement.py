@@ -23,12 +23,15 @@ class RightClickMenu(ttk.Menu):
         self.container = master
         # 常规
         self.add_command(label='全选',accelerator='ctrl+A',command=lambda :self.container.select_range(None,index=False))
+        self.add_command(label='删除',accelerator='Del',command=lambda :self.container.del_select(None),foreground='#cc0000',activebackground='#ff6666')
+        self.add_separator()
+        # ------------------------
         self.add_command(label='复制',accelerator='ctrl+C',command=lambda :self.container.copy_element(None))
         self.add_command(label='粘贴',accelerator='ctrl+V',command=lambda :self.container.paste_element(None,key=self.container.selected[0],ahead=False))
         self.add_command(label='粘贴（上方）',command=lambda :self.container.paste_element(None,key=self.container.selected[0],ahead=True))
         # ------------------------
         self.add_separator()
-        self.add_command(label='删除',accelerator='Del',command=lambda :self.container.del_select(None))
+        self.add_command(label='保存',accelerator='ctrl+S',command=lambda :self.container.save_command(None))
         # ------------------------
         self.add_separator()
         sort_menu = ttk.Menu(master=self)

@@ -161,6 +161,14 @@ class InteractiveDot:
             return self.p2
         else:
             return None
+    def force_selected(self,pn):
+        if pn == 'p1':
+            self.selected['p1'] = True
+            self.selected['p2'] = False
+        else:
+            self.selected['p1'] = False
+            self.selected['p2'] = True
+        return self.get_selected()
 # 预览窗
 class PreviewCanvas(ttk.Frame):
     def __init__(self,master,screenzoom,mediadef):
@@ -236,6 +244,12 @@ class PreviewCanvas(ttk.Frame):
         RGB[...,2] = 0
         error_canvas = pygame.surfarray.make_surface(RGB)
         self.canvas.blit(error_canvas,(0,0))
+    # 保存
+    def save_command(self,event):
+        # 保存
+        mainwindow = self.winfo_toplevel()
+        # 找到保存项目的命令
+        mainwindow.view['project'].file_manager.save_file()
 class MDFPreviewCanvas(PreviewCanvas):
     def __init__(self, master, screenzoom, mediadef):
         # 继承
@@ -256,6 +270,8 @@ class MDFPreviewCanvas(PreviewCanvas):
         self.canvas_label.bind('<Key-Down>',self.adjust_selected_point)
         self.canvas_label.bind('<Key-Left>',self.adjust_selected_point)
         self.canvas_label.bind('<Key-Right>',self.adjust_selected_point)
+        # 保存
+        self.canvas_label.bind('<Control-Key-s>',self.save_command)
         # 可以联动编辑区
         self.edit_frame = self.master.edit
         # 刷新点
@@ -387,6 +403,14 @@ class MDFPreviewCanvas(PreviewCanvas):
         self.canvas_label.focus_set()
         pressed = self.get_coordinates(event=event)
         self.update_preview(pressed=pressed)
+    def force_dot(self,dotID,pID):
+        if dotID in self.dots:
+            self.selected_dot_name = dotID
+            self.selected_dot = self.dots[dotID]
+            dot = self.selected_dot.force_selected(pID)
+            # 更新
+            self.canvas_label.focus_set()
+            self.update_preview(pressed=dot)
     # 拖动中的功能：渲染点被拖动中的位置
     def get_drag(self,event):
         pressd = self.get_coordinates(event=event)
@@ -477,7 +501,9 @@ class MDFPreviewCanvas(PreviewCanvas):
     # 方向键微调位置
     def adjust_selected_point(self,event):
         direction_key = {'Up':(0,-1),'Down':(0,1),'Left':(-1,0),'Right':(1,0)}
-        if event.state == 262153: # Shift|Mod1|0x40000
+        if event.state & 1: # shift
+            multi = 100
+        elif event.state & 4: # control
             multi = 10
         else:
             multi = 1
@@ -516,7 +542,6 @@ class CTBPreviewCanvas(PreviewCanvas):
         if bubble_this:
             bubble_this.preview(self.canvas, key=key)
         self.update_canvas()
-
 class RGLPreviewCanvas(PreviewCanvas):
     def __init__(self, master, screenzoom,rplgenlog, chartab, mediadef):
         self.rplgenlog:RplGenLog = rplgenlog
@@ -645,4 +670,3 @@ class RGLPreviewCanvas(PreviewCanvas):
                 pass
         # 刷新
         self.update_canvas()
-

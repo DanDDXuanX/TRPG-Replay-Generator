@@ -28,6 +28,7 @@ class Container(ScrolledFrame):
         self.container.bind('<Control-Key-a>',lambda event:self.select_range(event,index=False),"+")
         self.container.bind('<Control-Key-c>',lambda event:self.copy_element(event),"+")
         self.container.bind('<Control-Key-v>',lambda event:self.paste_element(event,key=self.selected[0]),"+")
+        self.container.bind('<Control-Key-s>',lambda event:self.save_command(event),'+')
         self.container.bind('<Up>',lambda event:self.select_up(event),"+")
         self.container.bind('<Down>',lambda event:self.select_down(event),"+")
         self.container.bind('<Delete>',lambda event:self.del_select(event),"+")
@@ -265,6 +266,12 @@ class Container(ScrolledFrame):
         self.display_filter = self.element_keys.copy()
         # 刷新显示
         self.update_item()
+    # 保存
+    def save_command(self,event):
+        # 保存
+        mainwindow = self.winfo_toplevel()
+        # 找到保存项目的命令
+        mainwindow.view['project'].file_manager.save_file()
 class RGLContainer(Container):
     def __init__(self,master,content:RplGenLog,screenzoom):
         # 初始化基类

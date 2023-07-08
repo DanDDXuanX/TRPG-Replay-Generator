@@ -256,8 +256,7 @@ class PreviewWindow(ttk.Toplevel):
     def preview_line(self,line:int):
         self.preview.preview(line_index=str(line-1))
     def close(self):
-        self.destroy()
-        
+        self.destroy() 
 # 脚本模式
 class RGLCodeViewFrame(ttk.Frame):
     def __init__(self,master,screenzoom,rplgenlog:RplGenLog,chartab:CharTable,mediadef:MediaDef):

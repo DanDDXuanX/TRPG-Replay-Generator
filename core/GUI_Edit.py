@@ -403,10 +403,13 @@ class MediaEdit(EditWindow):
         # 标签色
         if self.line_type not in ['Pos','FreePos','PosGrid']:
             self.elements['label_color'].input.update_dict(label_colors)
+        if self.line_type in ['Pos','FreePos','PosGrid']:
+            self.elements['pos'].describe.configure(command=lambda :self.select_dot('o0','p1'))
         # PosGrid
         if self.line_type == 'PosGrid':
             self.elements['x_step'].input.configure(from_=1,to=100,increment=1)
             self.elements['y_step'].input.configure(from_=1,to=100,increment=1)
+            self.elements['end'].describe.configure(command=lambda :self.select_dot('o1','p1'))
         # 字体
         if self.line_type in ['Text','StrokeText','RichText']:
             self.elements['line_limit'].input.configure(from_=0,to=100,increment=1)
@@ -421,29 +424,39 @@ class MediaEdit(EditWindow):
         if self.line_type in ['Bubble','Balloon','DynamicBubble','ChatWindow','Animation','Background']:
             self.elements['filepath'].bind_button(dtype='picture-file')
             self.elements['pos'].input.configure(values=self.get_avaliable_pos())
+            self.elements['pos'].describe.configure(command=lambda :self.select_dot('g0','p1'))
             self.elements['scale'].input.configure(from_=0.1,to=3,increment=0.1)
         # MainText HeadText
         if self.line_type in ['Bubble','Balloon','DynamicBubble']:
             self.elements['Main_Text'].input.configure(values=['Text()']+self.get_avaliable_text())
             self.elements['line_distance'].input.configure(from_=0.8,to=3,increment=0.1)
         if self.line_type in ['Bubble','Balloon']:
+            self.elements['mt_pos'].describe.configure(command=lambda :self.select_dot('b0','p1'))
             self.elements['align'].input.update_dict(alignments)
         if self.line_type in ['Bubble','DynamicBubble']:
             self.elements['Header_Text'].input.configure(values=['None','Text()']+self.get_avaliable_text())
+            self.elements['ht_pos'].describe.configure(command=lambda :self.select_dot('b1','p1'))
             self.elements['ht_target'].input.update_dict(self.get_avaliable_charcol())
         if self.line_type == 'DynamicBubble':
+            self.elements['mt_pos'].describe.configure(command=lambda :self.select_dot('m0','p1'))
+            self.elements['mt_end'].describe.configure(command=lambda :self.select_dot('m0','p2'))
             self.elements['fill_mode'].input.update_dict(fill_mode)
             self.elements['fit_axis'].input.update_dict(fit_axis)
         if self.line_type == 'Balloon':
             for idx in range(1,999):
                 if "Header_Text_%d"%idx in self.elements:
                     self.elements["Header_Text_%d"%idx].input.configure(values=['None','Text()']+self.get_avaliable_text())
+                    self.elements['ht_pos_%d'%idx].describe.configure(command=self.select_dot_idx(idx))
                     self.elements['ht_target_%d'%idx].input.update_dict(self.get_avaliable_charcol())
                 else:
                     break
             self.update_sep_button()
         if self.line_type == 'ChatWindow':
             self.elements["sub_distance"].input.configure(from_=0,to=1000,increment=10)
+            self.elements["sub_pos"].describe.configure(command=lambda :self.select_dot('p0','p1'))
+            self.elements["sub_end"].describe.configure(command=lambda :self.select_dot('p0','p2'))
+            self.elements["am_left"].describe.configure(command=lambda :self.select_dot('r0','p1'))
+            self.elements["am_right"].describe.configure(command=lambda :self.select_dot('r1','p1'))
             for idx in range(1,999):
                 if "sub_key_%d"%idx in self.elements:
                     self.elements["sub_Bubble_%d"%idx].input.configure(values=['Bubble()']+self.get_avaliable_bubble(cw=False))
@@ -540,15 +553,16 @@ class MediaEdit(EditWindow):
         # 添加内容
         if self.line_type == 'Balloon':
             self.elements["Header_Text_%d"%sep_new].input.configure(values=['None','Text()']+self.get_avaliable_text())
+            self.elements['ht_pos_%d'%sep_new].describe.configure(command=self.select_dot_idx(sep_new))
             self.elements['ht_target_%d'%sep_new].input.update_dict(self.get_avaliable_charcol())
         if self.line_type == 'ChatWindow':
             self.elements["sub_Bubble_%d"%sep_new].input.configure(values=['Bubble()']+self.get_avaliable_bubble(cw=False))
             self.elements["sub_Anime_%d"%sep_new].input.configure(values=['None']+self.get_avaliable_anime())
             self.elements["sub_align_%d"%sep_new].input.update_dict(chatalign)
         # 更新显示
-        SZ_5 = int(self.sz * 5)
-        SZ_15 = 3*SZ_5
-        self.seperator[self.multisep%sep_new].pack(side='top',anchor='n',fill='x',pady=(0,SZ_5),padx=(SZ_5,SZ_15))
+        SZ_10 = int(self.sz * 10)
+        SZ_20 = 2*SZ_10
+        self.seperator[self.multisep%sep_new].pack(side='top',anchor='n',fill='x',pady=(0,SZ_10),padx=(SZ_10,SZ_20))
         # 更新按钮
         self.update_sep_button()
         # 最后更新小节内容
@@ -570,6 +584,13 @@ class MediaEdit(EditWindow):
         # 移动滚动条
         self.update()
         self.yview_moveto(1.0)
+    # 选中点
+    def select_dot(self, dotID, pID):
+        self.page.preview.force_dot(dotID, pID)
+    def select_dot_idx(self,idx):
+        def command():
+            self.select_dot('b%d'%idx,'p1')
+        return command
 class LogEdit(EditWindow):
     def __init__(self, master, screenzoom):
         super().__init__(master, screenzoom)
