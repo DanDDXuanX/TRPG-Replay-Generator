@@ -419,8 +419,8 @@ class RGLRightClick(ttk.Menu):
             'up'        : ['上移', 'alt+↑', lambda: self.codeframe.swap_lines(VirtualEvent('Up'))],
             'down'      : ['下移', 'alt+↓', lambda: self.codeframe.swap_lines(VirtualEvent('Down'))],
             'sep4'      : 'sep',
-            'save'      : ['保存', 'ctrl+S', lambda: self.codeframe.save_command()],
-            'refresh'   : ['刷新', 'ctrl+R', lambda: self.codeframe.update_codeview()],
+            'save'      : ['保存', 'ctrl+S', lambda: self.codeframe.save_command(None)],
+            'refresh'   : ['刷新', 'ctrl+R', lambda: self.codeframe.update_codeview(None)],
             'search'    : ['查找替换','ctrl+F',lambda :self.codeframe.show_search(None)]
         }
         # 引用媒体

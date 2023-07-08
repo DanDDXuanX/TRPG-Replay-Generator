@@ -31,15 +31,17 @@ class SearchReplaceBar(ttk.Frame):
         self.line1 = {
             'label': ttk.Label(master=self,anchor='e',text='查找：',bootstyle='light-inverse',width=8),
             'entry': ttk.Entry(master=self,font=('Sarasa Mono SC',10),bootstyle='secondary',textvariable=self.to_find),
-            'button1': ttk.Checkbutton(master=self,text='正则',bootstyle='secondary-toolbutton',width=7,variable=self.is_regex),
-            'button2': ttk.Button(master=self,text='查找',bootstyle='secondary-outline',width=7,command=self.search),
+            'button1': ttk.Checkbutton(master=self,text='正则',bootstyle='secondary-toolbutton',width=7,variable=self.is_regex,takefocus=False),
+            'button2': ttk.Button(master=self,text='查找',bootstyle='secondary-outline',width=7,command=self.search,takefocus=False),
         }
+        self.bind_key(self.line1['entry'])
         self.line2 = {
             'label': ttk.Label(master=self,anchor='e',text='替换：',bootstyle='light-inverse',width=8),
             'entry': ttk.Entry(master=self,font=('Sarasa Mono SC',10),bootstyle='secondary',textvariable=self.to_replace),
-            'button1': ttk.Button(master=self,text='替换',bootstyle='secondary-outline',width=7,command=self.replace),
-            'button2': ttk.Button(master=self,text='全部替换',bootstyle='secondary-outline',width=7,command=self.replace_all),
+            'button1': ttk.Button(master=self,text='替换',bootstyle='secondary-outline',width=7,command=self.replace,takefocus=False),
+            'button2': ttk.Button(master=self,text='全部替换',bootstyle='secondary-outline',width=7,command=self.replace_all,takefocus=False),
         }
+        self.bind_key(self.line2['entry'])
         self.update_item()
     def update_item(self):
         SZ_5 = int(self.sz * 3)
@@ -90,6 +92,11 @@ class SearchReplaceBar(ttk.Frame):
         # 清除已有查找
         self.master.clear_search(None)
         start_index = '1.0'
+        is_match = False
+        # 检查是否可以做（搜索空白会崩溃！）
+        if search_text == '':
+            self.line1['entry'].configure(bootstyle='danger')
+            return
         while True:
             # 找到下一个匹配的文本
             index = self.codeview.search(search_text, start_index, stopindex='end',regexp=is_regex)
@@ -97,6 +104,8 @@ class SearchReplaceBar(ttk.Frame):
             if index == '':
                 break
             else:
+                # 有搜索到
+                is_match = True
                 if is_regex:
                     end_index = self.regex_match_end(search_text=search_text,index=index)[0]
                 else:
@@ -107,11 +116,16 @@ class SearchReplaceBar(ttk.Frame):
                 if self.is_searched == False:
                     self.is_searched = True
                     # 移动到第一个匹配的的位置
-                    this_line = int(index.split('.')[0])
+                    this_line = int(index.split('.')[0]) - 1
                     line_number = len(self.codeview.get('1.0','end').splitlines())
                     self.codeview.yview_moveto(this_line/line_number)
                 # 更新搜索位置
                 start_index = end_index
+        # 改颜色
+        if is_match:
+            self.line1['entry'].configure(bootstyle='secondary')
+        else:
+            self.line1['entry'].configure(bootstyle='danger')
     def replace(self):
         # 如果还没搜索，先搜索，不替换
         if self.is_searched == False:
@@ -186,7 +200,16 @@ class SearchReplaceBar(ttk.Frame):
         self.codeview.highlight_all()
         # 弹出消息
         Messagebox().show_info(message=f'已替换{str(replace_count)}处文本。',title='全部替换',parent=self.master)
-
+    def bind_key(self,widget:ttk.Entry):
+        widget.bind("<Return>", lambda _:self.search())
+        widget.bind("<Shift-Return>", lambda _:self.replace_all())
+        widget.bind("<KP_Enter>", lambda _:self.search())
+        widget.bind("<Shift-KP_Enter>", lambda _:self.replace_all())
+        widget.bind("<Escape>", self.master.close_search)
+    def update_search(self,text):
+        self.to_find.set(text)
+    def move_focus(self):
+        self.line1['entry'].focus_set()
 # 右键预览
 class PreviewWindow(ttk.Toplevel):
     def __init__(self,screenzoom,master,rplgenlog:RplGenLog,chartab:CharTable,mediadef:MediaDef,event):
@@ -249,12 +272,14 @@ class RGLCodeViewFrame(ttk.Frame):
         self.codeview = CodeView(master=self, lexer=RplGenLogLexer, color_scheme="monokai", font=('Sarasa Mono SC',12), undo=True)
         self.codeview.insert("end",self.content.export()) # 插入脚本文本
         self.codeview.bind('<Control-Key-f>',self.show_search)
+        self.codeview.bind('<Control-Key-s>',self.save_command)
+        self.codeview.bind('<Control-Key-r>',self.update_codeview)
         self.codeview.bind('<FocusIn>',self.clear_search)
         self.codeview.bind('<Tab>',self.show_snippets)
         self.codeview.bind('<Alt-Up>',self.swap_lines)
         self.codeview.bind('<Alt-Down>',self.swap_lines)
-        # self.codeview.bind('<Button-3>',self.click_right_menu)
-        self.codeview.bind_class("Text", "<Button-3>", self.click_right_menu)
+        self.codeview.bind('<Button-3>',self.click_right_menu)
+        # self.codeview.bind_class("Text", "<Button-3>", self.click_right_menu,'+')
         # 代码视图
         self.codeview._line_numbers.bind('<ButtonRelease-3>',self.click_2_preview,'+')
         self.codeview._line_numbers.bind('<Leave>',self.close_preview,'+')
@@ -276,12 +301,17 @@ class RGLCodeViewFrame(ttk.Frame):
         self.codeview.pack(side='top',fill='both',expand=True)
     # 展示、隐藏搜索栏
     def show_search(self,event):
-        if self.is_show_search:
-            self.search_replace.pack_forget()
-            self.clear_search(None)
-        else:
-            self.search_replace.pack(side='top',fill='x',expand=False)
-        self.is_show_search = not self.is_show_search
+        self.search_replace.pack(side='top',fill='x',expand=False)
+        sel_text = self.codeview.get("sel.first", "sel.last")
+        if len(sel_text) != 0:
+            self.search_replace.update_search(sel_text)
+        self.search_replace.move_focus()
+        self.is_show_search = True
+    def close_search(self,event):
+        self.search_replace.pack_forget()
+        self.clear_search(None)
+        self.codeview.focus_set()
+        self.is_show_search = False
     # 清除所有搜索高亮
     def clear_search(self,event):
         self.matches = []
@@ -322,6 +352,8 @@ class RGLCodeViewFrame(ttk.Frame):
         self.codeview.insert(f"{line_to_swap}.0", current_line_text)
         # 恢复自动撤销点
         self.codeview.configure(autoseparators=True)
+        # 选中
+        self.codeview.tag_add("sel",f"{line_to_swap}.0",f"{line_to_swap}.end")
         # 更新高亮
         self.codeview.highlight_all()
         # 移动光标
@@ -359,7 +391,7 @@ class RGLCodeViewFrame(ttk.Frame):
             self.preview_window.close()
             self.preview_window = None
     # 保存
-    def save_command(self):
+    def save_command(self,event):
         # 刷新log对象
         self.update_rplgenlog()
         # 保存
@@ -371,7 +403,7 @@ class RGLCodeViewFrame(ttk.Frame):
         RGLRightClick(master=self.codeview,frame=self,mediadef=self.mediadef,chartab=self.chartab,event=event)
         return "break"
     # 刷新：从log对象重新加载所有文字
-    def update_codeview(self):
+    def update_codeview(self,event):
         # 移除全部文本
         self.codeview.delete("0.0",'end')
         # 插入脚本文本
