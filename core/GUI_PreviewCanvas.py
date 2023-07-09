@@ -276,6 +276,7 @@ class MDFPreviewCanvas(PreviewCanvas):
         self.edit_frame = self.master.edit
         # 刷新点
         self.object_this = None
+        self.recode = None
         self.dots = {}
         self.selected_dot = None
         self.selected_dot_name = None
@@ -288,19 +289,27 @@ class MDFPreviewCanvas(PreviewCanvas):
         # print(self.object_this)
         if self.object_this:
             self.object_this.preview(self.canvas)
+            self.recode = self.canvas.copy()
         # 获取点视图
         self.update_dotview()
         # 刷新显示
         self.update_canvas()
     # 拖拽中实时刷新点视图的内容
     def update_preview(self,pressed:tuple=None):
-        # 重置背景
-        self.canvas.blit(self.empty_canvas,(0,0))
-        # 刷新媒体
-        if self.object_this:
-            self.object_this.preview(self.canvas)
+        # 没有press（是edit在调用这个方法）则更新媒体画面
+        if pressed is None:
+            # 重置背景
+            self.canvas.blit(self.empty_canvas,(0,0))
+            # 刷新媒体
+            if self.object_this:
+                self.object_this.preview(self.canvas)
+                self.recode = self.canvas.copy()
+            else:
+                return
+        # 有press（是在交互式调用这个方法）则只更新点
         else:
-            return
+            if self.recode:
+                self.canvas.blit(self.recode,(0,0))
         # 刷新点
         self.selected_dot = None
         self.selected_dot_name = None
