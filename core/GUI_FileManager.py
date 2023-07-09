@@ -19,7 +19,8 @@ from .Exceptions import MediaError
 from .Medias import MediaObj
 from .GUI_TabPage import PageFrame, RGLPage, CTBPage, MDFPage
 from .GUI_DialogWindow import browse_file, save_file
-from .GUI_CustomDialog import relocate_file
+from .GUI_CustomDialog import relocate_file, configure_project
+from .GUI_Link import Link
 # 项目视图-文件管理器-RGPJ
 class RplGenProJect(Script):
     def __init__(self, json_input=None) -> None:
@@ -48,6 +49,8 @@ class RplGenProJect(Script):
             self.logfile    = {}
             for key in self.struct['logfile'].keys():
                 self.logfile[key] = RplGenLog(dict_input=self.struct['logfile'][key])
+        # 保存在全局连接
+        Link['project_config'] = self.config
     def dump_json(self, filepath: str) -> None:
         logfile_dict = {}
         for key in self.logfile.keys():
@@ -71,13 +74,14 @@ class FileManager(ttk.Frame):
         self.sz = screenzoom
         super().__init__(master,borderwidth=0,bootstyle='primary')
         self.master = master
+        # 文件管理器的项目对象
+        self.project:RplGenProJect = RplGenProJect(json_input=project_file)
+        self.project_file:str = project_file
         # 图形
         SZ_30 = int(self.sz * 30)
-        SZ_300 = int(self.sz * 300)
-        SZ_180 = int(self.sz * 168.75)
         icon_size = [SZ_30,SZ_30]
         self.image = {
-            'title'     : ImageTk.PhotoImage(name='title',   image=Image.open('./media/cover.jpg').resize([SZ_300,SZ_180])),
+            # 'title'     : ImageTk.PhotoImage(name='title',   image=Image.open('./media/cover.jpg').resize([SZ_300,SZ_180])),
             'save'      : ImageTk.PhotoImage(name='save' ,   image=Image.open('./media/icon/save.png').resize(icon_size)),
             'config'    : ImageTk.PhotoImage(name='config',   image=Image.open('./media/icon/setting.png').resize(icon_size)),
             'import'    : ImageTk.PhotoImage(name='import',   image=Image.open('./media/icon/import.png').resize(icon_size)),
@@ -85,10 +89,13 @@ class FileManager(ttk.Frame):
         }
         # 标题
         self.project_title = ttk.Frame(master=self,borderwidth=0,bootstyle='light')
-        self.title_pic = ttk.Label(master=self.project_title,image='title',borderwidth=0)
+        # 封面图
+        self.title_pic = ttk.Label(master=self.project_title,borderwidth=0)
+        self.load_cover()
+        # 按钮
         self.buttons = {
             'save'      : ttk.Button(master=self.project_title,image='save'  ,command=self.save_file),
-            'config'    : ttk.Button(master=self.project_title,image='config',command=None),
+            'config'    : ttk.Button(master=self.project_title,image='config',command=self.proj_config),
             'import'    : ttk.Button(master=self.project_title,image='import',command=self.import_file),
             'export'    : ttk.Button(master=self.project_title,image='export',command=self.export_file),
         }
@@ -104,9 +111,6 @@ class FileManager(ttk.Frame):
             buttons:ttk.Button = self.buttons[key]
             buttons.pack(expand=True,fill='x',side='left',anchor='se',padx=0,pady=0)
         self.project_title.pack(fill='x',side='top',padx=0,pady=0,ipadx=0,ipady=0)
-        # 文件管理器的项目对象
-        self.project:RplGenProJect = RplGenProJect(json_input=project_file)
-        self.project_file:str = project_file
         # 在初始化的时候，检查文件可用性
         self.check_project_media_exist()
         # 文件浏览器元件
@@ -264,6 +268,26 @@ class FileManager(ttk.Frame):
                 self.project_file = select_path
         else:
             self.project.dump_json(filepath=self.project_file)
+    # 配置项目
+    def proj_config(self):
+        get_config = configure_project(
+            master=self,
+            proj_config=self.project.config.get_struct(),
+            file_path = self.project_file
+            )
+        if get_config:
+            # 载入值
+            self.project.config.set_struct(dict_input=get_config)
+            # 执行config
+            self.project.config.execute()
+            # 更换标题图
+            self.load_cover()
+    # 加载封面
+    def load_cover(self):
+        SZ_300 = int(self.sz * 300)
+        SZ_180 = int(self.sz * 168.75)
+        self.cover = ImageTk.PhotoImage(image=Image.open(self.project.config.Cover).resize([SZ_300,SZ_180]))
+        self.title_pic.configure(image=self.cover)
     # 刷新目前某一类标签页的显示，导入文件时需要调用
     def update_pages_elements(self,ftype='medef'):
         # -> page_frame

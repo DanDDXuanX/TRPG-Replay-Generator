@@ -9,8 +9,10 @@ import ttkbootstrap as ttk
 from ttkbootstrap.dialogs import Messagebox
 from chlorophyll import CodeView
 
+from .ProjConfig import Config
 from .RplGenLogLexer import RplGenLogLexer
 from .ScriptParser import RplGenLog, CharTable, MediaDef
+from .GUI_Link import Link
 from .GUI_Snippets import RGLSnippets, RGLRightClick
 from .GUI_PreviewCanvas import RGLPreviewCanvas
 
@@ -219,8 +221,9 @@ class PreviewWindow(ttk.Toplevel):
         SZ_20 = int(self.sz * 20)
         SZ_2 = int(self.sz*2)
         # 尺寸
-        win_W = int(self.sz * 1920 / 2)
-        win_H = int(self.sz * 1080 / 2)
+        config = Link['project_config']
+        win_W = int(self.sz * config.Width / 2)
+        win_H = int(self.sz * config.Height / 2)
         size = (win_W + 2*SZ_2, win_H + 2*SZ_2)
         # 位置
         mouse_y = event.y_root + SZ_20

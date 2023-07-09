@@ -189,13 +189,26 @@ def relocate_file(master, file_not_found:dict, mediadef:MediaDef):
         return result_args
     else:
         return None
-    
+
 # 打开新建项目窗口，并新建一个项目
 def new_project(master, ptype='Empty'):
     dialog_window = CreateProjectDialog(
         parent=master,
         screenzoom=master.sz,
         ptype=ptype
+    )
+    dialog_window.show()
+    # 获取结果
+    return dialog_window.result
+
+# 配置项目窗口
+def configure_project(master, proj_config:dict,file_path:str):
+    dialog_window = CreateProjectDialog(
+        parent=master,
+        screenzoom=master.sz,
+        ptype='Config',
+        config=proj_config,
+        file_path=file_path
     )
     dialog_window.show()
     # 获取结果

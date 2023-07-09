@@ -14,6 +14,7 @@ from .ScriptParser import MediaDef, CharTable, RplGenLog
 from .Medias import MediaObj, Animation, Bubble, ChatWindow, Balloon, Background, HitPoint, Dice
 from .FreePos import Pos, PosGrid
 from .Utils import get_vppr
+from .GUI_Link import Link
 # 可交互的点线框
 class InteractiveDot:
     def __init__(self,p1:tuple,p2:tuple,color:str,master:Animation=None,screen_zoom:float=1.0) -> None:
@@ -178,8 +179,9 @@ class PreviewCanvas(ttk.Frame):
         super().__init__(master=master, bootstyle='secondary',border=SZ_2)
         self.blank_size = (0, 0)
         self.canvas_zoom = tk.DoubleVar(master=self,value=0.4)
-        # TODO: 待修改，这个位置应该引用项目的尺寸！
-        self.canvas_size = (1920, 1080)
+        # 这个位置应该引用项目的尺寸
+        config = Link['project_config']
+        self.canvas_size = (config.Width, config.Height)
         # 媒体定义
         self.mediadef:MediaDef = mediadef
         # 尺寸自适应：

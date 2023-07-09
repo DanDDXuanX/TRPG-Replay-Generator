@@ -6,6 +6,7 @@ import os
 import json
 import tkinter as tk
 import ttkbootstrap as ttk
+from pathlib import Path
 from ttkbootstrap.dialogs import Dialog, Messagebox, MessageCatalog
 from .GUI_Util import KeyValueDescribe
 from .GUI_EditTableStruct import NewProjectTable
@@ -67,47 +68,9 @@ class CreateProject(ttk.Frame):
         self.elements.clear()
         self.seperator.clear()
     def confirm(self):
-        W = int(self.elements['video_width'].get())
-        H = int(self.elements['video_height'].get())
-        F = int(self.elements['frame_rate'].get())
-        Z = self.elements['layer_zorder'].get().split(',')
-        save_dir = self.elements['save_pos'].get()
-        file_name = self.elements['proj_name'].get()
-        save_path = save_dir + '/' + file_name + '.rgpj'
-        # 检查合法性
-        if W<0 or H<0 or F<0:
-            Messagebox().show_warning(title='警告',message='分辨率或帧率是非法的数值！')
-            return False
-        for symbol in ['/','\\',':','*','?','"','<','>','|']:
-            if symbol in file_name:
-                Messagebox().show_warning(title='警告',message=f'文件名中不能包含符号 {symbol} ！')
-                return False
-        # 如果文件已经存在
-        if os.path.isfile(save_path):
-            choice = Messagebox().okcancel(title='文件已存在',message='目录下已经存在重名的项目文件，要覆盖吗？')
-            if choice != MessageCatalog.translate('OK'):
-                return False
-        # 新建项目结构
-        new_project_struct = {
-            'config':{
-                'Width'         : W,
-                'Height'        : H,
-                'frame_rate'    : F,
-                'Zorder'        : Z,
-            },
-            'mediadef':{},
-            'chartab':{},
-            'logfile':{}
-        }
-        # 保存文件
-        try:
-            with open(save_path,'w',encoding='utf-8') as of:
-                of.write(json.dumps(new_project_struct,indent=4))
-            # 退出
-            self.close_func(save_path)
-        except:
-            Messagebox().show_error(title='错误',message=f'无法保存文件到：\n{save_path}')
-            return False
+        pass
+
+# 新建空白项目
 class CreateEmptyProject(CreateProject):
     # 原件：
     # 1. 基本（项目名称、项目封面、位置）
@@ -161,14 +124,137 @@ class CreateEmptyProject(CreateProject):
             self.elements['layer_zorder'].input.configure(state='disabled')
         else:
             self.elements['layer_zorder'].input.configure(state='normal')
-
+    def confirm(self):
+        W = int(self.elements['video_width'].get())
+        H = int(self.elements['video_height'].get())
+        F = int(self.elements['frame_rate'].get())
+        Z = self.elements['layer_zorder'].get().split(',')
+        cover_path = self.elements['proj_cover'].get()
+        save_dir = self.elements['save_pos'].get()
+        file_name = self.elements['proj_name'].get()
+        save_path = save_dir + '/' + file_name + '.rgpj'
+        # 检查合法性
+        if W<0 or H<0 or F<0:
+            Messagebox().show_warning(title='警告',message='分辨率或帧率是非法的数值！')
+            return False
+        for symbol in ['/','\\',':','*','?','"','<','>','|']:
+            if symbol in file_name:
+                Messagebox().show_warning(title='警告',message=f'文件名中不能包含符号 {symbol} ！')
+                return False
+        # 如果文件已经存在
+        if os.path.isfile(save_path):
+            choice = Messagebox().okcancel(title='文件已存在',message='目录下已经存在重名的项目文件，要覆盖吗？')
+            if choice != MessageCatalog.translate('OK'):
+                return False
+        # 新建项目结构
+        new_project_struct = {
+            'config':{
+                'Name'          : file_name,
+                'Cover'         : cover_path,
+                'Width'         : W,
+                'Height'        : H,
+                'frame_rate'    : F,
+                'Zorder'        : Z,
+            },
+            'mediadef':{},
+            'chartab':{},
+            'logfile':{}
+        }
+        # 保存文件
+        try:
+            with open(save_path,'w',encoding='utf-8') as of:
+                of.write(json.dumps(new_project_struct,indent=4))
+            # 退出
+            self.close_func(save_path)
+        except:
+            Messagebox().show_error(title='错误',message=f'无法保存文件到：\n{save_path}')
+            return False
+# 新建智能项目
 class CreateIntelProject(CreateProject):
     pass
-
+# 项目配置
+class ConfigureProject(CreateEmptyProject):
+    def __init__(self, master, screenzoom, close_func, proj_config, file_path):
+        # 项目配置对象
+        self.proj_config = proj_config
+        self.file_path = file_path
+        super().__init__(master, screenzoom, close_func)
+    def build_struct(self):
+        super().build_struct()
+        # 额外变更：保存项目的按钮和输入框应该禁用
+        self.elements['save_pos'].describe.configure(state='disable')
+        self.elements['save_pos'].input.configure(state='disable')
+        # 载入预设
+        self.load_config()
+    def load_config(self):
+        # 设置值
+        if self.file_path:
+            Dir = Path(self.file_path).parent.absolute()
+        else:
+            Dir = '<尚未保存的项目！>'
+        Name = self.proj_config['Name']
+        Cover = self.proj_config['Cover']
+        W = self.proj_config['Width']
+        H = self.proj_config['Height']
+        F = self.proj_config['frame_rate']
+        Z = ','.join(self.proj_config['Zorder'])
+        self.elements['proj_cover'].value.set(Cover)
+        self.elements['save_pos'].value.set(Dir)
+        self.elements['proj_name'].value.set(Name)
+        self.elements['video_width'].value.set(W)
+        self.elements['video_height'].value.set(H)
+        self.elements['frame_rate'].value.set(F)
+        self.elements['layer_zorder'].value.set(Z)
+        # 检查是否是预设
+        for keyword in self.video_preset:
+            if [W,H,F] == self.video_preset[keyword]:
+                self.elements['preset_video'].value.set(keyword)
+                break
+            else:
+                self.elements['preset_video'].value.set('自定义')
+        for keyword in self.zorder_preset:
+            if Z == self.zorder_preset[keyword]:
+                self.elements['preset_layer'].value.set(keyword)
+                break
+            else:
+                self.elements['preset_layer'].value.set('自定义')
+        # 更新预设
+        self.update_preset(None)
+    def confirm(self):
+        W = int(self.elements['video_width'].get())
+        H = int(self.elements['video_height'].get())
+        F = int(self.elements['frame_rate'].get())
+        Z = self.elements['layer_zorder'].get().split(',')
+        file_name = self.elements['proj_name'].get()
+        cover_path = self.elements['proj_cover'].get()
+        # 检查合法性
+        if W<0 or H<0 or F<0:
+            Messagebox().show_warning(title='警告',message='分辨率或帧率是非法的数值！')
+            return False
+        for symbol in ['/','\\',':','*','?','"','<','>','|']:
+            if symbol in file_name:
+                Messagebox().show_warning(title='警告',message=f'项目名中不能包含符号 {symbol} ！')
+                return False
+        # 新建项目结构
+        new_config_struct = {
+            'Name'          : file_name,
+            'Cover'         : cover_path,
+            'Width'         : W,
+            'Height'        : H,
+            'frame_rate'    : F,
+            'Zorder'        : Z,
+        }
+        # 退出值是项目的结构！
+        self.close_func(new_config_struct)
+# 对话框
 class CreateProjectDialog(Dialog):
-    def __init__(self, screenzoom, parent=None, ptype='Empty'):
+    def __init__(self, screenzoom, parent=None, ptype='Empty', **kw_args):
         if ptype == 'Intel':
             super().__init__(parent, '新建智能项目', alert=False)
+        elif ptype == 'Config':
+            super().__init__(parent, '项目设置', alert=False)
+            self.proj_configure = kw_args['config']
+            self.file_path = kw_args['file_path']
         else:
             super().__init__(parent, '新建空白项目', alert=False)
         self.sz = screenzoom
@@ -179,6 +265,14 @@ class CreateProjectDialog(Dialog):
     def create_body(self, master):
         if self.ptype == 'Intel':
             pass
+        elif self.ptype == 'Config':
+            self.create_project = ConfigureProject(
+                master = master,
+                screenzoom = self.sz,
+                close_func=self.close_dialog,
+                proj_config=self.proj_configure,
+                file_path=self.file_path
+            )
         else:
             self.create_project = CreateEmptyProject(
                 master = master,
