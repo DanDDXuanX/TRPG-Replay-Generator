@@ -13,8 +13,11 @@ from PIL import Image, ImageTk
 from .GUI_Container import Container
 from .GUI_EditTableStruct import NewElement
 from .OutputType import PreviewDisplay, ExportVideo, ExportXML
+from .SpeechSynth import SpeechSynthesizer
 from .Medias import MediaObj
 from .ScriptParser import Script
+from .GUI_Link import Link
+from .GUI_Util import FreeToolTip
 
 # 搜索窗口
 class SearchBar(ttk.Frame):
@@ -66,48 +69,61 @@ class OutPutCommand(ttk.Frame):
         icon_size = [int(30*self.sz),int(30*self.sz)]
         self.image = {
             'display'   : ImageTk.PhotoImage(name='display',image=Image.open('./media/icon/display.png').resize(icon_size)),
-            'exportpr'    : ImageTk.PhotoImage(name='exportpr', image=Image.open('./media/icon/premiere.png').resize(icon_size)),
-            'recode'   : ImageTk.PhotoImage(name='recode',image=Image.open('./media/icon/ffmpeg.png').resize(icon_size)),
+            'synth'     : ImageTk.PhotoImage(name='synth',image=Image.open('./media/icon/synth.png').resize(icon_size)),
+            'exportpr'  : ImageTk.PhotoImage(name='exportpr', image=Image.open('./media/icon/premiere.png').resize(icon_size)),
+            'recode'    : ImageTk.PhotoImage(name='recode',image=Image.open('./media/icon/ffmpeg.png').resize(icon_size)),
         }
         self.buttons = {
-            'display' : ttk.Button(master=self,image='display',text='播放预览',compound='left',style='output.TButton',command=lambda:self.open_new_thread('display')),
-            'export'  : ttk.Button(master=self,image='exportpr',text='导出PR工程',compound='left',style='output.TButton',command=lambda:self.open_new_thread('exportpr')),
-            'recode'  : ttk.Button(master=self,image='recode',text='导出视频',compound='left',style='output.TButton',command=lambda:self.open_new_thread('recode')),
+            'display'   : ttk.Button(master=self,image='display',text='播放预览',compound='left',style='output.TButton',command=lambda:self.open_new_thread('display')),
+            'synth'     : ttk.Button(master=self,image='synth',text='语音合成',compound='left',style='output.TButton',command=lambda:self.open_new_thread('synth')),
+            'exportpr'    : ttk.Button(master=self,image='exportpr',text='导出PR工程',compound='left',style='output.TButton',command=lambda:self.open_new_thread('exportpr')),
+            'recode'    : ttk.Button(master=self,image='recode',text='导出视频',compound='left',style='output.TButton',command=lambda:self.open_new_thread('recode')),
         }
         self.runing_thread = None
         self.update_item()
-        
     def update_item(self):
         for key in self.buttons:
             item:ttk.Button = self.buttons[key]
             item.pack(fill='both',side='left',expand=True,pady=0)
     def load_input(self):
         # 项目配置
-        self.pconfig = self.page.ref_config
+        self.pconfig = Link['project_config']
         # 脚本
         self.medef = self.page.ref_medef.copy()
         self.chartab = self.page.ref_chartab.copy()
         self.rplgenlog = self.page.content.copy()
-        try:
-            # 初始化配置项
-            self.pconfig.execute()
-            # 初始化媒体
-            self.medef.execute()
-            # 初始化角色表
-            self.chartab.execute()
-            # 初始化log文件
-            self.rplgenlog.execute(media_define=self.medef,char_table=self.chartab,config=self.pconfig)
-        except Exception as E:
-            print(E)
+        # 初始化配置项
+        self.pconfig.execute()
+        # 初始化媒体
+        self.medef.execute()
+        # 初始化角色表
+        self.chartab.execute()
+        # 初始化log文件
+        self.rplgenlog.execute(media_define=self.medef,char_table=self.chartab,config=self.pconfig)
     def preview_display(self):
-        self.load_input()
         try:
+            self.load_input()
+            print('X')
             PreviewDisplay(rplgenlog=self.rplgenlog,config=self.pconfig,output_path='./test_output')
         except Exception as E:
             print(E)
         finally:
             pygame.init()
             pygame.font.init()
+            self.winfo_toplevel().navigate_bar.enable_navigate()
+    def synth_speech(self):
+        # 项目配置
+        self.pconfig = Link['project_config']
+        # 脚本
+        self.medef = self.page.ref_medef.copy()
+        self.chartab = self.page.ref_chartab.copy()
+        # 注意，log不是copy，是实质上要修改内容的！
+        self.rplgenlog = self.page.content
+        try:
+            SpeechSynthesizer(rplgenlog=self.rplgenlog,chartab=self.chartab,mediadef=self.medef,config=self.pconfig,output_path='./test_output')
+        except Exception as E:
+            print(E)
+        finally:
             self.winfo_toplevel().navigate_bar.enable_navigate()
     def export_video(self):
         try:
@@ -147,6 +163,8 @@ class OutPutCommand(ttk.Frame):
         # 新建线程：FIXME：重复两次开始预览播放，可能导致闪退，考虑改为多进程。
         if output_type == 'display':
             self.runing_thread = threading.Thread(target=self.preview_display)
+        elif output_type == 'synth':
+            self.runing_thread = threading.Thread(target=self.synth_speech)
         elif output_type == 'exportpr':
             self.runing_thread = threading.Thread(target=self.export_xml)
         elif output_type == 'recode':
@@ -155,6 +173,36 @@ class OutPutCommand(ttk.Frame):
             self.runing_thread = threading.Thread(target=lambda:print("无效的执行"))
         # 开始执行
         self.runing_thread.start()
+class VerticalOutputCommand(OutPutCommand):
+    def __init__(self,master,screenzoom):
+        # 继承
+        super().__init__(master=master,screenzoom=screenzoom)
+        self.tooltip = {
+            'display'   : FreeToolTip(widget=self.buttons['display'],bootstyle='primary-inverse',text='播放预览',screenzoom=self.sz,side='left'),
+            'synth'     : FreeToolTip(widget=self.buttons['synth'],bootstyle='primary-inverse',text='语音合成',screenzoom=self.sz,side='left'),
+            'exportpr'  : FreeToolTip(widget=self.buttons['exportpr'],bootstyle='primary-inverse',text='导出PR项目',screenzoom=self.sz,side='left'),
+            'recode'    : FreeToolTip(widget=self.buttons['recode'],bootstyle='primary-inverse',text='导出视频',screenzoom=self.sz,side='left'),
+        }
+        SZ_5 = int(self.sz * 5)
+        self.configure(borderwidth=SZ_5,bootstyle='light')
+        # 要有边框
+        for keyword in self.buttons:
+            self.buttons[keyword].configure(text='',compound='center',padding=SZ_5)
+    def update_item(self):
+        SZ_5 = int(self.sz * 5)
+        for key in self.buttons:
+            item:ttk.Button = self.buttons[key]
+            item.pack(fill='x',anchor='n',side='top',pady=(0,SZ_5))
+    # TODO: 因为垂直输出命令，涉及的是CodeView，因此在导出前应该添加：将CodeView的内容更新到RGL
+    def preview_display(self):
+        return super().preview_display()
+    def export_video(self):
+        return super().export_video()
+    def export_xml(self):
+        return super().export_xml()
+    # TODO：因为语音合成涉及到RGL的改变，因此执行成功之后，应该返回给RGL对象，并更新给CodeView！
+    def synth_speech(self):
+        return super().synth_speech()
 # 新建指令
 class NewElementCommand(ttk.Frame):
     struct = NewElement
@@ -190,10 +238,12 @@ class NewElementCommand(ttk.Frame):
                 width=5,
                 command=new_element
             )
-            self.buttons_tooltip[keyword] = ToolTip(
+            self.buttons_tooltip[keyword] = FreeToolTip(
                 widget=self.buttons[keyword],
                 text=button_this['tooltip'],
                 bootstyle='secondary-inverse',
+                screenzoom=self.sz,
+                side='up'
             )
     # 生成按钮命令的闭包
     def create_command(self,button_this,keyword):

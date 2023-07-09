@@ -180,23 +180,26 @@ class PreviewCanvas(ttk.Frame):
         self.blank_size = (0, 0)
         self.canvas_zoom = tk.DoubleVar(master=self,value=0.4)
         # 这个位置应该引用项目的尺寸
-        config = Link['project_config']
-        self.canvas_size = (config.Width, config.Height)
+        self.proj_config = Link['project_config']
         # 媒体定义
         self.mediadef:MediaDef = mediadef
         # 尺寸自适应：
         # 元件
         self.canvas_label = ttk.Label(master=self,image=None,style='preview.TLabel')
-        self.canvas_label.bind('<Configure>', self.update_size)
+        self.canvas_label.bind('<Configure>', self.update_display_size)
         # 预览图像
-        self.empty_canvas = pygame.image.load('./media/canvas.png')
-        self.canvas = pygame.Surface(size=self.canvas_size)
-        self.canvas.blit(self.empty_canvas,(0,0))
+        self.update_canvas_size(None)
         # 更新
         self.update_canvas()
         self.update_item()
-    # 更新尺寸
-    def update_size(self, event):
+    # 更新画布尺寸
+    def update_canvas_size(self, event):
+        self.canvas_size = (self.proj_config.Width, self.proj_config.Height)
+        self.empty_canvas = pygame.image.load('./media/canvas.png').subsurface([0,0,self.proj_config.Width,self.proj_config.Height])
+        self.canvas = pygame.Surface(size=self.canvas_size)
+        self.canvas.blit(self.empty_canvas,(0,0))
+    # 更新显示尺寸
+    def update_display_size(self, event):
         WW = self.canvas_label.winfo_width()
         WH = self.canvas_label.winfo_height()
         RW = WW/self.canvas_size[0]
@@ -237,8 +240,13 @@ class PreviewCanvas(ttk.Frame):
             object_this:MediaObj = self.mediadef.instance_execute(object_dict_this)
             return object_this
     def preview(self):
+        # 如果尺寸发生变化：
+        if self.proj_config.Width != self.canvas_size[0] or self.proj_config.Height != self.canvas_size[1]:
+            self.update_canvas_size(None)
+            self.update_display_size(None)
         # 重置背景
-        self.canvas.blit(self.empty_canvas,(0,0))
+        else:
+            self.canvas.blit(self.empty_canvas,(0,0))
     def show_error(self):
         # 错误背景
         RGB = pygame.surfarray.pixels3d(self.empty_canvas)

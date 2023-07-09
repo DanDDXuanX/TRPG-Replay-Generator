@@ -12,11 +12,12 @@ import tkinter as tk
 from PIL import Image,ImageTk
 
 from .ScriptParser import MediaDef, CharTable, RplGenLog, Script
-from .GUI_PageElement import SearchBar, OutPutCommand, NewElementCommand
+from .GUI_PageElement import SearchBar, OutPutCommand, NewElementCommand, VerticalOutputCommand
 from .GUI_CodeView import RGLCodeViewFrame
 from .GUI_Container import RGLContainer, MDFContainer, CTBContainer
 from .GUI_PreviewCanvas import MDFPreviewCanvas, CTBPreviewCanvas, RGLPreviewCanvas
 from .GUI_Edit import EditWindow, CharactorEdit, MediaEdit, LogEdit
+from .GUI_Link import Link
 
 # 项目视图-页面-总体
 class PageFrame(ttk.Frame):
@@ -88,6 +89,9 @@ class PageNotes(ttk.Frame):
         self.active_tabs = {}
         self.active_tabs_name_list = []
         self.selected_tabs = None
+        # 全局连接
+        Link['active_tabs'] = self.active_tabs
+        # 更新显示
         self.update_item()
     def update_item(self):
         SZ_2 = int(self.sz * 2)
@@ -193,7 +197,8 @@ class RGLPage(ttk.Frame):
         SZ_40 = int(self.sz * 40)
         # 代码编辑区
         try:
-            self.codeview.place_forget()
+            self.codeviewframe.destroy()
+            self.outputcommand.destroy()
         except Exception:
             pass
         # 元件
@@ -216,7 +221,7 @@ class RGLPage(ttk.Frame):
             self.container.destroy()
             self.outputcommand.destroy()
             self.preview.destroy()
-            self.edit.place_forget()
+            self.edit.destroy()
         except Exception:
             pass
         # 脚本模式
@@ -227,8 +232,15 @@ class RGLPage(ttk.Frame):
             mediadef    = self.ref_medef,
             chartab     = self.ref_chartab
         )
+        self.outputcommand = VerticalOutputCommand(
+            master=self,
+            screenzoom=self.sz
+        )
         # 代码编辑区
-        self.codeviewframe.place(x=0,y=0,relwidth=1,relheight=1)
+        self.codeviewframe.pack(side='left',fill='both',expand=True)
+        self.outputcommand.pack(side='left',fill='y')
+        # self.codeviewframe.place(x=0,y=0,relwidth=1,relheight=1)
+        # self.codeviewframe.place(x=0,y=0,relwidth=1,relheight=1)
 
 # 页面视图：媒体定义文件
 class MDFPage(ttk.Frame):

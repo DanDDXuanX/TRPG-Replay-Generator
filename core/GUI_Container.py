@@ -22,7 +22,7 @@ class Container(ScrolledFrame):
         self.page = master
         self.preview_canvas = self.page.preview
         self.edit_window = self.page.edit
-        self.vscroll.config(bootstyle='primary-round')
+        self.vscroll.config(bootstyle='secondary-round')
         self.container.config(bootstyle='light',takefocus=True)
         # 按键绑定
         self.container.bind('<Control-Key-a>',lambda event:self.select_range(event,index=False),"+")
