@@ -67,6 +67,8 @@ class ScriptExecuter(TableEdit):
     def __init__(self,master,screenzoom)->None:
         # 继承
         super().__init__(master=master,screenzoom=screenzoom,title='运行脚本')
+        # 重写：改为不可滚动的
+        self.options = ttk.Frame(master=self)
         # 输出选项
         self.outputs = OutPutCommandAtScriptExecuter(master=self,screenzoom=self.sz)
         # 初始化

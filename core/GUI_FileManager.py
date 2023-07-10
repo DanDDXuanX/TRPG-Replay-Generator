@@ -6,7 +6,7 @@
 
 import json
 import re
-from PIL import Image, ImageTk
+from PIL import Image, ImageTk, ImageEnhance
 import ttkbootstrap as ttk
 import tkinter as tk
 from ttkbootstrap.scrolled import ScrolledFrame
@@ -72,7 +72,7 @@ class RplGenProJect(Script):
 class FileManager(ttk.Frame):
     def __init__(self, master, screenzoom, page_frame:PageFrame, project_file:str=None)->None:
         self.sz = screenzoom
-        super().__init__(master,borderwidth=0,bootstyle='primary')
+        super().__init__(master,borderwidth=0)
         self.master = master
         # 文件管理器的项目对象
         self.project:RplGenProJect = RplGenProJect(json_input=project_file)
@@ -81,7 +81,6 @@ class FileManager(ttk.Frame):
         SZ_30 = int(self.sz * 30)
         icon_size = [SZ_30,SZ_30]
         self.image = {
-            # 'title'     : ImageTk.PhotoImage(name='title',   image=Image.open('./media/cover.jpg').resize([SZ_300,SZ_180])),
             'save'      : ImageTk.PhotoImage(name='save' ,   image=Image.open('./media/icon/save.png').resize(icon_size)),
             'config'    : ImageTk.PhotoImage(name='config',   image=Image.open('./media/icon/setting.png').resize(icon_size)),
             'import'    : ImageTk.PhotoImage(name='import',   image=Image.open('./media/icon/import.png').resize(icon_size)),
@@ -131,9 +130,10 @@ class FileManager(ttk.Frame):
         self.update_item()
     def update_item(self):
         SZ_10 = int(self.sz*10)
+        SZ_2 = int(self.sz * 2)
         for idx,key in enumerate(self.items):
             fileitem:FileCollapsing = self.items[key]
-            fileitem.pack(fill='x',pady=0,padx=0,side='top')
+            fileitem.pack(fill='x',pady=(0,SZ_2),padx=0,side='top')
         self.project_content.pack(fill='both',expand=True,side='top')
     # 检查相关文件是否存在
     def check_file_exist(self,filepath:str)->bool:
@@ -301,16 +301,16 @@ class FileCollapsing(ttk.Frame):
         SZ_2 = int(self.sz * 2)
         super().__init__(master=master,borderwidth=0)
         self.class_text = {'mediadef':'媒体库','chartab':'角色配置','rplgenlog':'剧本文件'}[fileclass]
-        self.collapbutton = ttk.Button(master=self,text=self.class_text,command=self.update_toggle,bootstyle='warning')
+        self.collapbutton = ttk.Button(master=self,text=self.class_text,command=self.update_toggle,style='warning')
         self.content_frame = ttk.Frame(master=self)
         self.button_padding = (SZ_5,SZ_2,SZ_5,SZ_2)
         # 内容，正常来说，self.items的key应该正好等于Button的text
         self.content = content
         self.items = {}
     def update_item(self):
-        SZ_3 = int(self.sz * 3)
+        SZ_1 = int(self.sz * 1)
         self.update_filelist()
-        self.collapbutton.pack(fill='x',side='top',ipady=SZ_3)
+        self.collapbutton.pack(fill='x',side='top',ipady=SZ_1)
         self.expand:bool = False
         self.update_toggle()
     def update_filelist(self):
@@ -499,6 +499,10 @@ class FileCollapsing(ttk.Frame):
         else:
             # 如果是活动页，切换到活跃页
             self.page_frame.goto_page(name=keyword)
+    def enhance_image(self,image):
+        enhancer = ImageEnhance.Brightness(image)
+        enhanced_image = enhancer.enhance(3)
+        return enhanced_image
 # 项目视图-可折叠类容器-媒体类
 class MDFCollapsing(FileCollapsing):
     media_type_name = {
@@ -526,6 +530,7 @@ class MDFCollapsing(FileCollapsing):
             filename = self.media_type_name[mediatype]
             showname = "{} ({})".format(filename,mediatype)
             self.image[mediatype] = ImageTk.PhotoImage(name='FM_'+mediatype , image=Image.open(self.image_path[mediatype]).resize(icon_size))
+            self.image[mediatype+'_LT'] = ImageTk.PhotoImage(name='FM_'+mediatype+'_LT' , image=self.enhance_image(Image.open(self.image_path[mediatype]).resize(icon_size)))
             self.items[mediatype] = ttk.Button(
                 master      = self.content_frame,
                 text        = showname,
@@ -558,7 +563,11 @@ class CTBCollapsing(FileCollapsing):
         SZ_3  = int(self.sz * 3 )
         SZ_1  = int(self.sz * 1 )
         icon_size = [SZ_15,SZ_15]
-        self.image = ImageTk.PhotoImage(name='FM_charactor' , image=Image.open('./media/icon/FM_charactor.png').resize(icon_size))
+        image = Image.open('./media/icon/FM_charactor.png').resize(icon_size)
+        self.image = [
+            ImageTk.PhotoImage(name='FM_charactor' , image=image),
+            ImageTk.PhotoImage(name='FM_charactor_LT' , image=self.enhance_image(image)),
+            ]
         self.img_name = 'FM_charactor'
         # 新建按钮
         self.add_button = ttk.Button(master=self.collapbutton,text='新增+',bootstyle='warning',padding=0,command=self.add_item)
@@ -625,7 +634,11 @@ class RGLCollapsing(FileCollapsing):
         SZ_3  = int(self.sz * 3 )
         SZ_1  = int(self.sz * 1 )
         icon_size = [SZ_15,SZ_15]
-        self.image = ImageTk.PhotoImage(name='FM_logfile' , image=Image.open('./media/icon/FM_logfile.png').resize(icon_size))
+        image = Image.open('./media/icon/FM_logfile.png').resize(icon_size)
+        self.image = [
+            ImageTk.PhotoImage(name='FM_logfile' , image=image),
+            ImageTk.PhotoImage(name='FM_logfile_LT' , image=self.enhance_image(image)),
+            ]
         self.img_name = 'FM_logfile'
         # 新建按钮
         self.add_button = ttk.Button(master=self.collapbutton,text='新增+',bootstyle='warning',padding=0,command=self.add_item)

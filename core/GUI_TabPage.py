@@ -27,7 +27,7 @@ class PageFrame(ttk.Frame):
         self.page_notebook = PageNotes(master=self, screenzoom=self.sz)
         self.empty_bg = ImageTk.PhotoImage(name='logo_bg',image=Image.open('./media/icon2.png'))
         self.page_dict = {
-            'empty' : ttk.Label(master=self,image='logo_bg',anchor='center',bootstyle='primary')
+            'empty' : ttk.Label(master=self,image='logo_bg',anchor='center')
         }
         self.page_show = self.page_dict['empty']
         # 引用对象：初始化状态
@@ -138,6 +138,7 @@ class PageNotes(ttk.Frame):
 class TabNote(ttk.Button):
     def __init__(self,master,screenzoom,text,image,bootstyle)->None:
         self.sz = screenzoom
+        self.imagename = image
         SZ_5 = int(self.sz * 5)
         SZ_21 = int(self.sz * 21)
         SZ_24 = int(self.sz * 24)
@@ -146,7 +147,7 @@ class TabNote(ttk.Button):
             master,
             bootstyle=bootstyle,
             text=text,
-            image=image,
+            image=self.imagename+'_LT',
             compound='left',
             padding=(SZ_5,SZ_5,SZ_30,SZ_5),
             command=self.get_pressed
@@ -169,10 +170,10 @@ class TabNote(ttk.Button):
         # 复原所有已点击
         for key in self.master.active_tabs:
             self.master.active_tabs[key].recover()
-        self.config(bootstyle=self.bootstyle+'-link')
+        self.config(bootstyle=self.bootstyle+'-link', image=self.imagename)
         self.dele.config(bootstyle=self.bootstyle+'-link')
     def recover(self):
-        self.config(bootstyle=self.bootstyle)
+        self.config(bootstyle=self.bootstyle,image=self.imagename+'_LT')
         self.dele.config(bootstyle=self.bootstyle)
     def press_delete(self):
         self.master.delete(name=self.name)
@@ -181,7 +182,7 @@ class RGLPage(ttk.Frame):
     def __init__(self,master,screenzoom,content_obj:dict,content_type):
         # 缩放尺度
         self.sz = screenzoom
-        super().__init__(master,borderwidth=0,bootstyle='primary')
+        super().__init__(master,borderwidth=0)
         # 内容
         self.content:RplGenLog = content_obj[content_type]
         # 是否被修改
@@ -255,7 +256,7 @@ class MDFPage(ttk.Frame):
     def __init__(self,master,screenzoom,content_obj:MediaDef,content_type='Animation'):
         # 缩放尺度
         self.sz = screenzoom
-        super().__init__(master,borderwidth=0,bootstyle='primary')
+        super().__init__(master,borderwidth=0)
         # 内容
         self.content:MediaDef = content_obj
         self.ref_medef = self.content
@@ -307,7 +308,7 @@ class CTBPage(ttk.Frame):
     def __init__(self,master,screenzoom,content_obj:CharTable,content_type:str):
         # 缩放尺度
         self.sz = screenzoom
-        super().__init__(master,borderwidth=0,bootstyle='primary')
+        super().__init__(master,borderwidth=0)
         # 内容
         self.content:CharTable = content_obj
         # 是否被修改

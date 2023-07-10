@@ -425,7 +425,7 @@ class MediaEdit(EditWindow):
             self.elements['filepath'].bind_button(dtype='picture-file')
             self.elements['pos'].input.configure(values=self.get_avaliable_pos())
             self.elements['pos'].describe.configure(command=lambda :self.select_dot('g0','p1'))
-            self.elements['scale'].input.configure(from_=0.1,to=3,increment=0.1)
+            self.elements['scale'].input.configure(from_=0.1,to=3,increment=0.01)
         # MainText HeadText
         if self.line_type in ['Bubble','Balloon','DynamicBubble']:
             self.elements['Main_Text'].input.configure(values=['Text()']+self.get_avaliable_text())
