@@ -14,7 +14,7 @@ from ttkbootstrap.dialogs import Messagebox
 from ttkbootstrap.tooltip import ToolTip
 from .ScriptParser import MediaDef, CharTable, RplGenLog, Script
 from .FilePaths import Filepath
-from .ProjConfig import Config
+from .ProjConfig import Config, preference
 from .Exceptions import MediaError
 from .Medias import MediaObj
 from .GUI_TabPage import PageFrame, RGLPage, CTBPage, MDFPage
@@ -51,6 +51,7 @@ class RplGenProJect(Script):
                 self.logfile[key] = RplGenLog(dict_input=self.struct['logfile'][key])
         # 保存在全局连接
         Link['project_config'] = self.config
+        Link['media_dir'] = Filepath.Mediapath
     def dump_json(self, filepath: str) -> None:
         logfile_dict = {}
         for key in self.logfile.keys():
@@ -529,7 +530,10 @@ class MDFCollapsing(FileCollapsing):
         for mediatype in ['Pos', 'Text', 'Bubble', 'Animation', 'Background', 'Audio']:
             filename = self.media_type_name[mediatype]
             showname = "{} ({})".format(filename,mediatype)
-            self.image[mediatype] = ImageTk.PhotoImage(name='FM_'+mediatype , image=Image.open(self.image_path[mediatype]).resize(icon_size))
+            if preference.theme == 'rplgendark':
+                self.image[mediatype] = ImageTk.PhotoImage(name='FM_'+mediatype , image=self.enhance_image(Image.open(self.image_path[mediatype]).resize(icon_size)))
+            else:
+                self.image[mediatype] = ImageTk.PhotoImage(name='FM_'+mediatype , image=Image.open(self.image_path[mediatype]).resize(icon_size))
             self.image[mediatype+'_LT'] = ImageTk.PhotoImage(name='FM_'+mediatype+'_LT' , image=self.enhance_image(Image.open(self.image_path[mediatype]).resize(icon_size)))
             self.items[mediatype] = ttk.Button(
                 master      = self.content_frame,
@@ -564,10 +568,16 @@ class CTBCollapsing(FileCollapsing):
         SZ_1  = int(self.sz * 1 )
         icon_size = [SZ_15,SZ_15]
         image = Image.open('./media/icon/FM_charactor.png').resize(icon_size)
-        self.image = [
-            ImageTk.PhotoImage(name='FM_charactor' , image=image),
-            ImageTk.PhotoImage(name='FM_charactor_LT' , image=self.enhance_image(image)),
-            ]
+        if preference.theme == 'rplgendark':
+            self.image = [
+                ImageTk.PhotoImage(name='FM_charactor' , image=self.enhance_image(image)),
+                ImageTk.PhotoImage(name='FM_charactor_LT' , image=self.enhance_image(image)),
+                ]
+        else:
+            self.image = [
+                ImageTk.PhotoImage(name='FM_charactor' , image=image),
+                ImageTk.PhotoImage(name='FM_charactor_LT' , image=self.enhance_image(image)),
+                ]
         self.img_name = 'FM_charactor'
         # 新建按钮
         self.add_button = ttk.Button(master=self.collapbutton,text='新增+',bootstyle='warning',padding=0,command=self.add_item)
@@ -635,10 +645,16 @@ class RGLCollapsing(FileCollapsing):
         SZ_1  = int(self.sz * 1 )
         icon_size = [SZ_15,SZ_15]
         image = Image.open('./media/icon/FM_logfile.png').resize(icon_size)
-        self.image = [
-            ImageTk.PhotoImage(name='FM_logfile' , image=image),
-            ImageTk.PhotoImage(name='FM_logfile_LT' , image=self.enhance_image(image)),
-            ]
+        if preference.theme == 'rplgendark':
+            self.image = [
+                ImageTk.PhotoImage(name='FM_logfile' , image=self.enhance_image(image)),
+                ImageTk.PhotoImage(name='FM_logfile_LT' , image=self.enhance_image(image)),
+                ]
+        else:
+            self.image = [
+                ImageTk.PhotoImage(name='FM_logfile' , image=image),
+                ImageTk.PhotoImage(name='FM_logfile_LT' , image=self.enhance_image(image)),
+                ]
         self.img_name = 'FM_logfile'
         # 新建按钮
         self.add_button = ttk.Button(master=self.collapbutton,text='新增+',bootstyle='warning',padding=0,command=self.add_item)

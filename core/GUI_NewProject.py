@@ -162,8 +162,14 @@ class CreateEmptyProject(CreateProject):
         }
         # 保存文件
         try:
+            # 建立项目文件
             with open(save_path,'w',encoding='utf-8') as of:
                 of.write(json.dumps(new_project_struct,indent=4))
+            # 建立项目资源目录
+            try:
+                os.makedirs(save_dir + '/' + file_name)
+            except FileExistsError:
+                pass
             # 退出
             self.close_func(save_path)
         except:

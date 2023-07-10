@@ -285,8 +285,9 @@ class RGLCodeViewFrame(ttk.Frame):
         # 代码视图
         self.codeview._line_numbers.bind('<ButtonRelease-3>',self.click_2_preview,'+')
         self.codeview._line_numbers.bind('<Leave>',self.close_preview,'+')
-        self.codeview._vs.configure(bootstyle='dark-round')
-        self.codeview._hs.configure(bootstyle='dark-round')
+        self.codeview._line_numbers.configure(borderwidth=0)
+        self.codeview._vs.configure(bootstyle='success-round')
+        self.codeview._hs.configure(bootstyle='success-round')
         # 搜索高亮
         self.codeview.tag_config('search', background='#904f1e')
         self.codeview.tag_config('preview', background='#0072d6')

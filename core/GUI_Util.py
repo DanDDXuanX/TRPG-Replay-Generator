@@ -6,6 +6,7 @@ from ttkbootstrap.tooltip import ToolTip
 import tkinter as tk
 from PIL import Image, ImageTk
 from .GUI_DialogWindow import color_chooser, browse_file
+from .ProjConfig import preference
 
 # 公用小元件
 # 包含：最小键值对
@@ -189,8 +190,12 @@ class DetailedKeyValueDescribe(KeyValueDescribe):
         super().__init__(master=master,screenzoom=screenzoom,key=key,value=value,describe=describe,tooltip=None,callback=callback)
         SZ_5 = int(self.sz * 5)
         padding = (0,SZ_5,0,SZ_5)
-        self.key.configure(font='-family 微软雅黑 -size 11 -weight bold',foreground='#000000',anchor='w',width=30)
-        self.tooltip = ttk.Label(master=self,text=tooltip,anchor='w',padding=padding,foreground='#888888')
+        if preference.theme == 'rplgenlight':
+            self.key.configure(font='-family 微软雅黑 -size 11 -weight bold',foreground='#000000',anchor='w',width=30)
+            self.tooltip = ttk.Label(master=self,text=tooltip,anchor='w',padding=padding,foreground='#888888')
+        else:
+            self.key.configure(font='-family 微软雅黑 -size 11 -weight bold',foreground='#eeeeee',anchor='w',width=30)
+            self.tooltip = ttk.Label(master=self,text=tooltip,anchor='w',padding=padding,foreground='#aaaaaa')
         self.sideshow = ttk.Frame(master=self, bootstyle='secondary')
         self.update_item_delay()
     def update_item(self):
@@ -309,6 +314,9 @@ class Texture(tk.Frame):
         self.canvas = ttk.Label(master=self,padding=0)
         # 纹理图片
         self.texture = Image.open(file)
+        # 如果是黑暗模式，则反向
+        if preference.theme == 'rplgendark':
+            self.texture = Image.eval(self.texture, lambda x: 255 + 16 - x)
         self.bind('<Configure>', self.update_image)
         self.update_image(None)
         self.update_item()

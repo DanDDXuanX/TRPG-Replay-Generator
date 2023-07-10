@@ -140,7 +140,7 @@ class Preference:
             self.heart_distance:float = 0.026 # W
             # 预览
             # theme # light, dark
-            self.theme:str = 'light'
+            self.theme:str = 'rplgenlight'
             # 进度条样式 # color ,black ,disable
             self.progress_bar_style:str = 'color'
             # 帧率显示器开启

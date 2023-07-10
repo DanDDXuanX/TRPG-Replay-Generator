@@ -2034,7 +2034,7 @@ PreferenceTableStruct = {
                 "valuekey": "System.theme",
                 "vitem": "combox",
                 "vtype": "str",
-                "default": 'light'
+                "default": 'rplgenlight'
             },
         }
     },       
@@ -2414,13 +2414,13 @@ language = {
     'English' : 'en'
 }
 theme = {
-    '明亮' : 'light',
-    '黑暗' : 'dark'
+    '明亮' : 'rplgenlight',
+    '黑暗' : 'rplgendark'
 }
 progressbar = {
     '彩色' : 'color',
-    '黑白' : '',
-    '禁用' : '',
+    '黑白' : 'black',
+    '禁用' : 'disable',
 }
 # 新建媒体按钮的结构
 NewElement = {

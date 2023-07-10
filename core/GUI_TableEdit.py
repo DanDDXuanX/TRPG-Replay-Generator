@@ -138,8 +138,10 @@ class PreferenceTable(TableEdit):
         preference.set_struct(new_struct)
         preference.execute() # 执行变更
         preference.dump_json() # 保存配置文件
+        # 主题
+        # self.winfo_toplevel().style.theme_use(preference.theme)
         # 消息
-        self.show_toast(message='已经成功设置首选项，部分变更可能需要关闭程序后才会生效！',title='修改首选项')
+        self.show_toast(message='已经成功设置首选项！\n主题变更需要重启程序后才会生效',title='修改首选项')
     def show_toast(self,message,title='test'):
         toast = ToastNotification(title=title,message=message,duration=3000)
         toast.show_toast()

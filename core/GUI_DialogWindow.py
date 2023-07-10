@@ -8,6 +8,7 @@ from ttkbootstrap.localization import MessageCatalog
 from tkinter.filedialog import askopenfilename, askdirectory, asksaveasfilename
 from tkinter import StringVar
 from .Utils import rgba_str_2_hex
+from .GUI_Link import Link
 
 class ColorChooserDialogZH(colorchooser.ColorChooserDialog):
     # 重载：在中文系统里，OK被翻译为确定了，这回导致选色的值不输出到result
@@ -82,6 +83,13 @@ def browse_file(master, text_obj:StringVar, method='file', filetype=None, quote:
     if getname == '':
         return getname
     else:
+        # 是否是媒体路径下的文件夹
+        try:
+            media_dir = Link['media_dir']
+            if getname.startswith(media_dir):
+                getname = '@/' + getname[len(media_dir):]
+        except KeyError:
+            pass
         if quote:
             text_obj.set("'{}'".format(getname))
         else:

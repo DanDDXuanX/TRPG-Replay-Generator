@@ -84,7 +84,7 @@ class PageNotes(ttk.Frame):
     """
     def __init__(self,master,screenzoom)->None:
         self.sz = screenzoom
-        super().__init__(master,borderwidth=0,bootstyle='dark')
+        super().__init__(master,borderwidth=0,bootstyle='success')
         self.master = master
         self.active_tabs = {}
         self.active_tabs_name_list = []

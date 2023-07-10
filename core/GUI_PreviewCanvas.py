@@ -10,6 +10,7 @@ from PIL import Image, ImageTk
 
 from core.Medias import MediaObj
 
+from .ProjConfig import preference
 from .ScriptParser import MediaDef, CharTable, RplGenLog
 from .Medias import MediaObj, Animation, Bubble, ChatWindow, Balloon, Background, HitPoint, Dice
 from .FreePos import Pos, PosGrid
@@ -196,6 +197,9 @@ class PreviewCanvas(ttk.Frame):
     def update_canvas_size(self, event):
         self.canvas_size = (self.proj_config.Width, self.proj_config.Height)
         self.empty_canvas = pygame.image.load('./media/canvas.png').subsurface([0,0,self.proj_config.Width,self.proj_config.Height])
+        # 如果是黑暗模式，做反相
+        if preference.theme == 'rplgendark':
+            self.empty_canvas = pygame.surfarray.make_surface(270-pygame.surfarray.array3d(self.empty_canvas))
         self.canvas = pygame.Surface(size=self.canvas_size)
         self.canvas.blit(self.empty_canvas,(0,0))
     # 更新显示尺寸
