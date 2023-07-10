@@ -12,7 +12,7 @@ from PIL import Image, ImageTk
 from .GUI_FileManager import FileManager
 from .GUI_TabPage import PageFrame
 from .GUI_Terminal import Terminal
-from .GUI_TableSet import ScriptExecuter, PreferenceTable
+from .GUI_TableEdit import ScriptExecuter, PreferenceTable
 from .GUI_Util import Texture
 from .GUI_DialogWindow import browse_file
 from .GUI_CustomDialog import new_project

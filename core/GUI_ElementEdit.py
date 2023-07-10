@@ -5,7 +5,7 @@ import re
 import ttkbootstrap as ttk
 from ttkbootstrap.scrolled import ScrolledFrame
 from .GUI_Util import KeyValueDescribe, TextSeparator
-from .GUI_EditTableStruct import TableStruct, label_colors, projection, alignments, chatalign, charactor_columns, fill_mode, fit_axis, True_False
+from .GUI_TableStruct import EditTableStruct, label_colors, projection, alignments, chatalign, charactor_columns, fill_mode, fit_axis, True_False
 from .ScriptParser import MediaDef, RplGenLog, CharTable
 from .GUI_CustomDialog import voice_chooser, selection_query
 from .Exceptions import SyntaxsError
@@ -14,7 +14,7 @@ from ttkbootstrap.dialogs import Messagebox, Querybox
 
 # 编辑窗
 class EditWindow(ScrolledFrame):
-    TableStruct = TableStruct
+    TableStruct = EditTableStruct
     def __init__(self,master,screenzoom):
         # 初始化基类
         self.sz = screenzoom
@@ -209,7 +209,7 @@ class CharactorEdit(EditWindow):
     table_col = CharTable.table_col
     def __init__(self, master, screenzoom):
         super().__init__(master, screenzoom)
-        self.TableStruct = TableStruct['CharTable']
+        self.TableStruct = EditTableStruct['CharTable']
     # 从角色表更新表结构，初始化时
     def update_from_section(self,index:str,section:dict,line_type='charactor'):
         # 继承
@@ -349,7 +349,7 @@ class MediaEdit(EditWindow):
     medef_tool = MediaDef()
     def __init__(self, master, screenzoom):
         super().__init__(master, screenzoom)
-        self.TableStruct = TableStruct['MediaDef']
+        self.TableStruct = EditTableStruct['MediaDef']
     def update_from_section(self,index:str,section: dict, line_type):
         super().update_from_section(index, section, line_type)
         # 更新
@@ -594,7 +594,7 @@ class MediaEdit(EditWindow):
 class LogEdit(EditWindow):
     def __init__(self, master, screenzoom):
         super().__init__(master, screenzoom)
-        self.TableStruct = TableStruct['RplGenLog']
+        self.TableStruct = EditTableStruct['RplGenLog']
     def update_from_section(self,index:str,section: dict, line_type):
         super().update_from_section(index, section, line_type)
         # TODO:各个类型的config

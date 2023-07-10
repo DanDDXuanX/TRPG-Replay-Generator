@@ -9,7 +9,7 @@ import ttkbootstrap as ttk
 from pathlib import Path
 from ttkbootstrap.dialogs import Dialog, Messagebox, MessageCatalog
 from .GUI_Util import KeyValueDescribe
-from .GUI_EditTableStruct import NewProjectTable
+from .GUI_TableStruct import ProjectTableStruct
 
 class CreateProject(ttk.Frame):
     table_struct = {}
@@ -76,7 +76,7 @@ class CreateEmptyProject(CreateProject):
     # 1. 基本（项目名称、项目封面、位置）
     # 2. 视频（分辨率、帧率）
     # 3. 图层（图层顺序）
-    table_struct = NewProjectTable['EmptyProject']
+    table_struct = ProjectTableStruct['EmptyProject']
     video_preset = {
         '自定义':   None,
         '横屏-高清 (1920x1080, 30fps)'  : [1920, 1080, 30],

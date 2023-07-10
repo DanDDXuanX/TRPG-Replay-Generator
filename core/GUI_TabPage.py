@@ -16,7 +16,7 @@ from .GUI_PageElement import SearchBar, OutPutCommand, NewElementCommand, Vertic
 from .GUI_CodeView import RGLCodeViewFrame
 from .GUI_Container import RGLContainer, MDFContainer, CTBContainer
 from .GUI_PreviewCanvas import MDFPreviewCanvas, CTBPreviewCanvas, RGLPreviewCanvas
-from .GUI_Edit import EditWindow, CharactorEdit, MediaEdit, LogEdit
+from .GUI_ElementEdit import EditWindow, CharactorEdit, MediaEdit, LogEdit
 from .GUI_Link import Link
 
 # 项目视图-页面-总体

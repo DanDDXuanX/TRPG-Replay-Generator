@@ -8,7 +8,7 @@ import ttkbootstrap as ttk
 from ttkbootstrap.dialogs import Dialog,MessageCatalog
 from tkinter import StringVar, IntVar
 # 语音选择、重定位文件、新建项目
-from .GUI_EditTableStruct import ABMethod
+from .GUI_TableStruct import ABMethod
 from .GUI_VoiceChooser import VoiceChooserDialog
 from .GUI_NewProject import CreateProjectDialog
 from .GUI_Relocate import RelocateDialog

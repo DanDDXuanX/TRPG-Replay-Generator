@@ -11,7 +11,7 @@ import pygame
 from ttkbootstrap.tooltip import ToolTip
 from PIL import Image, ImageTk
 from .GUI_Container import Container
-from .GUI_EditTableStruct import NewElement
+from .GUI_TableStruct import NewElement
 from .OutputType import PreviewDisplay, ExportVideo, ExportXML
 from .SpeechSynth import SpeechSynthesizer
 from .Medias import MediaObj
