@@ -2,6 +2,9 @@
 # coding: utf-8
 # 项目配置参数
 
+import os
+import json
+from pathlib import Path
 from .Exceptions import ArgumentError,WarningPrint,Print,RplGenError
 from .Motion import MotionMethod
 from .Medias import MediaObj
@@ -77,42 +80,98 @@ class Config:
         MediaObj.Is_NTSC:bool          = self.frame_rate % 30 == 0 
         MediaObj.Audio_type:str        = 'Audio_type'
 
-
 # 程序设置
 class Preference:
-    def __init__(self,dict_input:dict=None) -> None:
-        # 合成语音时：key
-        self.accesskey:str = 'Your_AccessKey'
-        self.accesskey_secret:str = 'Your_AccessKey_Secret'
-        self.appkey:str = 'Your_Appkey'
-        self.azurekey:str = 'Your_Azurekey'
-        self.service_region:str = 'eastasia'
-        # 导出视频时：视频质量
-        self.crf:int = 24
-        # 语言
-        self.lang:str = 'en'
-        
-        # 媒体
-        # 内建动画的字体文件
-        self.BIA_font:str = './media/SourceHanSerifSC-Heavy.otf'
-        # 内建动画的字体大小
-        self.BIA_font_size:float = 0.0521 # W
-        # 生命动画的前景图
-        self.heart_pic:str = './media/heart.png'
-        # 生命动画的背景图
-        self.heart_shape:str = './media/heart_shape.png'
-        # 心与心的距离
-        self.heart_distance:float = 0.026 # W
-        # 预览
-        # theme # light, dark
-        self.theme:str = 'light'
-        # 进度条样式 # color ,black ,disable
-        self.progress_bar_style:str = 'color'
-        # 帧率显示器开启
-        self.framerate_counter:bool = True
-        # 导出PR
-        # 是否强制在断点处拆分序列
-        self.force_split_clip:bool = False
+    def __init__(self,dict_input:dict=None,json_input:str=None) -> None:
+        # 载入
+        if json_input:
+            self.file = json_input
+            self.set_struct(dict_input=self.load_json(json_input))
+        else:
+            self.file = home_dir /'.rplgen' /'preference.json'
+            self.set_struct(dict_input=dict_input)
+        # 执行
+        self.execute()
+    def set_struct(self,dict_input:dict=None) -> None:
+        if dict_input:
+            # 合成
+            self.accesskey:str = dict_input['Aliyun.accesskey']
+            self.accesskey_secret:str = dict_input['Aliyun.accesskey_secret']
+            self.appkey:str = dict_input['Aliyun.appkey']
+            self.azurekey:str = dict_input['Azure.azurekey']
+            self.service_region:str = dict_input['Azure.service_region']
+            # 系统
+            self.lang:str = dict_input['System.lang']
+            self.theme:str = dict_input['System.theme']
+            # 媒体
+            self.BIA_font:str = dict_input['BIA.font']
+            self.BIA_font_size:float =dict_input['BIA.font_size']
+            self.heart_pic:str = dict_input['BIA.heart_pic']
+            self.heart_shape:str = dict_input['BIA.heart_shape']
+            self.heart_distance:float = dict_input['BIA.heart_distance']
+            # 预览
+            self.progress_bar_style:str = dict_input['Preview.progress_bar_style']
+            self.framerate_counter:bool = dict_input['Preview.framerate_counter']
+            # 导出
+            self.force_split_clip:bool = dict_input['Export.force_split_clip']
+            self.crf:int = dict_input['Export.crf']
+        else:
+            # 合成语音时：key
+            self.accesskey:str = 'Your_AccessKey'
+            self.accesskey_secret:str = 'Your_AccessKey_Secret'
+            self.appkey:str = 'Your_Appkey'
+            self.azurekey:str = 'Your_Azurekey'
+            self.service_region:str = 'eastasia'
+            # 导出视频时：视频质量
+            self.crf:int = 24
+            # 语言
+            self.lang:str = 'zh'
+            
+            # 媒体
+            # 内建动画的字体文件
+            self.BIA_font:str = './media/SourceHanSerifSC-Heavy.otf'
+            # 内建动画的字体大小
+            self.BIA_font_size:float = 0.0521 # W
+            # 生命动画的前景图
+            self.heart_pic:str = './media/heart.png'
+            # 生命动画的背景图
+            self.heart_shape:str = './media/heart_shape.png'
+            # 心与心的距离
+            self.heart_distance:float = 0.026 # W
+            # 预览
+            # theme # light, dark
+            self.theme:str = 'light'
+            # 进度条样式 # color ,black ,disable
+            self.progress_bar_style:str = 'color'
+            # 帧率显示器开启
+            self.framerate_counter:bool = True
+            # 导出PR
+            # 是否强制在断点处拆分序列
+            self.force_split_clip:bool = False
+    def get_struct(self)->dict:
+        return {
+            # 语音合成
+            'Aliyun.accesskey'          : self.accesskey,
+            'Aliyun.accesskey_secret'   : self.accesskey_secret,
+            'Aliyun.appkey'             : self.appkey,
+            'Azure.azurekey'            : self.azurekey,
+            'Azure.service_region'      : self.service_region,
+            # 系统
+            'System.lang'               : self.lang,
+            'System.theme'              : self.theme,
+            # 媒体
+            'BIA.font'                  : self.BIA_font,
+            'BIA.font_size'             : self.BIA_font_size,
+            'BIA.heart_pic'             : self.heart_pic,
+            'BIA.heart_shape'           : self.heart_shape,
+            'BIA.heart_distance'        : self.heart_distance,
+            # 预览
+            'Preview.progress_bar_style': self.progress_bar_style,
+            'Preview.framerate_counter' : self.framerate_counter,
+            # 导出
+            'Export.crf'                : self.crf,
+            'Export.force_split_clip'   : self.force_split_clip,
+        }
     def execute(self):
         # 修改语言
         if self.lang == 'zh':
@@ -130,3 +189,27 @@ class Preference:
         # Azure语音合成key
         Azure_TTS_engine.AZUKEY = self.azurekey
         Azure_TTS_engine.service_region = self.service_region
+    def load_json(self,filepath)->dict:
+        with open(filepath,'r') as json_file:
+            data =json.load(json_file)
+        return data
+    def dump_json(self,filepath=None)->None:
+        if filepath is None:
+            filepath = self.file
+        with open(filepath,'w') as out_file:
+            json.dump(self.get_struct(), out_file, indent=4)
+
+# 全局变量
+
+home_dir = Path(os.path.expanduser("~"))
+try:
+    # 从home目录读取
+    preference = Preference(json_input=home_dir /'.rplgen' /'preference.json')
+except:
+    # 在home目录新建目录
+    try:
+        os.makedirs(home_dir / '.rplgen')
+    except FileExistsError:
+        pass
+    preference = Preference()
+    preference.dump_json(home_dir / '.rplgen' / 'preference.json')

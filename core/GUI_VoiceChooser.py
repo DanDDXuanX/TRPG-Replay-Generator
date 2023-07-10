@@ -208,7 +208,7 @@ class AzureVoiceArgs(VoiceArgs):
         # order
         self.display_order = ['voice','style','degree','roleplay','speechrate','pitchrate']
         # 放置元件
-        self.update_selected_voice(None)
+        self.update_voice_style()
         self.update_elements()
         self.update_items()
     def update_elements(self):
@@ -222,6 +222,8 @@ class AzureVoiceArgs(VoiceArgs):
         self.variables['degree'].set(1.0)
         self.variables['roleplay'].set('Default')
         # 刷新可选值
+        self.update_voice_style()
+    def update_voice_style(self):
         this_style:list = self.get_voice_info(colname='style').split(',')
         this_role:list = self.get_voice_info(colname='role').split(',')
         self.inputs['style'].configure(values=this_style)

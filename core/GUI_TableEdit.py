@@ -2,11 +2,13 @@
 # coding: utf-8
 
 import ttkbootstrap as ttk
-from ttkbootstrap.constants import DEFAULT
 from ttkbootstrap.scrolled import ScrolledFrame
+from ttkbootstrap.toast import ToastNotification
+from .ProjConfig import preference, Preference
 from .GUI_PageElement import OutPutCommand
 from .GUI_Util import TextSeparator, KeyValueDescribe
 from .GUI_TableStruct import PreferenceTableStruct, ExecuteTableStruct
+from .GUI_TableStruct import language, True_False, theme, progressbar
 
 class OutPutCommandAtScriptExecuter(OutPutCommand):
     # 重载
@@ -25,6 +27,8 @@ class TableEdit(ttk.Frame):
         self.options = ScrolledFrame(master=self,autohide=True)
         self.options.vscroll.config(bootstyle='primary-round')
         self.outputs = ttk.Frame(master=self)
+        # 结构
+        self.struct = {}
         # 分隔符和项目
         self.seperator = {}
         self.elements = {}
@@ -55,7 +59,12 @@ class TableEdit(ttk.Frame):
                 )
                 for key in this_sep['Content']:
                     this_kvd:dict = this_sep['Content'][key]
-                    this_value = this_kvd['default']
+                    # 获取struct，或者default
+                    try:
+                        this_value = self.struct[this_kvd['valuekey']]
+                    except KeyError:
+                        this_value = this_kvd['default']
+                    # 新建kvd
                     self.elements[key] = self.seperator[sep].add_element(key=key, value=this_value, kvd=this_kvd, detail=detail)
         # 绑定功能
         self.update_element_prop()
@@ -85,10 +94,53 @@ class PreferenceTable(TableEdit):
     def __init__(self,master,screenzoom)->None:
         # 继承
         super().__init__(master=master,screenzoom=screenzoom,title='首选项')
+        # 首选项
+        self.struct = preference.get_struct()
         # 输出选项
+        self.buttons = {
+            'reset'     : ttk.Button(master=self.outputs, text='重置', command=self.reset, style='output.TButton'),
+            'comfirm'   : ttk.Button(master=self.outputs, text='确定', command=self.confirm, style='output.TButton')
+        }
+        for key in self.buttons:
+            item:ttk.Button = self.buttons[key]
+            item.pack(fill='both',side='left',expand=True,pady=0)
         # self.outputs = OutPutCommand(master=self,screenzoom=self.sz)
         # 初始化
         self.update_from_tablestruct(detail=True)
         self.update_item()
     def update_element_prop(self):
-        pass
+        # combox
+        self.elements['System.lang'].input.update_dict(language)
+        self.elements['System.theme'].input.update_dict(theme)
+        self.elements['Preview.progress_bar_style'].input.update_dict(progressbar)
+        self.elements['Preview.framerate_counter'].input.update_dict(True_False)
+        self.elements['Export.force_split_clip'].input.update_dict(True_False)
+        # spine
+        self.elements['Export.crf'].input.configure(from_=0,to=51,increment=1)
+        # button
+        self.elements['BIA.font'].bind_button(dtype='fontfile-file',quote=False)
+        self.elements['BIA.heart_pic'].bind_button(dtype='picture-file',quote=False)
+        self.elements['BIA.heart_shape'].bind_button(dtype='picture-file',quote=False)
+    def reset(self):
+        reset_struct:dict = Preference().get_struct()
+        # 重设前端显示
+        for keyword in self.elements:
+            self.elements[keyword].set(reset_struct[keyword])
+        # 重设prefernce对象
+        preference.set_struct(reset_struct)
+        # 消息
+        self.show_toast(message='首选项已经重置为默认值！',title='重置首选项')
+    def confirm(self):
+        new_struct = {}
+        for keyword in self.elements:
+            new_struct[keyword] = self.elements[keyword].get()
+        # 重设prefernce对象
+        preference.set_struct(new_struct)
+        preference.execute() # 执行变更
+        preference.dump_json() # 保存配置文件
+        # 消息
+        self.show_toast(message='已经成功设置首选项，部分变更可能需要关闭程序后才会生效！',title='修改首选项')
+    def show_toast(self,message,title='test'):
+        toast = ToastNotification(title=title,message=message,duration=3000)
+        toast.show_toast()
+        toast.toplevel.lift()

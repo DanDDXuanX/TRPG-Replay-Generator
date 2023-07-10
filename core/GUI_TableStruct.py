@@ -1960,52 +1960,52 @@ PreferenceTableStruct = {
         "Text": "语音合成Key",
         "Command":None,
         "Content":{
-            "accesskey": {
+            "Aliyun.accesskey": {
                 "ktext": "阿里云-AccessKey",
                 "tooltip":"在AccessKey管理中获取，是一段长度为24的乱码。",
                 "dtext": "（输入）",
                 "ditem": "label",
-                "valuekey": "accesskey",
+                "valuekey": "Aliyun.accesskey",
                 "vitem": "entry",
                 "vtype": "str",
                 "default": "请输入你的AccessKey！"
             },
-            "accesskey_secret": {
+            "Aliyun.accesskey_secret": {
                 "ktext": "阿里云-AccessKeySecret",
                 "tooltip":"在AccessKey管理中获取，是一段长度为30的乱码。",
                 "dtext": "（输入）",
                 "ditem": "label",
-                "valuekey": "accesskey_secret",
+                "valuekey": "Aliyun.accesskey_secret",
                 "vitem": "entry",
                 "vtype": "str",
                 "default": "请输入你的AccessKeySecret！"
             },
-            "appkey": {
+            "Aliyun.appkey": {
                 "ktext": "阿里云-AppKey",
                 "tooltip":"在智能语音服务的项目管理页面中，新建项目后获取，是一段长度为16的乱码。",
                 "dtext": "（输入）",
                 "ditem": "label",
-                "valuekey": "appkey",
+                "valuekey": "Aliyun.appkey",
                 "vitem": "entry",
                 "vtype": "str",
                 "default": "请输入你的AppKey！"
             },
-            "azurekey": {
+            "Azure.azurekey": {
                 "ktext": "微软Azure-密钥",
                 "tooltip":"在语音服务中，点击管理密钥后获取，是一段长度为32的乱码。",
                 "dtext": "（输入）",
                 "ditem": "label",
-                "valuekey": "appkey",
+                "valuekey": "Azure.azurekey",
                 "vitem": "entry",
                 "vtype": "str",
                 "default": "请输入你的密钥！"
             },
-            "service_region": {
+            "Azure.service_region": {
                 "ktext": "微软Azure-位置/区域",
                 "tooltip":"开通语音服务时选择的服务区域。",
                 "dtext": "（输入）",
                 "ditem": "label",
-                "valuekey": "appkey",
+                "valuekey": "Azure.service_region",
                 "vitem": "entry",
                 "vtype": "str",
                 "default": "eastasia"
@@ -2016,22 +2016,22 @@ PreferenceTableStruct = {
         "Text": "界面外观",
         "Command":None,
         "Content":{
-            "lang":{
+            "System.lang":{
                 "ktext": "语言：",
                 "tooltip":"在控制台终端显示的语言。",
                 "dtext": "（选择）",
                 "ditem": "label",
-                "valuekey": "lang",
+                "valuekey": "System.lang",
                 "vitem": "combox",
                 "vtype": "str",
                 "default": 'en'
             },
-            "theme":{
+            "System.theme":{
                 "ktext": "主题：",
                 "tooltip": "主界面的配色方案，有深色和浅色两个选择。",
                 "dtext": "（选择）",
                 "ditem": "label",
-                "valuekey": "theme",
+                "valuekey": "System.theme",
                 "vitem": "combox",
                 "vtype": "str",
                 "default": 'light'
@@ -2042,52 +2042,52 @@ PreferenceTableStruct = {
         "Text": "内建动画",
         "Command":None,
         "Content":{
-            "BIA_font":{
+            "BIA.font":{
                 "ktext": "内建动画字体：",
                 "tooltip":"骰子和血条动画中的文字部分的字体。",
                 "dtext": "浏览",
                 "ditem": "button",
-                "valuekey": "BIA_font",
+                "valuekey": "BIA.font",
                 "vitem": "entry",
                 "vtype": "str",
                 "default": './media/SourceHanSerifSC-Heavy.otf'
             },
-            "BIA_font_size":{
+            "BIA.font_size":{
                 "ktext": "内建动画字号：",
                 "tooltip":"骰子和血条动画中文字的大小的乘数，实际字号等于这个数值乘以项目的宽分辨率。",
                 "dtext": "（数值）",
                 "ditem": "label",
-                "valuekey": "BIA_font_size",
+                "valuekey": "BIA.font_size",
                 "vitem": "entry",
                 "vtype": "float",
                 "default": 0.0521
             },
-            "heart_pic":{
+            "BIA.heart_pic":{
                 "ktext": "HP动画前景：",
                 "tooltip":"在血条动画中，代表剩余生命值的符号的图片。",
                 "dtext": "浏览",
                 "ditem": "button",
-                "valuekey": "heart_pic",
+                "valuekey": "BIA.heart_pic",
                 "vitem": "entry",
                 "vtype": "str",
                 "default": './media/heart.png'
             },
-            "heart_shape":{
+            "BIA.heart_shape":{
                 "ktext": "HP动画背景：",
                 "tooltip":"在血条动画中，代表生命值总量的符号的图片。",
                 "dtext": "浏览",
                 "ditem": "button",
-                "valuekey": "heart_shape",
+                "valuekey": "BIA.heart_shape",
                 "vitem": "entry",
                 "vtype": "str",
                 "default": './media/heart_shape.png'
             },
-            "heart_distance":{
+            "BIA.heart_distance":{
                 "ktext": "HP动画心心距离：",
                 "tooltip":"在血条动画中，邻近的两个心心的间距的乘数，实际间距等于这个数值乘以项目的宽分辨率。",
                 "dtext": "（数值）",
                 "ditem": "label",
-                "valuekey": "heart_distance",
+                "valuekey": "BIA.heart_distance",
                 "vitem": "entry",
                 "vtype": "float",
                 "default": 0.026
@@ -2098,22 +2098,22 @@ PreferenceTableStruct = {
         "Text": "预览设置",
         "Command":None,
         "Content":{
-            "progress_bar_style":{
+            "Preview.progress_bar_style":{
                 "ktext": "进度条风格：",
                 "tooltip":"选择进度条是彩色风格、黑白风格，还是不显示进度条。",
                 "dtext": "（选择）",
                 "ditem": "label",
-                "valuekey": "progress_bar_style",
+                "valuekey": "Preview.progress_bar_style",
                 "vitem": "combox",
                 "vtype": "str",
                 "default": 'color'
             },
-            "framerate_counter":{
+            "Preview.framerate_counter":{
                 "ktext": "帧率显示器开启：",
                 "tooltip":"选择是否常驻开启帧率显示器。",
                 "dtext": "（选择）",
                 "ditem": "label",
-                "valuekey": "framerate_counter",
+                "valuekey": "Preview.framerate_counter",
                 "vitem": "combox",
                 "vtype": "bool",
                 "default": True
@@ -2124,22 +2124,22 @@ PreferenceTableStruct = {
         "Text": "导出设置",
         "Command":None,
         "Content":{
-            "force_split_clip":{
+            "Export.force_split_clip":{
                 "ktext": "强制拆分剪辑：",
                 "tooltip":"如果选择是，在所有小节断点，都会强制拆分所有剪辑，即使这个断点前后是同一个媒体。",
                 "dtext": "（选择）",
                 "ditem": "label",
-                "valuekey": "force_split_clip",
+                "valuekey": "Export.force_split_clip",
                 "vitem": "combox",
                 "vtype": "bool",
                 "default": False
             },
-            "crf":{
+            "Export.crf":{
                 "ktext": "视频质量：",
                 "tooltip":"导出为mp4视频时的质量，即ffmpeg程序的crf值；取值范围为0-51，越小对应越高的视频质量，通常合理范围为18-28。",
                 "dtext": "（选择）",
                 "ditem": "label",
-                "valuekey": "crf",
+                "valuekey": "Export.crf",
                 "vitem": "spine",
                 "vtype": "int",
                 "default": 24
@@ -2409,7 +2409,19 @@ True_False = {
     "是": True,
     "否": False
 }
-
+language = {
+    '中文' : 'zh',
+    'English' : 'en'
+}
+theme = {
+    '明亮' : 'light',
+    '黑暗' : 'dark'
+}
+progressbar = {
+    '彩色' : 'color',
+    '黑白' : '',
+    '禁用' : '',
+}
 # 新建媒体按钮的结构
 NewElement = {
     "charactor":{

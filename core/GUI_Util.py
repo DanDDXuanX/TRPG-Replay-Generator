@@ -79,9 +79,7 @@ class DictCombobox(ttk.Combobox):
         self.dictionary = dict
         self.configure(values=list(self.dictionary.keys()), state='readonly')
         # 修改目前text
-        keys = [key for key,value in self.dictionary.items() if tk.StringVar(value=value).get() == self.text.get()]
-        if len(keys) > 0:
-            self.text.set(keys[0])
+        self.set_dictionary_text()
     def update_var(self, event):
         # 禁用 update_text
         self.var_update_text = False
@@ -98,7 +96,12 @@ class DictCombobox(ttk.Combobox):
         if self.var_update_text:
             var = self.var.get()
             self.text.set(var)
-
+            self.set_dictionary_text()
+    # 从var更新dictionary.text
+    def set_dictionary_text(self):
+        keys = [key for key,value in self.dictionary.items() if tk.StringVar(value=value).get() == self.text.get()]
+        if len(keys) > 0:
+            self.text.set(keys[0])
 # 一个键、值、描述的最小单位。
 class KeyValueDescribe(ttk.Frame):
     def __init__(self,master,screenzoom:float,key:str,value:dict,describe:dict,tooltip:str=None,callback=None):
