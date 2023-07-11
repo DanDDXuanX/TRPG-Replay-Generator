@@ -2414,8 +2414,8 @@ language = {
     'English' : 'en'
 }
 theme = {
-    '明亮' : 'rplgenlight',
-    '黑暗' : 'rplgendark'
+    '浅色' : 'rplgenlight',
+    '深色' : 'rplgendark'
 }
 progressbar = {
     '彩色' : 'color',

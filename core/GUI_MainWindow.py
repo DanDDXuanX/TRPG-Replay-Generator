@@ -103,6 +103,7 @@ class RplGenStudioMainWindow(ttk.Window):
             # 预览窗体
             self.style.configure('preview.TLabel',anchor='center',background='#333333',borderwidth=0)
         elif theme == 'rplgendark':
+            self.dark_title_bar()
             self.style.configure('terminal.TButton',compound='left',font="-family 微软雅黑 -size 14 -weight bold")
             self.style.configure('output.TButton',compound='left',font="-family 微软雅黑 -size 14 -weight bold")
             # bootstyle
@@ -180,7 +181,21 @@ class RplGenStudioMainWindow(ttk.Window):
         toast = ToastNotification(title=title,message=message)
         toast.show_toast()
         toast.toplevel.lift()
-        
+    # 仅适用于windows，深色模式窗口
+    def dark_title_bar(self):
+        if sys.platform == 'win32':
+            # 使标题栏变黑
+            import ctypes
+            self.update()
+            set_window_attribute = ctypes.windll.dwmapi.DwmSetWindowAttribute # 设置窗口属性
+            get_parent = ctypes.windll.user32.GetParent # 找父窗口
+            hwnd = get_parent(self.winfo_id()) # 获取它的wininfo_id转换成句柄
+            rendering_policy = 20 # 设置暗黑模式数值 # DWM渲染模式？
+            value = 2
+            value = ctypes.c_int(value)
+            set_window_attribute(hwnd, rendering_policy, ctypes.byref(value), ctypes.sizeof(value)) # 设置
+            self.update() # 更新
+
 # 最右导航栏的
 class NavigateBar(ttk.Frame):
     """
