@@ -17,29 +17,59 @@ class StdoutRedirector:
     def __init__(self, text_widget):
         self.text_widget:ttk.Text = text_widget
         # colortag
+        self.text_widget.tag_configure('normal',foreground='#ffffff')
         self.text_widget.tag_configure('error',foreground='#ff4444')
         self.text_widget.tag_configure('warning',foreground='#ff9944')
         self.text_widget.tag_configure('info',foreground='#44ff44')
         self.text_widget.tag_configure('black',foreground='#000000')
+        # 返回标记
+        self.return_begin = False
         # from terminal output to colortag
         self.colortag = {
+            '0' :'normal',
             '33':'warning',
             '32':'info',
             '31':'error',
             '30':'black'
         }
         # regex
-        self.RE_cp = re.compile(r"(\x1B\[\d+m.+\x1B\[0m)")
-        self.RE_cp_get = re.compile(r"\x1B\[(\d+)m(.+)\x1B\[0m")
+        self.RE_cp = re.compile(r"(\x1B\[\d{1,2}m)")
     def write(self, string):
+        # 第一件事：把光标移动到末尾
+        self.text_widget.see('end')
+        # 如果是返回标记
+        if self.return_begin == True:
+            line_this = self.text_widget.index('insert').split('.')[0]
+            self.text_widget.delete(f"{line_this}.0", "end") # 删除前一行
+            self.text_widget.insert(f"{line_this}.0", '\n') # 插入一个空行
+            self.return_begin = False # 删除一次，置空
+        # 构建index->color的字典
+        color_index=[]
+        color_tag = []
+        start_index = self.text_widget.index('insert')
+        color_index.append(start_index)
+        color_tag.append('normal')
         for clip in self.RE_cp.split(string):
             if clip == '':
                 continue
             elif clip[0] == '\x1B':
-                tag,text = self.RE_cp_get.findall(clip)[0]
-                self.text_widget.insert('end', text, self.colortag[tag])
+                tag = clip[2:-1]
+                this_index = self.text_widget.index('insert')
+                color_index.append(this_index)
+                color_tag.append(self.colortag[tag])
             else:
                 self.text_widget.insert('end', clip)
+        # 更新颜色显示
+        for idx, tag in enumerate(color_tag):
+            start = color_index[idx]
+            try:
+                end = color_index[idx+1]
+            except IndexError:
+                end = 'end'
+            self.text_widget.tag_add(tag,start,end)
+        # 如果是返回开头，做好标记
+        if string[-1] == '\r':
+            self.return_begin = True
         self.text_widget.see('end')
     def flush(self):
         pass
@@ -72,7 +102,6 @@ class Terminal(ttk.Frame):
         self.terminal.place(relx=0,y=0,relwidth=1,relheight=1,height=-SZ_50-SZ_5)
         self.control.place(relx=0.3,y=-SZ_50,rely=1,height=SZ_50,relwidth=0.4)
     def bind_stdout(self):
-        # FIXME: 重定向标准输出，暂时禁用
-        # sys.stdout = StdoutRedirector(text_widget=self.terminal._text)
+        sys.stdout = StdoutRedirector(text_widget=self.terminal._text)
         # 欢迎
         print(MainPrint('Welcome',EDITION))

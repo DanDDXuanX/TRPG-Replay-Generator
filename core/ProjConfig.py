@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 from .Exceptions import ArgumentError,WarningPrint,Print,RplGenError
 from .Motion import MotionMethod
-from .Medias import MediaObj
+from .Medias import MediaObj, BuiltInAnimation, HitPoint
 from .TTSengines import Aliyun_TTS_engine,Azure_TTS_engine
 
 # 项目设置
@@ -189,6 +189,12 @@ class Preference:
         # Azure语音合成key
         Azure_TTS_engine.AZUKEY = self.azurekey
         Azure_TTS_engine.service_region = self.service_region
+        # 内建动画
+        BuiltInAnimation.BIA_font = self.BIA_font
+        BuiltInAnimation.BIA_font_size = self.BIA_font_size
+        HitPoint.heart_image = self.heart_pic
+        HitPoint.heart_shape = self.heart_shape
+        HitPoint.heart_distance = self.heart_distance
     def load_json(self,filepath)->dict:
         with open(filepath,'r') as json_file:
             data =json.load(json_file)

@@ -12,7 +12,7 @@ import os
 import pygame.freetype
 
 from .ScriptParser import RplGenLog, MediaDef, CharTable
-from .ProjConfig import Config
+from .ProjConfig import Config, preference
 
 from .Exceptions import RenderError, MediaError
 from .Exceptions import WarningPrint, MainPrint, VideoPrint, PrxmlPrint
@@ -304,9 +304,10 @@ class PreviewDisplay(OutputMediaType):
                                 'Cerulean':'#2fbfde','Forest':'#51b858','Rose':'#f76fa4','Mango':'#eda63b',
                                 'Purple':'#970097','Blue':'#3c3cff','Teal':'#008080','Magenta':'#e732e7',
                                 'Tan':'#cec195','Green':'#1d7021','Brown':'#8b4513','Yellow':'#e2e264'}
+        label_black = '#aaaaaa'
         # 新建纯黑图层：width = screen, height = screen//30
         progress_bar_surface = pygame.Surface((self.config.Width,self.config.Height//60),pygame.SRCALPHA)
-        progress_bar_surface.fill((0,0,0,255))
+        progress_bar_surface.fill((0,0,0,0))
         # 每个小节的长度，不包含0
         len_of_section = self.breakpoint.diff().dropna()
         # 整个timeline的总长度：
@@ -318,52 +319,74 @@ class PreviewDisplay(OutputMediaType):
                 continue
             # 否则，渲染这个图层
             else:
-                # 小节颜色：尝试获取立绘Am1、气泡Bb、背景BG2 的colorlabel
-                section_first_frame:pd.Series = self.timeline.loc[self.breakpoint[key-1]]
-                for layer in ['Am1','Am2','Am3','Bb','BG2']:
-                    if section_first_frame[layer] != 'NA' and section_first_frame[layer]==section_first_frame[layer]:
-                        try:
-                            this_color = self.medias[section_first_frame[layer]].label_color
-                        except:
-                            # 交叉溶解模式
-                            this_color = self.medias[section_first_frame[layer].split(' <- ')[0]].label_color
-                        break
                 # 小节位置和宽度
                 section_pos_x = self.config.Width*(self.breakpoint[key-1] / timeline_len)
                 section_width = self.config.Width*(len_of_section[key] / timeline_len)
                 if section_width < 1:
                     section_width = 1
-                # 渲染
-                pygame.draw.rect(
-                    surface=progress_bar_surface,
-                    color=available_label_color[this_color],
-                    rect=(section_pos_x,0,section_width,self.config.Height//60),
-                    width=0
-                    )
-                pygame.draw.rect(
-                    surface=progress_bar_surface,
-                    color=(0,0,0,255),
-                    rect=(section_pos_x,0,section_width,self.config.Height//60),
-                    width=1
-                    )
+                # 进度条的颜色
+                if preference.progress_bar_style == 'color':
+                    # 小节颜色：尝试获取立绘Am1、气泡Bb、背景BG2 的colorlabel
+                    section_first_frame:pd.Series = self.timeline.loc[self.breakpoint[key-1]]
+                    for layer in ['Am1','Am2','Am3','Bb','BG2']:
+                        if section_first_frame[layer] != 'NA' and section_first_frame[layer]==section_first_frame[layer]:
+                            try:
+                                this_color = self.medias[section_first_frame[layer]].label_color
+                            except:
+                                # 交叉溶解模式
+                                this_color = self.medias[section_first_frame[layer].split(' <- ')[0]].label_color
+                            break
+                    # 渲染
+                    pygame.draw.rect(
+                        surface=progress_bar_surface,
+                        color=available_label_color[this_color],
+                        rect=(section_pos_x,0,section_width,self.config.Height//60),
+                        width=0
+                        )
+                    pygame.draw.rect(
+                        surface=progress_bar_surface,
+                        color=(0,0,0,255),
+                        rect=(section_pos_x,0,section_width,self.config.Height//60),
+                        width=1
+                        )
+                elif preference.progress_bar_style == 'black':
+                    # 渲染
+                    pygame.draw.rect(
+                        surface=progress_bar_surface,
+                        color=label_black,
+                        rect=(section_pos_x,0,section_width,self.config.Height//60),
+                        width=0
+                        )
+                    pygame.draw.rect(
+                        surface=progress_bar_surface,
+                        color=(0,0,0,255),
+                        rect=(section_pos_x,0,section_width,self.config.Height//60),
+                        width=1
+                        )
+                else: # hide
+                    pass
         # 设置为半透明：还是算了
         # progress_bar_surface.set_alpha(75)
         # 三角形
         unit = self.config.Height//60
         triangular_surface = pygame.Surface((unit,unit*2),pygame.SRCALPHA)
         triangular_surface.fill((0,0,0,0))
-        pygame.draw.polygon(
-            surface=triangular_surface,
-            color=(255,255,255,255),
-            points=[(0,0),(unit,0),(unit/2,unit)]
-            )
-        pygame.draw.line(
-            surface=triangular_surface,
-            color=(255,255,255,255),
-            start_pos=(unit/2,0),
-            end_pos=(unit/2,2*unit),
-            width=3
-            )
+        if preference.progress_bar_style in ['color','black']:
+            pygame.draw.circle(
+                surface=triangular_surface,
+                color=(255,255,255,255),
+                center= (unit/2,unit/2),
+                radius= unit/2
+                )
+            pygame.draw.line(
+                surface=triangular_surface,
+                color=(255,255,255,255),
+                start_pos=(unit/2,0),
+                end_pos=(unit/2,2*unit),
+                width=3
+                )
+        else:
+            pass
         return (progress_bar_surface,triangular_surface)
     # 初始化播放窗口：异常0，正常1
     def display_init(self)->int:
@@ -442,6 +465,7 @@ class PreviewDisplay(OutputMediaType):
         resize_screen = 0 # 是否要强制缩小整个演示窗体
         # 进度条
         progress_bar,triangular = self.progress_bar()
+        show_progress_bar = preference.progress_bar_style in ['black','color']
         # self.screen.blit(progress_bar,(0,self.config.Height-self.config.Height//30))
         # 主循环
         while n < timeline_len:
@@ -523,26 +547,29 @@ class PreviewDisplay(OutputMediaType):
                     et = int(1/(time.time()-ct+1e-4))
                 else:
                     et = '-'
-                # 显示进度条
+                # 进度条
                 self.annot.fill([0,0,0,0])
-                self.annot.blit(progress_bar,(0,self.config.Height-self.config.Height//60))
-                # 显示进度条箭头
-                self.annot.blit(triangular,(
-                    n/timeline_len*self.config.Width-self.config.Height//120, # x
-                    self.config.Height-self.config.Height//30) # y
-                    )
-                # 小节数显示
-                section_display = self.note_text.render('%d'%(this_frame['section']+1),fgcolor=MediaObj.cmap['white'],size=0.02*self.config.Height)[0]
-                self.annot.blit(section_display,(
-                        n/timeline_len*self.config.Width-section_display.get_size()[0]/2,
-                        self.config.Height-self.config.Height//30-self.config.Height//50
-                    ))
+                if show_progress_bar:
+                    # 显示进度条
+                    self.annot.blit(progress_bar,(0,self.config.Height-self.config.Height//60))
+                    # 显示进度条箭头
+                    self.annot.blit(triangular,(
+                        n/timeline_len*self.config.Width-self.config.Height//120, # x
+                        self.config.Height-self.config.Height//30) # y
+                        )
+                    # 小节数显示
+                    section_display = self.note_text.render('%d'%(this_frame['section']+1),fgcolor=MediaObj.cmap['white'],size=0.02*self.config.Height)[0]
+                    self.annot.blit(section_display,(
+                            n/timeline_len*self.config.Width-section_display.get_size()[0]/2,
+                            self.config.Height-self.config.Height//30-self.config.Height//50
+                        ))
                 # 如果正在暂停
                 if forward == 0:
                     self.annot.blit(self.note_text.render('Press space to continue.',fgcolor=MediaObj.cmap['notetext'],size=0.0278*self.config.Height)[0],(0.410*self.config.Width,0.926*self.config.Height)) # pause
                 # 显示详情模式
                 if show_detail_info == 1:
                     self.annot.blit(self.note_text.render(detail_info[0],fgcolor=MediaObj.cmap['notetext'],size=0.0185*self.config.Height)[0],(10,10))
+                    self.annot.blit(self.note_text.render(detail_info[1].format(et),fgcolor=MediaObj.cmap['notetext'],size=0.0185*self.config.Height)[0],(10,10+0.0333*self.config.Height))
                     self.annot.blit(self.note_text.render(detail_info[2].format(n,this_frame['section']+1),fgcolor=MediaObj.cmap['notetext'],size=0.0185*self.config.Height)[0],(10,10+0.0666*self.config.Height))
                     # self.screen.blit(self.note_text.render(detail_info[3].format(self.rplgenlog.export[this_frame['section']]),fgcolor=MediaObj.cmap['notetext'],size=0.0185*self.config.Height)[0],(10,10+0.1*self.config.Height))
                     self.annot.blit(self.note_text.render(detail_info[4],fgcolor=MediaObj.cmap['notetext'],size=0.0185*self.config.Height)[0],(10,10+0.1333*self.config.Height))
@@ -550,10 +577,10 @@ class PreviewDisplay(OutputMediaType):
                     self.annot.blit(self.note_text.render(detail_info[6].format(this_frame['Am1'],this_frame['Am2'],this_frame['Am3'],this_frame['AmS']),fgcolor=MediaObj.cmap['notetext'],size=0.0185*self.config.Height)[0],(10,10+0.2*self.config.Height))
                     self.annot.blit(self.note_text.render(detail_info[7].format(this_frame['Bb'],this_frame['Bb_header'],this_frame['Bb_main']),fgcolor=MediaObj.cmap['notetext'],size=0.0185*self.config.Height)[0],(10,10+0.2333*self.config.Height))
                     self.annot.blit(self.note_text.render(detail_info[8].format(this_frame['BbS'],this_frame['BbS_header'],this_frame['BbS_main']),fgcolor=MediaObj.cmap['notetext'],size=0.0185*self.config.Height)[0],(10,10+0.2666*self.config.Height))
-                    self.annot.blit(self.note_text.render(detail_info[1].format(et),fgcolor=MediaObj.cmap['notetext'],size=0.0185*self.config.Height)[0],(10,10+0.0333*self.config.Height))
                 # 仅显示帧率
                 else:
-                    self.annot.blit(self.note_text.render(str(et),fgcolor=MediaObj.cmap['notetext'],size=0.0278*self.config.Height)[0],(10,10)) ##render rate +1e-4 to avoid float divmod()
+                    if preference.framerate_counter:
+                        self.annot.blit(self.note_text.render(str(et),fgcolor=MediaObj.cmap['notetext'],size=0.0278*self.config.Height)[0],(10,10))
                 # 显示到屏幕
                 if resize_screen == 1:
                     # 如果缩放尺寸
@@ -719,7 +746,7 @@ class ExportVideo(OutputMediaType):
                 self.vidio_path,
                 pix_fmt = 'yuv420p',
                 r       = self.config.frame_rate,
-                crf     = self.config.crf,
+                crf     = preference.crf,
                 **{'loglevel':'quiet'}
                 ) # 输出
             .overwrite_output()
@@ -757,8 +784,8 @@ class ExportXML(OutputMediaType):
         # 全局变量
         self.Is_NTSC:bool    = self.config.frame_rate % 30 == 0
         self.Audio_type:str  = 'Stereo'
-        # 是否强制切割序列，默认是False
-        self.force_split_clip:bool = False
+        # 是否强制切割序列
+        self.force_split_clip:bool = preference.force_split_clip
         # 开始执行主程序
         self.main()
     # 构建序列

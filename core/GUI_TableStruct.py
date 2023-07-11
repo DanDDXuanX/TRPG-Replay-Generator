@@ -2420,7 +2420,7 @@ theme = {
 progressbar = {
     '彩色' : 'color',
     '黑白' : 'black',
-    '禁用' : 'disable',
+    '隐藏' : 'hide',
 }
 # 新建媒体按钮的结构
 NewElement = {

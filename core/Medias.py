@@ -1541,6 +1541,8 @@ class Animation(MediaObj):
             self.load_image(scale=self.scale)
 # 内建动画的基类：不可以直接使用
 class BuiltInAnimation(Animation):
+    BIA_font = './media/SourceHanSerifSC-Heavy.otf'
+    BIA_font_size = 0.0521
     # BIA初始化：需要在media确定之后！
     def __init__(
         self,
@@ -1636,6 +1638,9 @@ class GroupedAnimation(BuiltInAnimation):
 
 # 血条
 class HitPoint(BuiltInAnimation):
+    heart_image = './media/heart.png'
+    heart_shape = './media/heart_shape.png'
+    heart_distance = 0.026
     def __init__(
         self,
         describe:str    = '',
@@ -1650,13 +1655,13 @@ class HitPoint(BuiltInAnimation):
         # 颜色标签
         self.label_color:str = label_color
         # 主要字体
-        self.BIA_text = Text('./media/SourceHanSerifSC-Heavy.otf',fontsize=int(0.0521*MediaObj.screen_size[0]),color=(255,255,255,255),line_limit=10)
+        self.BIA_text = Text(self.BIA_font,fontsize=int(self.BIA_font_size*MediaObj.screen_size[0]),color=(255,255,255,255),line_limit=10)
         # 项目参数
         screensize = self.screen_size
         frame_rate = self.frame_rate
         # 载入图片
-        heart = pygame.image.load('./media/heart.png')
-        heart_shape = pygame.image.load('./media/heart_shape.png')
+        heart = pygame.image.load(self.heart_image)
+        heart_shape = pygame.image.load(self.heart_shape)
         hx,hy = heart.get_size()
         # 重设图片尺寸，根据screensize[0]
         if screensize[0]!=1920:
@@ -1675,7 +1680,7 @@ class HitPoint(BuiltInAnimation):
         else:
             heal_heart = False
         # 心与心之间的距离
-        distance = int(0.026*screensize[0]) # 50
+        distance = int(self.heart_distance*screensize[0]) # 50
         # 画布的尺寸
         total_heart = int(heart_max/2 * hx + max(0,np.ceil(heart_max/2-1)) * distance) #画布总长
         left_heart = int(heart_end/2 * hx + max(0,np.ceil(heart_end/2-1)) * distance) #画布总长
@@ -1780,7 +1785,7 @@ class Dice(BuiltInAnimation):
         label_color:str = 'Mango'
         ):
         # 主要字体
-        self.BIA_text = Text('./media/SourceHanSerifSC-Heavy.otf',fontsize=int(0.0521*MediaObj.screen_size[0]),color=(255,255,255,255),line_limit=10)
+        self.BIA_text = Text(self.BIA_font,fontsize=int(self.BIA_font_size*MediaObj.screen_size[0]),color=(255,255,255,255),line_limit=10)
         # 屏幕参数
         screensize:tuple = self.screen_size
         frame_rate:int = self.frame_rate
@@ -1880,7 +1885,7 @@ class Dice(BuiltInAnimation):
                     face_rate = dice['face']/dice['dicemax']
                     color_flag = ((face_rate <=self.significant)|(face_rate>(1-self.significant)))*2 + (dice['face']<=dice['check'])
                 # 有颜色的字体
-                BIA_color_Text = Text('./media/SourceHanSerifSC-Heavy.otf',fontsize=int(0.0651*screensize[0]),color=self.dice_cmap[color_flag],line_limit=10)
+                BIA_color_Text = Text(self.BIA_font,fontsize=int(1.25*self.BIA_font_size*screensize[0]),color=self.dice_cmap[color_flag],line_limit=10)
                 face_surf = BIA_color_Text.render(str(dice['face']))
                 fx,fy = face_surf.get_size()
                 #canvas.blit(face_surf,(int(0.1458*screensize[0]-fx-0.0278*screensize[1]),(i+1)*y_unit-fy-int(0.0278*screensize[1])))

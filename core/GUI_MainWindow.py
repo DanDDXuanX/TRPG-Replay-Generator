@@ -103,7 +103,7 @@ class RplGenStudioMainWindow(ttk.Window):
             # 预览窗体
             self.style.configure('preview.TLabel',anchor='center',background='#333333',borderwidth=0)
         elif theme == 'rplgendark':
-            self.dark_title_bar()
+            # self.dark_title_bar() # 有bug，在win10不正常显示
             self.style.configure('terminal.TButton',compound='left',font="-family 微软雅黑 -size 14 -weight bold")
             self.style.configure('output.TButton',compound='left',font="-family 微软雅黑 -size 14 -weight bold")
             # bootstyle
