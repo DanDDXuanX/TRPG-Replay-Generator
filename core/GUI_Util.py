@@ -309,7 +309,7 @@ class TextSeparator(ttk.Frame):
 # 纹理背景
 class Texture(tk.Frame):
     def __init__(self,master,screenzoom,file='./media/icon/texture4.png'):
-        super().__init__(master=master)
+        super().__init__(master=master,borderwidth=0)
         # Label对象
         self.canvas = ttk.Label(master=self,padding=0)
         # 纹理图片
