@@ -67,7 +67,7 @@ default_name = {
     'prefix':    ['导出文件'    ,'']
 }
 # 浏览文件，并把路径输出给 StringVar
-def browse_file(master, text_obj:StringVar, method='file', filetype=None, quote:bool=True):
+def browse_file(master, text_obj:StringVar, method='file', filetype=None, quote:bool=True, related:bool=True):
     if method == 'file':
         if filetype is None:
             getname = askopenfilename(parent=master,)
@@ -84,16 +84,20 @@ def browse_file(master, text_obj:StringVar, method='file', filetype=None, quote:
         return getname
     else:
         # 是否是媒体路径下的文件夹
-        try:
-            media_dir = Link['media_dir']
-            if getname.startswith(media_dir):
-                getname = '@/' + getname[len(media_dir):]
-        except KeyError:
-            pass
+        if related:
+            try:
+                media_dir = Link['media_dir']
+                if getname.startswith(media_dir):
+                    getname = '@/' + getname[len(media_dir):]
+            except KeyError:
+                pass
+        # 是否加引号
         if quote:
             text_obj.set("'{}'".format(getname))
         else:
             text_obj.set(getname)
+        # 返回
+        print(getname)
         return getname
     
 def save_file(master, method='file', filetype=None, quote:bool=True)->str:

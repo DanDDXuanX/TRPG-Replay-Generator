@@ -84,9 +84,9 @@ class ScriptExecuter(TableEdit):
         self.update_from_tablestruct(detail=False)
         self.update_item()
     def update_element_prop(self):
-        self.elements['mediadef'].bind_button(dtype='mediadef-file')
-        self.elements['chartab'].bind_button(dtype='chartab-file')
-        self.elements['logfile'].bind_button(dtype='logfile-file')
+        self.elements['mediadef'].bind_button(dtype='mediadef-file',related=False)
+        self.elements['chartab'].bind_button(dtype='chartab-file',related=False)
+        self.elements['logfile'].bind_button(dtype='logfile-file',related=False)
 
 # 首选项
 class PreferenceTable(TableEdit):
@@ -118,9 +118,9 @@ class PreferenceTable(TableEdit):
         # spine
         self.elements['Export.crf'].input.configure(from_=0,to=51,increment=1)
         # button
-        self.elements['BIA.font'].bind_button(dtype='fontfile-file',quote=False)
-        self.elements['BIA.heart_pic'].bind_button(dtype='picture-file',quote=False)
-        self.elements['BIA.heart_shape'].bind_button(dtype='picture-file',quote=False)
+        self.elements['BIA.font'].bind_button(dtype='fontfile-file',quote=False,related=False)
+        self.elements['BIA.heart_pic'].bind_button(dtype='picture-file',quote=False,related=False)
+        self.elements['BIA.heart_shape'].bind_button(dtype='picture-file',quote=False,related=False)
     def reset(self):
         reset_struct:dict = Preference().get_struct()
         # 重设前端显示

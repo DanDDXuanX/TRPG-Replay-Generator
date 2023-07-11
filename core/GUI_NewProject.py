@@ -94,8 +94,8 @@ class CreateEmptyProject(CreateProject):
     def build_struct(self):
         super().build_struct()
         # 绑定功能
-        self.elements['proj_cover'].bind_button(dtype='picture-file',quote=False)
-        self.elements['save_pos'].bind_button(dtype='dir',quote=False)
+        self.elements['proj_cover'].bind_button(dtype='picture-file',quote=False,related=False)
+        self.elements['save_pos'].bind_button(dtype='dir',quote=False,related=False)
         self.elements['preset_video'].input.configure(values=list(self.video_preset.keys()), state='readonly')
         self.elements['preset_layer'].input.configure(values=list(self.zorder_preset.keys()), state='readonly')
         self.elements['preset_video'].input.bind('<<ComboboxSelected>>', self.update_preset,'+')

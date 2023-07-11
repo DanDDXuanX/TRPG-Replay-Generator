@@ -165,7 +165,7 @@ class FileManager(ttk.Frame):
             relocate_file(master=self,file_not_found=file_not_found,mediadef=self.project.mediadef)
     # 导入文件
     def import_file(self):
-        get_file:str = browse_file(master=self.winfo_toplevel(),text_obj=tk.StringVar(),method='file',filetype='rgscripts')
+        get_file:str = browse_file(master=self.winfo_toplevel(),text_obj=tk.StringVar(),method='file',filetype='rgscripts',related=False)
         if get_file != '':
             # 尝试多个解析
             Types = {MediaDef:None,CharTable:None,RplGenLog:None}

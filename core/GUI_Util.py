@@ -170,15 +170,15 @@ class KeyValueDescribe(ttk.Frame):
         return self.value.get()
     def set(self,value):
         return self.value.set(value)
-    def bind_button(self,dtype='picture-file',quote=True):
+    def bind_button(self,dtype='picture-file',quote=True,related=True):
         if type(self.describe) != ttk.Button:
             return
         def command():
             if dtype == 'dir':
-                browse_file(master=self.winfo_toplevel(), text_obj=self.value, method='dir', filetype=None, quote=quote)
+                browse_file(master=self.winfo_toplevel(), text_obj=self.value, method='dir', filetype=None, quote=quote, related=related)
             elif 'file' in dtype:
                 filetype = dtype.split('-')[0]
-                browse_file(master=self.winfo_toplevel(), text_obj=self.value, method='file', filetype=filetype, quote=quote)
+                browse_file(master=self.winfo_toplevel(), text_obj=self.value, method='file', filetype=filetype, quote=quote, related=related)
             elif 'color' in dtype:
                 color_chooser(master=self.winfo_toplevel(), text_obj=self.value)
             # 更新

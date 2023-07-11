@@ -62,7 +62,7 @@ class EmptyView(ttk.Frame):
             print_exc()
             Messagebox().show_error(message='无法读取工程文件，该文件可能已损坏。',title='打开失败',parent=self.winfo_toplevel())
     def open_project(self):
-        get_file:str = browse_file(master=self.winfo_toplevel(),text_obj=tk.StringVar(),method='file',filetype='rplgenproj')
+        get_file:str = browse_file(master=self.winfo_toplevel(),text_obj=tk.StringVar(),method='file',filetype='rplgenproj',related=False)
         if get_file != '':
             self.open_project_file(filepath=get_file)
     def empty_project(self):
