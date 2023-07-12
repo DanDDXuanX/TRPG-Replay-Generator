@@ -340,4 +340,4 @@ def thumbnail(image:Image.Image,icon_size:int)->Image.Image:
     else:
         icon_height = icon_size
         icon_width = int(origin_w/origin_h * icon_size)
-    return image.resize([icon_width,icon_height])
+    return image.resize([icon_width,icon_height]).convert('RGBA')

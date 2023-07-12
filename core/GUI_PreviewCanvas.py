@@ -559,11 +559,15 @@ class CTBPreviewCanvas(PreviewCanvas):
             else:
                 bubble_this:Bubble = self.get_media(bubble_name)
                 key = None
-        # update canvas # TODO：check zorder!
-        if animation_this:
-            animation_this.preview(self.canvas)
-        if bubble_this:
-            bubble_this.preview(self.canvas, key=key)
+        # 按照图层顺序
+        zorder:list = Link['project_config'].zorder
+        for layer in zorder:
+            if layer == 'Am1':
+                if animation_this:
+                    animation_this.preview(self.canvas)
+            elif layer == 'Bb':
+                if bubble_this:
+                    bubble_this.preview(self.canvas, key=key)
         self.update_canvas()
 class RGLPreviewCanvas(PreviewCanvas):
     def __init__(self, master, screenzoom,rplgenlog, chartab, mediadef):
@@ -664,7 +668,6 @@ class RGLPreviewCanvas(PreviewCanvas):
                 # TODO
                 pass
             elif section_dict_this['type'] == 'dialog':
-                self.get_background(line_index).preview(self.canvas) # 背景
                 char_set:dict = section_dict_this['charactor_set']
                 main_text = section_dict_this['content']
                 # 角色
@@ -678,17 +681,25 @@ class RGLPreviewCanvas(PreviewCanvas):
                     bubble_this:Bubble = self.get_media(main_char_dict['Bubble'])
                     cw_key = None
                 header_text = self.get_header(bubble_this, main_char_dict, key=cw_key)
-                if bubble_this:
-                    bubble_this.display(surface=self.canvas, text=main_text, header=header_text)
                 # 立绘
+                am_dict = {'Am1':None,'Am2':None,'Am3':None}
                 for idx in char_set.keys():
-                    # TODO: zorder
                     this_char = char_set[idx]
                     this_char_dict = self.chartab.struct[this_char['name']+'.'+this_char['subtype']]
                     # 立绘
-                    anime_this:Animation = self.get_media(this_char_dict['Animation'])
-                    if anime_this:
-                        anime_this.preview(surface=self.canvas)
+                    layer = 'Am'+str(int(idx)+1)
+                    am_dict[layer] = self.get_media(this_char_dict['Animation'])
+                # 按照图层顺序
+                zorder:list = Link['project_config'].zorder
+                for layer in zorder:
+                    if layer == 'BG2':
+                        self.get_background(line_index).preview(self.canvas) # 背景
+                    if layer in ['Am1','Am2','Am3']:
+                        if am_dict[layer]:
+                            am_dict[layer].preview(self.canvas)
+                    elif layer == 'Bb':
+                        if bubble_this:
+                            bubble_this.display(surface=self.canvas, text=main_text, header=header_text)
             else:
                 pass
         # 刷新

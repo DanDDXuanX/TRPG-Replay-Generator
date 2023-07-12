@@ -102,6 +102,6 @@ class Terminal(ttk.Frame):
         self.terminal.place(relx=0,y=0,relwidth=1,relheight=1,height=-SZ_50-SZ_5)
         self.control.place(relx=0.3,y=-SZ_50,rely=1,height=SZ_50,relwidth=0.4)
     def bind_stdout(self):
-        sys.stdout = StdoutRedirector(text_widget=self.terminal._text)
+        # sys.stdout = StdoutRedirector(text_widget=self.terminal._text)
         # 欢迎
         print(MainPrint('Welcome',EDITION))

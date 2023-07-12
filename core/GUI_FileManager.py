@@ -4,6 +4,7 @@
 # 项目资源管理器，项目视图的元素之一。
 # 包含：标题图，项目管理按钮，媒体、角色、剧本的可折叠容器
 
+import sys
 import json
 import re
 from PIL import Image, ImageTk, ImageEnhance
@@ -676,9 +677,12 @@ class RGLCollapsing(FileCollapsing):
     def add_item_done(self, enter):
         confirm_add =  super().add_item_done(enter, '剧本')
         new_keyword = self.re_name.get()
+        executable = sys.executable
         if confirm_add:
             # 新建一个空白的RGL
-            self.content[new_keyword] = RplGenLog()
+            self.content[new_keyword] = RplGenLog(
+                string_input=f'#! {executable}\n# {new_keyword}: 空白的剧本文件。点按键盘Tab键，获取命令智能补全。预览和导出按钮在右侧 ->\n'
+                )
     def delete_item(self, keyword):
         confirm_delete:bool = super().delete_item(keyword)
         delete_an_active_page:bool = "剧本-"+keyword in self.page_frame.page_dict.keys()
