@@ -397,10 +397,10 @@ class RGLContainer(Container):
                 ele_key = str(insert_index + 1 + idx)
             # section
             section = RGLContainer.element_clipboard[ele].copy()
-            # element
-            self.element[ele_key] = self.new_element(key=ele_key,section=section)
-            # contene
+            # content
             self.content.add(ele_key, section)
+            # element
+            self.element[ele_key] = self.new_element(key=ele_key,section=self.content.struct[ele_key])
         # elementkey
         self.element_keys = [str(x) for x in range(0,len(self.element))]
         # display
@@ -491,10 +491,10 @@ class MDFContainer(Container):
                     ele_key = ele_key+'_cp'
                 # section
                 section = MDFContainer.element_clipboard[ele].copy()
-                # element
-                self.element[ele_key] = self.new_element(key=ele_key,section=section)
-                # contene
+                # content
                 self.content.add(ele_key, section)
+                # element
+                self.element[ele_key] = self.new_element(key=ele_key,section=self.content.struct[ele_key])
                 # elementkey
                 if ahead:
                     self.element_keys.insert(idx, ele_key)
@@ -567,10 +567,10 @@ class CTBContainer(Container):
             while ele_key in self.element_keys:
                 ele_key = ele_key+'_cp'
                 section['Subtype'] = section['Subtype']+'_cp'
-            # element
-            self.element[ele_key] = self.new_element(key=ele_key,section=section)
-            # contene
+            # content
             self.content.add(ele_key, section)
+            # element
+            self.element[ele_key] = self.new_element(key=ele_key,section=self.content.struct[ele_key])
             # elementkey
             if ahead:
                 self.element_keys.insert(idx, ele_key)

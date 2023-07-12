@@ -793,6 +793,7 @@ EditTableStruct = {
             },
         },
         "Bubble.args":{
+            "type"          : "type",
             "filepath"      : "filepath",
             "scale"         : "scale",
             "pos"           : "pos",
@@ -965,6 +966,7 @@ EditTableStruct = {
             },
         },
         "Balloon.args":{
+            "type"          : "type",
             "filepath"      : "filepath",
             "scale"         : "scale",
             "pos"           : "pos",
@@ -1160,6 +1162,7 @@ EditTableStruct = {
             },
         },
         "DynamicBubble.args":{
+            "type"          : "type",
             "filepath"      : "filepath",
             "scale"         : "scale",
             "pos"           : "pos",
@@ -1360,6 +1363,7 @@ EditTableStruct = {
             }
         },
         "ChatWindow.args":{
+            "type"          : "type",
             "filepath"      : "filepath",
             "scale"         : "scale",
             "pos"           : "pos",
@@ -1475,6 +1479,7 @@ EditTableStruct = {
             }
         },
         "Animation.args":{
+            "type"          : "type",
             "filepath"      : "filepath",
             "scale"         : "scale",
             "pos"           : "pos",
@@ -1557,6 +1562,7 @@ EditTableStruct = {
             },
         },
         "Background.args":{
+            "type"          : "type",
             "filepath"      : "filepath",
             "scale"         : "scale",
             "pos"           : "pos",
@@ -1617,6 +1623,7 @@ EditTableStruct = {
             }
         },
         "Audio.args":{
+            "type"          : "type",
             "filepath"      : "filepath",
             "label_color"   : "label_color"
         },
@@ -1695,6 +1702,7 @@ EditTableStruct = {
             }
         },
         "BGM.args":{
+            "type"          : "type",
             "filepath"      : "filepath",
             "volume"        : "volume",
             "loop"          : "loop",

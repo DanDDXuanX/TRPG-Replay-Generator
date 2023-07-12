@@ -413,7 +413,6 @@ class MDFSectionElement(ttk.Frame,SectionElement):
         # 搜索关键字
         self.search_text = self.name + '\n' + self.line_type + '\n' + self.labelcolor
         return super().refresh_item(keyword)
-# BUG: 复制的角色小节，编辑了Edit之后，不会同步到显示上！
 class CTBSectionElement(ttk.Frame,SectionElement):
     thumbnail_image = {}
     thumbnail_name = {}

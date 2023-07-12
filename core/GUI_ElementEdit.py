@@ -358,9 +358,9 @@ class MediaEdit(EditWindow):
     def update_section_from(self) -> dict:
         # 获取新小节
         new_section = super().update_section_from()
-        print(new_section)
         # 新小节的keyword
         new_keyword:str = self.elements['Name'].get()
+        print(new_keyword, new_section)
         # 是否发生变化？
         if new_section == self.section and new_keyword==self.section_index:
             return self.section
