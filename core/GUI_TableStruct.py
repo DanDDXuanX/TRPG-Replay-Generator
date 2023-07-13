@@ -2353,7 +2353,84 @@ ProjectTableStruct = {
         }
     },
     "IntelProject":{
-
+        "BasicSep":{
+            "Text": "基本",
+            "Command":None,
+            "Content":{
+                "proj_name":{
+                    "ktext": "项目名称：",
+                    "tooltip":"项目的名称，需要同时是一个合法的文件名！",
+                    "dtext": "",
+                    "ditem": "label",
+                    "valuekey": None,
+                    "vitem": "entry",
+                    "vtype": "str",
+                    "default": "新建智能项目"
+                },
+                "proj_cover":{
+                    "ktext": "项目封面：",
+                    "tooltip":"可以选择一张图片作为项目封面。",
+                    "dtext": "浏览",
+                    "ditem": "button",
+                    "valuekey": None,
+                    "vitem": "entry",
+                    "vtype": "str",
+                    "default": "无"
+                },
+                "save_pos":{
+                    "ktext": "保存位置：",
+                    "tooltip":"保存项目文件的文件夹。",
+                    "dtext": "浏览",
+                    "ditem": "button",
+                    "valuekey": None,
+                    "vitem": "entry",
+                    "vtype": "str",
+                    "default": ""
+                }
+            }
+        },
+        "TpltSep":{
+            "Text": "选择模板",
+            "Command":None,
+            "Content":{
+                "template":{
+                    "ktext": "模板：",
+                    "tooltip":"智能项目的预设模板。", # ，访问创意工坊获取更多预设样式模板
+                    "dtext": "（选择）",
+                    "ditem": "label",
+                    "valuekey": None,
+                    "vitem": "combox",
+                    "vtype": "str",
+                    "default": ""
+                },
+            }
+        },
+        "LogSep":{
+            "Text": "导入剧本",
+            "Command":None,
+            "Content":{
+                "textfile":{
+                    "ktext": "文件：",
+                    "tooltip":"导入智能项目的剧本或者跑团日志文件。\n注意：请导入原始的文本文件，而不是染色后的Word文档！",
+                    "dtext": "浏览",
+                    "ditem": "button",
+                    "valuekey": None,
+                    "vitem": "entry",
+                    "vtype": "str",
+                    "default": ""
+                },
+                "section_break":{
+                    "ktext": "自动分段：",
+                    "tooltip":"过长的文本会被自动分段为多个剧本。\n注意：选择0则为不分段，但单个剧本过长会导致严重卡顿！",
+                    "dtext": "（选择）",
+                    "ditem": "label",
+                    "valuekey": None,
+                    "vitem": "combox",
+                    "vtype": "int",
+                    "default": 300
+                },
+            }
+        }
     }
 }
 

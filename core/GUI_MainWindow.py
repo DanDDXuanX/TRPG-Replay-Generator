@@ -41,8 +41,8 @@ class RplGenStudioMainWindow(ttk.Window):
         # self.bind('<F11>', self.switch_fullscreen) # BUG 全屏模式下的窗口上下顺序会出现异常
         # 视图
         self.view = {
-            'project': ProjectView(master=self,screenzoom=self.sz,project_file=None),
-            # 'project': EmptyView(master=self,screenzoom=self.sz),
+            # 'project': ProjectView(master=self,screenzoom=self.sz,project_file=None),
+            'project': EmptyView(master=self,screenzoom=self.sz),
             'console': ConsoleView(master=self,screenzoom=self.sz),
             'script' : ScriptView( master=self,screenzoom=self.sz),
             'setting': PreferenceView(master=self,screenzoom=self.sz)

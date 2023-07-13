@@ -8,7 +8,8 @@ import tkinter as tk
 import ttkbootstrap as ttk
 from pathlib import Path
 from ttkbootstrap.dialogs import Dialog, Messagebox, MessageCatalog
-from .GUI_Util import KeyValueDescribe
+from PIL import Image, ImageTk
+from .GUI_Util import KeyValueDescribe, thumbnail
 from .GUI_TableStruct import ProjectTableStruct
 
 class CreateProject(ttk.Frame):
@@ -177,7 +178,62 @@ class CreateEmptyProject(CreateProject):
             return False
 # 新建智能项目
 class CreateIntelProject(CreateProject):
-    pass
+    table_struct = ProjectTableStruct['IntelProject']
+    def __init__(self, master, screenzoom, close_func):
+        self.frame_metainfo = None
+        self.intel_dir = './intel/'
+        super().__init__(master, screenzoom, close_func)
+    def build_struct(self):
+        super().build_struct()
+        # 绑定功能
+        self.elements['proj_cover'].bind_button(dtype='picture-file',quote=False,related=False)
+        self.elements['save_pos'].bind_button(dtype='dir',quote=False,related=False)
+        self.elements['textfile'].bind_button(dtype='logfile-file',quote=False,related=False)
+        self.elements['section_break'].input.configure(values=[0,100,300,1000,3000,10000,30000],state='readonly')
+        # TODO: 浏览资源文件夹，并指定给self.element['template']
+        self.elements['template'].input.bind('<<ComboboxSelected>>', self.template_selected,'+')
+        # 从预设文件夹获取
+        intels = os.listdir(self.intel_dir)
+        self.elements['template'].input.configure(values=intels,state='readonly')
+        # 添加额外的内容
+    def load_template(self,tplt_name):
+        SZ_5 = int(self.sz * 5)
+        tplt_path = self.intel_dir + tplt_name + '/' + tplt_name + '.rgint'
+        self.template:dict = json.load(open(tplt_path,'r',encoding='utf-8'))
+        # meta
+        self.frame_metainfo = ttk.Frame(master=self.seperator['TpltSep'],borderwidth=0)
+        ttk.Separator(master=self.frame_metainfo,bootstyle='primary',orient='horizontal').pack(fill='x',side='top',pady=SZ_5)
+        # thumbnail
+        sep_w = self.seperator['TpltSep'].winfo_width() - SZ_5 *2
+        thumbnail_size = (sep_w,int(sep_w/16*9)) # 16:9
+        self.tplt_cover = ImageTk.PhotoImage(
+            image=Image.open(self.template['meta']['cover']).resize(thumbnail_size)
+        )
+        # info
+        self.metainfo = {
+            'cover'     : ttk.Label(master=self.frame_metainfo,image=self.tplt_cover),
+            'describe'  : ttk.Label(master=self.frame_metainfo,text='简介：{}'.format(self.template['meta']['describe'])),
+            'author'    : ttk.Label(master=self.frame_metainfo,text='作者：{}'.format(self.template['meta']['author'])),
+            'licence'   : ttk.Label(master=self.frame_metainfo,text='授权：{}'.format(self.template['meta']['licence'])),
+        }
+        # 显示
+        for item in self.metainfo:
+            self.metainfo[item].pack(fill='x',side='top',padx=SZ_5)
+        # 返回
+        return self.frame_metainfo
+    def template_selected(self,event):
+        if self.frame_metainfo:
+            self.frame_metainfo.destroy()
+            # self.frame_metainfo.pack_forget()
+        try:
+            self.load_template(self.elements['template'].get())
+            self.frame_metainfo.pack(fill='x',side='top',pady=(0,int(self.sz*5)))
+        except Exception as E:
+            self.elements['template'].set("")
+            raise Exception()
+    def confirm(self):
+        # TODO：将预设项目的资源文件复制到输出目录
+        pass
 # 项目配置
 class ConfigureProject(CreateEmptyProject):
     def __init__(self, master, screenzoom, close_func, proj_config, file_path):
@@ -270,7 +326,11 @@ class CreateProjectDialog(Dialog):
         self._toplevel.destroy()
     def create_body(self, master):
         if self.ptype == 'Intel':
-            pass
+            self.create_project = CreateIntelProject(
+                master = master,
+                screenzoom = self.sz,
+                close_func=self.close_dialog,
+            )
         elif self.ptype == 'Config':
             self.create_project = ConfigureProject(
                 master = master,

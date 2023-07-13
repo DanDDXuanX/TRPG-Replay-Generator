@@ -163,9 +163,6 @@ class KeyValueDescribe(ttk.Frame):
         # 回调函数
         if self.callback:
             self.callback()
-        # TODO：怎么写这个回调？
-        # 每次修改值都刷新小节内容和显示，性能上是允许的吗？
-        # 当然，每次媒体类的实例化只做一次，性能应该是可以接受的？
     def get(self):
         return self.value.get()
     def set(self,value):

@@ -70,7 +70,6 @@ class EmptyView(ttk.Frame):
         if get_file is not None:
             self.open_project_file(filepath=get_file)
     def intel_project(self):
-        return 
         # 暂时还不可用的
         get_file:str = new_project(master=self,ptype='Intel')
         if get_file is not None:

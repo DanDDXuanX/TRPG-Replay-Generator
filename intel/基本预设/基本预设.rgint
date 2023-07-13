@@ -1,0 +1,8 @@
+{
+    "meta":{
+        "cover":"./toy/toy_cover.jpg",
+        "describe":"回声工坊2.0版本的测试智能预设。",
+        "author":"Betelgeuse Industries",
+        "licence":"可以用于任何用途。"
+    }
+}
