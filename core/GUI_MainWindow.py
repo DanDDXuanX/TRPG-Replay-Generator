@@ -8,6 +8,7 @@ import sys
 import tkinter as tk
 import ttkbootstrap as ttk
 from ttkbootstrap.toast import ToastNotification
+from ttkbootstrap.dialogs import Messagebox, MessageCatalog
 from PIL import Image, ImageTk
 
 from .ProjConfig import Preference, preference
@@ -147,6 +148,21 @@ class RplGenStudioMainWindow(ttk.Window):
             self.style.configure('preview.TLabel',anchor='center',background='#333333',borderwidth=0)
     # 当关闭窗口时
     def on_close(self):
+        if type(self.view['project']) is EmptyView:
+            pass
+        elif type(self.view['project']) is ProjectView:
+            w = int(self.winfo_width()/2)
+            h = int(self.winfo_height()/2-self.sz*100)
+            choice = Messagebox().show_question(
+            message='确认要关闭软件？\n尚未保存的项目变更将会丢失！',
+            title='警告！',
+            buttons=["取消:secondary","确定:danger"],
+            alert=True,
+            position=(w,h),
+            width=100
+            )
+            if choice != MessageCatalog.translate('OK'):
+                return False
         # project_view:ProjectView = self.view['project']
         # project_view.file_manager.project.dump_json('./test_project.json')
         self.destroy()
