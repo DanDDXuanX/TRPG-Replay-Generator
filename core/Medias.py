@@ -91,39 +91,6 @@ class MediaObj:
     def PR_center_arg(self,obj_size,pygame_pos) -> np.ndarray:
         screensize = np.array(self.screen_size)
         return (pygame_pos+obj_size/2-screensize/2)/obj_size*self.scale
-    # TODO，蒙版：（2.0先不完善这个功能）
-    def mask(self,surface:pygame.Surface,mask:np.ndarray=None)->pygame.Surface:
-        """
-        应用一个蒙版
-        输入参数：
-            surface，pygame.Surface
-                输入的图像
-            mask，np.ndarray
-                和surface尺寸相符的矩阵，数值类型是 np.uint8
-        输出
-            surface，pygame.Surface
-        """
-        # 渐变蒙版
-        if mask is None:
-            w, h = surface.get_size()
-            mask = np.tile(np.linspace(0,256,w,dtype=np.uint8),(h,1)).T
-        # 应用
-        outsurface = surface.copy()
-        pygame.surfarray.pixels_alpha(outsurface)[:] = np.multiply(
-            pygame.surfarray.pixels_alpha(outsurface)[:], mask,
-            dtype=np.uint16,
-        ) // 255
-        return outsurface
-    # TODO，剪影：（2.0先不完善这个功能）
-    def cutout(self,surface:pygame.Surface,color:tuple=None)->pygame.Surface:
-        if color is None:
-            color = (72,72,72)
-        w, h = surface.get_size()
-        outsurface = pygame.Surface((w,h), pygame.SRCALPHA)
-        outsurface.fill(color=color)
-        mask = pygame.surfarray.array_alpha(surface)
-        pygame.surfarray.pixels_alpha(outsurface)[:] = mask
-        return outsurface
     # 预览
     def preview(self, surface:pygame.Surface):
         self.display(surface)
