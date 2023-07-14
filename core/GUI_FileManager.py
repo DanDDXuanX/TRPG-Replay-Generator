@@ -87,6 +87,7 @@ class FileManager(ttk.Frame):
             'config'    : ImageTk.PhotoImage(name='config',   image=Image.open('./media/icon/setting.png').resize(icon_size)),
             'import'    : ImageTk.PhotoImage(name='import',   image=Image.open('./media/icon/import.png').resize(icon_size)),
             'export'    : ImageTk.PhotoImage(name='export',   image=Image.open('./media/icon/export.png').resize(icon_size)),
+            'close'     : ImageTk.PhotoImage(name='close',   image=Image.open('./media/icon/close.png').resize(icon_size)),
         }
         # 标题
         self.project_title = ttk.Frame(master=self,borderwidth=0,bootstyle='light')
@@ -99,12 +100,14 @@ class FileManager(ttk.Frame):
             'config'    : ttk.Button(master=self.project_title,image='config',command=self.proj_config),
             'import'    : ttk.Button(master=self.project_title,image='import',command=self.import_file),
             'export'    : ttk.Button(master=self.project_title,image='export',command=self.export_file),
+            'close'     : ttk.Button(master=self.project_title,image='close',command=self.close_proj),
         }
         self.buttons_tooltip = {
             'save'      : ToolTip(widget=self.buttons['save']  ,text='保存项目',bootstyle='secondary-inverse'),
             'config'    : ToolTip(widget=self.buttons['config'],text='项目设置',bootstyle='secondary-inverse'),
             'import'    : ToolTip(widget=self.buttons['import'],text='导入文件',bootstyle='secondary-inverse'),
-            'export'    : ToolTip(widget=self.buttons['export'],text='导出项目',bootstyle='secondary-inverse'),
+            'export'    : ToolTip(widget=self.buttons['export'],text='导出文件',bootstyle='secondary-inverse'),
+            'close'     : ToolTip(widget=self.buttons['close'], text='关闭项目',bootstyle='danger-inverse'),
         }
         # 放置
         self.title_pic.pack(fill='none',side='top')
@@ -284,6 +287,29 @@ class FileManager(ttk.Frame):
             self.project.config.execute()
             # 更换标题图
             self.load_cover()
+    # 关闭项目
+    def close_proj(self):
+        toplevel = self.winfo_toplevel()
+        w = int(toplevel.winfo_width()/2)
+        h = int(toplevel.winfo_height()/2-self.sz*100)
+        choice = Messagebox().show_question(
+            message='在关闭项目前，是否要保存项目？',
+            title='关闭项目',
+            buttons=["取消:secondary"," 否 :danger"," 是 :primary"],
+            alert=True,
+            parent=toplevel,
+            width=10,
+            position=(w,h)
+            )
+        if choice == ' 是 ':
+            self.save_file()
+        elif choice == ' 否 ':
+            pass
+        else:
+            return
+        # 关闭项目视图，返回首页
+        self.master.close_project_view()
+    
     # 加载封面
     def load_cover(self):
         SZ_300 = int(self.sz * 300)

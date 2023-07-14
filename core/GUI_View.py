@@ -96,6 +96,13 @@ class ProjectView(ttk.Frame):
         SZ_300 = int(self.sz * 300)
         self.file_manager.place(x=0,y=0,width=SZ_300,relheight=1)
         self.page_frame.place(x=SZ_300,y=0,relheight=1,relwidth=1,width=-SZ_300)
+    def close_project_view(self):
+        # BUG：关闭一个项目之后，再打开一个项目，可能出现不正常的表现！
+        PView = EmptyView(master=self.master,screenzoom=self.sz)
+        self.master.view['project'] = PView
+        self.place_forget()
+        self.master.view_show('project')
+        self.destroy()
 
 # 脚本视图
 class ScriptView(ttk.Frame):

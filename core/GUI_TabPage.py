@@ -155,7 +155,7 @@ class TabNote(ttk.Button):
         self.name = text
         self.bootstyle = bootstyle
         self.is_change = tk.StringVar(master=self,value='×')
-        self.dele = ttk.Button(master=self,textvariable=self.is_change,bootstyle=bootstyle,padding=0,command=self.press_delete)
+        self.dele = ttk.Button(master=self,textvariable=self.is_change,bootstyle=bootstyle,padding=(SZ_5,0,SZ_5,0),command=self.press_delete)
         self.dele.place(x=-SZ_24,relx=1,rely=0.15,width=SZ_21,relheight=0.70)
     def set_change(self):
         if self.is_change.get() == '×':
@@ -170,8 +170,8 @@ class TabNote(ttk.Button):
         # 复原所有已点击
         for key in self.master.active_tabs:
             self.master.active_tabs[key].recover()
-        self.config(bootstyle=self.bootstyle+'-link', image=self.imagename)
-        self.dele.config(bootstyle=self.bootstyle+'-link')
+        self.config(bootstyle='light', image=self.imagename)
+        self.dele.config(bootstyle='light')
     def recover(self):
         self.config(bootstyle=self.bootstyle,image=self.imagename+'_LT')
         self.dele.config(bootstyle=self.bootstyle)
