@@ -362,6 +362,9 @@ class FileCollapsing(ttk.Frame):
         # 显示菜单
         menu.post(event.x_root, event.y_root)
     def add_item(self):
+        # 取消收缩
+        if self.expand is False:
+            self.update_toggle()
         # 名字
         self.re_name = tk.StringVar(master=self,value='')
         self.in_rename:bool = True

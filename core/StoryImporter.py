@@ -114,14 +114,26 @@ class StoryImporter:
         if regex_specify:
             self.parse_struct = regex_specify
     def load(self,text:str):
+        # 进度条
+        self.terminate = False
+        self.progress = 0.0
         lines = text.split('\n')
-        for line in lines:
+        total = len(lines)
+        for idx, line in enumerate(lines):
+            # 如果终止
+            if self.terminate:
+                return self.results
             if self.log_mode is None:
                 self.identify(line=line)
             # 解析，或者pass
             self.parse(line=line)
+            self.progress = idx/total
         # 结束遍历之后，最后记录一次
         self.recode()
+        self.progress = 1.0
+        return self.results
+    def terminate_load(self):
+        self.terminate = True
     def identify(self,line:str):
         for mode in self.parse_struct:
             regex = self.parse_struct[mode]['new']['regex']
@@ -169,9 +181,6 @@ class StoryImporter:
         }
         # 序号+1
         self.line_index += 1
-        # 调试
-        if self.line_index % 1000 == 0:
-            print(self.line_index)
     def get_charactor_ID(self)->list:
         if len(self.results) == 0:
             return []
