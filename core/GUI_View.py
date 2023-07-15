@@ -12,7 +12,7 @@ from PIL import Image, ImageTk
 from .GUI_FileManager import FileManager
 from .GUI_TabPage import PageFrame
 from .GUI_Terminal import Terminal
-from .GUI_TableEdit import ScriptExecuter, PreferenceTable
+from .GUI_TableEdit import ScriptExecuter, PreferenceTable, ResetConfirm
 from .GUI_Util import Texture
 from .GUI_DialogWindow import browse_file
 from .GUI_CustomDialog import new_project
@@ -162,8 +162,16 @@ class PreferenceView(ttk.Frame):
         # 子原件
         self.texture = Texture(master=self, screenzoom=self.sz, file='./media/icon/texture1.png')
         self.content = PreferenceTable(master=self,screenzoom=self.sz)
+        self.buttons = ResetConfirm(master=self,screenzoom=self.sz,preferencetable=self.content)
         # 更新
         self.update_item()
     def update_item(self):
+        SZ_10 = int(self.sz * 10)
         self.texture.place(relx=0,rely=0,relwidth=1,relheight=1)
         self.content.place(relx=0.2,y=0,relwidth=0.6,relheight=1)
+        self.buttons.place(
+            relx=0.8,   x=SZ_10,
+            rely=1,     y=-SZ_10*11,
+            relwidth=0.2, width=-SZ_10*2,
+            height=SZ_10*10
+            )

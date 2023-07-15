@@ -134,17 +134,20 @@ class CreateEmptyProject(CreateProject):
         save_dir = self.elements['save_pos'].get()
         file_name = self.elements['proj_name'].get()
         save_path = save_dir + '/' + file_name + '.rgpj'
+        if save_dir == '':
+            Messagebox().show_error(title='错误',message='必须要选择一个文件夹用于保存项目文件！',parent=self)
+            return False
         # 检查合法性
         if W<0 or H<0 or F<0:
-            Messagebox().show_warning(title='警告',message='分辨率或帧率是非法的数值！')
+            Messagebox().show_error(title='错误',message='分辨率或帧率是非法的数值！',parent=self)
             return False
         for symbol in ['/','\\',':','*','?','"','<','>','|']:
             if symbol in file_name:
-                Messagebox().show_warning(title='警告',message=f'文件名中不能包含符号 {symbol} ！')
+                Messagebox().show_error(title='错误',message=f'文件名中不能包含符号 {symbol} ！',parent=self)
                 return False
         # 如果文件已经存在
         if os.path.isfile(save_path):
-            choice = Messagebox().okcancel(title='文件已存在',message='目录下已经存在重名的项目文件，要覆盖吗？')
+            choice = Messagebox().okcancel(title='文件已存在',message='目录下已经存在重名的项目文件，要覆盖吗？',parent=self)
             if choice != MessageCatalog.translate('OK'):
                 return False
         # 新建项目结构

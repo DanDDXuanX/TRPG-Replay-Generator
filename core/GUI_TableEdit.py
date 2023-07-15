@@ -89,6 +89,20 @@ class ScriptExecuter(TableEdit):
         self.elements['logfile'].bind_button(dtype='logfile-file',related=False)
 
 # 首选项
+class ResetConfirm(ttk.Frame):
+    def __init__(self,master,screenzoom,preferencetable):
+        self.sz = screenzoom
+        SZ_5 = int(self.sz*5)
+        super().__init__(master=master,borderwidth=SZ_5)
+        self.preferencetable = preferencetable
+        # 输出选项
+        self.buttons = {
+            'reset'     : ttk.Button(master=self, text='重置', command=self.preferencetable.reset, style='output.TButton'),
+            'comfirm'   : ttk.Button(master=self, text='确定', command=self.preferencetable.confirm, style='output.TButton')
+        }
+        for key in self.buttons:
+            item:ttk.Button = self.buttons[key]
+            item.pack(fill='both',side='top',expand=True,pady=SZ_5,padx=SZ_5)
 class PreferenceTable(TableEdit):
     TableStruct = PreferenceTableStruct
     def __init__(self,master,screenzoom)->None:
@@ -96,14 +110,6 @@ class PreferenceTable(TableEdit):
         super().__init__(master=master,screenzoom=screenzoom,title='首选项')
         # 首选项
         self.struct = preference.get_struct()
-        # 输出选项
-        self.buttons = {
-            'reset'     : ttk.Button(master=self.outputs, text='重置', command=self.reset, style='output.TButton'),
-            'comfirm'   : ttk.Button(master=self.outputs, text='确定', command=self.confirm, style='output.TButton')
-        }
-        for key in self.buttons:
-            item:ttk.Button = self.buttons[key]
-            item.pack(fill='both',side='left',expand=True,pady=0)
         # self.outputs = OutPutCommand(master=self,screenzoom=self.sz)
         # 初始化
         self.update_from_tablestruct(detail=True)

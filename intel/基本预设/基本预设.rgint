@@ -4,5 +4,201 @@
         "describe":"回声工坊2.0版本的测试智能预设。",
         "author":"Betelgeuse Industries",
         "licence":"可以用于任何用途。"
+    },
+    "config": {
+        "Width": 1920,
+        "Height": 1080,
+        "frame_rate": 30,
+        "Zorder": [
+            "BG2",
+            "BG1",
+            "Bb",
+            "BbS",
+            "Am3",
+            "Am2",
+            "Am1",
+            "AmS"
+        ]
+    },
+    "media":{
+        "static":{
+            "\u6c14\u6ce1\u4e3b\u6587\u672c": {
+                "type": "Text",
+                "fontfile": "./media/SourceHanSansCN-Regular.otf",
+                "fontsize": 40,
+                "color": [
+                    51,
+                    51,
+                    51,
+                    255
+                ],
+                "line_limit": 30,
+                "label_color": "Lavender"
+            },
+            "\u6c14\u6ce1\u5934\u6587\u672c": {
+                "type": "StrokeText",
+                "fontfile": "./media/SourceHanSerifSC-Heavy.otf",
+                "fontsize": 40,
+                "color": [
+                    255,
+                    255,
+                    255,
+                    255
+                ],
+                "line_limit": 7,
+                "edge_color": [
+                    51,
+                    51,
+                    51,
+                    255
+                ],
+                "edge_width": 2,
+                "projection": "SE",
+                "label_color": "Lavender"
+            },
+            "\u57fa\u672c\u6c14\u6ce1": {
+                "type": "Bubble",
+                "filepath": "@/media/bubble.png",
+                "scale": 1.0,
+                "Main_Text": "$\u6c14\u6ce1\u4e3b\u6587\u672c",
+                "Header_Text": "$\u6c14\u6ce1\u5934\u6587\u672c",
+                "pos": [
+                    581,
+                    680
+                ],
+                "mt_pos": [
+                    59,
+                    102
+                ],
+                "ht_pos": [
+                    194,
+                    7
+                ],
+                "ht_target": "Name",
+                "align": "left",
+                "line_distance": 1.4,
+                "label_color": "Cerulean"
+            }
+        },
+        "dynamic":{}
+    },
+    "charactor":{
+        "R0":{
+            "Animation": "NA",
+            "Bubble": "\u57fa\u672c\u6c14\u6ce1"
+        }
+    },
+    "preset":{
+        "0": {
+            "type": "comment",
+            "content": "! C:\\Anaconda\\python.exe"
+        },
+        "1": {
+            "type": "comment",
+            "content": " \u70b9\u6309\u952e\u76d8Tab\u952e\uff0c\u83b7\u53d6\u547d\u4ee4\u667a\u80fd\u8865\u5168\u3002\u9884\u89c8\u548c\u5bfc\u51fa\u6309\u94ae\u5728\u53f3\u4fa7 ->"
+        },
+        "2": {
+            "type": "blank"
+        },
+        "3": {
+            "type": "comment",
+            "content": " \u7acb\u7ed8\u5207\u6362\u6548\u679c\uff1a\u4ea4\u53c9\u6eb6\u89e3"
+        },
+        "4": {
+            "type": "set",
+            "target": "am_method_default",
+            "value_type": "method",
+            "value": {
+                "method": "cross",
+                "method_dur": 20
+            }
+        },
+        "5": {
+            "type": "comment",
+            "content": " \u6c14\u6ce1\u5207\u6362\u6548\u679c\uff1a\u76f4\u63a5\u66ff\u6362"
+        },
+        "6": {
+            "type": "set",
+            "target": "bb_method_default",
+            "value_type": "method",
+            "value": {
+                "method": "replace",
+                "method_dur": 0
+            }
+        },
+        "7": {
+            "type": "comment",
+            "content": " \u80cc\u666f\u5207\u6362\u6548\u679c\uff1a\u4ea4\u53c9\u6eb6\u89e3"
+        },
+        "8": {
+            "type": "set",
+            "target": "bg_method_default",
+            "value_type": "method",
+            "value": {
+                "method": "cross",
+                "method_dur": 60
+            }
+        },
+        "9": {
+            "type": "comment",
+            "content": " \u6587\u5b57\uff1a\u9010\u5b57\u663e\u793a"
+        },
+        "10": {
+            "type": "set",
+            "target": "tx_method_default",
+            "value_type": "method",
+            "value": {
+                "method": "w2w",
+                "method_dur": 2
+            }
+        },
+        "11": {
+            "type": "comment",
+            "content": " \u65e0\u8bed\u97f3\u8bed\u901f\uff1a900\uff0c\u548c<w2w=2>\u540c\u6b65"
+        },
+        "12": {
+            "type": "set",
+            "target": "speech_speed",
+            "value_type": "digit",
+            "value": 900
+        },
+        "13": {
+            "type": "comment",
+            "content": " \u53e5\u5b50\u95f4\u9694\uff1a1\u79d2"
+        },
+        "14": {
+            "type": "set",
+            "target": "asterisk_pause",
+            "value_type": "digit",
+            "value": 30
+        },
+        "15": {
+            "type": "comment",
+            "content": " \u52a8\u753b\u66f2\u7ebf\uff1a\u6b63\u5f26"
+        },
+        "16": {
+            "type": "set",
+            "target": "formula",
+            "value_type": "function",
+            "value": "sincurve"
+        },
+        "17": {
+            "type": "blank"
+        },
+        "18": {
+            "type": "comment",
+            "content": " \u5207\u6362\u80cc\u666f"
+        },
+        "19": {
+            "type": "background",
+            "bg_method": {
+                "method": "default",
+                "method_dur": "default"
+            },
+            "object": "black"
+        },
+        "20": {
+            "type": "blank"
+        }
     }
 }
