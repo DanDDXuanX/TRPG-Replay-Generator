@@ -229,10 +229,12 @@ class NewElementCommand(ttk.Frame):
             # 新建按钮绑定的命令
             new_element = self.create_command(button_this=button_this,keyword=keyword)
             # 按钮
+            self.image[keyword] = ImageTk.PhotoImage(image=Image.open(button_this['icon']).resize(icon_size))
             self.buttons[keyword] = ttk.Button(
                 master=self,
                 # image='display',
                 text=button_this['text'],
+                image=self.image[keyword],
                 compound='left',
                 style='output.TButton',
                 width=5,

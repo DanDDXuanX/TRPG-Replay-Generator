@@ -198,14 +198,16 @@ class CreateIntelProject(CreateProject):
         # 从预设文件夹获取
         intels = os.listdir(self.intel_dir)
         self.elements['template'].input.configure(values=intels,state='readonly')
-        # 添加额外的内容
+        # 添加进度条
+        self.progress = ttk.Progressbar(master=self.seperator['LogSep'],maximum=1.0,value=0.5,bootstyle='primary-striped')
+        self.elements['progress'] = self.progress
     def load_template(self,tplt_name):
         SZ_5 = int(self.sz * 5)
         tplt_path = self.intel_dir + tplt_name + '/' + tplt_name + '.rgint'
         self.template:dict = json.load(open(tplt_path,'r',encoding='utf-8'))
         # meta
         self.frame_metainfo = ttk.Frame(master=self.seperator['TpltSep'],borderwidth=0)
-        ttk.Separator(master=self.frame_metainfo,bootstyle='primary',orient='horizontal').pack(fill='x',side='top',pady=SZ_5)
+        ttk.Separator(master=self.frame_metainfo,bootstyle='secondary',orient='horizontal').pack(fill='x',side='top',pady=SZ_5)
         # thumbnail
         sep_w = self.seperator['TpltSep'].winfo_width() - SZ_5 *2
         thumbnail_size = (sep_w,int(sep_w/16*9)) # 16:9

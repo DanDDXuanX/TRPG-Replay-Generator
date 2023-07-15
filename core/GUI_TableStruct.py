@@ -1957,10 +1957,6 @@ EditTableStruct = {
             }
         },
     },
-    # 项目设置
-    'Config':{},
-    # 软件设置
-    'Preference':{},
 }
 
 PreferenceTableStruct = {
@@ -2512,75 +2508,90 @@ NewElement = {
     "charactor":{
         "charactor":{
             "text":"角色差分",
-            "tooltip":"【角色差分】是一个角色的不同状态，每个差分可以独立地设置不同的立绘、气泡和语音。"
+            "tooltip":"【角色差分】是一个角色的不同状态，每个差分可以独立地设置不同的立绘、气泡和语音。",
+            "icon":'./media/icon/new/charactor.png'
         }
     },
     "Pos":{
         "Pos":{
             "text":"固定点",
-            "tooltip":"【固定点】是画布上的一个不可以移动的点，可以用作图片媒体的位置参数。"
+            "tooltip":"【固定点】是画布上的一个不可以移动的点，可以用作图片媒体的位置参数。",
+            "icon":'./media/icon/new/Pos.png'
         },
         "FreePos":{
             "text":"自由点",
-            "tooltip":"【自由点】是一个可以通过<move>命令移动的点；所有使用自由点作为位置的媒体，当自由点移动后都会同步移动。"
+            "tooltip":"【自由点】是一个可以通过<move>命令移动的点；所有使用自由点作为位置的媒体，当自由点移动后都会同步移动。",
+            "icon":'./media/icon/new/FreePos.png'
         },
         "PosGrid":{
             "text":"点网格",
-            "tooltip":"【点网格】是一组棋盘网格状的点；点网格的每一个成员都是一个固定点。"
+            "tooltip":"【点网格】是一组棋盘网格状的点；点网格的每一个成员都是一个固定点。",
+            "icon":'./media/icon/new/PosGrid.png'
         }
     },
     "Text":{
         "Text":{
             "text":"字体",
-            "tooltip":"【字体】是最基本的文本字体，通过指定一个字体文件来建立一个字体媒体。"
+            "tooltip":"【字体】是最基本的文本字体，通过指定一个字体文件来建立一个字体媒体。",
+            "icon":'./media/icon/new/Text.png'
         },
         "StrokeText":{
             "text":"描边字体",
-            "tooltip":"和基本字体相比，【描边字体】多了一个可以指定颜色和宽度的描边。"
+            "tooltip":"和基本字体相比，【描边字体】多了一个可以指定颜色和宽度的描边。",
+            "icon":'./media/icon/new/StrokeText.png'
         },
         "RichText":{
             "text":"富文本",
-            "tooltip":"使用【富文本】的气泡，可以灵活调整文本的斜体、粗体、字号和颜色。"
+            "tooltip":"使用【富文本】的气泡，可以灵活调整文本的斜体、粗体、字号和颜色。",
+            "icon":'./media/icon/new/RichText.png'
         },
     },
     "Bubble":{
         "Bubble":{
             "text":"气泡",
             "tooltip":"【气泡】是最基本的发言文本框，包含一张底图、一个主文本和一个头文本。",
+            "icon":'./media/icon/new/Bubble.png'
         },
         "Balloon":{
             "text":"气球",
             "tooltip":"和气泡相比，【气球】允许设置多个头文本，用于显示不同的角色自定义文本。",
+            "icon":'./media/icon/new/Balloon.png'
         },
         "DynamicBubble":{
             "text":"动态气泡",
-            "tooltip":"和气泡相比，【动态气泡】的底图尺寸将跟随主文本的长度而变化，常用于聊天窗。"
+            "tooltip":"和气泡相比，【动态气泡】的底图尺寸将跟随主文本的长度而变化，常用于聊天窗。",
+            "icon":'./media/icon/new/DynamicBubble.png'
         },
         "ChatWindow":{
             "text":"聊天窗",
-            "tooltip":"【聊天窗】是即时社交软件风格的文本框，可以滚动显示多条发言内容。"
+            "tooltip":"【聊天窗】是即时社交软件风格的文本框，可以滚动显示多条发言内容。",
+            "icon":'./media/icon/new/ChatWindow.png'
         },
     },
     "Animation":{
         "Animation":{
             "text":"立绘",
-            "tooltip":"【立绘】是最通用的图像媒体，可以展示角色形象或者道具的图片，也可以播放动画。"
+            "tooltip":"【立绘】是最通用的图像媒体，可以展示角色形象或者道具的图片，也可以播放动画。",
+            "icon":'./media/icon/new/Animation.png'
         }
     },
     "Background":{
         "Background":{
             "text":"背景",
-            "tooltip":"【背景】是整个画面的背景层。注意，背景必须能完整地覆盖整个画幅，否则会出现异常的显示效果！"
+            "tooltip":"【背景】是整个画面的背景层。注意，背景必须能完整地覆盖整个画幅，否则会出现异常的显示效果！",
+            "icon":'./media/icon/new/Background.png'
         }
     },
     "Audio":{
         "Audio":{
             "text":"音效",
-            "tooltip":"【音效】是常用的音频媒体，在对话行中可以播放音效，每次音效仅播放一次！"
+            "tooltip":"【音效】是常用的音频媒体，在对话行中可以播放音效，每次音效仅播放一次！",
+            "icon":'./media/icon/new/Audio.png'
         },
         "BGM":{
             "text":"背景音乐",
-            "tooltip":"【背景音乐】是可以循环播放的音频媒体，使用<bgm>命令控制播放和停止，不会影响音效。"
+            "tooltip":"【背景音乐】是可以循环播放的音频媒体，使用<bgm>命令控制播放和停止，不会影响音效。",
+            "icon":'./media/icon/new/BGM.png'
         }
     }
 }

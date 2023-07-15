@@ -4,6 +4,7 @@
 import ttkbootstrap as ttk
 from ttkbootstrap.scrolled import ScrolledFrame
 from ttkbootstrap.toast import ToastNotification
+from PIL import Image, ImageTk
 from .ProjConfig import preference, Preference
 from .GUI_PageElement import OutPutCommand
 from .GUI_Util import TextSeparator, KeyValueDescribe
@@ -93,12 +94,18 @@ class ResetConfirm(ttk.Frame):
     def __init__(self,master,screenzoom,preferencetable):
         self.sz = screenzoom
         SZ_5 = int(self.sz*5)
+        SZ_30 = int(self.sz * 30)
+        icon_size = [SZ_30,SZ_30]
         super().__init__(master=master,borderwidth=SZ_5)
         self.preferencetable = preferencetable
+        self.image = {
+            'reset'     : ImageTk.PhotoImage(image=Image.open('./media/icon/reset.png').resize(icon_size)),
+            'confirm'   : ImageTk.PhotoImage(image=Image.open('./media/icon/confirm.png').resize(icon_size)),
+        }
         # 输出选项
         self.buttons = {
-            'reset'     : ttk.Button(master=self, text='重置', command=self.preferencetable.reset, style='output.TButton'),
-            'comfirm'   : ttk.Button(master=self, text='确定', command=self.preferencetable.confirm, style='output.TButton')
+            'reset'     : ttk.Button(master=self, text='重置',image=self.image['reset'],command=self.preferencetable.reset, style='output.TButton',padding=0),
+            'confirm'   : ttk.Button(master=self, text='确定',image=self.image['confirm'],command=self.preferencetable.confirm, style='output.TButton',padding=0)
         }
         for key in self.buttons:
             item:ttk.Button = self.buttons[key]
