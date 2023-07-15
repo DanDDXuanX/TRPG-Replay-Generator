@@ -181,6 +181,7 @@ class StoryImporter:
         }
         # 序号+1
         self.line_index += 1
+    # 以list形式返回所有的ID
     def get_charactor_ID(self)->list:
         if len(self.results) == 0:
             return []
@@ -190,6 +191,7 @@ class StoryImporter:
             raw_ID = this_result['ID'].value_counts()
             # 返回
             return raw_ID.index.to_list()
+    # 以Series的形式返回当前ID和合法角色名的对应关系
     def get_charactor_name(self)->pd.Series:
         if len(self.results) == 0:
             return None
@@ -201,6 +203,35 @@ class StoryImporter:
                 return names.where(~names.duplicated(), names+'_dup')
             else:
                 return names
+    # 以Series的形式返回当前ID和最高频角色名的对应关系
+    def get_charactor_header(self)->pd.Series:
+        if len(self.results) == 0:
+            return None
+        else:
+            this_result = self.results.loc[1:]
+            names = this_result.groupby('ID')['name'].apply(self.get_most_frequent)
+            # 检查是否出现了重名
+            if names.duplicated().any():
+                return names.where(~names.duplicated(), names+'_dup')
+            else:
+                return names
+    # 以Series的形式返回每个ID的发言数量
+    def get_charactor_frequency(self):
+        if len(self.results) == 0:
+            return None
+        else:
+            this_result = self.results.loc[1:]
+            return this_result.groupby('ID')['speech'].count()
+    def get_charinfo(self)->pd.DataFrame:
+        charinfo = pd.DataFrame(index=self.get_charactor_ID(),columns=['header','name','freq'])
+        charinfo['header'] = self.get_charactor_header()
+        charinfo['name'] = self.get_charactor_name()
+        charinfo['freq'] = self.get_charactor_frequency()
+        return charinfo
+    # 从一个序列中，获取频率最高的元素
+    def get_most_frequent(self,set_of_name:pd.Series):
+        return set_of_name.value_counts().idxmax()
+    # 从一个序列中，获取最可能的合法角色名
     def get_possible_valid_name(self,set_of_name:pd.Series):
         # 检索内容中的合法词组
         ID_valid = re.compile('[\w]+')

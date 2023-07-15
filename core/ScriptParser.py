@@ -2232,4 +2232,3 @@ class RplGenLog(Script):
             return True
         except:
             return False
-# 下播了下播了，开3D太卡了，都没法做测试了555

@@ -4,12 +4,18 @@
 # 新建空白项目，新建智能项目的窗口
 import os
 import json
+import shutil
+import threading
+import numpy as np
+import pandas as pd
 import tkinter as tk
 import ttkbootstrap as ttk
 from pathlib import Path
 from ttkbootstrap.dialogs import Dialog, Messagebox, MessageCatalog
 from PIL import Image, ImageTk
-from .GUI_Util import KeyValueDescribe, thumbnail
+from .StoryImporter import StoryImporter
+from .ScriptParser import CharTable, RplGenLog
+from .GUI_Util import KeyValueDescribe
 from .GUI_TableStruct import ProjectTableStruct
 
 class CreateProject(ttk.Frame):
@@ -133,7 +139,7 @@ class CreateEmptyProject(CreateProject):
         cover_path = self.elements['proj_cover'].get()
         save_dir = self.elements['save_pos'].get()
         file_name = self.elements['proj_name'].get()
-        save_path = save_dir + '/' + file_name + '.rgpj'
+        save_path = f"{save_dir}/{file_name}/{file_name}.rgpj"
         if save_dir == '':
             Messagebox().show_error(title='错误',message='必须要选择一个文件夹用于保存项目文件！',parent=self)
             return False
@@ -166,14 +172,14 @@ class CreateEmptyProject(CreateProject):
         }
         # 保存文件
         try:
+            # 建立项目资源目录
+            try:
+                os.makedirs(f"{save_dir}/{file_name}/")
+            except FileExistsError:
+                pass
             # 建立项目文件
             with open(save_path,'w',encoding='utf-8') as of:
                 of.write(json.dumps(new_project_struct,indent=4))
-            # 建立项目资源目录
-            try:
-                os.makedirs(save_dir + '/' + file_name)
-            except FileExistsError:
-                pass
             # 退出
             self.close_func(save_path)
         except:
@@ -199,20 +205,23 @@ class CreateIntelProject(CreateProject):
         intels = os.listdir(self.intel_dir)
         self.elements['template'].input.configure(values=intels,state='readonly')
         # 添加进度条
-        self.progress = ttk.Progressbar(master=self.seperator['LogSep'],maximum=1.0,value=0.5,bootstyle='primary-striped')
+        self.progress = ttk.Progressbar(master=self.seperator['LogSep'],maximum=1.0,value=0.0,bootstyle='primary-striped')
         self.elements['progress'] = self.progress
     def load_template(self,tplt_name):
         SZ_5 = int(self.sz * 5)
-        tplt_path = self.intel_dir + tplt_name + '/' + tplt_name + '.rgint'
-        self.template:dict = json.load(open(tplt_path,'r',encoding='utf-8'))
-        # meta
+        # rgint 路径
+        self.tplt_path = self.intel_dir + tplt_name + '/main.rgint'
+        # @ 路径
+        self.at_path = self.intel_dir+tplt_name
+        self.template:dict = json.load(open(self.tplt_path,'r',encoding='utf-8'))
+        # 显示
         self.frame_metainfo = ttk.Frame(master=self.seperator['TpltSep'],borderwidth=0)
         ttk.Separator(master=self.frame_metainfo,bootstyle='secondary',orient='horizontal').pack(fill='x',side='top',pady=SZ_5)
-        # thumbnail
+        ## thumbnail
         sep_w = self.seperator['TpltSep'].winfo_width() - SZ_5 *2
         thumbnail_size = (sep_w,int(sep_w/16*9)) # 16:9
         self.tplt_cover = ImageTk.PhotoImage(
-            image=Image.open(self.template['meta']['cover']).resize(thumbnail_size)
+            image=Image.open(self.template['meta']['cover'].replace('@',self.at_path)).resize(thumbnail_size)
         )
         # info
         self.metainfo = {
@@ -236,9 +245,185 @@ class CreateIntelProject(CreateProject):
         except Exception as E:
             self.elements['template'].set("")
             raise Exception()
+    def reset_comfirm(self):
+        # 恢复
+        for key in self.elements:
+            if key != 'progress':
+                self.elements[key].enable()
+        # 将进度条归零
+        self.progress.configure(value=0.0)
+        # 恢复按键
+        self.comfirm_button.configure(text='确定',bootstyle='primary',command=self.confirm)
+    def on_press_comfirm(self):
+        # 禁用
+        for key in self.elements:
+            # 不操作progress！
+            if key != 'progress':
+                self.elements[key].disable()
+        self.comfirm_button.configure(text='取消',bootstyle='danger',command=self.terminate_load)
     def confirm(self):
-        # TODO：将预设项目的资源文件复制到输出目录
-        pass
+        # 检查合法性
+        save_dir = self.elements['save_pos'].get()
+        cover_path = self.elements['proj_cover'].get()
+        file_name = self.elements['proj_name'].get()
+        save_path = f"{save_dir}/{file_name}/{file_name}.rgpj"
+        if save_dir == '':
+            Messagebox().show_error(title='错误',message='必须要选择一个文件夹用于保存项目文件！',parent=self)
+            return False
+        for symbol in ['/','\\',':','*','?','"','<','>','|']:
+            if symbol in file_name:
+                Messagebox().show_error(title='错误',message=f'文件名中不能包含符号 {symbol} ！',parent=self)
+                return False
+        if os.path.isfile(save_path):
+            choice = Messagebox().okcancel(title='文件已存在',message='目录下已经存在重名的项目文件，要覆盖吗？',parent=self)
+            if choice != MessageCatalog.translate('OK'):
+                return False
+        # 0. 禁用元件，更新按钮
+        self.on_press_comfirm()
+        # 1. 新建一个空白项目
+        self.new_project_struct = {
+            'config':{
+                'Name'          : file_name,
+                'Cover'         : cover_path,
+            },
+            'mediadef':{},
+            'chartab':{},
+            'logfile':{}
+        }
+        # 2. 输入模板的config
+        self.new_project_struct['config'].update(self.template['config'])
+        # 3. 导入模板的静态media
+        self.new_project_struct['mediadef'].update(self.template['media']['static'])
+        # 4. 载入导入的文本
+        logfile_path = self.elements['textfile'].get()
+        try:
+            self.load_text = open(logfile_path,'r',encoding='utf-8').read()
+        except UnicodeEncodeError:
+            try:
+                self.load_text = open(logfile_path,'r',encoding='gbk').read()
+            except Exception as E:
+                Messagebox().show_error('无法解读导入文件的编码！\n请确定导入的一个文本文件？',title='error',parent=self)
+                self.reset_comfirm()
+                return False
+        # 5. 开始解析
+        self.story = StoryImporter()
+        self.thread = threading.Thread(target=self.import_story)
+        self.thread.start()
+        # 6. 开始after
+        self.after(500,self.update_progress)
+        return self.thread
+    # 导入成功之后
+    def after_loading(self):
+        tplt_chars = self.template['charactor']
+        # 7. 从解析结果中获取角色
+        charinfo = self.story.get_charinfo()
+        # 8. 去除非法的角色
+        charinfo = charinfo[-(charinfo['name'].duplicated() + (charinfo['name'] == '') + (charinfo['name'] == '_dup') + (charinfo.index==''))].copy()
+        charinfo['key'] = (np.arange(len(charinfo))%len(tplt_chars)).astype(str)
+        # 9. 获取log
+        bulid_rgl = np.frompyfunc(lambda char,speech:f"[{char}]:{speech}",2,1)
+        log_results = self.story.results
+        log_results = log_results[log_results['ID'].map(lambda x:x in charinfo.index)].copy()
+        log_results.index = np.arange(len(log_results)) # 重设序号
+        log_results['rgl'] = bulid_rgl(
+            log_results['ID'].map(charinfo['name']),
+            log_results['speech'].map(self.clear_speeches)
+            )
+        # 10. 生成角色表
+        chartable = pd.DataFrame(index=charinfo.index,columns=CharTable.table_col)
+        chartable['Name'] = charinfo['name']
+        chartable['Subtype'] = 'default'
+        chartable['Animation'] = charinfo['key'].map(lambda x:tplt_chars[x]['Animation'])
+        chartable['Bubble'] = charinfo['key'].map(lambda x:tplt_chars[x]['Bubble'])
+        chartable['Voice'] = 'NA'
+        chartable['SpeechRate'] = 0
+        chartable['PitchRate'] = 0
+        chartable['Header'] = charinfo['header']
+        chartable.index = chartable['Name']+'.'+chartable['Subtype']
+        self.new_project_struct['chartab'].update(CharTable(table_input=chartable).struct)
+        # 11. 生成log文件
+        preset_text = RplGenLog(dict_input=self.template['preset']).export()
+        sep_length:int = self.elements['section_break'].get()
+        if sep_length == 0:
+            sep_length = len(log_results)
+        section_idx = 0
+        while section_idx < len(log_results):
+            name_this = f"导入剧本_{section_idx}"
+            rgl_text = preset_text + '\n' + '\n'.join(
+                log_results.loc[
+                    section_idx:(section_idx+sep_length),
+                    'rgl'
+                    ].values
+                )
+            self.new_project_struct['logfile'][name_this] = RplGenLog(string_input=rgl_text).struct
+            section_idx += sep_length
+        # 12. 新建项目和目录
+        save_dir = self.elements['save_pos'].get()
+        file_name = self.elements['proj_name'].get()
+        save_path = f"{save_dir}/{file_name}/{file_name}.rgpj"
+        # 13. 保存文件
+        # try:
+        if 1:
+            # 建立项目资源目录
+            try:
+                os.makedirs(save_dir + '/' + file_name)
+            except FileExistsError:
+                pass
+            # 复制模板素材到项目文件夹
+            shutil.copytree(
+                src=self.at_path+'/media/',
+                dst=f"{save_dir}/{file_name}/media/"
+            )
+            # 建立项目文件
+            with open(save_path,'w',encoding='utf-8') as of:
+                of.write(json.dumps(self.new_project_struct,indent=4))
+            # 退出
+            self.close_func(save_path)
+        # except:
+        else:
+            Messagebox().show_error(title='错误',message=f'无法保存文件到：\n{save_path}')
+            return False
+    def clear_speeches(self,text):
+        if text == '':
+            return ' '
+        if text[-1] == '\n':
+            text = text[:-1]
+        if '\n' in text:
+            text = text.replace('\n','#')
+        if '"' in text:
+            text = text.replace('"','')
+        if '\\' in text:
+            text = text.replace('\\','')
+        return text
+    def update_progress(self):
+        # 如果子进程还活着
+        if self.thread.is_alive():
+            self.progress.configure(value=self.story.progress)
+            self.after(500,self.update_progress)
+        else:
+            # 如果是手动终止
+            if self.story.terminate == True:
+                return
+            # 如果是自动终止
+            else:
+                if self.story.progress == 1:
+                    self.progress.configure(value=self.story.progress)
+                    self.after_loading()
+                else:
+                    Messagebox().show_error(message='在导入文本时发生了异常！',title='错误',parent=self)
+                    self.reset_comfirm()
+                    return
+    # 当正在导入时，终止导入
+    def terminate_load(self):
+        if self.thread.is_alive():
+            self.story.terminate_load()
+            self.thread.join()
+            self.reset_comfirm()
+        else:
+            pass
+    def import_story(self):
+        self.story.load(text=self.load_text)
+        return
 # 项目配置
 class ConfigureProject(CreateEmptyProject):
     def __init__(self, master, screenzoom, close_func, proj_config, file_path):

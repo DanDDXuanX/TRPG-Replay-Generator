@@ -73,12 +73,14 @@ class DictCombobox(ttk.Combobox):
         self.text = tk.StringVar(master=master,value=self.var.get())
         # 初始化
         super().__init__(master, textvariable=self.text, **kw)
+        self.combox_state = 'normal'
         self.bind('<<ComboboxSelected>>', self.update_var)
         self.bind('<KeyRelease>',self.update_var)
     def update_dict(self, dict:dict):
         # 显示的内容：实际的内容
         self.dictionary = dict
         self.configure(values=list(self.dictionary.keys()), state='readonly')
+        self.combox_state = 'readonly'
         # 修改目前text
         self.set_dictionary_text()
     def update_var(self, event):
@@ -181,6 +183,15 @@ class KeyValueDescribe(ttk.Frame):
             # 更新
             self.config_content()
         self.describe.configure(command=command)
+    def disable(self):
+        self.input.configure(state='disable')
+        self.describe.configure(state='disable')
+    def enable(self):
+        if type(self.input) is DictCombobox:
+            self.input.configure(state=self.input.combox_state)
+        else:
+            self.input.configure(state='normal')
+        self.describe.configure(state='normal')
 # 一个比上面的KVD更详细的最小单位，常用于设置
 class DetailedKeyValueDescribe(KeyValueDescribe):
     def __init__(self,master,screenzoom:float,key:str,value:dict,describe:dict,tooltip:str=None,callback=None):

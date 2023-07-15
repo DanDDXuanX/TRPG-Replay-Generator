@@ -1,9 +1,9 @@
 {
     "meta":{
-        "cover":"./toy/toy_cover.jpg",
-        "describe":"回声工坊2.0版本的测试智能预设。",
+        "cover":"@/cover.jpg",
+        "describe":"回声工坊2.0的基本预设模板",
         "author":"Betelgeuse Industries",
-        "licence":"可以用于任何用途。"
+        "licence":"可以用于任何用途"
     },
     "config": {
         "Width": 1920,
@@ -22,76 +22,146 @@
     },
     "media":{
         "static":{
+            "\u7acb\u7ed8\u7684\u4f4d\u7f6e": {
+                "type": "Pos",
+                "pos": [
+                    72,
+                    490
+                ]
+            },
+            "\u6c14\u6ce1\u7684\u4f4d\u7f6e": {
+                "type": "Pos",
+                "pos": [
+                    597,
+                    626
+                ]
+            },
+            "\u6c14\u6ce1\u6807\u9898": {
+                "type": "Text",
+                "fontfile": "./media/SourceHanSansCN-Regular.otf",
+                "fontsize": 40,
+                "color": [
+                    0,
+                    0,
+                    0,
+                    255
+                ],
+                "line_limit": 10,
+                "label_color": "Lavender"
+            },
             "\u6c14\u6ce1\u4e3b\u6587\u672c": {
                 "type": "Text",
                 "fontfile": "./media/SourceHanSansCN-Regular.otf",
                 "fontsize": 40,
                 "color": [
-                    51,
-                    51,
-                    51,
+                    0,
+                    0,
+                    0,
                     255
                 ],
-                "line_limit": 30,
+                "line_limit": 28,
                 "label_color": "Lavender"
             },
-            "\u6c14\u6ce1\u5934\u6587\u672c": {
-                "type": "StrokeText",
-                "fontfile": "./media/SourceHanSerifSC-Heavy.otf",
-                "fontsize": 40,
-                "color": [
-                    255,
-                    255,
-                    255,
-                    255
-                ],
-                "line_limit": 7,
-                "edge_color": [
-                    51,
-                    51,
-                    51,
-                    255
-                ],
-                "edge_width": 2,
-                "projection": "SE",
-                "label_color": "Lavender"
-            },
-            "\u57fa\u672c\u6c14\u6ce1": {
+            "\u6c14\u6ce1\u7ea2": {
                 "type": "Bubble",
-                "filepath": "@/media/bubble.png",
+                "filepath": "@/media/\u6c14\u6ce1\u7ea2.png",
                 "scale": 1.0,
                 "Main_Text": "$\u6c14\u6ce1\u4e3b\u6587\u672c",
-                "Header_Text": "$\u6c14\u6ce1\u5934\u6587\u672c",
-                "pos": [
-                    581,
-                    680
-                ],
+                "Header_Text": "$\u6c14\u6ce1\u6807\u9898",
+                "pos": "$\u6c14\u6ce1\u7684\u4f4d\u7f6e",
                 "mt_pos": [
-                    59,
-                    102
+                    58,
+                    126
                 ],
                 "ht_pos": [
-                    194,
-                    7
+                    32,
+                    35
                 ],
-                "ht_target": "Name",
+                "ht_target": "Header",
                 "align": "left",
-                "line_distance": 1.4,
-                "label_color": "Cerulean"
+                "line_distance": 1.5,
+                "label_color": "Rose"
+            },
+            "\u6c14\u6ce1\u84dd": {
+                "type": "Bubble",
+                "filepath": "@/media/\u6c14\u6ce1\u84dd.png",
+                "scale": 1.0,
+                "Main_Text": "$\u6c14\u6ce1\u4e3b\u6587\u672c",
+                "Header_Text": "$\u6c14\u6ce1\u6807\u9898",
+                "pos": "$\u6c14\u6ce1\u7684\u4f4d\u7f6e",
+                "mt_pos": [
+                    58,
+                    126
+                ],
+                "ht_pos": [
+                    32,
+                    35
+                ],
+                "ht_target": "Header",
+                "align": "left",
+                "line_distance": 1.5,
+                "label_color": "Iris"
+            },
+            "\u6c14\u6ce1\u7eff": {
+                "type": "Bubble",
+                "filepath": "@/media/\u6c14\u6ce1\u7eff.png",
+                "scale": 1.0,
+                "Main_Text": "$\u6c14\u6ce1\u4e3b\u6587\u672c",
+                "Header_Text": "$\u6c14\u6ce1\u6807\u9898",
+                "pos": "$\u6c14\u6ce1\u7684\u4f4d\u7f6e",
+                "mt_pos": [
+                    58,
+                    126
+                ],
+                "ht_pos": [
+                    32,
+                    35
+                ],
+                "ht_target": "Header",
+                "align": "left",
+                "line_distance": 1.5,
+                "label_color": "Forest"
+            },
+            "\u9ed8\u8ba4\u7acb\u7ed8": {
+                "type": "Animation",
+                "filepath": "@/media/\u9ed8\u8ba4\u7acb\u7ed8.png",
+                "scale": 1.0,
+                "pos": "$\u7acb\u7ed8\u7684\u4f4d\u7f6e",
+                "tick": 1,
+                "loop": true,
+                "label_color": "Violet"
+            },
+            "\u9ed8\u8ba4\u80cc\u666f": {
+                "type": "Background",
+                "filepath": "@/media/\u80cc\u666f.jpg",
+                "scale": 1.0,
+                "pos": [
+                    0,
+                    0
+                ],
+                "label_color": "Caribbean"
             }
         },
         "dynamic":{}
     },
     "charactor":{
-        "R0":{
-            "Animation": "NA",
-            "Bubble": "\u57fa\u672c\u6c14\u6ce1"
+        "0":{
+            "Animation": "\u9ed8\u8ba4\u7acb\u7ed8",
+            "Bubble": "\u6c14\u6ce1\u7ea2"
+        },
+        "1":{
+            "Animation": "\u9ed8\u8ba4\u7acb\u7ed8",
+            "Bubble": "\u6c14\u6ce1\u84dd"
+        },
+        "2":{
+            "Animation": "\u9ed8\u8ba4\u7acb\u7ed8",
+            "Bubble": "\u6c14\u6ce1\u7eff"
         }
     },
     "preset":{
         "0": {
             "type": "comment",
-            "content": "! C:\\Anaconda\\python.exe"
+            "content": "!"
         },
         "1": {
             "type": "comment",
@@ -195,7 +265,7 @@
                 "method": "default",
                 "method_dur": "default"
             },
-            "object": "black"
+            "object": "\u9ed8\u8ba4\u80cc\u666f"
         },
         "20": {
             "type": "blank"
