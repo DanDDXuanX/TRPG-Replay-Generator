@@ -267,8 +267,12 @@ class CreateIntelProject(CreateProject):
         cover_path = self.elements['proj_cover'].get()
         file_name = self.elements['proj_name'].get()
         save_path = f"{save_dir}/{file_name}/{file_name}.rgpj"
+        tplt_name = self.elements['template'].get()
         if save_dir == '':
             Messagebox().show_error(title='错误',message='必须要选择一个文件夹用于保存项目文件！',parent=self)
+            return False
+        if tplt_name == '':
+            Messagebox().show_error(title='错误',message='必须要选择样式模板！',parent=self)
             return False
         for symbol in ['/','\\',':','*','?','"','<','>','|']:
             if symbol in file_name:

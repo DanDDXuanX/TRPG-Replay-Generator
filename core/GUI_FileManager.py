@@ -4,10 +4,11 @@
 # 项目资源管理器，项目视图的元素之一。
 # 包含：标题图，项目管理按钮，媒体、角色、剧本的可折叠容器
 
+import os
 import sys
 import json
 import re
-from PIL import Image, ImageTk, ImageEnhance
+from PIL import Image, ImageTk, ImageEnhance, ImageFont, ImageDraw
 import ttkbootstrap as ttk
 import tkinter as tk
 from ttkbootstrap.scrolled import ScrolledFrame
@@ -314,7 +315,20 @@ class FileManager(ttk.Frame):
     def load_cover(self):
         SZ_300 = int(self.sz * 300)
         SZ_180 = int(self.sz * 168.75)
-        self.cover = ImageTk.PhotoImage(image=Image.open(self.project.config.Cover).resize([SZ_300,SZ_180]))
+        try:
+            image = Image.open(self.project.config.Cover).resize(960,540).convert('RGBA')
+            # self.cover = ImageTk.PhotoImage(image=Image.open(self.project.config.Cover).resize([SZ_300,SZ_180],mode='RGBA'))
+        except Exception:
+            cover_path = f'./media/default_cover/{preference.theme}.jpg'
+            image = Image.open(cover_path).convert('RGBA')
+        # 渲染标题
+        title = Image.new("RGBA",size=(960,160),color='#b3b3b3b3')
+        draw = ImageDraw.Draw(title)
+        title_font = ImageFont.truetype('./media/SourceHanSerifSC-Heavy.otf',size=100)
+        draw.text((20,0),text=self.project.config.Name,font=title_font,fill='#1e1e1eff')
+        # 合并
+        image.paste(title,(0,380),mask=title)
+        self.cover = ImageTk.PhotoImage(image=image.resize([SZ_300,SZ_180]))
         self.title_pic.configure(image=self.cover)
     # 刷新目前某一类标签页的显示，导入文件时需要调用
     def update_pages_elements(self,ftype='medef'):
