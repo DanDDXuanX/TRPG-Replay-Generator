@@ -418,10 +418,11 @@ class RGLRightClick(ttk.Menu):
             'sep3'      : 'sep',
             'up'        : ['上移', 'alt+↑', lambda: self.codeframe.swap_lines(VirtualEvent('Up'))],
             'down'      : ['下移', 'alt+↓', lambda: self.codeframe.swap_lines(VirtualEvent('Down'))],
+            'split'     : ['拆分', 'alt+enter', lambda: self.codeframe.split_dialog(None)],
             'sep4'      : 'sep',
             'save'      : ['保存', 'ctrl+S', lambda: self.codeframe.save_command(None)],
             'refresh'   : ['刷新', 'ctrl+R', lambda: self.codeframe.update_codeview(None)],
-            'search'    : ['查找替换','ctrl+F',lambda :self.codeframe.show_search(None)]
+            'search'    : ['查找替换','ctrl+F',lambda: self.codeframe.show_search(None)]
         }
         # 引用媒体
         self.ref_media = mediadef

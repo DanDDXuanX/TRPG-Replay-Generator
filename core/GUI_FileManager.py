@@ -296,7 +296,7 @@ class FileManager(ttk.Frame):
         choice = Messagebox().show_question(
             message='在关闭项目前，是否要保存项目？',
             title='关闭项目',
-            buttons=["取消:secondary"," 否 :danger"," 是 :primary"],
+            buttons=["取消:secondary"," 否 :secondary"," 是 :primary"],
             alert=True,
             parent=toplevel,
             width=10,

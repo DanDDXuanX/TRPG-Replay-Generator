@@ -2098,6 +2098,22 @@ PreferenceTableStruct = {
             },
         }
     },
+    "EditSep":{
+        "Text": "编辑设置",
+        "Command":None,
+        "Content":{
+            "Edit.auto_periods":{
+                "ktext": "自动句号：",
+                "tooltip":"当拆分对话行时，是否自动纠正句尾的标点符号。",
+                "dtext": "（选择）",
+                "ditem": "label",
+                "valuekey": "Edit.auto_periods",
+                "vitem": "combox",
+                "vtype": "bool",
+                "default": False
+            },
+        }
+    },
     "PreviewSep":{
         "Text": "预览设置",
         "Command":None,

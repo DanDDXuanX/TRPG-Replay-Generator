@@ -128,6 +128,7 @@ class PreferenceTable(TableEdit):
         self.elements['Preview.progress_bar_style'].input.update_dict(progressbar)
         self.elements['Preview.framerate_counter'].input.update_dict(True_False)
         self.elements['Export.force_split_clip'].input.update_dict(True_False)
+        self.elements['Edit.auto_periods'].input.update_dict(True_False)
         # spine
         self.elements['Export.crf'].input.configure(from_=0,to=51,increment=1)
         # button

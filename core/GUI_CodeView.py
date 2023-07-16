@@ -8,7 +8,7 @@ import tkinter as tk
 import ttkbootstrap as ttk
 from ttkbootstrap.dialogs import Messagebox
 from chlorophyll import CodeView
-
+from .ProjConfig import preference
 from .ProjConfig import Config
 from .RplGenLogLexer import RplGenLogLexer
 from .ScriptParser import RplGenLog, CharTable, MediaDef
@@ -280,6 +280,7 @@ class RGLCodeViewFrame(ttk.Frame):
         self.codeview.bind('<Tab>',self.show_snippets)
         self.codeview.bind('<Alt-Up>',self.swap_lines)
         self.codeview.bind('<Alt-Down>',self.swap_lines)
+        self.codeview.bind('<Alt-Return>',self.split_dialog)
         self.codeview.bind('<Button-3>',self.click_right_menu)
         # self.codeview.bind_class("Text", "<Button-3>", self.click_right_menu,'+')
         # 代码视图
@@ -419,3 +420,34 @@ class RGLCodeViewFrame(ttk.Frame):
         code_text = self.codeview.get('0.0','end')
         # 脚本更新到content
         self.content.struct = self.content.parser(code_text)
+    # 将对话行分割
+    def split_dialog(self,event):
+        index_ = self.codeview.index('insert')
+        row,col = index_.split('.')
+        # 当前行的全部内容
+        text_this = self.codeview.get(f'{row}.0', f'{row}.end')
+        text_upstream = text_this[:int(col)]
+        text_downstream = text_this[int(col):]
+        # 检查对话环
+        M = re.fullmatch('^(\[[\w\ \.\,\(\)]+\](<\w+(=\d+)>)?:)([^\\"]+)',text_upstream)
+        if M:
+            # 添加撤回点
+            self.codeview.configure(autoseparators=False)
+            self.codeview.edit_separator()
+            # 用于插入的文本
+            insert_snippet = '\n'+M.group(1)
+            self.codeview.insert(index_, insert_snippet)
+            self.codeview.mark_set("insert",f'{index_}+{len(insert_snippet)}c')
+            # 检查是否需要智能逗号
+            if preference.auto_periods:
+                periods = {'zh':'。','en':'.'}[preference.lang]
+                if re.fullmatch('[\w]',text_upstream[-1]):
+                    self.codeview.insert(f'{row}.end',periods)
+                if re.fullmatch('[,，;；]',text_upstream[-1]):
+                    self.codeview.delete(f'{row}.end-1c',f'{row}.end')
+                    self.codeview.insert(f'{row}.end',periods)
+            self.codeview.highlight_all()
+            self.codeview.configure(autoseparators=True)
+            return 'break'
+        else:
+            return '\n'

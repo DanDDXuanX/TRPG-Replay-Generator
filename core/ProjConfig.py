@@ -109,6 +109,8 @@ class Preference:
             self.heart_pic:str = dict_input['BIA.heart_pic']
             self.heart_shape:str = dict_input['BIA.heart_shape']
             self.heart_distance:float = dict_input['BIA.heart_distance']
+            # 编辑
+            self.auto_periods:bool = dict_input['Edit.auto_periods']
             # 预览
             self.progress_bar_style:str = dict_input['Preview.progress_bar_style']
             self.framerate_counter:bool = dict_input['Preview.framerate_counter']
@@ -126,7 +128,8 @@ class Preference:
             self.crf:int = 24
             # 语言
             self.lang:str = 'zh'
-            
+            # 编辑
+            self.auto_periods:bool = False
             # 媒体
             # 内建动画的字体文件
             self.BIA_font:str = './media/SourceHanSerifSC-Heavy.otf'
@@ -165,6 +168,8 @@ class Preference:
             'BIA.heart_pic'             : self.heart_pic,
             'BIA.heart_shape'           : self.heart_shape,
             'BIA.heart_distance'        : self.heart_distance,
+            # 编辑
+            'Edit.auto_periods'         : self.auto_periods,
             # 预览
             'Preview.progress_bar_style': self.progress_bar_style,
             'Preview.framerate_counter' : self.framerate_counter,
