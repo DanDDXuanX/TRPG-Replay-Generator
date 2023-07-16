@@ -251,9 +251,13 @@ class RGLPage(ttk.Frame):
         self.outputcommand.pack(side='left',fill='y')
         # self.codeviewframe.place(x=0,y=0,relwidth=1,relheight=1)
         # self.codeviewframe.place(x=0,y=0,relwidth=1,relheight=1)
+    # 刷新rgl
+    def update_rplgenlog(self):
+        self.codeviewframe.update_rplgenlog()
     # 刷新视图
     def update_page_display(self):
-        self.codeviewframe.update_codeview(None)
+        pass
+        # self.codeviewframe.update_codeview(None) # 先不要了
 # 页面视图：媒体定义文件
 class MDFPage(ttk.Frame):
     categroy_dict = {

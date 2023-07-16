@@ -292,7 +292,7 @@ class RGLCodeViewFrame(ttk.Frame):
         # 搜索高亮
         self.codeview.tag_config('search', background='#904f1e')
         self.codeview.tag_config('preview', background='#0072d6')
-        self.codeview.tag_config('error', background='#fc0303')
+        self.codeview.tag_config('error', background='#aa0000')
         # 查找替换
         self.search_replace = SearchReplaceBar(master=self,codeview=self.codeview,screenzoom=self.sz)
         # 预览窗
@@ -373,7 +373,7 @@ class RGLCodeViewFrame(ttk.Frame):
         try:
             self.update_rplgenlog()
         except Exception as E:
-            print(E)
+            Messagebox().show_error(message=re.sub('\x1B\[\d+m','',str(E)),title='错误',parent=self)
             return
         if self.preview_window is None:
             # 唤起
@@ -419,7 +419,14 @@ class RGLCodeViewFrame(ttk.Frame):
         # 将log中，从开头到当前行的内容转为RplGenLog.struct
         code_text = self.codeview.get('0.0','end')
         # 脚本更新到content
-        self.content.struct = self.content.parser(code_text)
+        try:
+            self.content.struct = self.content.parser(code_text)
+        except Exception as E:
+            self.hightlight_error(E)
+            # 将异常继续向上传递
+            raise E
+        # 如果成功，清除error
+        self.codeview.tag_remove('error','1.0','end')
     # 将对话行分割
     def split_dialog(self,event):
         index_ = self.codeview.index('insert')
@@ -451,3 +458,10 @@ class RGLCodeViewFrame(ttk.Frame):
             return 'break'
         else:
             return '\n'
+    # 高亮出错的行
+    def hightlight_error(self,E):
+        try:
+            errorline = re.findall('.*错误.*第(\d+)行.*',str(E))[0]
+            self.codeview.tag_add('error', f"{errorline}.0", f"{errorline}.end")
+        except:
+            print(E)

@@ -776,226 +776,231 @@ class RplGenLog(Script):
         for i,text in enumerate(stdin_text):
             # 本行的结构体
             this_section = {}
-            # 空白行
-            if text == '':
-                this_section['type'] = 'blank'
-            # 注释行 格式： # word
-            elif text[0] == '#':
-                this_section['type'] = 'comment'
-                this_section['content'] = text[1:]
-            # 对话行 格式： [角色1,角色2(30).happy]<replace=30>:巴拉#巴拉#巴拉<w2w=1>
-            elif (text[0] == '[') & (']' in text):
-                # 类型
-                this_section['type'] = 'dialog'
-                # 拆分为：[角色框]、<效果>、:文本、<文本效果>、{音效}
-                try:
-                    cr,cre,ts,tse,se = RE_dialogue.findall(text)[0]
-                except IndexError:
-                    raise ParserError('UnableDial')
-                # [角色框]
-                this_section['charactor_set'] = self.charactor_parser(cr=cr,i=1)
-                # <效果>
-                this_section['ab_method'] =  self.method_parser(cre)
-                # :文本
-                this_section['content'] = ts
-                # <文本效果>
-                this_section['tx_method'] = self.method_parser(tse)
-                # {音效}
-                this_section['sound_set'] = self.sound_parser(sound=se,i=i)
-            # 背景设置行，格式： <background><black=30>:BG_obj
-            elif text[0:12] == '<background>':
-                # 解析
-                try:
-                    obj_type,obje,objc = RE_placeobj.findall(text)[0]
+            try:
+                # 空白行
+                if text == '':
+                    this_section['type'] = 'blank'
+                # 注释行 格式： # word
+                elif text[0] == '#':
+                    this_section['type'] = 'comment'
+                    this_section['content'] = text[1:]
+                # 对话行 格式： [角色1,角色2(30).happy]<replace=30>:巴拉#巴拉#巴拉<w2w=1>
+                elif (text[0] == '[') & (']' in text):
                     # 类型
-                    this_section['type'] = obj_type
-                except IndexError:
-                    raise ParserError('UnableParse',str(i+1))
-                # <效果>
-                this_section['bg_method'] = self.method_parser(obje)
-                # 对象
-                this_section['object'] = objc
-            # 常驻立绘设置行，格式：<animation><black=30>:(Am_obj,Am_obj2)
-            elif text[0:11] == '<animation>':
-                # 解析
-                try:
-                    obj_type,obje,objc = RE_placeobj.findall(text)[0]
-                    # 类型
-                    this_section['type'] = obj_type
-                except IndexError:
-                    raise ParserError('UnableParse',str(i+1))
-                # <效果>
-                this_section['am_method'] = self.method_parser(obje)
-                # 对象
-                if objc == 'NA' or objc == 'None':
-                    this_section['object'] = None
-                elif (objc[0] == '(') and (objc[-1] == ')'):
-                    # 如果是一个集合
-                    this_GA_set = {} # GA
-                    animation_list = objc[1:-1].split(',')
-                    for k,am in enumerate(animation_list):
-                        this_GA_set[str(k)] = am
-                    this_section['object'] = this_GA_set
-                else:
-                    this_section['object'] = objc
-            # 常驻气泡设置行，格式：<bubble><black=30>:Bubble_obj("Header_text","Main_text",<text_method>)
-            elif text[0:8] == '<bubble>':
-                # 解析
-                try:
-                    obj_type,obje,objc = RE_placeobj.findall(text)[0]
-                    # 类型
-                    this_section['type'] = obj_type
-                except IndexError:
-                    raise ParserError('UnableParse',str(i+1))
-                # <效果>
-                this_section['bb_method'] = self.method_parser(obje)
-                # 对象
-                if objc == 'NA' or objc == 'None':
-                    this_section['object'] = None
-                elif '(' not in objc and objc[-1] != ')':
-                    # 如果是一个纯对象
-                    this_section['object'] = objc
-                else:
-                    # 如果是一个Bubble表达式
-                    this_section['object'] = self.bubble_parser(bubble_exp=objc,i=i)
-            # 参数设置行，格式：<set:speech_speed>:220
-            elif (text[0:5] == '<set:') & ('>:' in text):
-                try:
-                    set_type,target,args = RE_setting.findall(text)[0]
-                except IndexError:
-                    raise ParserError('UnableParse',str(i+1))
-                # 类型
-                this_section['type'] = set_type
-                this_section['target'] = target
-                # 类型1：整数型
-                if target in ['am_dur_default','bb_dur_default','bg_dur_default','tx_dur_default','speech_speed','asterisk_pause','secondary_alpha']:
-                    this_section['value_type'] = 'digit' # natural number
+                    this_section['type'] = 'dialog'
+                    # 拆分为：[角色框]、<效果>、:文本、<文本效果>、{音效}
                     try:
-                        this_section['value'] = int(args)
-                    except:
-                        print(WarningPrint('Set2Invalid',target,args))
-                        this_section['value'] = args
-                # 类型2：method
-                elif target in ['am_method_default','bb_method_default','bg_method_default','tx_method_default']:
-                    this_section['value_type'] = 'method'
-                    try:
-                        this_section['value'] = self.method_parser(args)
+                        cr,cre,ts,tse,se = RE_dialogue.findall(text)[0]
                     except IndexError:
-                        raise ParserError('SetInvMet',target,args)
-                # 类型3：BGM 禁用
-                # elif target == 'BGM':
-                #     this_section['value_type'] = 'music'
-                #     this_section['value'] = args
-                # 类型4：函数
-                elif target == 'formula':
-                    this_section['value_type'] = 'function'
-                    if args in formula_available.keys() or args[0:6] == 'lambda':
-                        this_section['value'] = args
-                    else:
-                        raise ParserError('UnspFormula',args,str(i+1))
-                # 类型5：枚举
-                elif target == 'inline_method_apply':
-                    this_section['value_type'] = 'enumerate'
-                    this_section['value'] = args
-                # 否则无法解析
-                else:
-                    raise ParserError('UnsuppSet',target,str(i+1))
-            # 位置重设行，格式：<move:FreePos_obj>:NewPos
-            elif (text[0:6] == '<move:') & ('>:' in text):
-                try:
-                    set_type,target,args = RE_setting.findall(text)[0]
-                    expression:tuple = RE_pos_exp.findall(args)[0]
-                except IndexError:
-                    raise ParserError('UnableParse',str(i+1))
-                # 目标
-                pos_exp = {}
-                pos_exp['pos1'] = MediaDef().value_parser(expression[0])
-                if expression[1] == '':
-                    # 单纯赋值
-                    pos_exp['operator'] = None
-                    pos_exp['pos2'] = None
-                else:
-                    # 加减运算
-                    pos_exp['operator'] = expression[2]
-                    pos_exp['pos2'] = MediaDef().value_parser(expression[3])
-                # 类型
-                this_section['type'] = set_type
-                this_section['target'] = target
-                this_section['value'] = pos_exp
-            # 表格赋值行，格式：<table:Name.Subtype.Column>
-            elif (text[0:7] == '<table:') & ('>:' in text):
-                try:
-                    set_type,target,args = RE_setting.findall(text)[0]
-                except IndexError:
-                    raise ParserError('UnableParse',str(i+1))
-                this_target = {}
-                target_split = target.split('.')
-                if len(target_split) == 2:
-                    this_target['name'],this_target['column'] = target_split
-                    this_target['subtype'] = None
-                elif len(target_split) == 3:
-                    this_target['name'],this_target['subtype'],this_target['column'] = target_split
-                # 如果超过4个指定项目，无法解析，抛出ParserError(不被支持的参数)
-                else:
-                    raise ParserError('UnsuppSet',target,str(i+1))
-                this_section['type'] = set_type
-                this_section['target'] = this_target
-                this_section['value'] = args
-            # BGM 行，格式：<BGM>:
-            elif text[0:6] in ['<BGM>:','<bgm>:']:
-                this_section['type'] = 'music'
-                this_section['value'] = text[6:]
-            # 清除行，仅适用于ChatWindow
-            elif (text[0:8] == '<clear>:'):
-                this_section['type'] = 'clear'
-                this_section['object'] = text[8:]
-            # 预设动画，损失生命
-            elif text[0:11] == '<hitpoint>:':
-                this_section['type'] = 'hitpoint'
-                name_tx,heart_max,heart_begin,heart_end = RE_hitpoint.findall(text)[0]
-                this_section['content'] = name_tx
-                try:
-                    this_section['hp_max'] = int(heart_max)
-                    this_section['hp_begin'] = int(heart_begin)
-                    this_section['hp_end'] = int(heart_end)
-                except Exception as E:
-                    print(E)
-                    raise ParserError('ParErrHit',str(i+1))
-            # 预设动画，骰子
-            elif text[0:7] == '<dice>:':
-                this_section['type'] = 'dice'
-                dice_args = RE_dice.findall(text[7:])
-                if len(dice_args) == 0:
-                    raise ParserError('NoDice')
-                else:
+                        raise ParserError('UnableDial')
+                    # [角色框]
+                    this_section['charactor_set'] = self.charactor_parser(cr=cr,i=1)
+                    # <效果>
+                    this_section['ab_method'] =  self.method_parser(cre)
+                    # :文本
+                    this_section['content'] = ts
+                    # <文本效果>
+                    this_section['tx_method'] = self.method_parser(tse)
+                    # {音效}
+                    this_section['sound_set'] = self.sound_parser(sound=se,i=i)
+                # 背景设置行，格式： <background><black=30>:BG_obj
+                elif text[0:12] == '<background>':
+                    # 解析
                     try:
-                        this_dice_set = {}
-                        for k,dice in enumerate(dice_args):
-                            this_dice = {}
-                            tx,dicemax,check,face = dice
-                            this_dice['content'] = tx
-                            this_dice['dicemax'] = int(dicemax)
-                            this_dice['face'] = int(face)
-                            if check == 'NA':
-                                this_dice['check'] = None
-                            else:
-                                this_dice['check'] = int(check)
-                            this_dice_set[str(k)] = this_dice
-                        this_section['dice_set'] = this_dice_set
+                        obj_type,obje,objc = RE_placeobj.findall(text)[0]
+                        # 类型
+                        this_section['type'] = obj_type
+                    except IndexError:
+                        raise ParserError('UnableParse',str(i+1))
+                    # <效果>
+                    this_section['bg_method'] = self.method_parser(obje)
+                    # 对象
+                    this_section['object'] = objc
+                # 常驻立绘设置行，格式：<animation><black=30>:(Am_obj,Am_obj2)
+                elif text[0:11] == '<animation>':
+                    # 解析
+                    try:
+                        obj_type,obje,objc = RE_placeobj.findall(text)[0]
+                        # 类型
+                        this_section['type'] = obj_type
+                    except IndexError:
+                        raise ParserError('UnableParse',str(i+1))
+                    # <效果>
+                    this_section['am_method'] = self.method_parser(obje)
+                    # 对象
+                    if objc == 'NA' or objc == 'None':
+                        this_section['object'] = None
+                    elif (objc[0] == '(') and (objc[-1] == ')'):
+                        # 如果是一个集合
+                        this_GA_set = {} # GA
+                        animation_list = objc[1:-1].split(',')
+                        for k,am in enumerate(animation_list):
+                            this_GA_set[str(k)] = am
+                        this_section['object'] = this_GA_set
+                    else:
+                        this_section['object'] = objc
+                # 常驻气泡设置行，格式：<bubble><black=30>:Bubble_obj("Header_text","Main_text",<text_method>)
+                elif text[0:8] == '<bubble>':
+                    # 解析
+                    try:
+                        obj_type,obje,objc = RE_placeobj.findall(text)[0]
+                        # 类型
+                        this_section['type'] = obj_type
+                    except IndexError:
+                        raise ParserError('UnableParse',str(i+1))
+                    # <效果>
+                    this_section['bb_method'] = self.method_parser(obje)
+                    # 对象
+                    if objc == 'NA' or objc == 'None':
+                        this_section['object'] = None
+                    elif '(' not in objc and objc[-1] != ')':
+                        # 如果是一个纯对象
+                        this_section['object'] = objc
+                    else:
+                        # 如果是一个Bubble表达式
+                        this_section['object'] = self.bubble_parser(bubble_exp=objc,i=i)
+                # 参数设置行，格式：<set:speech_speed>:220
+                elif (text[0:5] == '<set:') & ('>:' in text):
+                    try:
+                        set_type,target,args = RE_setting.findall(text)[0]
+                    except IndexError:
+                        raise ParserError('UnableParse',str(i+1))
+                    # 类型
+                    this_section['type'] = set_type
+                    this_section['target'] = target
+                    # 类型1：整数型
+                    if target in ['am_dur_default','bb_dur_default','bg_dur_default','tx_dur_default','speech_speed','asterisk_pause','secondary_alpha']:
+                        this_section['value_type'] = 'digit' # natural number
+                        try:
+                            this_section['value'] = int(args)
+                        except:
+                            print(WarningPrint('Set2Invalid',target,args))
+                            this_section['value'] = args
+                    # 类型2：method
+                    elif target in ['am_method_default','bb_method_default','bg_method_default','tx_method_default']:
+                        this_section['value_type'] = 'method'
+                        try:
+                            this_section['value'] = self.method_parser(args)
+                        except IndexError:
+                            raise ParserError('SetInvMet',target,args)
+                    # 类型3：BGM 禁用
+                    # elif target == 'BGM':
+                    #     this_section['value_type'] = 'music'
+                    #     this_section['value'] = args
+                    # 类型4：函数
+                    elif target == 'formula':
+                        this_section['value_type'] = 'function'
+                        if args in formula_available.keys() or args[0:6] == 'lambda':
+                            this_section['value'] = args
+                        else:
+                            raise ParserError('UnspFormula',args,str(i+1))
+                    # 类型5：枚举
+                    elif target == 'inline_method_apply':
+                        this_section['value_type'] = 'enumerate'
+                        this_section['value'] = args
+                    # 否则无法解析
+                    else:
+                        raise ParserError('UnsuppSet',target,str(i+1))
+                # 位置重设行，格式：<move:FreePos_obj>:NewPos
+                elif (text[0:6] == '<move:') & ('>:' in text):
+                    try:
+                        set_type,target,args = RE_setting.findall(text)[0]
+                        expression:tuple = RE_pos_exp.findall(args)[0]
+                    except IndexError:
+                        raise ParserError('UnableParse',str(i+1))
+                    # 目标
+                    pos_exp = {}
+                    pos_exp['pos1'] = MediaDef().value_parser(expression[0])
+                    if expression[1] == '':
+                        # 单纯赋值
+                        pos_exp['operator'] = None
+                        pos_exp['pos2'] = None
+                    else:
+                        # 加减运算
+                        pos_exp['operator'] = expression[2]
+                        pos_exp['pos2'] = MediaDef().value_parser(expression[3])
+                    # 类型
+                    this_section['type'] = set_type
+                    this_section['target'] = target
+                    this_section['value'] = pos_exp
+                # 表格赋值行，格式：<table:Name.Subtype.Column>
+                elif (text[0:7] == '<table:') & ('>:' in text):
+                    try:
+                        set_type,target,args = RE_setting.findall(text)[0]
+                    except IndexError:
+                        raise ParserError('UnableParse',str(i+1))
+                    this_target = {}
+                    target_split = target.split('.')
+                    if len(target_split) == 2:
+                        this_target['name'],this_target['column'] = target_split
+                        this_target['subtype'] = None
+                    elif len(target_split) == 3:
+                        this_target['name'],this_target['subtype'],this_target['column'] = target_split
+                    # 如果超过4个指定项目，无法解析，抛出ParserError(不被支持的参数)
+                    else:
+                        raise ParserError('UnsuppSet',target,str(i+1))
+                    this_section['type'] = set_type
+                    this_section['target'] = this_target
+                    this_section['value'] = args
+                # BGM 行，格式：<BGM>:
+                elif text[0:6] in ['<BGM>:','<bgm>:']:
+                    this_section['type'] = 'music'
+                    this_section['value'] = text[6:]
+                # 清除行，仅适用于ChatWindow
+                elif (text[0:8] == '<clear>:'):
+                    this_section['type'] = 'clear'
+                    this_section['object'] = text[8:]
+                # 预设动画，损失生命
+                elif text[0:11] == '<hitpoint>:':
+                    this_section['type'] = 'hitpoint'
+                    name_tx,heart_max,heart_begin,heart_end = RE_hitpoint.findall(text)[0]
+                    this_section['content'] = name_tx
+                    try:
+                        this_section['hp_max'] = int(heart_max)
+                        this_section['hp_begin'] = int(heart_begin)
+                        this_section['hp_end'] = int(heart_end)
                     except Exception as E:
                         print(E)
-                        raise ParserError('ParErrDice',str(i+1))
-            # 等待行，停留在上一个小节的结束状态，不影响S图层
-            elif text[0:7] == '<wait>:':
-                this_section['type'] = 'wait'
-                try:
-                    this_section['time'] = int(RE_wait.findall(text)[0])
-                except Exception as E:
-                    raise ParserError('InvWaitArg',E)
-            # 异常行，报出异常
-            else:
-                raise ParserError('UnrecLine',str(i+1))
-            struct[str(i)] = this_section
+                        raise ParserError('ParErrHit',str(i+1))
+                # 预设动画，骰子
+                elif text[0:7] == '<dice>:':
+                    this_section['type'] = 'dice'
+                    dice_args = RE_dice.findall(text[7:])
+                    if len(dice_args) == 0:
+                        raise ParserError('NoDice')
+                    else:
+                        try:
+                            this_dice_set = {}
+                            for k,dice in enumerate(dice_args):
+                                this_dice = {}
+                                tx,dicemax,check,face = dice
+                                this_dice['content'] = tx
+                                this_dice['dicemax'] = int(dicemax)
+                                this_dice['face'] = int(face)
+                                if check == 'NA':
+                                    this_dice['check'] = None
+                                else:
+                                    this_dice['check'] = int(check)
+                                this_dice_set[str(k)] = this_dice
+                            this_section['dice_set'] = this_dice_set
+                        except Exception as E:
+                            print(E)
+                            raise ParserError('ParErrDice',str(i+1))
+                # 等待行，停留在上一个小节的结束状态，不影响S图层
+                elif text[0:7] == '<wait>:':
+                    this_section['type'] = 'wait'
+                    try:
+                        this_section['time'] = int(RE_wait.findall(text)[0])
+                    except Exception as E:
+                        raise ParserError('InvWaitArg',E)
+                # 异常行，报出异常
+                else:
+                    raise ParserError('UnrecLine',str(i+1))
+                struct[str(i)] = this_section
+            except Exception as E:
+                # TODO: 这是临时的！
+                print(E)
+                raise ParserError("ParErr",str(i+1))
         # 返回值
         return struct
     # struct -> RGL

@@ -1601,7 +1601,7 @@ EditTableStruct = {
                         "valuekey": "label_color",
                         "vitem": "combox",
                         "vtype": "str",
-                        "default": "Caribbean"
+                        "default": "'Caribbean'"
                     },
                 }
             },
@@ -1660,7 +1660,7 @@ EditTableStruct = {
                         "valuekey": "label_color",
                         "vitem": "combox",
                         "vtype": "str",
-                        "default": "Caribbean"
+                        "default": "'Caribbean'"
                     },
                 }
             },

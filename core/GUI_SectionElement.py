@@ -400,10 +400,11 @@ class MDFSectionElement(ttk.Frame,SectionElement):
         # 更新小节关键字
         self.name = keyword
         # 颜色标签
-        if 'label_color' not in self.section.keys():
-            self.labelcolor = 'Lavender'
-        elif self.section['label_color'] is None:
-            self.labelcolor = 'Lavender'
+        if 'label_color' not in self.section.keys() or self.section['label_color'] is None:
+            if self.line_type in ['Audio','BGM']:
+                self.labelcolor = 'Caribbean'
+            else:
+                self.labelcolor = 'Lavender'
         else:
             self.labelcolor = self.section['label_color']
         # 刷新
@@ -482,7 +483,7 @@ class CTBSectionElement(ttk.Frame,SectionElement):
         if media_name == 'NA':
             return 'NA'
         if media_name not in self.ref_medef.struct.keys():
-            return 'MediaNotFound' # TODO : 给这个错误情况来一个图标（伊可的）
+            return 'MediaNotFound'
         else:
             section_this:dict = self.ref_medef.struct[media_name]
         # 是否是Am或者Bb

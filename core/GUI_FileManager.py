@@ -268,6 +268,19 @@ class FileManager(ttk.Frame):
                 Messagebox().show_error(title='导出失败',message='无法将工程导出！\n由于：{}'.format(E))
     # 保存文件
     def save_file(self):
+        # 先去尝试将目前启动的所有rgl窗口保存了
+        page_dict:dict = self.master.page_frame.page_dict
+        warning_message = {}
+        for page in page_dict:
+            if page[0:2] == '剧本':
+                try:
+                    page_dict[page].update_rplgenlog()
+                except Exception as E:
+                    warning_message[page] = re.sub('\x1B\[\d+m','',str(E))
+        if len(warning_message) != 0:
+            message = '\n'.join([f"保存【{page}】时出现异常：{warning_message[page]}" for page in warning_message])
+            Messagebox().show_warning(message=message+'\n在异常得到解决前，上述剧本文件的变更将无法得到保存！',title='警告')
+        # 将整个项目dump下来
         if self.project_file is None:
             select_path = save_file(master=self.winfo_toplevel(),filetype='rplgenproj')
             if select_path != '':
