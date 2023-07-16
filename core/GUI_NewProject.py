@@ -198,7 +198,7 @@ class CreateIntelProject(CreateProject):
         self.elements['proj_cover'].bind_button(dtype='picture-file',quote=False,related=False)
         self.elements['save_pos'].bind_button(dtype='dir',quote=False,related=False)
         self.elements['textfile'].bind_button(dtype='logfile-file',quote=False,related=False)
-        self.elements['section_break'].input.configure(values=[0,100,300,1000,3000,10000,30000],state='readonly')
+        self.elements['section_break'].input.configure(values=[0,100,300,1000,3000],state='readonly')
         # TODO: 浏览资源文件夹，并指定给self.element['template']
         self.elements['template'].input.bind('<<ComboboxSelected>>', self.template_selected,'+')
         # 从预设文件夹获取

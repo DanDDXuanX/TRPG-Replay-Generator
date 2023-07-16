@@ -9,6 +9,7 @@ from .GUI_TableStruct import EditTableStruct, label_colors, projection, alignmen
 from .ScriptParser import MediaDef, RplGenLog, CharTable
 from .GUI_CustomDialog import voice_chooser, selection_query
 from .Exceptions import SyntaxsError
+from .GUI_Link import Link
 from ttkbootstrap.dialogs import Messagebox, Querybox
 # 编辑区
 
@@ -196,10 +197,9 @@ class EditWindow(ScrolledFrame):
         return charactor_columns_this
     def get_avaliable_custom(self)->dict:
         charactor_columns_this = {}
-        for key in CharactorEdit.custom_col:
+        for key in Link['project_chartab'].get_customize():
             charactor_columns_this["{}（自定义）".format(key)] = "'{}'".format(key)
         return charactor_columns_this
-
     # 刷新预览
     def update_preview(self,keywords:list):
         # 待重载
@@ -341,10 +341,18 @@ class CharactorEdit(EditWindow):
             kvd=this_kvd,
             callback=self.update_section_from
             )
+        # 移动滚动条
+        self.update()
+        self.enable_scrolling()
+        self.yview_moveto(1.0)
     def del_a_custom_kvd(self,custom):
         this_key = custom
         # 直接pop接destroy
         self.elements.pop(this_key).destroy()
+        # 移动滚动条
+        self.update()
+        self.enable_scrolling()
+        self.yview_moveto(1.0)
 class MediaEdit(EditWindow):
     medef_tool = MediaDef()
     def __init__(self, master, screenzoom):
@@ -353,7 +361,7 @@ class MediaEdit(EditWindow):
     def update_from_section(self,index:str,section: dict, line_type):
         super().update_from_section(index, section, line_type)
         # 更新
-        self.update_media_element_prop(line_type)
+        self.update_media_element_prop()
         self.update_item()
     def update_section_from(self) -> dict:
         # 获取新小节
@@ -399,7 +407,7 @@ class MediaEdit(EditWindow):
         # 刷新预览的显示
         self.update_preview(keywords=changed_key)
         return self.section
-    def update_media_element_prop(self,line_type):
+    def update_media_element_prop(self):
         # 标签色
         if self.line_type not in ['Pos','FreePos','PosGrid']:
             self.elements['label_color'].input.update_dict(label_colors)
@@ -428,13 +436,13 @@ class MediaEdit(EditWindow):
             self.elements['scale'].input.configure(from_=0.1,to=3,increment=0.01)
         # MainText HeadText
         if self.line_type in ['Bubble','Balloon','DynamicBubble']:
-            self.elements['Main_Text'].input.configure(values=['Text()']+self.get_avaliable_text())
+            self.elements['Main_Text'].input.configure(values=['Text()']+self.get_avaliable_text(),state='readonly')
             self.elements['line_distance'].input.configure(from_=0.8,to=3,increment=0.1)
         if self.line_type in ['Bubble','Balloon']:
             self.elements['mt_pos'].describe.configure(command=lambda :self.select_dot('b0','p1'))
             self.elements['align'].input.update_dict(alignments)
         if self.line_type in ['Bubble','DynamicBubble']:
-            self.elements['Header_Text'].input.configure(values=['None','Text()']+self.get_avaliable_text())
+            self.elements['Header_Text'].input.configure(values=['None','Text()']+self.get_avaliable_text(),state='readonly')
             self.elements['ht_pos'].describe.configure(command=lambda :self.select_dot('b1','p1'))
             self.elements['ht_target'].input.update_dict(self.get_avaliable_charcol())
         if self.line_type == 'DynamicBubble':
@@ -445,7 +453,7 @@ class MediaEdit(EditWindow):
         if self.line_type == 'Balloon':
             for idx in range(1,999):
                 if "Header_Text_%d"%idx in self.elements:
-                    self.elements["Header_Text_%d"%idx].input.configure(values=['None','Text()']+self.get_avaliable_text())
+                    self.elements["Header_Text_%d"%idx].input.configure(values=['None','Text()']+self.get_avaliable_text(),state='readonly')
                     self.elements['ht_pos_%d'%idx].describe.configure(command=self.select_dot_idx(idx))
                     self.elements['ht_target_%d'%idx].input.update_dict(self.get_avaliable_charcol())
                 else:
@@ -459,8 +467,8 @@ class MediaEdit(EditWindow):
             self.elements["am_right"].describe.configure(command=lambda :self.select_dot('r1','p1'))
             for idx in range(1,999):
                 if "sub_key_%d"%idx in self.elements:
-                    self.elements["sub_Bubble_%d"%idx].input.configure(values=['Bubble()']+self.get_avaliable_bubble(cw=False))
-                    self.elements["sub_Anime_%d"%idx].input.configure(values=['None']+self.get_avaliable_anime())
+                    self.elements["sub_Bubble_%d"%idx].input.configure(values=['Bubble()']+self.get_avaliable_bubble(cw=False),state='readonly')
+                    self.elements["sub_Anime_%d"%idx].input.configure(values=['None']+self.get_avaliable_anime(),state='readonly')
                     self.elements["sub_align_%d"%idx].input.update_dict(chatalign)
                 else:
                     break
@@ -528,7 +536,6 @@ class MediaEdit(EditWindow):
                 self.multisep = MultiSep
                 break
     def add_a_sep(self):
-        # BUG，气球类，新建了一个之后，并不会出现文字
         this_sep:dict = self.TableStruct[self.line_type][self.multisep]
         # 先添加小节分割线
         sep_new = self.sep_end + 1
@@ -569,6 +576,7 @@ class MediaEdit(EditWindow):
         self.update_section_from()
         # 移动滚动条
         self.update()
+        self.enable_scrolling()
         self.yview_moveto(1.0)
     def del_a_sep(self):
         # 先删除小节内容
@@ -583,6 +591,7 @@ class MediaEdit(EditWindow):
         self.update_section_from()
         # 移动滚动条
         self.update()
+        self.enable_scrolling()
         self.yview_moveto(1.0)
     # 选中点
     def select_dot(self, dotID, pID):

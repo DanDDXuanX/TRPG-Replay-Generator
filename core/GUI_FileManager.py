@@ -52,6 +52,7 @@ class RplGenProJect(Script):
             for key in self.struct['logfile'].keys():
                 self.logfile[key] = RplGenLog(dict_input=self.struct['logfile'][key])
         # 保存在全局连接
+        Link['project_chartab'] = self.chartab
         Link['project_config'] = self.config
         Link['media_dir'] = Filepath.Mediapath
     def dump_json(self, filepath: str) -> None:
@@ -310,15 +311,15 @@ class FileManager(ttk.Frame):
             return
         # 关闭项目视图，返回首页
         self.master.close_project_view()
-    
     # 加载封面
     def load_cover(self):
         SZ_300 = int(self.sz * 300)
         SZ_180 = int(self.sz * 168.75)
         try:
-            image = Image.open(self.project.config.Cover).resize(960,540).convert('RGBA')
+            image = Image.open(self.project.config.Cover).resize([960,540]).convert('RGBA')
             # self.cover = ImageTk.PhotoImage(image=Image.open(self.project.config.Cover).resize([SZ_300,SZ_180],mode='RGBA'))
-        except Exception:
+        except Exception as E:
+            print(E)
             cover_path = f'./media/default_cover/{preference.theme}.jpg'
             image = Image.open(cover_path).convert('RGBA')
         # 渲染标题

@@ -54,6 +54,10 @@ class Container(ScrolledFrame):
         # 清除目前的所有keyword
         self.element.clear()
         self.element_keys.clear()
+    # 只刷新整个容器的显示
+    def refresh_element_all(self):
+        for keyword in self.element:
+            self.element[keyword].refresh_item(keyword=keyword)
     # 刷新一个元素，允许改名
     def refresh_element(self,keyword,new_keyword=None):
         if new_keyword == None:
@@ -79,6 +83,9 @@ class Container(ScrolledFrame):
         self.display_filter = self.element_keys.copy()
         self.update_item()
         self.reset_container_height()
+        # 将选中的焦点移动到新建的小节
+        self.select_item(None,key)
+        self.yview_moveto(1.0)
     # 新建一个小节原件
     def new_element(self,key:str,section:dict):
         # 从数据结构中新建一个page_element
@@ -92,6 +99,7 @@ class Container(ScrolledFrame):
             self.config(height=this_height)
             self.container_height = this_height
             self.enable_scrolling()
+            self.update()
     # 刷新容器内位置
     def place_item(self,key,idx):
         # 待重载
@@ -529,6 +537,7 @@ class CTBContainer(Container):
         self.display_filter = self.element_keys.copy()
         self.update_item()
         self.reset_container_height()
+
     def new_element(self,key:str,section:dict)->CTBSectionElement:
         return CTBSectionElement(
                 master=self,

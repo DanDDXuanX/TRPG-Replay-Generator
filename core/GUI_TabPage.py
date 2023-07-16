@@ -25,9 +25,8 @@ class PageFrame(ttk.Frame):
         self.sz = screenzoom
         super().__init__(master,borderwidth=0)
         self.page_notebook = PageNotes(master=self, screenzoom=self.sz)
-        self.empty_bg = ImageTk.PhotoImage(name='logo_bg',image=Image.open('./media/icon2.png'))
         self.page_dict = {
-            'empty' : ttk.Label(master=self,image='logo_bg',anchor='center')
+            'empty' : EmptyPage(master=self,screenzoom=self.sz)
         }
         self.page_show = self.page_dict['empty']
         # 引用对象：初始化状态
@@ -61,6 +60,7 @@ class PageFrame(ttk.Frame):
         self.page_show.place_forget()
         self.page_show = self.page_dict[name]
         self.page_show.place(x=0,y=SZ_30,relheight=1,height=-SZ_30,relwidth=1)
+        self.page_show.update_page_display()
     def goto_page(self,name:str):
         self.page_notebook.active_tabs[name].get_pressed()
     # 刷新目前某一类标签页的显示，导入文件时需要调用
@@ -177,6 +177,15 @@ class TabNote(ttk.Button):
         self.dele.config(bootstyle=self.bootstyle)
     def press_delete(self):
         self.master.delete(name=self.name)
+# 页面视图：空白
+class EmptyPage(ttk.Frame):
+    def __init__(self,master,screenzoom):
+        super().__init__(master,borderwidth=0)
+        self.image = ImageTk.PhotoImage(image=Image.open('./media/icon2.png'))
+        self.label = ttk.Label(master=self,image=self.image,anchor='center')
+        self.label.pack(fill='both',expand=True)
+    def update_page_display(self):
+        pass
 # 页面视图：Log文件
 class RGLPage(ttk.Frame):
     def __init__(self,master,screenzoom,content_obj:dict,content_type):
@@ -242,7 +251,9 @@ class RGLPage(ttk.Frame):
         self.outputcommand.pack(side='left',fill='y')
         # self.codeviewframe.place(x=0,y=0,relwidth=1,relheight=1)
         # self.codeviewframe.place(x=0,y=0,relwidth=1,relheight=1)
-
+    # 刷新视图
+    def update_page_display(self):
+        self.codeviewframe.update_codeview(None)
 # 页面视图：媒体定义文件
 class MDFPage(ttk.Frame):
     categroy_dict = {
@@ -302,7 +313,10 @@ class MDFPage(ttk.Frame):
             self.update_items()
         else:
             self.update_fullviews()
-
+    # 刷新视图
+    def update_page_display(self):
+        self.container.refresh_element_all()
+        self.container.preview_select()
 # 页面视图：角色配置文件
 class CTBPage(ttk.Frame):
     def __init__(self,master,screenzoom,content_obj:CharTable,content_type:str):
@@ -342,3 +356,7 @@ class CTBPage(ttk.Frame):
         self.newelementcommand.place(x=0,y=-SZ_40,rely=1,relwidth=0.5,height=SZ_40)
         self.preview.place(relx=0.5,rely=0,relwidth=0.5,relheight=0.44)
         self.edit.place(relx=0.5,rely=0.44,relwidth=0.5,relheight=0.56)
+    # 刷新视图
+    def update_page_display(self):
+        self.container.refresh_element_all()
+        self.container.preview_select()

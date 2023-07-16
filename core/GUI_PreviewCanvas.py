@@ -325,16 +325,18 @@ class MDFPreviewCanvas(PreviewCanvas):
             if self.recode:
                 self.canvas.blit(self.recode,(0,0))
         # 刷新点
-        self.selected_dot = None
-        self.selected_dot_name = None
-        for dot in self.dots:
-            this_dot:InteractiveDot = self.dots[dot]
-            if pressed is None:
-                pass
-            elif this_dot.check(pos=pressed,canvas_zoom=self.canvas_zoom.get()):
-                self.selected_dot = this_dot
-                self.selected_dot_name = dot
-            self.dots[dot].draw(self.canvas,self.canvas_zoom.get())
+        if pressed is None:
+            for dot in self.dots:
+                self.dots[dot].draw(self.canvas,self.canvas_zoom.get())
+        else:
+            self.selected_dot = None
+            self.selected_dot_name = None
+            for dot in self.dots:
+                this_dot:InteractiveDot = self.dots[dot]
+                if this_dot.check(pos=pressed,canvas_zoom=self.canvas_zoom.get()):
+                    self.selected_dot = this_dot
+                    self.selected_dot_name = dot
+                self.dots[dot].draw(self.canvas,self.canvas_zoom.get())
         # 刷新画布
         self.update_canvas()
     # 重新生成点视图
@@ -433,7 +435,7 @@ class MDFPreviewCanvas(PreviewCanvas):
             dot = self.selected_dot.force_selected(pID)
             # 更新
             self.canvas_label.focus_set()
-            self.update_preview(pressed=dot)
+            self.update_preview()
     # 拖动中的功能：渲染点被拖动中的位置
     def get_drag(self,event):
         pressd = self.get_coordinates(event=event)
