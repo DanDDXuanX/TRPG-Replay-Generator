@@ -2179,15 +2179,20 @@ class RplGenLog(Script):
                     # 停留的帧：当前时间轴的最后一帧，不含S图层
                     try:
                         wait_frame = self.main_timeline.iloc[-1].copy()
+                        # 检查wait frame里面，有没有透明度为0，如果有则删除图层
+                        for layer in config.zorder:
+                            if wait_frame[layer+'_a'] == 0:
+                                # 以防导出xml项目异常
+                                wait_frame[layer] = 'NA'
+                        # 不应用：0：section，BGM，Voice，SE
+                        this_timeline[render_arg[1:-3]] = wait_frame[render_arg[1:-3]]
                     except IndexError:
-                        raise ParserError('WaitBegin')
-                    # 检查wait frame里面，有没有透明度为0，如果有则删除图层
-                    for layer in config.zorder:
-                        if wait_frame[layer+'_a'] == 0:
-                            # 以防导出xml项目异常
-                            wait_frame[layer] = 'NA'
-                    # 不应用：0：section，BGM，Voice，SE
-                    this_timeline[render_arg[1:-3]] = wait_frame[render_arg[1:-3]]
+                        # 只采用背景图层（BG2）'BG2','BG2_a','BG2_c','BG2_p'
+                        this_timeline['BG2'] = this_background
+                        this_timeline['BG2_a'] = 100
+                        this_timeline['BG2_c'] = str(self.medias[this_background].pos)
+                        this_timeline['BG2_p'] = "NA"
+                        # raise ParserError('WaitBegin') # 不再报错
                     # BGM
                     if BGM_queue != []:
                         this_timeline.loc[0,'BGM'] = BGM_queue.pop(0)
