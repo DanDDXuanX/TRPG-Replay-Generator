@@ -104,8 +104,8 @@ class ResetConfirm(ttk.Frame):
         }
         # 输出选项
         self.buttons = {
-            'reset'     : ttk.Button(master=self, text='重置',image=self.image['reset'],command=self.preferencetable.reset, style='output.TButton',padding=0),
-            'confirm'   : ttk.Button(master=self, text='确定',image=self.image['confirm'],command=self.preferencetable.confirm, style='output.TButton',padding=0)
+            'reset'     : ttk.Button(master=self, text='重置',compound='left',image=self.image['reset'],command=self.preferencetable.reset, style='output.TButton',padding=0),
+            'confirm'   : ttk.Button(master=self, text='确定',compound='left',image=self.image['confirm'],command=self.preferencetable.confirm, style='output.TButton',padding=0)
         }
         for key in self.buttons:
             item:ttk.Button = self.buttons[key]
