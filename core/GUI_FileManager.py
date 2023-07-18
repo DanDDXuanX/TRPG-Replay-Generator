@@ -589,7 +589,7 @@ class FileCollapsing(ttk.Frame):
             return False
     def open_item_as_page(self,keyword,image,file_type,file_index):
         # 检查是否是Page_frame中的活跃页
-        if keyword not in self.page_frame.page_dict.keys():
+        if keyword not in self.page_frame.active_page:
             # 如果不是活动页，新增活跃页
             self.page_frame.add_active_page(
                 name        = keyword,

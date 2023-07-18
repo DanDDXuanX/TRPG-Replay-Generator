@@ -25,6 +25,7 @@ class PageFrame(ttk.Frame):
         self.sz = screenzoom
         super().__init__(master,borderwidth=0)
         self.page_notebook = PageNotes(master=self, screenzoom=self.sz)
+        self.active_page = []
         self.page_dict = {
             'empty' : EmptyPage(master=self,screenzoom=self.sz)
         }
@@ -41,6 +42,8 @@ class PageFrame(ttk.Frame):
         self.page_show.place(x=0,y=SZ_30,relheight=1,height=-SZ_30,relwidth=1)
     # 将对象添加到 page_dict
     def add_active_page(self,name:str,image:str,file_type:str,content_obj:Script,content_type=False):
+        # 添加记录：阻塞快速连点导致重复新建页面
+        self.active_page.append(name)
         PageType = {
             'MDF' : MDFPage,
             'CTB' : CTBPage,
@@ -54,6 +57,9 @@ class PageFrame(ttk.Frame):
             )
         # 在标签页中新建一个标签
         self.page_notebook.add(name=name,image=image)
+    def del_active_page(self,name:str):
+        self.page_dict.pop(name).destroy()
+        self.active_page.remove(name)
     # 切换页面
     def switch_page(self,name:str):
         SZ_30 = int(self.sz * 30)
@@ -62,7 +68,8 @@ class PageFrame(ttk.Frame):
         self.page_show.place(x=0,y=SZ_30,relheight=1,height=-SZ_30,relwidth=1)
         self.page_show.update_page_display()
     def goto_page(self,name:str):
-        self.page_notebook.active_tabs[name].get_pressed()
+        if name in self.page_dict:
+            self.page_notebook.active_tabs[name].get_pressed()
     # 刷新目前某一类标签页的显示，导入文件时需要调用
     def update_pages_elements(self,ftype='medef'):
         # 设置目标类型
@@ -123,9 +130,7 @@ class PageNotes(ttk.Frame):
                 next_name = self.active_tabs_name_list[del_index-1]
                 self.active_tabs[next_name].get_pressed()
         # 移除页面
-        page_this = self.master.page_dict[name]
-        page_this.destroy()
-        self.master.page_dict.pop(name)
+        self.master.del_active_page(name)
         # 移除标签
         this_tab:ttk.Button = self.active_tabs[name]
         this_tab.destroy()
