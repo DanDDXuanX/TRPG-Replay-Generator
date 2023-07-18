@@ -4,6 +4,7 @@
 # 容器，文件页面的元素之一。
 # 包含：可滚动的容器和对应的小节元素
 
+import sys
 import numpy as np
 from ttkbootstrap.scrolled import ScrolledFrame
 from ttkbootstrap.dialogs import Messagebox
@@ -373,7 +374,6 @@ class RGLContainer(Container):
         sz_10 = int(self.sz * 10)
         this_section_frame:RGLSectionElement = self.element[key]
         this_section_frame.place(x=0,y=idx*SZ_60,width=-sz_10,height=SZ_55,relwidth=1)
-    # BUG: 当通过右键编辑一个被复制的小节时，会出现一系列异常！
     def copy_element(self, event):
         super().copy_element(event)
         # 写入剪贴板
@@ -489,6 +489,8 @@ class MDFContainer(Container):
     def paste_element(self, event, key: str, ahead=False):
         super().paste_element(event, key, ahead)
         idx = self.element_keys.index(key)
+        # TODO：检查剪贴板文件
+        # 从Container剪贴板中复制
         if MDFContainer.element_clipboard_source != self:
             Messagebox().show_warning(message='复制的内容无法黏贴到这个页面！',title='类型不正确',parent=self.page)
         else:

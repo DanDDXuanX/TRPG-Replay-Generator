@@ -9,7 +9,7 @@ import os
 import pydub
 import base64
 import wave
-import requests
+# import requests
 import json
 import time
 

@@ -51,7 +51,7 @@ class InteractiveDot:
             'p2' : False
         }
     def check(self, pos, canvas_zoom:float=1.0)->bool:
-        rw = np.int(np.ceil(5 / canvas_zoom * self.sz))
+        rw = int(np.ceil(5 / canvas_zoom * self.sz))
         if np.max(np.abs(np.array(pos) - self.p1)) < rw:
             self.selected['p1'] = True
             self.selected['p2'] = False
@@ -70,8 +70,8 @@ class InteractiveDot:
             self.selected['p2'] = False
             return False
     def draw(self, surface, canvas_zoom:float=1.0):
-        lw = np.int(np.ceil(1 / canvas_zoom))
-        rw = np.int(np.ceil(5 / canvas_zoom * self.sz))
+        lw = int(np.ceil(1 / canvas_zoom))
+        rw = int(np.ceil(5 / canvas_zoom * self.sz))
         dlw = {True:rw, False:lw}
         if self.color == 'green':
             element_rect = [self.p1[0], self.p1[1], self.p2[0]-self.p1[0], self.p2[1]-self.p1[1]]

@@ -319,7 +319,8 @@ class MDFPage(ttk.Frame):
             self.update_fullviews()
     # 刷新视图
     def update_page_display(self):
-        self.container.refresh_element_all()
+        # 媒体页其实不需要在切换的时候刷新，因为不会影响
+        # self.container.refresh_element_all()
         self.container.preview_select()
 # 页面视图：角色配置文件
 class CTBPage(ttk.Frame):

@@ -199,7 +199,7 @@ class RplGenStudioMainWindow(ttk.Window):
         toast.toplevel.lift()
     # 仅适用于windows，深色模式窗口
     def dark_title_bar(self):
-        if sys.platform == 'win32':
+        if 'win32' in sys.platform:
             # 使标题栏变黑
             import ctypes
             self.update()

@@ -82,7 +82,7 @@ class Filepath:
         if '//' in to_format:
             to_format = to_format.replace('//','/') # BUG 在 mac win 虚拟机
         # 判断文件系统
-        if (sys.platform == 'win32') & (to_format[1] == ':'):
+        if ('win32' in sys.platform) & (to_format[1] == ':'):
             # 替换冒号
             to_format = 'file://localhost/' + to_format[0] + '%3a' + to_format[2:]
         elif (sys.platform in ['darwin','linux']) & (to_format[0] == '/'):

@@ -260,6 +260,7 @@ class CharactorEdit(EditWindow):
         if new_keyword != self.section_index:
             # 检查新名字是否可用
             if new_keyword in self.page.content.struct:
+                # BUG：如何避免使用 focus out？ 这样会导致重复弹出两次！
                 Messagebox().show_warning(message='这个差分名已经被使用了！',title='重名',parent=self)
                 self.elements['Subtype'].value.set(self.section['Subtype'])
                 return self.section
