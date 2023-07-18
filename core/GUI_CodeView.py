@@ -273,6 +273,7 @@ class RGLCodeViewFrame(ttk.Frame):
         self.content:RplGenLog = rplgenlog
         self.codeview = CodeView(master=self, lexer=RplGenLogLexer, color_scheme="monokai", font=('Sarasa Mono SC',12), undo=True)
         self.codeview.insert("end",self.content.export()) # 插入脚本文本
+        self.codeview.edit_reset() # 清除撤回队列
         self.codeview.bind('<Control-Key-f>',self.show_search)
         self.codeview.bind('<Control-Key-s>',self.save_command)
         self.codeview.bind('<Control-Key-r>',self.update_codeview)
@@ -282,6 +283,8 @@ class RGLCodeViewFrame(ttk.Frame):
         self.codeview.bind('<Alt-Down>',self.swap_lines)
         self.codeview.bind('<Alt-Return>',self.split_dialog)
         self.codeview.bind('<Button-3>',self.click_right_menu)
+        # self.codeview.bind('<Key>',self.on_modified,'+')
+        self.is_modified = False
         # self.codeview.bind_class("Text", "<Button-3>", self.click_right_menu,'+')
         # 代码视图
         self.codeview._line_numbers.bind('<ButtonRelease-3>',self.click_2_preview,'+')
@@ -412,6 +415,8 @@ class RGLCodeViewFrame(ttk.Frame):
         self.codeview.delete("0.0",'end')
         # 插入脚本文本
         self.codeview.insert("end",self.content.export())
+        # 清除变更标记
+        # self.clear_modified()
         # 刷新高亮
         self.codeview.highlight_all()
     # 将当前文本更新到RplGenLog
@@ -426,6 +431,7 @@ class RGLCodeViewFrame(ttk.Frame):
             # 将异常继续向上传递
             raise E
         # 如果成功，清除error
+        # self.clear_modified()
         self.codeview.tag_remove('error','1.0','end')
     # 将对话行分割
     def split_dialog(self,event):
@@ -465,3 +471,17 @@ class RGLCodeViewFrame(ttk.Frame):
             self.codeview.tag_add('error', f"{errorline}.0", f"{errorline}.end")
         except:
             print(E)
+    # 变更是否同步？TODO：暂时没用
+    def on_modified(self,event):
+        if self.is_modified:
+            pass
+        else:
+            self.is_modified = True
+            name = self.master.page_name
+            tab = self.master.master.page_notebook.active_tabs[name]
+            tab.set_change('●')
+    def clear_modified(self):
+        self.is_modified = False
+        name = self.master.page_name
+        tab = self.master.master.page_notebook.active_tabs[name]
+        tab.set_change('x')

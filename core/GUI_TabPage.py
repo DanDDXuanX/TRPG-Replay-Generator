@@ -52,6 +52,7 @@ class PageFrame(ttk.Frame):
         self.page_dict[name] = PageType(
             master      = self,
             screenzoom  = self.sz,
+            name        = name,
             content_obj = content_obj,
             content_type= content_type
             )
@@ -162,11 +163,14 @@ class TabNote(ttk.Button):
         self.is_change = tk.StringVar(master=self,value='×')
         self.dele = ttk.Button(master=self,textvariable=self.is_change,bootstyle=bootstyle,padding=(SZ_5,0,SZ_5,0),command=self.press_delete)
         self.dele.place(x=-SZ_24,relx=1,rely=0.15,width=SZ_21,relheight=0.70)
-    def set_change(self):
-        if self.is_change.get() == '×':
-            self.is_change.set('●')
+    def set_change(self,marker=None):
+        if marker:
+            self.is_change.set(marker)
         else:
-            self.is_change.set('×')
+            if self.is_change.get() == '×':
+                self.is_change.set('●')
+            else:
+                self.is_change.set('×')
     def get_pressed(self):
         # 切换页面 TabNote.PageNotes.PageFrame
         self.master.master.switch_page(name=self.name)
@@ -193,14 +197,14 @@ class EmptyPage(ttk.Frame):
         pass
 # 页面视图：Log文件
 class RGLPage(ttk.Frame):
-    def __init__(self,master,screenzoom,content_obj:dict,content_type):
+    def __init__(self,master,screenzoom,name,content_obj:dict,content_type):
         # 缩放尺度
         self.sz = screenzoom
         super().__init__(master,borderwidth=0)
         # 内容
         self.content:RplGenLog = content_obj[content_type]
         # 是否被修改
-        self.is_modified:bool = False
+        self.page_name:str = name
         # 引用媒体对象
         self.ref_medef = self.master.ref_medef
         self.ref_chartab = self.master.ref_chartab
@@ -273,7 +277,7 @@ class MDFPage(ttk.Frame):
         'Background': ['Background'],
         'Audio'     : ['Audio','BGM'],
     }
-    def __init__(self,master,screenzoom,content_obj:MediaDef,content_type='Animation'):
+    def __init__(self,master,screenzoom,name,content_obj:MediaDef,content_type='Animation'):
         # 缩放尺度
         self.sz = screenzoom
         super().__init__(master,borderwidth=0)
@@ -281,7 +285,7 @@ class MDFPage(ttk.Frame):
         self.content:MediaDef = content_obj
         self.ref_medef = self.content
         # 是否被修改
-        self.is_modified:bool = False
+        self.page_name:str = name
         # 元件
         self.edit = MediaEdit(master=self,screenzoom=self.sz)
         self.preview = MDFPreviewCanvas(master=self,screenzoom=self.sz,mediadef=self.content)
@@ -329,14 +333,14 @@ class MDFPage(ttk.Frame):
         self.container.preview_select()
 # 页面视图：角色配置文件
 class CTBPage(ttk.Frame):
-    def __init__(self,master,screenzoom,content_obj:CharTable,content_type:str):
+    def __init__(self,master,screenzoom,name,content_obj:CharTable,content_type:str):
         # 缩放尺度
         self.sz = screenzoom
         super().__init__(master,borderwidth=0)
         # 内容
         self.content:CharTable = content_obj
         # 是否被修改
-        self.is_modified:bool = False
+        self.page_name:str = name
         # 引用媒体对象
         self.ref_medef = self.master.ref_medef
         # 元件
