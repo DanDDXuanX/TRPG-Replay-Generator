@@ -3,8 +3,7 @@
 
 import re
 import ttkbootstrap as ttk
-from ttkbootstrap.scrolled import ScrolledFrame
-from .GUI_Util import KeyValueDescribe, TextSeparator
+from .GUI_Util import KeyValueDescribe, TextSeparator, FluentFrame
 from .GUI_TableStruct import EditTableStruct, label_colors, projection, alignments, chatalign, charactor_columns, fill_mode, fit_axis, True_False
 from .ScriptParser import MediaDef, RplGenLog, CharTable
 from .GUI_CustomDialog import voice_chooser, selection_query
@@ -14,7 +13,7 @@ from ttkbootstrap.dialogs import Messagebox, Querybox
 # 编辑区
 
 # 编辑窗
-class EditWindow(ScrolledFrame):
+class EditWindow(FluentFrame):
     TableStruct = EditTableStruct
     def __init__(self,master,screenzoom):
         # 初始化基类

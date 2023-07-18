@@ -6,14 +6,14 @@
 
 import sys
 import numpy as np
-from ttkbootstrap.scrolled import ScrolledFrame
+from .GUI_Util import FluentFrame
 from ttkbootstrap.dialogs import Messagebox
 
 from .GUI_SectionElement import MDFSectionElement, CTBSectionElement, RGLSectionElement
 from .ScriptParser import MediaDef, CharTable, RplGenLog
 
 # 容纳内容的滚动Frame
-class Container(ScrolledFrame):
+class Container(FluentFrame):
     element_clipboard = {}
     element_clipboard_source = None
     def __init__(self,master,content,screenzoom):

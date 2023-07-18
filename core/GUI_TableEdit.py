@@ -2,12 +2,11 @@
 # coding: utf-8
 
 import ttkbootstrap as ttk
-from ttkbootstrap.scrolled import ScrolledFrame
 from ttkbootstrap.toast import ToastNotification
 from PIL import Image, ImageTk
 from .ProjConfig import preference, Preference
 from .GUI_PageElement import OutPutCommand
-from .GUI_Util import TextSeparator, KeyValueDescribe
+from .GUI_Util import TextSeparator, KeyValueDescribe, FluentFrame
 from .GUI_TableStruct import PreferenceTableStruct, ExecuteTableStruct
 from .GUI_TableStruct import language, True_False, theme, progressbar, import_mode
 
@@ -25,7 +24,7 @@ class TableEdit(ttk.Frame):
         SZ_10 = int(self.sz*10)
         super().__init__(master,borderwidth=0,padding=SZ_10)
         self.title = ttk.Label(master=self,text=title,font='-family 微软雅黑 -size 20 -weight bold',anchor='center')
-        self.options = ScrolledFrame(master=self,autohide=True)
+        self.options = FluentFrame(master=self,autohide=True)
         self.options.vscroll.config(bootstyle='primary-round')
         self.outputs = ttk.Frame(master=self)
         # 结构

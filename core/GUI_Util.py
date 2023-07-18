@@ -3,13 +3,36 @@
 
 import ttkbootstrap as ttk
 from ttkbootstrap.tooltip import ToolTip
+from ttkbootstrap.scrolled import ScrolledFrame
 import tkinter as tk
 from PIL import Image, ImageTk
 from .GUI_DialogWindow import color_chooser, browse_file
 from .ProjConfig import preference
 
 # 公用小元件
-# 包含：最小键值对
+# 滚动得更加流畅的scollframe
+class FluentFrame(ScrolledFrame):
+    # 重载 yview_scroll
+    def yview_scroll(self, number: int, what: str):
+        """Update the vertical position of the content frame within the
+        container.
+
+        Parameters:
+
+            number (int):
+                The amount by which the content frame will be moved
+                within the container frame by 'what' units.
+
+            what (str):
+                The type of units by which the number is to be interpeted.
+                This parameter is currently not used and is assumed to be
+                'units'.
+        """
+        base, thumb = self._measures()
+        first, _ = self.vscroll.get()
+        fraction = (number / (base*10)) + first
+        self.yview_moveto(fraction)
+
 # 可以自由指定显示位置的tooltip
 class FreeToolTip(ToolTip):
     def __init__(self, widget, text="widget info", bootstyle=None, wraplength=None, delay=250, side='right', screenzoom=1.0, **kwargs):

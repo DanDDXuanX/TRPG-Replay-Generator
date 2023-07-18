@@ -11,7 +11,6 @@ import re
 from PIL import Image, ImageTk, ImageEnhance, ImageFont, ImageDraw
 import ttkbootstrap as ttk
 import tkinter as tk
-from ttkbootstrap.scrolled import ScrolledFrame
 from ttkbootstrap.dialogs import Messagebox
 from ttkbootstrap.tooltip import ToolTip
 from .ScriptParser import MediaDef, CharTable, RplGenLog, Script
@@ -22,6 +21,7 @@ from .Medias import MediaObj
 from .GUI_TabPage import PageFrame, RGLPage, CTBPage, MDFPage
 from .GUI_DialogWindow import browse_file, save_file, browse_multi_file
 from .GUI_CustomDialog import relocate_file, configure_project
+from .GUI_Util import FluentFrame
 from .GUI_Link import Link
 # 项目视图-文件管理器-RGPJ
 class RplGenProJect(Script):
@@ -120,7 +120,7 @@ class FileManager(ttk.Frame):
         # 在初始化的时候，检查文件可用性
         self.check_project_media_exist()
         # 文件浏览器元件
-        self.project_content = ScrolledFrame(master=self,borderwidth=0,bootstyle='light',autohide=True)
+        self.project_content = FluentFrame(master=self,borderwidth=0,bootstyle='light',autohide=True)
         self.project_content.vscroll.config(bootstyle='warning-round')
         # 对应的page_frame对象
         self.page_frame:PageFrame = page_frame
