@@ -2112,6 +2112,16 @@ PreferenceTableStruct = {
                 "vtype": "bool",
                 "default": False
             },
+            "Edit.import_mode":{
+                "ktext": "导入模式：",
+                "tooltip":"向项目导入脚本时，如果脚本中包含了项目中已有的名称，采用何种模式来处理？",
+                "dtext": "（选择）",
+                "ditem": "label",
+                "valuekey": "Edit.import_mode",
+                "vitem": "combox",
+                "vtype": "str",
+                "default": 'add'
+            },
         }
     },
     "PreviewSep":{
@@ -2518,6 +2528,10 @@ progressbar = {
     '彩色' : 'color',
     '黑白' : 'black',
     '隐藏' : 'hide',
+}
+import_mode = {
+    '新增' : 'add',
+    '覆盖' : 'replace'
 }
 # 新建媒体按钮的结构
 NewElement = {

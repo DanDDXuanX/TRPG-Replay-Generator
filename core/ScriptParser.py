@@ -999,7 +999,6 @@ class RplGenLog(Script):
                 struct[str(i)] = this_section
             except Exception as E:
                 # TODO: 这是临时的！
-                print(E)
                 raise ParserError("ParErr",str(i+1))
         # 返回值
         return struct

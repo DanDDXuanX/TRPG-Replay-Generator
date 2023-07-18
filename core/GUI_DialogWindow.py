@@ -5,7 +5,7 @@
 
 from ttkbootstrap.dialogs import colorchooser
 from ttkbootstrap.localization import MessageCatalog
-from tkinter.filedialog import askopenfilename, askdirectory, asksaveasfilename
+from tkinter.filedialog import askopenfilename, askdirectory, asksaveasfilename, askopenfilenames
 from tkinter import StringVar
 from .Utils import rgba_str_2_hex
 from .GUI_Link import Link
@@ -66,6 +66,28 @@ default_name = {
     'rplgenproj':['新建工程'    ,'.rgpj'],
     'prefix':    ['导出文件'    ,'']
 }
+# 浏览多个文件，并把路径返回（不输出给stringvar）：
+def browse_multi_file(master, filetype=None ,related:bool=True)->list:
+    if filetype is None:
+        getname:tuple = askopenfilenames(parent=master,)
+    else:
+        getname:tuple = askopenfilenames(parent=master,filetypes=filetype_dic[filetype])
+    # 检查结果
+    if getname == ['']:
+        return None # 注意，如果没选择，返回None！
+    else:
+        if related:
+            media_dir = Link['media_dir']
+            out_path = []
+            for path in getname:
+                if path.startswith(media_dir):
+                    out_path.append('@/' + getname[len(media_dir):])
+                else:
+                    out_path.append(path)
+        else:
+            out_path = list(getname)
+        # 返回
+        return out_path
 # 浏览文件，并把路径输出给 StringVar
 def browse_file(master, text_obj:StringVar, method='file', filetype=None, quote:bool=True, related:bool=True):
     if method == 'file':
@@ -97,7 +119,7 @@ def browse_file(master, text_obj:StringVar, method='file', filetype=None, quote:
         else:
             text_obj.set(getname)
         # 返回
-        print(getname)
+        # print(getname)
         return getname
     
 def save_file(master, method='file', filetype=None, quote:bool=True)->str:

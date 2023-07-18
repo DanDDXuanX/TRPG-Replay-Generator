@@ -20,7 +20,7 @@ from .ProjConfig import Config, preference
 from .Exceptions import MediaError
 from .Medias import MediaObj
 from .GUI_TabPage import PageFrame, RGLPage, CTBPage, MDFPage
-from .GUI_DialogWindow import browse_file, save_file
+from .GUI_DialogWindow import browse_file, save_file, browse_multi_file
 from .GUI_CustomDialog import relocate_file, configure_project
 from .GUI_Link import Link
 # 项目视图-文件管理器-RGPJ
@@ -169,86 +169,131 @@ class FileManager(ttk.Frame):
         if len(file_not_found) != 0:
             # 这个步骤可能会改变mediadef！
             relocate_file(master=self,file_not_found=file_not_found,mediadef=self.project.mediadef)
-    # 导入文件
-    def import_file(self):
-        get_file:str = browse_file(master=self.winfo_toplevel(),text_obj=tk.StringVar(),method='file',filetype='rgscripts',related=False)
-        if get_file != '':
-            # 尝试多个解析
-            Types = {MediaDef:None,CharTable:None,RplGenLog:None}
-            for ScriptType in Types:
-                try:
-                    this = ScriptType(file_input=get_file)
-                    Types[ScriptType] = this
-                except:
-                    Types[ScriptType] = ScriptType()
-            # 获取最优解析结果
-            top_parse:Script = max(Types,key=lambda x:len(Types.get(x).struct))
-            if len(Types[top_parse].struct) == 0:
-                # 显示一个错误消息框
-                Messagebox().show_error(message='无法导入这个文件！',title='错误')
-                return 0
+    # 解析文件
+    def parse_file(self,filepath)->tuple:
+        # 尝试多个解析
+        Types = {'mediadef':None,'chartab':None,'rplgenlog':None}
+        for t in Types:
+            ScriptType = {'mediadef':MediaDef,'chartab':CharTable,'rplgenlog':RplGenLog}[t]
+            try:
+                this = ScriptType(file_input=filepath)
+                Types[t] = this
+            except:
+                Types[t] = ScriptType()
+        # 获取最优解析结果
+        top_parse:str = max(Types,key=lambda x:len(Types.get(x).struct))
+        top_results = Types[top_parse]
+        return (top_parse, len(top_results.struct), top_results) # 类型、长度、对象
+    # 载入文件
+    def load_file(self,path,ftype,object):
+        count_of_add = 0
+        count_of_rep = 0
+        if ftype == 'mediadef':
+            imported:MediaDef = object
+            collapse:MDFCollapsing = self.items['mediadef']
+            for keyword in imported.struct:
+                # 检查是否是无效行
+                if imported.struct[keyword]['type'] in ['comment','blank']:
+                    continue
+                # 检查文件名是否重复
+                keyword_new = keyword
+                if preference.import_mode == 'add':
+                    while keyword_new in self.project.mediadef.struct.keys():
+                        keyword_new = keyword_new + '_new'
+                    else:
+                        count_of_add += 1
+                else:
+                    count_of_rep += 1
+                # 执行变更
+                self.project.mediadef.struct[keyword_new] = imported.struct[keyword]
+            # 检查是否有脱机素材，如果有则启动重定位
+            self.check_project_media_exist()
+            # 刷新已有标签页的page_element
+            self.update_pages_elements(ftype='medef')
+            # 返回summary
+            if preference.import_mode == 'add':
+                return f"向媒体库中导入媒体对象{count_of_add}个。"
             else:
-                # 更新到项目
-                if top_parse is RplGenLog:
-                    showname = '剧本文件'
-                    imported:RplGenLog = Types[top_parse]
-                    collapse:RGLCollapsing = self.items['rplgenlog']
-                    filename = Filepath(get_file).name().split('.')[0]
-                    # 如果重名了，在名字后面加东西
-                    while filename in self.project.logfile.keys():
-                        filename = filename+'_new'
+                return f"向媒体库中导入媒体对象{count_of_add}个；更新媒体对象{count_of_rep}个。"
+        elif ftype == 'chartab':
+            imported:CharTable = object
+            collapse:CTBCollapsing = self.items['chartab']
+            new_charactor:list = []
+            # 检查，是否存在重名对象
+            for keyword in imported.struct:
+                name, subtype = keyword.split('.')
+                # 是不是一个新增的角色？是则新建标签
+                if name not in collapse.get_chara_name():
+                    new_charactor.append(name)
+                    collapse.create_new_button(new_keyword=name)
+                # 如果重名了
+                keyword_new = keyword
+                if preference.import_mode == 'add':
+                    while keyword_new in self.project.chartab.struct.keys():
+                        keyword_new = keyword_new + '_new'
+                        subtype = subtype + '_new'
                     else:
                         # 更新项目内容
-                        self.project.logfile[filename] = imported
-                        # 更新文件管理器
-                        collapse.create_new_button(new_keyword=filename)
-                elif top_parse is CharTable:
-                    showname = '角色配置'
-                    imported:CharTable = Types[top_parse]
-                    collapse:CTBCollapsing = self.items['chartab']
-                    new_charactor:list = []
-                    for keyword in imported.struct:
-                        name, subtype = keyword.split('.')
-                        # 是不是一个新增的角色？是则新建标签
-                        if name not in collapse.get_chara_name():
-                            new_charactor.append(name)
-                            collapse.create_new_button(new_keyword=name)
-                        # 如果重名了，在名字后面加东西
-                        keyword_new = keyword
-                        while keyword_new in self.project.chartab.struct.keys():
-                            keyword_new = keyword_new + '_new'
-                            subtype = subtype + '_new'
-                        else:
-                            # 更新项目内容
-                            imported.struct[keyword]['Subtype'] = subtype
-                            self.project.chartab.struct[keyword_new] = imported.struct[keyword]
-                    # 最后，检查所有新建角色，有没有default，没有则新建
-                    for chara in new_charactor:
-                        self.project.chartab.add_chara_default(name=chara)
-                    # 刷新已有标签页的page_element
-                    self.update_pages_elements(ftype='chartab')
-                elif top_parse is MediaDef:
-                    showname = '媒体库'
-                    imported:MediaDef = Types[top_parse]
-                    collapse:MDFCollapsing = self.items['mediadef']
-                    for keyword in imported.struct:
-                        # 检查是否是无效行
-                        if imported.struct[keyword]['type'] in ['comment','blank']:
-                            continue
-                        # 检查文件名是否重复
-                        keyword_new = keyword
-                        while keyword_new in self.project.mediadef.struct.keys():
-                            keyword_new = keyword_new + '_new'
-                        else:
-                            self.project.mediadef.struct[keyword_new] = imported.struct[keyword]
-                    # 检查是否有脱机素材，如果有则启动重定位
-                    self.check_project_media_exist()
-                    # 刷新已有标签页的page_element
-                    self.update_pages_elements(ftype='medef')
+                        imported.struct[keyword]['Subtype'] = subtype
+                        count_of_add += 1
                 else:
-                    return 0
-                Messagebox().show_info(title='导入成功',message='成功向{showname}中导入共计{number}个小节/项目。'.format(showname=showname,number=len(imported.struct)))
-                return len(imported.struct)
+                    # 如果是覆盖模式，则什么都不做
+                    count_of_rep += 1
+                # 应用变更
+                self.project.chartab.struct[keyword_new] = imported.struct[keyword]
+            # 最后，检查所有新建角色，有没有default，没有则新建
+            for chara in new_charactor:
+                self.project.chartab.add_chara_default(name=chara)
+                count_of_add += 1
+            # 刷新已有标签页的page_element
+            self.update_pages_elements(ftype='chartab')
+            # 返回summary
+            if preference.import_mode == 'add':
+                return f"向角色配置中导入新角色{len(new_charactor)}个；新增角色差分{count_of_add}个。"
+            else:
+                return f"向角色配置中导入新角色{len(new_charactor)}个；新增角色差分{count_of_add}个，更新角色差分{count_of_rep}个。"
+        else: # rplgenlog
+            imported:RplGenLog = object
+            collapse:RGLCollapsing = self.items['rplgenlog']
+            filename = Filepath(path).name().split('.')[0]
+            # 如果重名了，在名字后面加东西
+            while filename in self.project.logfile.keys():
+                filename = filename+'_new'
+            else:
+                # 更新项目内容
+                self.project.logfile[filename] = imported
+                count_of_add = len(imported.struct)
+                # 更新文件管理器
+                collapse.create_new_button(new_keyword=filename)
+            # import_mode 对rgl不生效
+            return f"向剧本文件中添加新剧本【{filename}】，包含{count_of_add}个小节。"
+    # 导入文件
+    def import_file(self):
+        # get_file:str = browse_file(master=self.winfo_toplevel(),text_obj=tk.StringVar(),method='file',filetype='rgscripts',related=False)
+        get_file:list = browse_multi_file(master=self.winfo_toplevel(),filetype='rgscripts',related=False)
+        if get_file:
+            # 尝试多个解析
+            summary_recode = {}
+            # 是否是更新项目模式？
+            self.is_update_project:bool = None
+            # 开始遍历
+            for file in get_file:
+                Tp,Lt,Ob = self.parse_file(file)
+                # 记录
+                if Lt != 0:
+                    summary_recode[file] = self.load_file(path=file, ftype=Tp, object=Ob)
+                else:
+                    summary_recode[file] = f'导入失败，无法读取该文件！'
+            # 最后总结
+            summary = '导入如下文件：\n'
+            for file in summary_recode:
+                text = summary_recode[file]
+                filename = file.replace('\\','/').split('/')[-1]
+                summary = summary + f"{filename}：{text}\n"
+            Messagebox().show_info(
+                title   = '导入文件',
+                message = summary[:-1]
+                )
     # 导出文件
     def export_file(self):
         # 如果导出完整的项目为脚本
@@ -330,9 +375,7 @@ class FileManager(ttk.Frame):
         SZ_180 = int(self.sz * 168.75)
         try:
             image = Image.open(self.project.config.Cover).resize([960,540]).convert('RGBA')
-            # self.cover = ImageTk.PhotoImage(image=Image.open(self.project.config.Cover).resize([SZ_300,SZ_180],mode='RGBA'))
         except Exception as E:
-            print(E)
             cover_path = f'./media/default_cover/{preference.theme}.jpg'
             image = Image.open(cover_path).convert('RGBA')
         # 渲染标题

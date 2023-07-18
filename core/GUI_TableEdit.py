@@ -9,7 +9,7 @@ from .ProjConfig import preference, Preference
 from .GUI_PageElement import OutPutCommand
 from .GUI_Util import TextSeparator, KeyValueDescribe
 from .GUI_TableStruct import PreferenceTableStruct, ExecuteTableStruct
-from .GUI_TableStruct import language, True_False, theme, progressbar
+from .GUI_TableStruct import language, True_False, theme, progressbar, import_mode
 
 class OutPutCommandAtScriptExecuter(OutPutCommand):
     # 重载
@@ -129,6 +129,7 @@ class PreferenceTable(TableEdit):
         self.elements['Preview.framerate_counter'].input.update_dict(True_False)
         self.elements['Export.force_split_clip'].input.update_dict(True_False)
         self.elements['Edit.auto_periods'].input.update_dict(True_False)
+        self.elements['Edit.import_mode'].input.update_dict(import_mode)
         # spine
         self.elements['Export.crf'].input.configure(from_=0,to=51,increment=1)
         # button
