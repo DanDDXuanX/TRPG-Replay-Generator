@@ -1643,6 +1643,7 @@ class RplGenLog(Script):
                     this_timeline['section'] = i
                     self.break_point[i+1]=self.break_point[i]+this_duration
                     this_timeline.index = range(self.break_point[i],self.break_point[i+1])
+                    # TODO：必须优化和主时间轴合并的算法，不然时间开销逐步增大到无法接受！
                     self.main_timeline = pd.concat([self.main_timeline,this_timeline],axis=0)
                     # 交叉溶解检查：立绘的
                     if this_dialog_method['Am'].cross_check(last_dialog_method['Am']):
