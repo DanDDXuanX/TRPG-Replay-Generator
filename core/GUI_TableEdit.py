@@ -89,7 +89,7 @@ class ScriptExecuter(TableEdit):
         # TODO: 临时的告示
         ttk.Label(
             master=self.options,
-            text='暂时禁用，未来可能考虑移除！',
+            text='暂时禁用，未来可能移除！',
             font="-family 微软雅黑 -size 30 -weight bold",
             foreground='#bbbbbb',
             anchor='center'
