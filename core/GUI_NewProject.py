@@ -366,25 +366,30 @@ class CreateIntelProject(CreateProject):
         file_name = self.elements['proj_name'].get()
         save_path = f"{save_dir}/{file_name}/{file_name}.rgpj"
         # 13. 保存文件
-        # try:
-        if 1:
+        try:
             # 建立项目资源目录
             try:
                 os.makedirs(save_dir + '/' + file_name)
             except FileExistsError:
                 pass
             # 复制模板素材到项目文件夹
-            shutil.copytree(
-                src=self.at_path+'/media/',
-                dst=f"{save_dir}/{file_name}/media/"
-            )
+            try:
+                shutil.copytree(
+                    src=self.at_path+'/media/',
+                    dst=f"{save_dir}/{file_name}/media/"
+                )
+            except FileExistsError:
+                shutil.rmtree(f"{save_dir}/{file_name}/media/")
+                shutil.copytree(
+                    src=self.at_path+'/media/',
+                    dst=f"{save_dir}/{file_name}/media/"
+                )
             # 建立项目文件
             with open(save_path,'w',encoding='utf-8') as of:
                 of.write(json.dumps(self.new_project_struct,indent=4))
             # 退出
             self.close_func(save_path)
-        # except:
-        else:
+        except:
             Messagebox().show_error(title='错误',message=f'无法保存文件到：\n{save_path}')
             return False
     def clear_speeches(self,text):
