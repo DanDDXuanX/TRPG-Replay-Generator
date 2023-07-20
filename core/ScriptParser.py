@@ -1329,12 +1329,24 @@ class RplGenLog(Script):
         # 手动换行的字数超限的警告
         if ((content_text[0]=='^')|('#' in content_text))&(np.frompyfunc(len,1,1)(content_text.replace('^','').split('#')).max()>this_line_limit):
             print(WarningPrint('MBExceed',str(i+1)))
+    def append_timeline(self,this_timeline:pd.DataFrame,idx1:int,idx2:int):
+        # 如果超出了当前最长上限，那么执行一次延长
+        if idx2 >= self.main_length:
+            append_timeline = pd.DataFrame(
+                dtype=str,
+                index=range(self.main_length,self.main_length+30000),
+                columns=self.render_arg
+            )
+            self.main_timeline = pd.concat([self.main_timeline,append_timeline], axis=0)
+            self.main_length = self.main_length + 30000
+        # 应用变更
+        self.main_timeline.loc[idx1:idx2] = this_timeline
     def execute(self,media_define:MediaDef,char_table:CharTable,config:Config)->pd.DataFrame:
         # 媒体和角色 # 浅复制，只复制了对象地址
         self.medias:dict = media_define.Medias.copy()
         self.charactors:pd.DataFrame = char_table.export().copy()
         # section:小节号, BG: 背景，Am：立绘，Bb：气泡，BGM：背景音乐，Voice：语音，SE：音效
-        render_arg = [
+        self.render_arg = [
         'section',
         'BG1','BG1_a','BG1_c','BG1_p','BG2','BG2_a','BG2_c','BG2_p',
         'Am1','Am1_t','Am1_a','Am1_c','Am1_p','Am2','Am2_t','Am2_a','Am2_c','Am2_p','Am3','Am3_t','Am3_a','Am3_c','Am3_p',
@@ -1346,7 +1358,8 @@ class RplGenLog(Script):
         # 断点文件: index + 1 == section, 因为还要包含尾部，所以总长比section长1
         self.break_point = pd.Series(0,index=range(0,len(self.struct.keys())+1),dtype=int)
         # 视频+音轨 时间轴
-        self.main_timeline = pd.DataFrame(dtype=str,columns=render_arg)
+        self.main_timeline = pd.DataFrame(dtype=str,index=range(30000),columns=self.render_arg)
+        self.main_length = 30000
         # 更新 self.media
         self.medias['black'] = Background('black')
         self.medias['white'] = Background('white')
@@ -1448,7 +1461,7 @@ class RplGenLog(Script):
                     if this_duration<(2*method_dur+1):
                         this_duration = 2*method_dur+1
                     # 建立本小节的timeline文件
-                    this_timeline=pd.DataFrame(index=range(0,this_duration),dtype=str,columns=render_arg)
+                    this_timeline=pd.DataFrame(index=range(0,this_duration),dtype=str,columns=self.render_arg)
                     this_timeline['BG2'] = this_background
                     this_timeline['BG2_a'] = 100
                     # 载入切换效果
@@ -1643,8 +1656,7 @@ class RplGenLog(Script):
                     this_timeline['section'] = i
                     self.break_point[i+1]=self.break_point[i]+this_duration
                     this_timeline.index = range(self.break_point[i],self.break_point[i+1])
-                    # TODO：必须优化和主时间轴合并的算法，不然时间开销逐步增大到无法接受！
-                    self.main_timeline = pd.concat([self.main_timeline,this_timeline],axis=0)
+                    self.append_timeline(this_timeline, self.break_point[i], self.break_point[i+1])
                     # 交叉溶解检查：立绘的
                     if this_dialog_method['Am'].cross_check(last_dialog_method['Am']):
                         # 如果本小节的Am切换效果和前一小节通过交叉溶解检查
@@ -1723,18 +1735,18 @@ class RplGenLog(Script):
                     method = bg_method['method']
                     method_dur = bg_method['method_dur']
                     if method=='replace': #replace 改为立刻替换 并持续n秒
-                        this_timeline=pd.DataFrame(index=range(0,method_dur),dtype=str,columns=render_arg)
+                        this_timeline=pd.DataFrame(index=range(0,method_dur),dtype=str,columns=self.render_arg)
                         this_timeline['BG2']=next_background
                         this_timeline['BG2_a']=100
                         this_timeline['BG2_c']=str(self.medias[next_background].pos)
                     elif method=='delay': # delay 等价于原来的replace，延后n秒，然后替换
-                        this_timeline=pd.DataFrame(index=range(0,method_dur),dtype=str,columns=render_arg)
+                        this_timeline=pd.DataFrame(index=range(0,method_dur),dtype=str,columns=self.render_arg)
                         this_timeline['BG2']=this_background
                         this_timeline['BG2_a']=100
                         this_timeline['BG2_c']=str(self.medias[this_background].pos)
                     # 'black','white'
                     elif method in ['black','white']:
-                        this_timeline=pd.DataFrame(index=range(0,method_dur),dtype=str,columns=render_arg)
+                        this_timeline=pd.DataFrame(index=range(0,method_dur),dtype=str,columns=self.render_arg)
                         # 下图层BG2，前半程是旧图层，后半程是新图层，透明度均为100
                         this_timeline.loc[:(method_dur//2),'BG2'] = this_background
                         this_timeline.loc[(method_dur//2):,'BG2'] = next_background
@@ -1747,7 +1759,7 @@ class RplGenLog(Script):
                         this_timeline['BG1_a']=100-np.abs(self.dynamic['formula'](-100,100,method_dur))
                         pass
                     elif method in ['cross','push','cover']: # 交叉溶解，黑场，白场，推，覆盖
-                        this_timeline=pd.DataFrame(index=range(0,method_dur),dtype=str,columns=render_arg)
+                        this_timeline=pd.DataFrame(index=range(0,method_dur),dtype=str,columns=self.render_arg)
                         this_timeline['BG1']=next_background
                         this_timeline['BG1_c']=str(self.medias[next_background].pos)
                         this_timeline['BG2']=this_background
@@ -1774,7 +1786,7 @@ class RplGenLog(Script):
                     this_timeline['section'] = i
                     self.break_point[i+1]=self.break_point[i]+len(this_timeline.index)
                     this_timeline.index = range(self.break_point[i],self.break_point[i+1])
-                    self.main_timeline = pd.concat([self.main_timeline,this_timeline],axis=0)
+                    self.append_timeline(this_timeline, self.break_point[i], self.break_point[i+1])
                     continue
                 except Exception as E:
                     print(E)
@@ -2046,7 +2058,7 @@ class RplGenLog(Script):
             elif this_section['type'] == 'hitpoint':
                 frame_rate = config.frame_rate
                 try:
-                    this_timeline=pd.DataFrame(index=range(0,frame_rate*4),dtype=str,columns=render_arg)
+                    this_timeline=pd.DataFrame(index=range(0,frame_rate*4),dtype=str,columns=self.render_arg)
                     # 背景
                     alpha_timeline = np.hstack([self.dynamic['formula'](0,1,frame_rate//2),np.ones(frame_rate*3-frame_rate//2),self.dynamic['formula'](1,0,frame_rate)])
                     this_timeline['BG1'] = 'black' # 黑色背景
@@ -2105,7 +2117,7 @@ class RplGenLog(Script):
                     this_timeline['section'] = i
                     self.break_point[i+1]=self.break_point[i]+len(this_timeline.index)
                     this_timeline.index = range(self.break_point[i],self.break_point[i+1])
-                    self.main_timeline = pd.concat([self.main_timeline,this_timeline],axis=0)
+                    self.append_timeline(this_timeline, self.break_point[i], self.break_point[i+1])
                     continue
                 except Exception as E:
                     print(E)
@@ -2117,7 +2129,7 @@ class RplGenLog(Script):
                 height = config.Height
                 try:
                     # 建立小节
-                    this_timeline=pd.DataFrame(index=range(0,frame_rate*5),dtype=str,columns=render_arg) # 5s
+                    this_timeline=pd.DataFrame(index=range(0,frame_rate*5),dtype=str,columns=self.render_arg) # 5s
                     # 背景
                     alpha_timeline = np.hstack([self.dynamic['formula'](0,1,frame_rate//2),np.ones(frame_rate*4-frame_rate//2),self.dynamic['formula'](1,0,frame_rate)])
                     this_timeline['BG1'] = 'black' # 黑色背景
@@ -2166,7 +2178,7 @@ class RplGenLog(Script):
                     this_timeline['section'] = i
                     self.break_point[i+1]=self.break_point[i]+len(this_timeline.index)
                     this_timeline.index = range(self.break_point[i],self.break_point[i+1])
-                    self.main_timeline = pd.concat([self.main_timeline,this_timeline],axis=0)
+                    self.append_timeline(this_timeline, self.break_point[i], self.break_point[i+1])
                     continue
                 except Exception as E:
                     print(E)
@@ -2175,7 +2187,7 @@ class RplGenLog(Script):
             elif this_section['type'] == 'wait':
                 try:
                     # 持续指定帧，仅显示当前背景
-                    this_timeline=pd.DataFrame(index=range(0,this_section['time']),dtype=str,columns=render_arg)
+                    this_timeline=pd.DataFrame(index=range(0,this_section['time']),dtype=str,columns=self.render_arg)
                     # 停留的帧：当前时间轴的最后一帧，不含S图层
                     try:
                         wait_frame = self.main_timeline.iloc[-1].copy()
@@ -2185,7 +2197,7 @@ class RplGenLog(Script):
                                 # 以防导出xml项目异常
                                 wait_frame[layer] = 'NA'
                         # 不应用：0：section，BGM，Voice，SE
-                        this_timeline[render_arg[1:-3]] = wait_frame[render_arg[1:-3]]
+                        this_timeline[self.render_arg[1:-3]] = wait_frame[self.render_arg[1:-3]]
                     except IndexError:
                         # 只采用背景图层（BG2）'BG2','BG2_a','BG2_c','BG2_p'
                         this_timeline['BG2'] = this_background
@@ -2200,7 +2212,7 @@ class RplGenLog(Script):
                     this_timeline['section'] = i
                     self.break_point[i+1]=self.break_point[i]+len(this_timeline.index)
                     this_timeline.index = range(self.break_point[i],self.break_point[i+1])
-                    self.main_timeline = pd.concat([self.main_timeline,this_timeline],axis=0)
+                    self.append_timeline(this_timeline, self.break_point[i], self.break_point[i+1])
                     continue
                 except Exception as E:
                     print(E)
@@ -2215,8 +2227,10 @@ class RplGenLog(Script):
             self.place_bubble_execute(this_placed_bubble=this_placed_bubble,last_section=last_placed_bubble_section,this_section=i+1)
         except Exception as E:
             raise ParserError('ParErrCompl')
+        # 去除时间轴多余的空白
+        self.main_timeline = self.main_timeline.dropna(subset=['section']).fillna('NA') #假设一共10帧
+        self.main_timeline['section'] = self.main_timeline['section'].astype(int)
         # 去掉和前一帧相同的帧，节约了性能
-        self.main_timeline = self.main_timeline.fillna('NA') #假设一共10帧
         timeline_diff = self.main_timeline.iloc[:-1].copy() #取第0-9帧
         timeline_diff.index = timeline_diff.index+1 #设置为第1-10帧
         timeline_diff.loc[0]='NA' #再把第0帧设置为NA
