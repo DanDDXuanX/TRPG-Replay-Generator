@@ -485,3 +485,35 @@ class RGLCodeViewFrame(ttk.Frame):
         name = self.master.page_name
         tab = self.master.master.page_notebook.active_tabs[name]
         tab.set_change('x')
+    # 添加全部语音合成标记
+    def add_asterisk_marks(self):
+        # 解析文字
+        try:
+            self.update_rplgenlog()
+        except Exception as E:
+            Messagebox().show_error(message=re.sub('\x1B\[\d+m','',str(E)),title='错误',parent=self)
+            return
+        # 添加星标
+        add_count = 0
+        self.codeview.edit_separator()
+        self.codeview.configure(autoseparators=False)
+        for idx in self.content.struct:
+            this_section = self.content.struct[idx]
+            # 是否的对话行
+            if this_section['type'] == 'dialog':
+                # 是否已经包含星标
+                if '{*}' not in this_section['sound_set'] and '*' not in this_section['sound_set']:
+                    # 角色是否有语音
+                    main_charactor = this_section['charactor_set']['0']
+                    main_name = main_charactor['name']+'.'+main_charactor['subtype']
+                    if self.chartab.struct[main_name]['Voice'] != 'NA':
+                        this_section['sound_set']['{*}'] = {"sound": None,"time": None}
+                        add_count += 1
+        self.codeview.configure(autoseparators=True)
+        # 更新变更
+        self.update_codeview(None)
+        # 消息框
+        if add_count == 0:
+            Messagebox.show_info(message='没有添加语音合成标记！\n不会给没有指定音源的角色添加语音合成标记。',title='{*}',parent=self)
+        else:
+            Messagebox().show_warning(message=f'添加语音合成标记{add_count}个',title='{*}',parent=self)

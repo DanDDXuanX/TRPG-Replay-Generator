@@ -269,6 +269,38 @@ class VerticalOutputCommand(OutPutCommand):
         super().synth_speech()
         # 更新codeview
         self.codeview.update_codeview(None)
+# 编辑指令
+class CodeViewEditCommand(ttk.Frame):
+    def __init__(self,master,screenzoom,codeview):
+        # 缩放尺度
+        self.sz = screenzoom
+        SZ_5 = int(self.sz * 5)
+        super().__init__(master,borderwidth=0,bootstyle='light')
+        # 引用
+        self.page = self.master
+        icon_size = [int(30*self.sz),int(30*self.sz)]
+        self.image = {
+            'asterisk_add'   : ImageTk.PhotoImage(name='asterisk_add',image=Image.open('./media/icon/asterisk.png').resize(icon_size)),
+        }
+        self.buttons = {
+            'asterisk_add'   : ttk.Button(master=self,image='asterisk_add',bootstyle='secondary',command=self.add_asterisk_marks,padding=SZ_5),
+        }
+        self.tooltip = {
+            'asterisk_add'   : FreeToolTip(widget=self.buttons['asterisk_add'],bootstyle='secondary-inverse',text='语音合成标记',screenzoom=self.sz,side='left'),
+        }
+        self.configure(borderwidth=SZ_5,bootstyle='light')
+        # 引用的codeview
+        self.codeview = codeview
+        # 刷新
+        self.update_item()
+    def update_item(self):
+        SZ_5 = int(self.sz * 5)
+        for key in self.buttons:
+            item:ttk.Button = self.buttons[key]
+            item.pack(fill='x',anchor='n',side='top',pady=(0,SZ_5))
+    def add_asterisk_marks(self):
+        # 对整个文件操作，添加语音合成标记
+        self.codeview.add_asterisk_marks()
 # 新建指令
 class NewElementCommand(ttk.Frame):
     struct = NewElement

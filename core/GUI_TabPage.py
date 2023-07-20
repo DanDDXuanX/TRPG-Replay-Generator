@@ -12,7 +12,7 @@ import tkinter as tk
 from PIL import Image,ImageTk
 
 from .ScriptParser import MediaDef, CharTable, RplGenLog, Script
-from .GUI_PageElement import SearchBar, OutPutCommand, NewElementCommand, VerticalOutputCommand
+from .GUI_PageElement import SearchBar, OutPutCommand, NewElementCommand, VerticalOutputCommand, CodeViewEditCommand
 from .GUI_CodeView import RGLCodeViewFrame
 from .GUI_Container import RGLContainer, MDFContainer, CTBContainer
 from .GUI_PreviewCanvas import MDFPreviewCanvas, CTBPreviewCanvas, RGLPreviewCanvas
@@ -251,14 +251,23 @@ class RGLPage(ttk.Frame):
             mediadef    = self.ref_medef,
             chartab     = self.ref_chartab
         )
+        # 命令栏
+        self.commands = ttk.Frame(master=self,borderwidth=0,bootstyle='light')
         self.outputcommand = VerticalOutputCommand(
-            master      = self,
+            master      = self.commands,
+            screenzoom  = self.sz,
+            codeview    = self.codeviewframe
+        )
+        self.editcommand = CodeViewEditCommand(
+            master      = self.commands,
             screenzoom  = self.sz,
             codeview    = self.codeviewframe
         )
         # 代码编辑区
         self.codeviewframe.pack(side='left',fill='both',expand=True)
-        self.outputcommand.pack(side='left',fill='y')
+        self.outputcommand.pack(side='top',fill='none')
+        self.editcommand.pack(side='bottom',fill='none')
+        self.commands.pack(side='left',fill='y')
         # self.codeviewframe.place(x=0,y=0,relwidth=1,relheight=1)
         # self.codeviewframe.place(x=0,y=0,relwidth=1,relheight=1)
     # 刷新rgl
