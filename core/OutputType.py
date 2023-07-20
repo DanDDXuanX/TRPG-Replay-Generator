@@ -25,15 +25,21 @@ from .Utils import EDITION
 # 输出媒体的基类
 class OutputMediaType:
     # 初始化模块功能，载入外部参数
-    def __init__(self,rplgenlog:RplGenLog,config:Config,output_path:str):
+    def __init__(self,rplgenlog:RplGenLog,config:Config,output_path:str=None,key:str=None):
         # 载入项目
         self.timeline:pd.DataFrame = rplgenlog.main_timeline
         self.breakpoint:pd.Series  = rplgenlog.break_point
         self.medias:dict           = rplgenlog.medias
         self.config:Config         = config
         # 全局变量
-        self.stdin_name:str  = '%d'%time.time()
-        self.output_path:str = output_path
+        if output_path:
+            self.output_path:str = output_path
+        else:
+            self.output_path:str = './test_output'
+        if key:
+            self.stdout_name:str  = key
+        else:
+            self.stdout_name:str  = '%d'%time.time()
     # 从timeline渲染一个单帧到一个Surface
     def render(self,surface:pygame.Surface,this_frame:pd.Series):
         for layer in self.config.zorder:
@@ -251,8 +257,8 @@ class OutputMediaType:
 
 # 以前台预览的形式播放
 class PreviewDisplay(OutputMediaType):
-    def __init__(self, rplgenlog: RplGenLog, config: Config, output_path:str='.'):
-        super().__init__(rplgenlog, config, output_path)
+    def __init__(self, rplgenlog: RplGenLog, config: Config):
+        super().__init__(rplgenlog, config)
         self.main()
     # 重载render，继承显示画面的同时，播放声音
     def render(self, surface: pygame.Surface, this_frame: pd.Series):
@@ -621,13 +627,13 @@ class PreviewDisplay(OutputMediaType):
 # 导出为MP4视频
 class ExportVideo(OutputMediaType):
     # 初始化模块功能，载入外部参数
-    def __init__(self, rplgenlog: RplGenLog, config: Config, output_path):
-        super().__init__(rplgenlog, config, output_path)
+    def __init__(self, rplgenlog: RplGenLog, config: Config, output_path, key):
+        super().__init__(rplgenlog, config, output_path, key)
         self.main()
     # 从timeline生成音频文件，返回MP3文件的路径
     def bulid_audio(self) -> str:
         # 输出文件的名称
-        ofile = self.output_path+'/'+self.stdin_name+'.mp3'
+        ofile = f'{self.output_path}{self.stdout_name}.audio.mp3'
         # 需要混合的轨道
         tracks = ['SE','Voice','BGM']
         # 主音轨，pydub音频对象
@@ -726,20 +732,20 @@ class ExportVideo(OutputMediaType):
         # 最终的显示
         print(VideoPrint('CostTime', time.strftime("%H:%M:%S", time.gmtime(used_time))))
         print(VideoPrint('RendSpeed', '%.2f'%(self.breakpoint.max()/used_time)))
-        print(VideoPrint('Done',self.output_path+'/'+self.stdin_name+'.mp4'))
+        print(VideoPrint('Done',f'{self.output_path}{self.stdout_name}.video.mp4'))
         # 正常退出
         return 1
     # ffmepg 导出视频的接口
     def ffmpeg_output(self):
-        self.vidio_path = self.output_path +'/'+ self.stdin_name+'.mp4'
+        self.vidio_path = f'{self.output_path}{self.stdout_name}.video.mp4'
         self.output_engine = (
             ffmpeg
             .input(
                 'pipe:',
-                format = 'rawvideo',
-                r      = self.config.frame_rate,
-                pix_fmt= 'rgb24',
-                s      ='{0}x{1}'.format(self.config.Width,self.config.Height)
+                format  = 'rawvideo',
+                r       = self.config.frame_rate,
+                pix_fmt = 'rgb24',
+                s       = '{0}x{1}'.format(self.config.Width,self.config.Height)
                 ) # 视频来源
             .output(
                 ffmpeg.input(self.audio_path).audio,
@@ -779,8 +785,8 @@ class ExportVideo(OutputMediaType):
 # 导出PR项目
 class ExportXML(OutputMediaType):
     # 初始化模块功能，载入外部参数
-    def __init__(self,rplgenlog:RplGenLog,config:Config,output_path):
-        super().__init__(rplgenlog, config, output_path)
+    def __init__(self, rplgenlog:RplGenLog, config:Config, output_path, key):
+        super().__init__(rplgenlog, config, output_path, key)
         # 全局变量
         self.Is_NTSC:bool    = self.config.frame_rate % 30 == 0
         self.Audio_type:str  = 'Stereo'
@@ -847,7 +853,7 @@ class ExportXML(OutputMediaType):
         main_output = project_tplt.format(**{
             'timebase'     : '%d'%self.config.frame_rate,
             'ntsc'         : self.Is_NTSC,
-            'sequence_name': self.stdin_name,
+            'sequence_name': self.stdout_name,
             'screen_width' : '%d'%self.config.Width,
             'screen_height': '%d'%self.config.Height,
             'tracks_vedio' : '\n'.join(video_tracks),
@@ -865,7 +871,7 @@ class ExportXML(OutputMediaType):
         print(PrxmlPrint('ExpBegin'))
         main_output = self.bulid_sequence()
         # 出入生成的xml文件
-        ofile = open(self.output_path+'/'+self.stdin_name+'.xml','w',encoding='utf-8')
+        ofile = open(f'{self.output_path}{self.stdout_name}.prproj.xml','w',encoding='utf-8')
         ofile.write(main_output)
         ofile.close()
-        print(PrxmlPrint('Done',self.output_path+'/'+self.stdin_name+'.xml'))
+        print(PrxmlPrint('Done',f'{self.output_path}{self.stdout_name}.prproj.xml'))

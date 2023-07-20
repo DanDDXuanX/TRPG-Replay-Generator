@@ -4,6 +4,8 @@
 # 页面的其他公用元件
 # 包含：搜索栏、输出命令按钮
 
+import os
+import time
 import tkinter as tk
 import ttkbootstrap as ttk
 import threading
@@ -102,11 +104,17 @@ class OutPutCommand(ttk.Frame):
         self.rplgenlog.execute(media_define=self.medef,char_table=self.chartab,config=self.pconfig)
     def preview_display(self):
         try:
+            # 载入
             self.load_input()
-            PreviewDisplay(rplgenlog=self.rplgenlog,config=self.pconfig,output_path='./test_output')
+            # 执行
+            PreviewDisplay(
+                rplgenlog   = self.rplgenlog,
+                config      = self.pconfig,
+            )
         except Exception as E:
             print(E)
         finally:
+            # 重置
             pygame.init()
             pygame.font.init()
             self.winfo_toplevel().navigate_bar.enable_navigate()
@@ -118,33 +126,64 @@ class OutPutCommand(ttk.Frame):
         self.chartab = self.page.ref_chartab.copy()
         # 注意，log不是copy，是实质上要修改内容的！
         self.rplgenlog = self.page.content
+        # 输出路径
+        output_path = Link['media_dir'] + 'voice/'
+        # 检查输出路径是否存在
+        if not os.path.isdir(output_path):
+            os.makedirs(output_path)
         try:
-            SpeechSynthesizer(rplgenlog=self.rplgenlog,chartab=self.chartab,mediadef=self.medef,config=self.pconfig,output_path='./test_output')
+            SpeechSynthesizer(
+                rplgenlog   = self.rplgenlog,
+                chartab     = self.chartab,
+                mediadef    = self.medef,
+                config      = self.pconfig,
+                output_path = output_path
+            )
         except Exception as E:
             print(E)
         finally:
             self.winfo_toplevel().navigate_bar.enable_navigate()
     def export_video(self):
         try:
+            # 载入
+            timestamp = '%d'%time.time()
             self.load_input()
-            ExportVideo(rplgenlog=self.rplgenlog,config=self.pconfig,output_path='./test_output')
+            # 执行
+            ExportVideo(
+                rplgenlog   = self.rplgenlog,
+                config      = self.pconfig,
+                output_path = Link['media_dir'],
+                key         = timestamp    
+            )
         except Exception as E:
             print(E)
         finally:
+            # 重置
             pygame.init()
             pygame.font.init()
             self.winfo_toplevel().navigate_bar.enable_navigate()
     def export_xml(self):
         try:
             # 调整全局变量
+            timestamp = '%d'%time.time()
             MediaObj.export_xml = True
-            MediaObj.output_path = './test_output'
+            MediaObj.output_path = Link['media_dir'] + f'{timestamp}/'
+            # 检查输出路径是否存在（大多是时候都是不存在的）
+            if not os.path.isdir(MediaObj.output_path):
+                os.makedirs(MediaObj.output_path)
+            # 载入
             self.load_input()
-            ExportXML(rplgenlog=self.rplgenlog,config=self.pconfig,output_path='./test_output')
+            # 执行
+            ExportXML(
+                rplgenlog   = self.rplgenlog,
+                config      = self.pconfig,
+                output_path = Link['media_dir'],
+                key         = timestamp
+            )
         except Exception as E:
             print(E)
         finally:
-            # 复原全局变量
+            # 重置
             pygame.init()
             pygame.font.init()
             MediaObj.export_xml = False
@@ -173,7 +212,7 @@ class OutPutCommand(ttk.Frame):
         # 开始执行
         self.runing_thread.start()
 class VerticalOutputCommand(OutPutCommand):
-    def __init__(self,master,screenzoom):
+    def __init__(self,master,screenzoom,codeview):
         # 继承
         super().__init__(master=master,screenzoom=screenzoom)
         self.tooltip = {
@@ -184,6 +223,8 @@ class VerticalOutputCommand(OutPutCommand):
         }
         SZ_5 = int(self.sz * 5)
         self.configure(borderwidth=SZ_5,bootstyle='light')
+        # 引用的codeview
+        self.codeview = codeview
         # 要有边框
         for keyword in self.buttons:
             self.buttons[keyword].configure(text='',compound='center',padding=SZ_5)
@@ -192,16 +233,40 @@ class VerticalOutputCommand(OutPutCommand):
         for key in self.buttons:
             item:ttk.Button = self.buttons[key]
             item.pack(fill='x',anchor='n',side='top',pady=(0,SZ_5))
-    # TODO: 因为垂直输出命令，涉及的是CodeView，因此在导出前应该添加：将CodeView的内容更新到RGL
+    # 因为垂直输出命令，涉及的是CodeView，因此在导出前应该添加：将CodeView的内容更新到RGL
     def preview_display(self):
+        try:
+            self.codeview.update_rplgenlog()
+        except Exception as E:
+            print(E)
+            return
         return super().preview_display()
     def export_video(self):
+        try:
+            self.codeview.update_rplgenlog()
+        except Exception as E:
+            print(E)
+            return
         return super().export_video()
     def export_xml(self):
+        try:
+            self.codeview.update_rplgenlog()
+        except Exception as E:
+            print(E)
+            return
         return super().export_xml()
-    # TODO：因为语音合成涉及到RGL的改变，因此执行成功之后，应该返回给RGL对象，并更新给CodeView！
+    # 因为语音合成涉及到RGL的改变，因此执行成功之后，应该返回给RGL对象，并更新给CodeView！
     def synth_speech(self):
-        return super().synth_speech()
+        # 更新rgl
+        try:
+            self.codeview.update_rplgenlog()
+        except Exception as E:
+            print(E)
+            return
+        # 执行语音合成
+        super().synth_speech()
+        # 更新codeview
+        self.codeview.update_codeview(None)
 # 新建指令
 class NewElementCommand(ttk.Frame):
     struct = NewElement

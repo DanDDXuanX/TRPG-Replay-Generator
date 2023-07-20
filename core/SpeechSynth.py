@@ -26,9 +26,11 @@ class SpeechSynthesizer:
         # 建立 TTS 对象
         self.charactor_table['TTS'] = self.bulid_tts_engine()
         # 媒体定义
-        self.medias:dict = mediadef.Medias
+        self.medias:MediaDef = mediadef
         # log文件
         self.rgl:RplGenLog = rplgenlog
+        # 执行主程序
+        self.main()
     # 建立语音合成对象
     def bulid_tts_engine(self) -> pd.Series:
         # TTS engines 对象的容器
@@ -150,9 +152,9 @@ class SpeechSynthesizer:
                     this_audio_obj = Audio(result)
                     this_asterisk_synth['time'] = round(this_audio_obj.media.get_length(),2)
             else:
-                if this_asterisk['sound'] in self.medias.keys():
+                if this_asterisk['sound'] in self.medias.struct.keys():
                     # 已定义的媒体
-                    this_audio_obj:Audio = self.medias[this_asterisk['sound']]
+                    this_audio_obj:Audio = self.medias.instance_execute(self.medias.struct[this_asterisk['sound']])
                 elif os.path.isfile(this_asterisk['sound'][1:-1]):
                     # 指定的一个文件
                     this_audio_obj:Audio = Audio(this_asterisk['sound'][1:-1])
@@ -166,7 +168,7 @@ class SpeechSynthesizer:
     # 执行一次语音合成
     def synthesizer(self,TTS_engine:Aliyun_TTS_engine,content:str,i:int)->str:
         # 输出文件
-        ofile = self.output_path +'/'+'auto_AU_%d'%i+'_'+mod62_timestamp()+'.wav'
+        ofile = f"{self.output_path}auto_AU_{i}_{mod62_timestamp()}.wav"
         # 检查，是不是空文件
         if re.findall('\w+',content) == []:
             print(WarningPrint('EmptyText', str(i)))

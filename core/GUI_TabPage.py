@@ -252,8 +252,9 @@ class RGLPage(ttk.Frame):
             chartab     = self.ref_chartab
         )
         self.outputcommand = VerticalOutputCommand(
-            master=self,
-            screenzoom=self.sz
+            master      = self,
+            screenzoom  = self.sz,
+            codeview    = self.codeviewframe
         )
         # 代码编辑区
         self.codeviewframe.pack(side='left',fill='both',expand=True)
