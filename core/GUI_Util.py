@@ -247,9 +247,10 @@ class DetailedKeyValueDescribe(KeyValueDescribe):
 
 # 文本分割线，包含若干个KVD，可以折叠
 class TextSeparator(ttk.Frame):
-    def __init__(self,master,screenzoom:float,describe:dict):
+    def __init__(self,master,screenzoom:float,describe:dict,pady:int=5):
         self.sz = screenzoom
         super().__init__(master=master)
+        self.pady = int(self.sz * pady)
         # 标题栏
         self.title = ttk.Frame(master=self)
         ## 文字：
@@ -290,7 +291,6 @@ class TextSeparator(ttk.Frame):
         self.master.update()
     # 添加KVD
     def add_element(self,key:str,value:str,kvd:dict,detail:bool=False,callback=None)->KeyValueDescribe:
-        SZ_5 = int(self.sz * 5)
         if detail:
             this_kvd = DetailedKeyValueDescribe(
                 master = self.content_frame,
@@ -326,7 +326,7 @@ class TextSeparator(ttk.Frame):
         self.content_index.append(key)
         self.content[key] = this_kvd
         # 摆放
-        this_kvd.pack(side='top',anchor='n',fill='x',pady=(SZ_5 + detail*SZ_5 ,0))
+        this_kvd.pack(side='top',anchor='n',fill='x',pady=(self.pady + detail*self.pady ,0))
         return this_kvd
     # 添加按钮
     def add_button(self,text,command):

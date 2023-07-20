@@ -24,7 +24,7 @@ class RplGenStudioMainWindow(ttk.Window):
         # 系统缩放比例
         self.sz = self.get_screenzoom()
         super().__init__(
-            title       = '回声工坊 ' + EDITION,
+            title       = f'回声工坊 {EDITION}',
             iconphoto   = './media/icon.png',
             size        = (int(1500*self.sz),int(800*self.sz)),
             resizable   = (True,True),
@@ -33,6 +33,8 @@ class RplGenStudioMainWindow(ttk.Window):
         self.protocol('WM_DELETE_WINDOW',self.on_close)
         # 主题配置
         self.theme_config(preference.theme)
+        # 标题
+        self.window_title = f'回声工坊 {EDITION}'
         # 导航栏
         self.navigate_bar = NavigateBar(master=self,screenzoom=self.sz)
         self.navigate_bar.place(x=0,y=0,width=int(80*self.sz),relheight=1)
@@ -42,8 +44,8 @@ class RplGenStudioMainWindow(ttk.Window):
         # self.bind('<F11>', self.switch_fullscreen) # BUG 全屏模式下的窗口上下顺序会出现异常
         # 视图
         self.view = {
-            'project': ProjectView(master=self,screenzoom=self.sz,project_file=None),
-            # 'project': EmptyView(master=self,screenzoom=self.sz),
+            # 'project': ProjectView(master=self,screenzoom=self.sz,project_file=None),
+            'project': EmptyView(master=self,screenzoom=self.sz),
             'console': ConsoleView(master=self,screenzoom=self.sz),
             'script' : ScriptView( master=self,screenzoom=self.sz),
             'setting': PreferenceView(master=self,screenzoom=self.sz)
@@ -89,7 +91,7 @@ class RplGenStudioMainWindow(ttk.Window):
             self.style.configure('CharHead.TLabel',anchor='left',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#ffffff',background='#51b858')
             # 显示内容的头文本
             self.style.configure('comment.TLabel',anchor='w',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#bfbfbf') # 浅灰色
-            self.style.configure('dialog.TLabel',anchor='w',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#0066cc') # 蓝色的
+            self.style.configure('dialog.TLabel',anchor='w',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#0f86cb') # 蓝色的
             self.style.configure('setdync.TLabel',anchor='w',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#008000') # 绿色的
             self.style.configure('place.TLabel',anchor='w',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#e60074') # 品红
             self.style.configure('invasterisk.TLabel',anchor='w',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#cc0000') # 红色的
@@ -132,7 +134,7 @@ class RplGenStudioMainWindow(ttk.Window):
             self.style.configure('CharHead.TLabel',anchor='left',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#eeeeee',background='#505050')
             # 显示内容的头文本
             self.style.configure('comment.TLabel',anchor='w',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#bfbfbf') # 浅灰色
-            self.style.configure('dialog.TLabel',anchor='w',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#9a76b3') # 蓝色的
+            self.style.configure('dialog.TLabel',anchor='w',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#c188e9') # 蓝色的
             self.style.configure('setdync.TLabel',anchor='w',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#008000') # 绿色的
             self.style.configure('place.TLabel',anchor='w',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#e60074') # 品红
             self.style.configure('invasterisk.TLabel',anchor='w',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#cc0000') # 红色的

@@ -90,6 +90,9 @@ class ProjectView(ttk.Frame):
         # 子元件
         self.page_frame    = PageFrame(master=self,screenzoom=self.sz)
         self.file_manager  = FileManager(master=self, screenzoom=self.sz, page_frame=self.page_frame, project_file=project_file)
+        # 修改窗口标题
+        project_file_name = project_file.split('/')[-1]
+        self.winfo_toplevel().title(self.winfo_toplevel().window_title+f' @:{project_file_name}')
         # 摆放子元件
         self.update_item()
     def update_item(self):
@@ -102,6 +105,8 @@ class ProjectView(ttk.Frame):
         self.place_forget()
         self.master.view_show('project')
         self.destroy()
+        # 修改窗口标题
+        self.winfo_toplevel().title(self.winfo_toplevel().window_title)
 
 # 脚本视图
 class ScriptView(ttk.Frame):

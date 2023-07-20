@@ -310,10 +310,10 @@ class PreviewDisplay(OutputMediaType):
                                 'Cerulean':'#2fbfde','Forest':'#51b858','Rose':'#f76fa4','Mango':'#eda63b',
                                 'Purple':'#970097','Blue':'#3c3cff','Teal':'#008080','Magenta':'#e732e7',
                                 'Tan':'#cec195','Green':'#1d7021','Brown':'#8b4513','Yellow':'#e2e264'}
-        label_black = '#aaaaaa'
+        label_black = '#909090'
         # 新建纯黑图层：width = screen, height = screen//30
-        progress_bar_surface = pygame.Surface((self.config.Width,self.config.Height//60),pygame.SRCALPHA)
-        progress_bar_surface.fill((0,0,0,0))
+        progress_bar_surface = pygame.Surface((self.config.Width,self.config.Height//60+2),pygame.SRCALPHA)
+        progress_bar_surface.fill((255,255,255,255))
         # 每个小节的长度，不包含0
         len_of_section = self.breakpoint.diff().dropna()
         # 整个timeline的总长度：
@@ -346,13 +346,13 @@ class PreviewDisplay(OutputMediaType):
                     pygame.draw.rect(
                         surface=progress_bar_surface,
                         color=available_label_color[this_color],
-                        rect=(section_pos_x,0,section_width,self.config.Height//60),
+                        rect=(section_pos_x,2,section_width,self.config.Height//60),
                         width=0
                         )
                     pygame.draw.rect(
                         surface=progress_bar_surface,
                         color=(0,0,0,255),
-                        rect=(section_pos_x,0,section_width,self.config.Height//60),
+                        rect=(section_pos_x,2,section_width,self.config.Height//60),
                         width=1
                         )
                 elif preference.progress_bar_style == 'black':
@@ -360,13 +360,13 @@ class PreviewDisplay(OutputMediaType):
                     pygame.draw.rect(
                         surface=progress_bar_surface,
                         color=label_black,
-                        rect=(section_pos_x,0,section_width,self.config.Height//60),
+                        rect=(section_pos_x,2,section_width,self.config.Height//60),
                         width=0
                         )
                     pygame.draw.rect(
                         surface=progress_bar_surface,
                         color=(0,0,0,255),
-                        rect=(section_pos_x,0,section_width,self.config.Height//60),
+                        rect=(section_pos_x,2,section_width,self.config.Height//60),
                         width=1
                         )
                 else: # hide

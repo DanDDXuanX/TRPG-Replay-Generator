@@ -86,6 +86,8 @@ class OutPutCommand(ttk.Frame):
     def update_item(self):
         for key in self.buttons:
             item:ttk.Button = self.buttons[key]
+            # TODO：临时禁用
+            item.configure(state='disable')
             item.pack(fill='both',side='left',expand=True,pady=0)
     def load_input(self):
         # 项目配置

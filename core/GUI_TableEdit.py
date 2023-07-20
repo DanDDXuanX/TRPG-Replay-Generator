@@ -18,7 +18,7 @@ class OutPutCommandAtScriptExecuter(OutPutCommand):
 # 脚本执行
 class TableEdit(ttk.Frame):
     TableStruct = {}
-    def __init__(self,master,screenzoom,title:str)->None:
+    def __init__(self,master,screenzoom,title:str,pady:int=5)->None:
         # 初始化
         self.sz = screenzoom
         SZ_10 = int(self.sz*10)
@@ -32,11 +32,13 @@ class TableEdit(ttk.Frame):
         # 分隔符和项目
         self.seperator = {}
         self.elements = {}
+        # 布局
+        self.pady = pady
         # 初始化
         # self.update_from_tablestruct()
         # self.update_item()
     def update_item(self):
-        SZ_5 = int(self.sz * 5)
+        SZ_5 = int(self.sz * self.pady)
         SZ_10 = 2 * SZ_5
         SZ_20 = 4 * SZ_5
         self.title.pack(fill='x',side='top')
@@ -55,7 +57,8 @@ class TableEdit(ttk.Frame):
                 self.seperator[sep] = TextSeparator(
                     master=self.options,
                     screenzoom=self.sz,
-                    describe=this_sep['Text']
+                    describe=this_sep['Text'],
+                    pady=self.pady
                 )
                 for key in this_sep['Content']:
                     this_kvd:dict = this_sep['Content'][key]
@@ -83,6 +86,18 @@ class ScriptExecuter(TableEdit):
         # 初始化
         self.update_from_tablestruct(detail=False)
         self.update_item()
+        # TODO: 临时的告示
+        ttk.Label(
+            master=self.options,
+            text='暂时禁用，未来可能考虑移除！',
+            font="-family 微软雅黑 -size 30 -weight bold",
+            foreground='#bbbbbb',
+            anchor='center'
+        ).pack(
+            side='top',
+            fill='both',
+            expand=True
+        )
     def update_element_prop(self):
         self.elements['mediadef'].bind_button(dtype='mediadef-file',related=False)
         self.elements['chartab'].bind_button(dtype='chartab-file',related=False)
@@ -113,7 +128,7 @@ class PreferenceTable(TableEdit):
     TableStruct = PreferenceTableStruct
     def __init__(self,master,screenzoom)->None:
         # 继承
-        super().__init__(master=master,screenzoom=screenzoom,title='首选项')
+        super().__init__(master=master,screenzoom=screenzoom,title='首选项',pady=10)
         # 首选项
         self.struct = preference.get_struct()
         # self.outputs = OutPutCommand(master=self,screenzoom=self.sz)

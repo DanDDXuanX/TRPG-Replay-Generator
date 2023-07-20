@@ -498,7 +498,6 @@ class FileCollapsing(ttk.Frame):
             # 返回值：是否会变更项目
             return True
         except Exception as E:
-            print(E)
             return False
     def create_new_button(self,new_keyword:str):
         # 新建button
@@ -532,9 +531,10 @@ class FileCollapsing(ttk.Frame):
         rename_an_active_page:bool = filetype+"-"+keyword in self.page_frame.page_dict.keys()
         if rename_an_active_page:
             choice = Messagebox().show_question(
-                message='尝试重命名一个已经启动的{}页面！\n如果这样做，该页面尚未保存的修改将会丢失！'.format(filetype),
+                message='尝试重命名一个已经启动的{}页面！\n重命名后，这个页面会被关闭！'.format(filetype),
                 title='警告！',
-                buttons=["取消:primary","确定:danger"]
+                buttons=["取消:primary","确定:danger"],
+                parent=self
                 )
             if choice != '确定':
                 return
