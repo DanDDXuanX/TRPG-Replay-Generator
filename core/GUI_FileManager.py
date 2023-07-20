@@ -203,15 +203,14 @@ class FileManager(ttk.Frame):
                     else:
                         count_of_add += 1
                 else:
-                    count_of_rep += 1
+                    if keyword_new in self.project.mediadef.struct.keys():
+                        count_of_rep += 1
+                    else:
+                        count_of_add += 1
                 # 执行变更
                 self.project.mediadef.struct[keyword_new] = imported.struct[keyword]
-            # 检查是否有脱机素材，如果有则启动重定位
-            self.check_project_media_exist()
-            # 刷新已有标签页的page_element
-            self.update_pages_elements(ftype='medef')
             # 返回summary
-            if preference.import_mode == 'add':
+            if count_of_rep == 0:
                 return f"向媒体库中导入媒体对象{count_of_add}个。"
             else:
                 return f"向媒体库中导入媒体对象{count_of_add}个；更新媒体对象{count_of_rep}个。"
@@ -238,17 +237,18 @@ class FileManager(ttk.Frame):
                         count_of_add += 1
                 else:
                     # 如果是覆盖模式，则什么都不做
-                    count_of_rep += 1
+                    if keyword_new in self.project.chartab.struct.keys():
+                        count_of_rep += 1
+                    else:
+                        count_of_add += 1
                 # 应用变更
                 self.project.chartab.struct[keyword_new] = imported.struct[keyword]
             # 最后，检查所有新建角色，有没有default，没有则新建
             for chara in new_charactor:
                 self.project.chartab.add_chara_default(name=chara)
                 count_of_add += 1
-            # 刷新已有标签页的page_element
-            self.update_pages_elements(ftype='chartab')
             # 返回summary
-            if preference.import_mode == 'add':
+            if count_of_rep == 0:
                 return f"向角色配置中导入新角色{len(new_charactor)}个；新增角色差分{count_of_add}个。"
             else:
                 return f"向角色配置中导入新角色{len(new_charactor)}个；新增角色差分{count_of_add}个，更新角色差分{count_of_rep}个。"
@@ -274,6 +274,7 @@ class FileManager(ttk.Frame):
         if get_file:
             # 尝试多个解析
             summary_recode = {}
+            type_recode = []
             # 是否是更新项目模式？
             self.is_update_project:bool = None
             # 开始遍历
@@ -282,8 +283,18 @@ class FileManager(ttk.Frame):
                 # 记录
                 if Lt != 0:
                     summary_recode[file] = self.load_file(path=file, ftype=Tp, object=Ob)
+                    type_recode.append(Tp)
                 else:
                     summary_recode[file] = f'导入失败，无法读取该文件！'
+            # 是否需要刷新视图
+            if 'mediadef' in type_recode:
+                # 检查是否有脱机素材，如果有则启动重定位
+                self.check_project_media_exist()
+                # 刷新已有标签页的page_element
+                self.update_pages_elements(ftype='medef')
+            elif 'chartab' in type_recode:
+                # 刷新已有标签页的page_element
+                self.update_pages_elements(ftype='chartab')
             # 最后总结
             summary = '导入如下文件：\n'
             for file in summary_recode:
