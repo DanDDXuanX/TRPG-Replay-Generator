@@ -1488,7 +1488,7 @@ class RplGenLog(Script):
                         this_timeline[this_layer] = this_am
                         if this_am == 'NA':
                             # 如果立绘缺省
-                            this_timeline[this_layer+'_t'] = 0
+                            this_timeline[this_layer+'_t'] = '0'
                             this_timeline[this_layer+'_c'] = 'NA'
                             this_timeline[this_layer+'_a'] = 0
                             this_timeline[this_layer+'_p'] = 'NA'
@@ -1502,7 +1502,7 @@ class RplGenLog(Script):
                         else:
                             # 立绘的对象、帧顺序、中心位置
                             this_am_obj:Animation = self.medias[this_am]
-                            this_timeline[this_layer+'_t'] = this_am_obj.get_tick(this_duration)
+                            this_timeline[this_layer+'_t'] = this_am_obj.get_tick(this_duration).astype(str)
                             this_timeline[this_layer+'_c'] = str(this_am_obj.pos)
                             # 立绘的透明度
                             if alpha is None:
@@ -2190,7 +2190,7 @@ class RplGenLog(Script):
                     this_timeline=pd.DataFrame(index=range(0,this_section['time']),dtype=str,columns=self.render_arg)
                     # 停留的帧：当前时间轴的最后一帧，不含S图层
                     try:
-                        wait_frame = self.main_timeline.iloc[-1].copy()
+                        wait_frame = self.main_timeline.dropna(subset=['section']).iloc[-1].copy()
                         # 检查wait frame里面，有没有透明度为0，如果有则删除图层
                         for layer in config.zorder:
                             if wait_frame[layer+'_a'] == 0:

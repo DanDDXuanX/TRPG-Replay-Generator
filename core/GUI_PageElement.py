@@ -103,7 +103,6 @@ class OutPutCommand(ttk.Frame):
     def preview_display(self):
         try:
             self.load_input()
-            print('X')
             PreviewDisplay(rplgenlog=self.rplgenlog,config=self.pconfig,output_path='./test_output')
         except Exception as E:
             print(E)
