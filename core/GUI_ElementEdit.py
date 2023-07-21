@@ -368,7 +368,7 @@ class MediaEdit(EditWindow):
         new_section = super().update_section_from()
         # 新小节的keyword
         new_keyword:str = self.elements['Name'].get()
-        print(new_keyword, new_section)
+        # print(new_keyword, new_section)
         # 是否发生变化？
         if new_section == self.section and new_keyword==self.section_index:
             return self.section
@@ -500,7 +500,7 @@ class MediaEdit(EditWindow):
         for key in keywords:
             # 使用了MediaDef的value_execute，将字典类型解析为对象
             exec_value = ref_medef.value_execute(self.section[key])
-            print(self.line_type,key,exec_value)
+            # print(self.line_type,key,exec_value)
             if key in list_key and self.line_type in list_type:
                 # 先清空列表
                 # self.page.preview.object_this.clear_configure(key=key)

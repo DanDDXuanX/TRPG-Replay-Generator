@@ -103,9 +103,9 @@ class ProjectView(ttk.Frame):
         self.master.view['project'] = PView
         self.place_forget()
         self.master.view_show('project')
-        self.destroy()
         # 修改窗口标题
         self.winfo_toplevel().title(self.winfo_toplevel().window_title)
+        self.destroy()
 
 # 脚本视图
 class ScriptView(ttk.Frame):

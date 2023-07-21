@@ -9,7 +9,8 @@ def show_welcome(conn):
     pass
 
 if __name__ == '__main__':
-
+    # 多进程的支持
+    multiprocessing.freeze_support()
     # 多进程启动welcome
     parent_conn, child_conn = multiprocessing.Pipe()
     show_welcome_process = multiprocessing.Process(target=show_welcome,args=(child_conn,))
