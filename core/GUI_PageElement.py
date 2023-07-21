@@ -108,17 +108,23 @@ class OutPutCommand(ttk.Frame):
         try:
             # 载入
             self.load_input()
-            # 执行
-            PreviewDisplay(
+            # 初始化
+            Link['pipeline'] = PreviewDisplay(
                 rplgenlog   = self.rplgenlog,
                 config      = self.pconfig,
             )
+            # 启用终止按钮
+            Link['terminal_control'].configure(state='normal')
+            # 执行
+            Link['pipeline'].main()
         except Exception as E:
             print(E)
         finally:
             # 重置
             pygame.init()
             pygame.font.init()
+            Link['pipeline'] = None
+            Link['terminal_control'].configure(state='disable')
             self.winfo_toplevel().navigate_bar.enable_navigate()
     def synth_speech(self):
         # 项目配置
@@ -134,35 +140,48 @@ class OutPutCommand(ttk.Frame):
         if not os.path.isdir(output_path):
             os.makedirs(output_path)
         try:
-            SpeechSynthesizer(
+            # 初始化
+            Link['pipeline'] = SpeechSynthesizer(
                 rplgenlog   = self.rplgenlog,
                 chartab     = self.chartab,
                 mediadef    = self.medef,
                 config      = self.pconfig,
                 output_path = output_path
             )
+            # 启用终止按钮
+            Link['terminal_control'].configure(state='normal')
+            # 执行
+            Link['pipeline'].main()
         except Exception as E:
             print(E)
         finally:
+            Link['pipeline'] = None
+            Link['terminal_control'].configure(state='disable')
             self.winfo_toplevel().navigate_bar.enable_navigate()
     def export_video(self):
         try:
             # 载入
             timestamp = '%d'%time.time()
             self.load_input()
-            # 执行
-            ExportVideo(
+            # 初始化
+            Link['pipeline'] = ExportVideo(
                 rplgenlog   = self.rplgenlog,
                 config      = self.pconfig,
                 output_path = Link['media_dir'],
                 key         = timestamp    
             )
+            # 启用终止按钮
+            Link['terminal_control'].configure(state='normal')
+            # 执行
+            Link['pipeline'].main()
         except Exception as E:
             print(E)
         finally:
             # 重置
             pygame.init()
             pygame.font.init()
+            Link['pipeline'] = None
+            Link['terminal_control'].configure(state='disable')
             self.winfo_toplevel().navigate_bar.enable_navigate()
     def export_xml(self):
         try:
@@ -175,13 +194,17 @@ class OutPutCommand(ttk.Frame):
                 os.makedirs(MediaObj.output_path)
             # 载入
             self.load_input()
-            # 执行
-            ExportXML(
+            # 初始化
+            Link['pipeline'] = ExportXML(
                 rplgenlog   = self.rplgenlog,
                 config      = self.pconfig,
                 output_path = Link['media_dir'],
                 key         = timestamp
             )
+            # 启用终止按钮
+            Link['terminal_control'].configure(state='normal')
+            # 执行
+            Link['pipeline'].main()
         except Exception as E:
             print(E)
         finally:
@@ -189,6 +212,8 @@ class OutPutCommand(ttk.Frame):
             pygame.init()
             pygame.font.init()
             MediaObj.export_xml = False
+            Link['pipeline'] = None
+            Link['terminal_control'].configure(state='disable')
             self.winfo_toplevel().navigate_bar.enable_navigate()
     def open_new_thread(self,output_type:str):
         # 先切换到终端页
@@ -200,7 +225,7 @@ class OutPutCommand(ttk.Frame):
         elif self.runing_thread.is_alive():
             print("正在执行中")
             return
-        # 新建线程：FIXME：重复两次开始预览播放，可能导致闪退，考虑改为多进程。
+        # 新建线程
         if output_type == 'display':
             self.runing_thread = threading.Thread(target=self.preview_display)
         elif output_type == 'synth':
@@ -213,17 +238,27 @@ class OutPutCommand(ttk.Frame):
             self.runing_thread = threading.Thread(target=lambda:print("无效的执行"))
         # 开始执行
         self.runing_thread.start()
+        Link['runing_thread'] = self.runing_thread
 class VerticalOutputCommand(OutPutCommand):
     def __init__(self,master,screenzoom,codeview):
         # 继承
         super().__init__(master=master,screenzoom=screenzoom)
-        self.tooltip = {
-            'display'   : FreeToolTip(widget=self.buttons['display'],bootstyle='primary-inverse',text='播放预览',screenzoom=self.sz,side='left'),
-            'synth'     : FreeToolTip(widget=self.buttons['synth'],bootstyle='primary-inverse',text='语音合成',screenzoom=self.sz,side='left'),
-            'exportpr'  : FreeToolTip(widget=self.buttons['exportpr'],bootstyle='primary-inverse',text='导出PR项目',screenzoom=self.sz,side='left'),
-            'recode'    : FreeToolTip(widget=self.buttons['recode'],bootstyle='primary-inverse',text='导出视频',screenzoom=self.sz,side='left'),
-        }
         SZ_5 = int(self.sz * 5)
+        # 额外的按钮
+        icon_size = [int(30*self.sz),int(30*self.sz)]
+        self.image['asterisk_add'] = ImageTk.PhotoImage(name='asterisk_add',image=Image.open('./media/icon/asterisk.png').resize(icon_size)),
+        self.side_button = {
+            'asterisk_add'   : ttk.Button(master=self,image='asterisk_add',bootstyle='secondary',command=self.add_asterisk_marks,padding=SZ_5),
+        }
+        # 小贴士
+        self.tooltip = {
+            'display'        : FreeToolTip(widget=self.buttons['display'],bootstyle='primary-inverse',text='播放预览',screenzoom=self.sz,side='left'),
+            'synth'          : FreeToolTip(widget=self.buttons['synth'],bootstyle='primary-inverse',text='语音合成',screenzoom=self.sz,side='left'),
+            'exportpr'       : FreeToolTip(widget=self.buttons['exportpr'],bootstyle='primary-inverse',text='导出PR项目',screenzoom=self.sz,side='left'),
+            'recode'         : FreeToolTip(widget=self.buttons['recode'],bootstyle='primary-inverse',text='导出视频',screenzoom=self.sz,side='left'),
+            'asterisk_add'   : FreeToolTip(widget=self.side_button['asterisk_add'],bootstyle='secondary-inverse',text='语音合成标记',screenzoom=self.sz,side='left'),
+        }
+        self.update_side_button()
         self.configure(borderwidth=SZ_5,bootstyle='light')
         # 引用的codeview
         self.codeview = codeview
@@ -235,6 +270,11 @@ class VerticalOutputCommand(OutPutCommand):
         for key in self.buttons:
             item:ttk.Button = self.buttons[key]
             item.pack(fill='x',anchor='n',side='top',pady=(0,SZ_5))
+    def update_side_button(self):
+        SZ_5 = int(self.sz * 5)
+        for key in self.side_button:
+            item:ttk.Button = self.side_button[key]
+            item.pack(fill='x',anchor='n',side='bottom',pady=(SZ_5,0))
     # 因为垂直输出命令，涉及的是CodeView，因此在导出前应该添加：将CodeView的内容更新到RGL
     def preview_display(self):
         try:
@@ -269,38 +309,10 @@ class VerticalOutputCommand(OutPutCommand):
         super().synth_speech()
         # 更新codeview
         self.codeview.update_codeview(None)
-# 编辑指令
-class CodeViewEditCommand(ttk.Frame):
-    def __init__(self,master,screenzoom,codeview):
-        # 缩放尺度
-        self.sz = screenzoom
-        SZ_5 = int(self.sz * 5)
-        super().__init__(master,borderwidth=0,bootstyle='light')
-        # 引用
-        self.page = self.master
-        icon_size = [int(30*self.sz),int(30*self.sz)]
-        self.image = {
-            'asterisk_add'   : ImageTk.PhotoImage(name='asterisk_add',image=Image.open('./media/icon/asterisk.png').resize(icon_size)),
-        }
-        self.buttons = {
-            'asterisk_add'   : ttk.Button(master=self,image='asterisk_add',bootstyle='secondary',command=self.add_asterisk_marks,padding=SZ_5),
-        }
-        self.tooltip = {
-            'asterisk_add'   : FreeToolTip(widget=self.buttons['asterisk_add'],bootstyle='secondary-inverse',text='语音合成标记',screenzoom=self.sz,side='left'),
-        }
-        self.configure(borderwidth=SZ_5,bootstyle='light')
-        # 引用的codeview
-        self.codeview = codeview
-        # 刷新
-        self.update_item()
-    def update_item(self):
-        SZ_5 = int(self.sz * 5)
-        for key in self.buttons:
-            item:ttk.Button = self.buttons[key]
-            item.pack(fill='x',anchor='n',side='top',pady=(0,SZ_5))
+    # 对整个文件操作，添加语音合成标记
     def add_asterisk_marks(self):
-        # 对整个文件操作，添加语音合成标记
         self.codeview.add_asterisk_marks()
+
 # 新建指令
 class NewElementCommand(ttk.Frame):
     struct = NewElement

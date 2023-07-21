@@ -29,8 +29,10 @@ class SpeechSynthesizer:
         self.medias:MediaDef = mediadef
         # log文件
         self.rgl:RplGenLog = rplgenlog
+        # 是否终止
+        self.is_terminated = False
         # 执行主程序
-        self.main()
+        # self.main()
     # 建立语音合成对象
     def bulid_tts_engine(self) -> pd.Series:
         # TTS engines 对象的容器
@@ -76,13 +78,17 @@ class SpeechSynthesizer:
                 print(E)
         # 返回 TTS engine
         return TTS
-    # 对log文件施加语音合成: 成功走完流程：True，FatalBreak : False
-    def execute(self)->bool:
+    # 对log文件施加语音合成: 成功走完流程：0，FatalBreak : 1，终止2
+    def execute(self)->int:
         # 为了 Beats，处理遍历log的时候，遍历set行
         tx_method_default = {'method':'all','method_dur':0}
         tx_dur_default = 5,
         # 开始遍历log文件
         for section in self.rgl.struct.keys():
+            # 检查是否终止
+            if self.is_terminated:
+                return 2
+            # -----
             i = int(section) + 1
             # 当前小节
             this_section:dict = self.rgl.struct[section]
@@ -142,7 +148,7 @@ class SpeechSynthesizer:
                 if result == 'Fatal':
                     # 完全无法正常合成
                     print(SynthesisError('FatalError'))
-                    return False
+                    return 1
                 elif result == 'Empty':
                     # 小节无有效的文字，改为停留1秒
                     this_asterisk_synth['sound'] = 'NA'
@@ -164,8 +170,8 @@ class SpeechSynthesizer:
             this_section['sound_set']['*'] = this_asterisk_synth
             this_section['sound_set'].pop('{*}')
         # 如果能正常的合成
-        return True
-    # 执行一次语音合成
+        return 0
+    # 执行一次语音合成:
     def synthesizer(self,TTS_engine:Aliyun_TTS_engine,content:str,i:int)->str:
         # 输出文件
         ofile = f"{self.output_path}auto_AU_{i}_{mod62_timestamp()}.wav"
@@ -183,16 +189,19 @@ class SpeechSynthesizer:
                 # 如果出现了异常
                 print(WarningPrint('SynthFail', str(i), str(time_retry), E))
         return 'Fatal'
+    # 终止
+    def terminate(self):
+        self.is_terminated = True
     # 主流程
-    def main(self)->RplGenLog:
+    def main(self)->int:
         # 欢迎
         print(SynthPrint('Welcome',EDITION))
         print(SynthPrint('SaveAt',self.output_path))
         print(SynthPrint('SthBegin'))
-        result = self.execute()
+        flag = self.execute()
         print(SynthPrint('Refresh'))
-        if result == True:
+        if flag == 0:
             print(SynthPrint('Done'))
         else:
             print(SynthPrint('Breaked'))
-        return self.rgl
+        return flag

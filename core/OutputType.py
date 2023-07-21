@@ -31,6 +31,8 @@ class OutputMediaType:
         self.breakpoint:pd.Series  = rplgenlog.break_point
         self.medias:dict           = rplgenlog.medias
         self.config:Config         = config
+        # 是否终止
+        self.is_terminated = False
         # 全局变量
         if output_path:
             self.output_path:str = output_path
@@ -254,12 +256,14 @@ class OutputMediaType:
                 self.medias[media].convert()
             except Exception as E:
                 raise MediaError('ErrCovert',media,E)
-
+    # 终止
+    def terminate(self):
+        self.is_terminated = True
 # 以前台预览的形式播放
 class PreviewDisplay(OutputMediaType):
     def __init__(self, rplgenlog: RplGenLog, config: Config):
         super().__init__(rplgenlog, config)
-        self.main()
+        # self.main()
     # 重载render，继承显示画面的同时，播放声音
     def render(self, surface: pygame.Surface, this_frame: pd.Series):
         super().render(surface, this_frame)
@@ -394,7 +398,7 @@ class PreviewDisplay(OutputMediaType):
         else:
             pass
         return (progress_bar_surface,triangular_surface)
-    # 初始化播放窗口：异常0，正常1
+    # 初始化播放窗口：异常1，正常0
     def display_init(self)->int:
         # 修复缩放错误
         # if self.fix_screen == True:
@@ -425,10 +429,10 @@ class PreviewDisplay(OutputMediaType):
             self.convert_media_init()
         except MediaError as E:
             print(E)
-            return 0
+            return 1
         # 正常结束
-        return 1
-    # 欢迎界面：2退出、1开始
+        return 0
+    # 欢迎界面：2退出、0开始、1异常
     def welcome(self) -> int:
         self.medias['white'].display(self.screen)
         self.screen.blit(pygame.transform.scale(pygame.image.load('./media/icon.png'),(self.config.Height//5,self.config.Height//5)),(0.01*self.config.Height,0.79*self.config.Height))
@@ -438,6 +442,9 @@ class PreviewDisplay(OutputMediaType):
         pygame.display.update()
         begin = False
         while begin == False:
+            if self.is_terminated:
+                pygame.quit()
+                return 2
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
@@ -450,8 +457,8 @@ class PreviewDisplay(OutputMediaType):
                     elif event.key == pygame.K_SPACE:
                         begin = True
                         break
-        return 1
-    # 播放窗口：异常0，正常退出1，手动终止2
+        return 0
+    # 播放窗口：异常1，正常退出0，手动终止2
     def preview_display(self) -> int:
         # 预览播放参数
         timeline_len = self.breakpoint.max() # 时间轴总长度
@@ -475,6 +482,8 @@ class PreviewDisplay(OutputMediaType):
         # self.screen.blit(progress_bar,(0,self.config.Height-self.config.Height//30))
         # 主循环
         while n < timeline_len:
+            if self.is_terminated:
+                return 2
             ct = time.time()
             try:
                 # 响应操作事件
@@ -577,7 +586,7 @@ class PreviewDisplay(OutputMediaType):
                     self.annot.blit(self.note_text.render(detail_info[0],fgcolor=MediaObj.cmap['notetext'],size=0.0185*self.config.Height)[0],(10,10))
                     self.annot.blit(self.note_text.render(detail_info[1].format(et),fgcolor=MediaObj.cmap['notetext'],size=0.0185*self.config.Height)[0],(10,10+0.0333*self.config.Height))
                     self.annot.blit(self.note_text.render(detail_info[2].format(n,this_frame['section']+1),fgcolor=MediaObj.cmap['notetext'],size=0.0185*self.config.Height)[0],(10,10+0.0666*self.config.Height))
-                    # self.screen.blit(self.note_text.render(detail_info[3].format(self.rplgenlog.export[this_frame['section']]),fgcolor=MediaObj.cmap['notetext'],size=0.0185*self.config.Height)[0],(10,10+0.1*self.config.Height))
+                    # self.annot.blit(self.note_text.render(detail_info[3].format(self.rplgenlog.export[this_frame['section']]),fgcolor=MediaObj.cmap['notetext'],size=0.0185*self.config.Height)[0],(10,10+0.1*self.config.Height))
                     self.annot.blit(self.note_text.render(detail_info[4],fgcolor=MediaObj.cmap['notetext'],size=0.0185*self.config.Height)[0],(10,10+0.1333*self.config.Height))
                     self.annot.blit(self.note_text.render(detail_info[5].format(this_frame['BG1'],this_frame['BG2']),fgcolor=MediaObj.cmap['notetext'],size=0.0185*self.config.Height)[0],(10,10+0.1666*self.config.Height))
                     self.annot.blit(self.note_text.render(detail_info[6].format(this_frame['Am1'],this_frame['Am2'],this_frame['Am3'],this_frame['AmS']),fgcolor=MediaObj.cmap['notetext'],size=0.0185*self.config.Height)[0],(10,10+0.2*self.config.Height))
@@ -603,35 +612,35 @@ class PreviewDisplay(OutputMediaType):
                 print(E)
                 print(RenderError('BreakFrame',n))
                 pygame.quit()
-                return 0
+                return 1
         pygame.quit()
-        return 1
-    # 主流程：异常：0，正常退出：1，手动退出：2
+        return 0
+    # 主流程：异常：1，正常退出：0，手动退出：2
     def main(self)->int:
         try:
             # 初始化窗口
             flag = self.display_init()
-            if flag == 0:
-                return 0
+            if flag != 0:
+                return flag
             # 显示欢迎页
             flag = self.welcome()
-            if flag == 2:
-                return 2
+            if flag != 0:
+                return flag
             # 开始播放
             flag = self.preview_display()
             return flag
         except Exception as E:
             print(E)
-            return 0
+            return 1
 
 # 导出为MP4视频
 class ExportVideo(OutputMediaType):
     # 初始化模块功能，载入外部参数
     def __init__(self, rplgenlog: RplGenLog, config: Config, output_path, key):
         super().__init__(rplgenlog, config, output_path, key)
-        self.main()
-    # 从timeline生成音频文件，返回MP3文件的路径
-    def bulid_audio(self) -> str:
+        # self.main()
+    # 从timeline生成音频文件，返回成功状态：0：正常，1：异常，2：终止
+    def bulid_audio(self) -> int:
         # 输出文件的名称
         ofile = f'{self.output_path}{self.stdout_name}.audio.mp3'
         # 需要混合的轨道
@@ -640,6 +649,9 @@ class ExportVideo(OutputMediaType):
         main_Track = pydub.AudioSegment.silent(duration=int(self.breakpoint.values.max()/self.config.frame_rate*1000),frame_rate=48000) # 主轨道
         # 开始逐个音轨完成混音
         for tr in tracks:
+            # 检查终止状态
+            if self.is_terminated:
+                return 2
             # 新建当前轨道
             this_Track = pydub.AudioSegment.silent(duration=int(self.breakpoint.values.max()/self.config.frame_rate*1000),frame_rate=48000)
             # 如果是BGM轨道
@@ -684,8 +696,8 @@ class ExportVideo(OutputMediaType):
         # 导出音频文件
         main_Track.export(ofile,format='mp3',codec='mp3',bitrate='256k')
         self.audio_path = ofile
-        return self.audio_path
-    # 渲染视频流，异常0，正常1
+        return 0
+    # 渲染视频流，异常1，正常0，终止2
     def build_video(self)->int:
         # 初始化pygame，建立一个不显示的主画面
         pygame.init()
@@ -699,6 +711,9 @@ class ExportVideo(OutputMediaType):
         # 主循环
         n=0
         while n < self.breakpoint.max():
+            if self.is_terminated:
+                self.output_engine.stdin.close()
+                return 2
             try:
                 if n in self.timeline.index:
                     this_frame = self.timeline.loc[n]
@@ -713,7 +728,7 @@ class ExportVideo(OutputMediaType):
                 print(RenderError('BreakFrame',n))
                 self.output_engine.stdin.close()
                 pygame.quit()
-                return 0
+                return 1
             if n%self.config.frame_rate == 1:
                 finish_rate = n/self.breakpoint.values.max()
                 used_time = time.time()-begin_time
@@ -734,7 +749,7 @@ class ExportVideo(OutputMediaType):
         print(VideoPrint('RendSpeed', '%.2f'%(self.breakpoint.max()/used_time)))
         print(VideoPrint('Done',f'{self.output_path}{self.stdout_name}.video.mp4'))
         # 正常退出
-        return 1
+        return 0
     # ffmepg 导出视频的接口
     def ffmpeg_output(self):
         self.vidio_path = f'{self.output_path}{self.stdout_name}.video.mp4'
@@ -759,28 +774,29 @@ class ExportVideo(OutputMediaType):
             .run_async(pipe_stdin=True)
         )
         return self.vidio_path
-    # 主流程
+    # 主流程：0终止，1异常，2终止
     def main(self)->int:
         try:
             # 欢迎
             print(VideoPrint('Welcome',EDITION))
             print(VideoPrint('SaveAt',self.output_path))
-            # 载入外部输入文件
-            # self.load_medias()
             # 合成音轨
             print(VideoPrint('VideoBegin'))
-            self.bulid_audio()
+            flag = self.bulid_audio()
+            if flag != 0:
+                return flag
             print(VideoPrint('AudioDone'))
             # 导出视频
             print(VideoPrint('EncoStart'))
             flag = self.build_video()
-            if flag == 0:
-                return 0
+            if flag != 0:
+                return flag
+            # 正常结束
+            return 0
+        # unhandle
         except Exception as E:
             print(E)
-            return 0
-        # 正常结束
-        return 1
+            return 1
 
 # 导出PR项目
 class ExportXML(OutputMediaType):
@@ -793,8 +809,8 @@ class ExportXML(OutputMediaType):
         # 是否强制切割序列
         self.force_split_clip:bool = preference.force_split_clip
         # 开始执行主程序
-        self.main()
-    # 构建序列
+        # self.main()
+    # 构建序列：成功0，异常1，终止2
     def bulid_sequence(self) -> str:
         # 载入xml模板
         project_tplt = open('./xml_templates/tplt_sequence.xml','r',encoding='utf8').read()
@@ -811,13 +827,21 @@ class ExportXML(OutputMediaType):
                 bubble_clip_list = []
                 text_clip_list = []
                 for item in track_items:
-                    bubble_this,text_this = self.medias[item[0]].export(
-                        text   = item[1],
-                        header = item[2],
-                        begin  = item[3],
-                        end    = item[4],
-                        center = item[5]
-                        )
+                    # 检查终止状态
+                    if self.is_terminated:
+                        return 2
+                    # -----
+                    try:
+                        bubble_this,text_this = self.medias[item[0]].export(
+                            text   = item[1],
+                            header = item[2],
+                            begin  = item[3],
+                            end    = item[4],
+                            center = item[5]
+                            )
+                    except Exception as E:
+                        print(E)
+                        return 1
                     if bubble_this is not None:
                         # 气泡的返回值可能为空！
                         bubble_clip_list.append(bubble_this)
@@ -830,27 +854,43 @@ class ExportXML(OutputMediaType):
                 track_items = self.parse_timeline_audio(layer)
                 clip_list = []
                 for item in track_items:
-                    if item[0] in self.medias.keys():
-                        clip_list.append(self.medias[item[0]].export(begin=item[1]))
-                    elif os.path.isfile(item[0][1:-1]) == True: # 注意这个位置的item[0]首尾应该有个引号
-                        temp = Audio(item[0][1:-1])
-                        clip_list.append(temp.export(begin=item[1]))
-                    else:
-                        print(WarningPrint('BadAuFile',item[0]))
+                    # 检查终止状态
+                    if self.is_terminated:
+                        return 2
+                    # -----
+                    try:
+                        if item[0] in self.medias.keys():
+                            clip_list.append(self.medias[item[0]].export(begin=item[1]))
+                        elif os.path.isfile(item[0][1:-1]) == True: # 注意这个位置的item[0]首尾应该有个引号
+                            temp = Audio(item[0][1:-1])
+                            clip_list.append(temp.export(begin=item[1]))
+                        else:
+                            print(WarningPrint('BadAuFile',item[0]))
+                    except Exception as E:
+                        print(E)
+                        return 1
                 audio_tracks.append(audio_track_tplt.format(**{'type':self.Audio_type,'clips':'\n'.join(clip_list)}))
             # 立绘或者背景图层
             else:
                 track_items = self.parse_timeline_anime(layer)
                 clip_list = []
                 for item in track_items:
-                    clip_list.append(self.medias[item[0]].export(
-                        begin=item[1],
-                        end=item[2],
-                        center=item[3]
-                        ))
+                    # 检查终止状态
+                    if self.is_terminated:
+                        return 2
+                    # -----
+                    try:
+                        clip_list.append(self.medias[item[0]].export(
+                            begin=item[1],
+                            end=item[2],
+                            center=item[3]
+                            ))
+                    except Exception as E:
+                        print(E)
+                        return 1
                 video_tracks.append(track_tplt.format(**{'targeted':'False','clips':'\n'.join(clip_list)}))
-
-        main_output = project_tplt.format(**{
+        # 主要输出
+        self.main_output = project_tplt.format(**{
             'timebase'     : '%d'%self.config.frame_rate,
             'ntsc'         : self.Is_NTSC,
             'sequence_name': self.stdout_name,
@@ -859,19 +899,21 @@ class ExportXML(OutputMediaType):
             'tracks_vedio' : '\n'.join(video_tracks),
             'tracks_audio' : '\n'.join(audio_tracks)
             })
-        return main_output
+        return 0
     # 主流程
     def main(self):
         # 欢迎
         print(PrxmlPrint('Welcome',EDITION))
         print(PrxmlPrint('SaveAt',self.output_path))
-        # 载入od文件
-        # self.load_medias()
         # 开始生成
         print(PrxmlPrint('ExpBegin'))
-        main_output = self.bulid_sequence()
+        flag = self.bulid_sequence()
+        if flag != 0:
+            return flag
         # 出入生成的xml文件
         ofile = open(f'{self.output_path}{self.stdout_name}.prproj.xml','w',encoding='utf-8')
-        ofile.write(main_output)
+        ofile.write(self.main_output)
         ofile.close()
         print(PrxmlPrint('Done',f'{self.output_path}{self.stdout_name}.prproj.xml'))
+        # 正常结束
+        return 0

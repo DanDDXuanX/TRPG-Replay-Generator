@@ -5,9 +5,11 @@
 
 import ttkbootstrap as ttk
 from ttkbootstrap.scrolled import ScrolledText
+from ttkbootstrap.dialogs import Messagebox
 from PIL import Image, ImageTk
 from .Utils import EDITION
 from .Exceptions import MainPrint
+from .GUI_Link import Link
 import tkinter as tk
 import sys
 import re
@@ -92,7 +94,9 @@ class Terminal(ttk.Frame):
             autohide=True
             )
         self.terminal._text.configure(padx=2*SZ_10)
-        self.control = ttk.Button(master=self,style='terminal.TButton',text='终止')
+        self.control = ttk.Button(master=self,style='terminal.TButton',text='终止',command=self.send_terminate,state='disable')
+        # Link
+        Link['terminal_control'] = self.control
         # 测试
         self.bind_stdout()
         self.update_item()
@@ -101,6 +105,16 @@ class Terminal(ttk.Frame):
         SZ_5 = int(self.sz * 5)
         self.terminal.place(relx=0,y=0,relwidth=1,relheight=1,height=-SZ_50-SZ_5)
         self.control.place(relx=0.3,y=-SZ_50,rely=1,height=SZ_50,relwidth=0.4)
+    # 发送终止消息
+    def send_terminate(self):
+        if Link['pipeline']:
+            Link['pipeline'].terminate()
+            self.after(300,self.check_terminate)
+    def check_terminate(self):
+        # 等待退出
+        Link['runing_thread'].join()
+        # 消息
+        Messagebox().show_info(message=f'已手动终止流程',title='终止操作',parent=self)
     def bind_stdout(self):
         # sys.stdout = StdoutRedirector(text_widget=self.terminal._text)
         # 欢迎
