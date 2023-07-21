@@ -5,7 +5,7 @@
 
 import ttkbootstrap as ttk
 from ttkbootstrap.scrolled import ScrolledText
-from ttkbootstrap.dialogs import Messagebox
+from ttkbootstrap.toast import ToastNotification
 from PIL import Image, ImageTk
 from .Utils import EDITION
 from .Exceptions import MainPrint
@@ -114,7 +114,8 @@ class Terminal(ttk.Frame):
         # 等待退出
         Link['runing_thread'].join()
         # 消息
-        Messagebox().show_info(message=f'已手动终止流程',title='终止操作',parent=self)
+        ToastNotification(title='终止流程',message='已手动终止流程！',duration=3000).show_toast()
+        # Messagebox().show_info(message=f'已手动终止流程',title='终止操作',parent=self)
     def bind_stdout(self):
         # sys.stdout = StdoutRedirector(text_widget=self.terminal._text)
         # 欢迎

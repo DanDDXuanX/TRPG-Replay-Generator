@@ -5,6 +5,7 @@
 
 from shutil import copy
 import tkinter as tk
+import threading
 import ttkbootstrap as ttk
 from ttkbootstrap.dialogs import Messagebox, Dialog
 from tkinter.filedialog import asksaveasfilename
@@ -261,6 +262,8 @@ class VoiceChooser(ttk.Frame):
         SZ_5 = int(5*self.sz)
         # 关闭窗口命令
         self.close_func = close_func
+        # 多线程
+        self.running_thread = None
         # 解析输入
         if '::' in voice:
             service,speaker = voice.split('::')
@@ -328,7 +331,7 @@ class VoiceChooser(ttk.Frame):
         except ValueError as E:
             Messagebox().show_error(message=E,title='错误')
             return
-    def preview(self)->bool:
+    def preview_command(self)->bool:
         this_VoiceArgs = self.get_select_args()
         ptext = self.preview_text.get("0.0","end")
         status, message = this_VoiceArgs.exec_synthesis(text=ptext)
@@ -343,7 +346,7 @@ class VoiceChooser(ttk.Frame):
         else:
             Messagebox().show_error(message=message,title='合成失败')
             return False
-    def savefile(self)->bool:
+    def savefile_command(self)->bool:
         this_VoiceArgs = self.get_select_args()
         ptext = self.preview_text.get("0.0","end")
         status, message = this_VoiceArgs.exec_synthesis(text=ptext)
@@ -364,6 +367,26 @@ class VoiceChooser(ttk.Frame):
         else:
             Messagebox().show_error(message=message,title='合成失败')
             return False
+    def preview(self):
+        if self.running_thread:
+            if self.running_thread.is_alive():
+                pass
+            else:
+                self.running_thread = threading.Thread(target=self.preview_command)
+                self.running_thread.start()
+        else:
+            self.running_thread = threading.Thread(target=self.preview_command)
+            self.running_thread.start()
+    def savefile(self):
+        if self.running_thread:
+            if self.running_thread.is_alive():
+                pass
+            else:
+                self.running_thread = threading.Thread(target=self.savefile_command)
+                self.running_thread.start()
+        else:
+            self.running_thread = threading.Thread(target=self.preview_command)
+            self.running_thread.start()
 class VoiceChooserDialog(Dialog):
     def __init__(self, screenzoom, parent=None, title="选择语音音源", voice='', speechrate=0, pitchrate=0):
         super().__init__(parent, title, alert=False)

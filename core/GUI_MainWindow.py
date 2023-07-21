@@ -295,9 +295,9 @@ class NavigateBar(ttk.Frame):
         # 高亮的线
         self.press_button('project')
     # 点击按键的绑定事件：标注
-    def press_button(self,button):
+    def press_button(self,button,force=False):
         # 检查是否禁用
-        if self.disabled:
+        if self.disabled and force==False:
             ToastNotification(title='禁用图形界面',message='核心程序正在运行中！在核心程序终止前，图形界面已被暂时的禁用。').show_toast()
             return
         position = {'setting':80,'project':180,'script':260,'console':340}[button]*self.sz

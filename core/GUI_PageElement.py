@@ -117,6 +117,8 @@ class OutPutCommand(ttk.Frame):
             Link['terminal_control'].configure(state='normal')
             # 执行
             Link['pipeline'].main()
+            # 返回
+            self.after(500,self.return_project)
         except Exception as E:
             print(E)
         finally:
@@ -152,6 +154,8 @@ class OutPutCommand(ttk.Frame):
             Link['terminal_control'].configure(state='normal')
             # 执行
             Link['pipeline'].main()
+            # 返回
+            self.after(500,self.return_project)
         except Exception as E:
             print(E)
         finally:
@@ -174,6 +178,8 @@ class OutPutCommand(ttk.Frame):
             Link['terminal_control'].configure(state='normal')
             # 执行
             Link['pipeline'].main()
+            # 返回
+            self.after(500,self.return_project)
         except Exception as E:
             print(E)
         finally:
@@ -205,6 +211,8 @@ class OutPutCommand(ttk.Frame):
             Link['terminal_control'].configure(state='normal')
             # 执行
             Link['pipeline'].main()
+            # 返回
+            self.after(500,self.return_project)
         except Exception as E:
             print(E)
         finally:
@@ -239,6 +247,8 @@ class OutPutCommand(ttk.Frame):
         # 开始执行
         self.runing_thread.start()
         Link['runing_thread'] = self.runing_thread
+    def return_project(self):
+        self.winfo_toplevel().navigate_bar.press_button('project',force=True)
 class VerticalOutputCommand(OutPutCommand):
     def __init__(self,master,screenzoom,codeview):
         # 继承
