@@ -153,7 +153,7 @@ class KeyValueDescribe(ttk.Frame):
         # 关键字
         self.key = ttk.Label(master=self,text=key,width=8,anchor='e',padding=padding)
         if tooltip is not None:
-            self.tooltip = ToolTip(widget=self.key,text=tooltip,bootstyle='secondary-inverse')
+            self.tooltip = ToolTip(widget=self.key,text=tooltip,bootstyle='light-inverse')
         # 容器
         if value['style'] == 'entry':
             self.input = ttk.Entry(master=self,textvariable=self.value,width=30)

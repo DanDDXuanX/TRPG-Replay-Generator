@@ -33,7 +33,7 @@ class Container(FluentFrame):
         self.container.bind('<Up>',lambda event:self.select_up(event),"+")
         self.container.bind('<Down>',lambda event:self.select_down(event),"+")
         self.container.bind('<Delete>',lambda event:self.del_select(event),"+")
-        self.container.bind('<Button-3>',lambda event:self.right_click(event),"+")
+        # self.container.bind('<Button-3>',lambda event:self.right_click(event),"+") 
         # 容器高度
         self.container_height = 0
         # 内容物

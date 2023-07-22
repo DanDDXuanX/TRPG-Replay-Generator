@@ -13,6 +13,7 @@ import ttkbootstrap as ttk
 from pathlib import Path
 from ttkbootstrap.dialogs import Dialog, Messagebox, MessageCatalog
 from PIL import Image, ImageTk
+from .Exceptions import ParserError
 from .StoryImporter import StoryImporter
 from .ScriptParser import CharTable, RplGenLog
 from .GUI_Util import KeyValueDescribe
@@ -199,7 +200,6 @@ class CreateIntelProject(CreateProject):
         self.elements['save_pos'].bind_button(dtype='dir',quote=False,related=False)
         self.elements['textfile'].bind_button(dtype='logfile-file',quote=False,related=False)
         self.elements['section_break'].input.configure(values=[0,100,300,1000,3000],state='readonly')
-        # TODO: 浏览资源文件夹，并指定给self.element['template']
         self.elements['template'].input.bind('<<ComboboxSelected>>', self.template_selected,'+')
         # 从预设文件夹获取
         intels = os.listdir(self.intel_dir)
@@ -268,6 +268,7 @@ class CreateIntelProject(CreateProject):
         file_name = self.elements['proj_name'].get()
         save_path = f"{save_dir}/{file_name}/{file_name}.rgpj"
         tplt_name = self.elements['template'].get()
+        logfile_path = self.elements['textfile'].get()
         if save_dir == '':
             Messagebox().show_error(title='错误',message='必须要选择一个文件夹用于保存项目文件！',parent=self)
             return False
@@ -281,6 +282,15 @@ class CreateIntelProject(CreateProject):
         if os.path.isfile(save_path):
             choice = Messagebox().okcancel(title='文件已存在',message='目录下已经存在重名的项目文件，要覆盖吗？',parent=self)
             if choice != MessageCatalog.translate('OK'):
+                return False
+        if logfile_path.split('.')[-1] in ['rgl','RGL']:
+            choice = Messagebox().show_question(
+                title='RplGenLog',
+                message='你正在尝试向智能项目中导入一个RGL文件！\n但是，智能项目并非设计用于导入RGL，可能出现异常。\n如果你已经拥有RGL文件，请新建空白项目，再导入文件！',
+                parent=self,
+                buttons=['放弃导入:primary','继续导入:danger']
+                )
+            if choice != '继续导入':
                 return False
         # 0. 禁用元件，更新按钮
         self.on_press_comfirm()
@@ -299,14 +309,13 @@ class CreateIntelProject(CreateProject):
         # 3. 导入模板的静态media
         self.new_project_struct['mediadef'].update(self.template['media']['static'])
         # 4. 载入导入的文本
-        logfile_path = self.elements['textfile'].get()
         try:
             self.load_text = open(logfile_path,'r',encoding='utf-8').read()
         except UnicodeEncodeError:
             try:
                 self.load_text = open(logfile_path,'r',encoding='gbk').read()
             except Exception as E:
-                Messagebox().show_error('无法解读导入文件的编码！\n请确定导入的一个文本文件？',title='error',parent=self)
+                Messagebox().show_error('无法解读导入文件的编码！\n请确定导入的是文本文件？',title='格式错误',parent=self)
                 self.reset_comfirm()
                 return False
         # 5. 开始解析
@@ -319,6 +328,11 @@ class CreateIntelProject(CreateProject):
     # 导入成功之后
     def after_loading(self):
         tplt_chars = self.template['charactor']
+        # 做在最前：检查是否解析成功
+        if self.story.log_mode is None:
+            Messagebox().show_error('当前着色器无法解析导入文本的结构！',title='格式错误',parent=self)
+            self.reset_comfirm()
+            return False
         # 7. 从解析结果中获取角色
         charinfo = self.story.get_charinfo()
         # 8. 去除非法的角色
@@ -359,7 +373,15 @@ class CreateIntelProject(CreateProject):
                     'rgl'
                     ].values
                 )
-            self.new_project_struct['logfile'][name_this] = RplGenLog(string_input=rgl_text).struct
+            try:
+                self.new_project_struct['logfile'][name_this] = RplGenLog(string_input=rgl_text).struct
+            except ParserError:
+                error_text = '# 当你看见这段文字，意味着你触发了一个少见的异常。\n'
+                error_text += '# 你的发言文本中的部分内容和RplGenLog的部分语法冲突，这会攻击RplGenLog解析器，并触发ParserError。\n'
+                error_text += '# 这个问题并不难解决，请检查你的原始log中，是否某一行的末尾存在类似：<replace=> 的结构，并删除这个结构！\n'
+                self.new_project_struct['logfile'][name_this] = RplGenLog(
+                    string_input= error_text
+                    ).struct
             section_idx += sep_length
         # 12. 新建项目和目录
         save_dir = self.elements['save_pos'].get()

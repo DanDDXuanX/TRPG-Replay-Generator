@@ -341,10 +341,10 @@ class VoiceChooser(ttk.Frame):
                 return True
             except Exception as E:
                 print(WarningPrint('AuPlayFail',E))
-                Messagebox().show_error(message='无法播放音频文件！',title='播放失败')
+                self.message = ['播放失败','无法播放音频文件！']
                 return False
         else:
-            Messagebox().show_error(message=message,title='合成失败')
+            self.message = ['合成失败',message]
             return False
     def savefile_command(self)->bool:
         this_VoiceArgs = self.get_select_args()
@@ -362,31 +362,45 @@ class VoiceChooser(ttk.Frame):
                     return False
             except Exception as E:
                 print(WarningPrint('SaveFail',E))
-                Messagebox().show_error(message='无法保存音频文件！',title='保存失败')
+                self.message = ['保存失败','无法保存音频文件！']
                 return False
         else:
-            Messagebox().show_error(message=message,title='合成失败')
+            self.message = ['合成失败',message]
             return False
     def preview(self):
+        self.message = None
         if self.running_thread:
             if self.running_thread.is_alive():
                 pass
             else:
                 self.running_thread = threading.Thread(target=self.preview_command)
                 self.running_thread.start()
+                self.after(500,self.wait_message)
         else:
             self.running_thread = threading.Thread(target=self.preview_command)
             self.running_thread.start()
+            self.after(500,self.wait_message)
     def savefile(self):
+        self.message = None
         if self.running_thread:
             if self.running_thread.is_alive():
                 pass
             else:
                 self.running_thread = threading.Thread(target=self.savefile_command)
                 self.running_thread.start()
+                self.after(500,self.wait_message)
         else:
             self.running_thread = threading.Thread(target=self.preview_command)
             self.running_thread.start()
+            self.after(500,self.wait_message)
+    # 等待返回消息
+    def wait_message(self):
+        if self.running_thread.is_alive() == False:
+            if self.message:
+                title,message = self.message
+                Messagebox().show_error(message=message,title=title,parent=self)
+        else:
+            self.after(500,self.wait_message)
 class VoiceChooserDialog(Dialog):
     def __init__(self, screenzoom, parent=None, title="选择语音音源", voice='', speechrate=0, pitchrate=0):
         super().__init__(parent, title, alert=False)

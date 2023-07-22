@@ -29,6 +29,7 @@ class SearchReplaceBar(ttk.Frame):
         self.is_regex = tk.BooleanVar(master=self,value=False)
         self.to_find = tk.StringVar(master=self,value='')
         self.to_replace = tk.StringVar(master=self,value='')
+        self.to_find.trace_add('write',callback=self.modify_tofind)
         # 元件
         self.line1 = {
             'label': ttk.Label(master=self,anchor='e',text='查找：',bootstyle='light-inverse',width=8),
@@ -45,6 +46,9 @@ class SearchReplaceBar(ttk.Frame):
         }
         self.bind_key(self.line2['entry'])
         self.update_item()
+    def modify_tofind(self,*args):
+        if self.is_searched:
+            self.master.clear_search(None)
     def update_item(self):
         SZ_5 = int(self.sz * 3)
         SZ_3 = int(self.sz * 2)
@@ -87,6 +91,12 @@ class SearchReplaceBar(ttk.Frame):
                 1
                 )
         return new_text
+    def check_regex(self,regex_pattern):
+        try:
+            re.compile(regex_pattern)
+            return True
+        except re.error:
+            return False
     def search(self):
         # 获取参数
         search_text = self.to_find.get()
@@ -95,10 +105,14 @@ class SearchReplaceBar(ttk.Frame):
         self.master.clear_search(None)
         start_index = '1.0'
         is_match = False
-        # 检查是否可以做（搜索空白会崩溃！）
+        # 检查是否可以做（搜索空白会崩溃！非法正则会崩溃！）
         if search_text == '':
             self.line1['entry'].configure(bootstyle='danger')
             return
+        if is_regex:
+            if self.check_regex(search_text) == False:
+                self.line1['entry'].configure(bootstyle='danger')
+                return
         while True:
             # 找到下一个匹配的文本
             index = self.codeview.search(search_text, start_index, stopindex='end',regexp=is_regex)
@@ -400,7 +414,7 @@ class RGLCodeViewFrame(ttk.Frame):
     # 保存
     def save_command(self,event):
         # 刷新log对象
-        self.update_rplgenlog()
+        # self.update_rplgenlog() # 在file_manager.savefile中已经做过了，不需要重复做。
         # 保存
         mainwindow = self.winfo_toplevel()
         # 找到保存项目的命令
@@ -465,12 +479,16 @@ class RGLCodeViewFrame(ttk.Frame):
         else:
             return '\n'
     # 高亮出错的行
-    def hightlight_error(self,E):
-        try:
-            errorline = re.findall('.*错误.*第(\d+)行.*',str(E))[0]
+    def hightlight_error(self,E:Exception=None,line:int=None):
+        if line:
+            errorline = line
             self.codeview.tag_add('error', f"{errorline}.0", f"{errorline}.end")
-        except:
-            print(E)
+        else:
+            try:
+                errorline = re.findall('.*错误.*第(\d+)行.*',str(E))[0]
+                self.codeview.tag_add('error', f"{errorline}.0", f"{errorline}.end")
+            except:
+                print(E)
     # 变更是否同步？TODO：暂时没用
     def on_modified(self,event):
         if self.is_modified:
@@ -495,6 +513,7 @@ class RGLCodeViewFrame(ttk.Frame):
             return
         # 添加星标
         add_count = 0
+        missing_line = []
         self.codeview.edit_separator()
         self.codeview.configure(autoseparators=False)
         for idx in self.content.struct:
@@ -506,14 +525,22 @@ class RGLCodeViewFrame(ttk.Frame):
                     # 角色是否有语音
                     main_charactor = this_section['charactor_set']['0']
                     main_name = main_charactor['name']+'.'+main_charactor['subtype']
-                    if self.chartab.struct[main_name]['Voice'] != 'NA':
+                    if main_name not in self.chartab.struct:
+                        missing_line.append(int(idx)+1)
+                    elif self.chartab.struct[main_name]['Voice'] != 'NA':
                         this_section['sound_set']['{*}'] = {"sound": None,"time": None}
                         add_count += 1
         self.codeview.configure(autoseparators=True)
         # 更新变更
         self.update_codeview(None)
+        # 高亮异常
+        for line in missing_line:
+            self.hightlight_error(line=line)
         # 消息框
         if add_count == 0:
             Messagebox.show_info(message='没有添加语音合成标记！\n不会给没有指定音源的角色添加语音合成标记。',title='{*}',parent=self)
         else:
-            Messagebox().show_warning(message=f'添加语音合成标记{add_count}个',title='{*}',parent=self)
+            if len(missing_line)==0:
+                Messagebox().show_info(message=f'添加语音合成标记{add_count}个',title='{*}',parent=self)
+            else:
+                Messagebox().show_warning(message=f'添加语音合成标记{add_count}个\n检查到共{len(missing_line)}行出现未定义角色！',title='{*}',parent=self)

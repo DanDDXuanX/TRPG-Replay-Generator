@@ -5,6 +5,7 @@
 import os
 import json
 from pathlib import Path
+from PIL import ImageFile
 from .Exceptions import ArgumentError,WarningPrint,Print,RplGenError
 from .Motion import MotionMethod
 from .Medias import MediaObj, BuiltInAnimation, HitPoint
@@ -228,3 +229,6 @@ except:
         pass
     preference = Preference()
     preference.dump_json(home_dir / '.rplgen' / 'preference.json')
+
+# 全局常量
+ImageFile.LOAD_TRUNCATED_IMAGES = True

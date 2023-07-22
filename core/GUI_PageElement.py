@@ -291,6 +291,8 @@ class VerticalOutputCommand(OutPutCommand):
             self.codeview.update_rplgenlog()
         except Exception as E:
             print(E)
+            Link['terminal_control'].configure(state='disable')
+            self.winfo_toplevel().navigate_bar.enable_navigate()
             return
         return super().preview_display()
     def export_video(self):
@@ -298,6 +300,8 @@ class VerticalOutputCommand(OutPutCommand):
             self.codeview.update_rplgenlog()
         except Exception as E:
             print(E)
+            Link['terminal_control'].configure(state='disable')
+            self.winfo_toplevel().navigate_bar.enable_navigate()
             return
         return super().export_video()
     def export_xml(self):
@@ -305,6 +309,8 @@ class VerticalOutputCommand(OutPutCommand):
             self.codeview.update_rplgenlog()
         except Exception as E:
             print(E)
+            Link['terminal_control'].configure(state='disable')
+            self.winfo_toplevel().navigate_bar.enable_navigate()
             return
         return super().export_xml()
     # 因为语音合成涉及到RGL的改变，因此执行成功之后，应该返回给RGL对象，并更新给CodeView！
@@ -314,6 +320,8 @@ class VerticalOutputCommand(OutPutCommand):
             self.codeview.update_rplgenlog()
         except Exception as E:
             print(E)
+            Link['terminal_control'].configure(state='disable')
+            self.winfo_toplevel().navigate_bar.enable_navigate()
             return
         # 执行语音合成
         super().synth_speech()

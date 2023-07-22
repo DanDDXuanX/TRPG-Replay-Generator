@@ -13,6 +13,7 @@ import ttkbootstrap as ttk
 import tkinter as tk
 from ttkbootstrap.dialogs import Messagebox
 from ttkbootstrap.tooltip import ToolTip
+from ttkbootstrap.toast import ToastNotification
 from .ScriptParser import MediaDef, CharTable, RplGenLog, Script
 from .FilePaths import Filepath
 from .ProjConfig import Config, preference
@@ -344,6 +345,12 @@ class FileManager(ttk.Frame):
                 self.project_file = select_path
         else:
             self.project.dump_json(filepath=self.project_file)
+        # 弹出消息提示，Toast
+        ToastNotification(
+            title='保存成功',
+            message=f'成功保存项目到文件：\n{self.project_file}',
+            duration=3000
+        ).show_toast()
     # 配置项目
     def proj_config(self):
         get_config = configure_project(

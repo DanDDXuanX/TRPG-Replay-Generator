@@ -163,7 +163,7 @@ class RplGenStudioMainWindow(ttk.Window):
             position=(w,h),
             width=100
             )
-            if choice != MessageCatalog.translate('OK'):
+            if choice != '确定':
                 return False
         # project_view:ProjectView = self.view['project']
         # project_view.file_manager.project.dump_json('./test_project.json')

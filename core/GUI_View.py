@@ -13,7 +13,7 @@ from .GUI_FileManager import FileManager
 from .GUI_TabPage import PageFrame
 from .GUI_Terminal import Terminal
 from .GUI_TableEdit import ScriptExecuter, PreferenceTable, ResetConfirm
-from .GUI_Util import Texture
+from .GUI_Util import Texture, FreeToolTip
 from .GUI_DialogWindow import browse_file
 from .GUI_CustomDialog import new_project
 # 脚本视图：运行 MDF、CTB、RGL 脚本文件的视图。
@@ -41,6 +41,11 @@ class EmptyView(ttk.Frame):
             'open_p' : ttk.Button(master=self.content, text='打开项目',     compound='top', image='open_p' ,bootstyle='info',command=self.open_project),
             'new_p'  : ttk.Button(master=self.content, text='新建空白项目', compound='top', image='new_p'  ,bootstyle='info',command=self.empty_project),
             'intel_p': ttk.Button(master=self.content, text='新建智能项目', compound='top', image='intel_p',bootstyle='info',command=self.intel_project),
+        }
+        self.tooltips = {
+            'open_p' : FreeToolTip(widget=self.open_project_buttons['open_p'], text='从文件夹中打开一个现有的项目。',bootstyle='light-inverse'),
+            'new_p'  : FreeToolTip(widget=self.open_project_buttons['new_p'], text='创建一个空白的项目，导入回声工坊1.0版本的工程文件，或者从头开始创建你的项目。',bootstyle='light-inverse',screenzoom=self.sz),
+            'intel_p': FreeToolTip(widget=self.open_project_buttons['intel_p'], text='选择样式模板，智能解析导入聊天记录或者染色器log文件，直接创建一个半成品项目。',bootstyle='light-inverse',screenzoom=self.sz),
         }
         self.update_items()
     def update_items(self):
