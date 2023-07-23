@@ -263,7 +263,7 @@ class CharactorEdit(EditWindow):
                 Messagebox().show_warning(message='这个差分名已经被使用了！',title='重名',parent=self)
                 self.elements['Subtype'].value.set(self.section['Subtype'])
                 return self.section
-            elif re.fullmatch("^\w+$",new_keyword) is None:
+            elif re.fullmatch("^\w+$",new_section['Subtype']) is None:
                 Messagebox().show_warning(message='这个差分名是非法的！',title='非法名',parent=self)
                 self.elements['Subtype'].value.set(self.section['Subtype'])
                 return self.section
@@ -492,26 +492,27 @@ class MediaEdit(EditWindow):
             Messagebox().show_error(message='无效的值：{}'.format(value),title='错误',parent=self)
             return value
     def update_preview(self, keywords: list):
-        # 列表化的关键字
-        list_type = ['Balloon','ChatWindow']
-        list_key = ['Header_Text','ht_pos','ht_target','sub_key','sub_Bubble','sub_Anime','sub_align']
         # 更新对象
         ref_medef:MediaDef = self.page.content
-        for key in keywords:
-            # 使用了MediaDef的value_execute，将字典类型解析为对象
-            exec_value = ref_medef.value_execute(self.section[key])
-            # print(self.line_type,key,exec_value)
-            if key in list_key and self.line_type in list_type:
-                # 先清空列表
-                # self.page.preview.object_this.clear_configure(key=key)
-                # for idx,value in enumerate(exec_value):
-                #     self.page.preview.object_this.configure(key=key,value=value,index=idx)
-                self.page.preview.object_this.configure(key=key,value=exec_value)
-            else:
-                self.page.preview.object_this.configure(key=key,value=exec_value)
-        # 更新显示
-        self.page.preview.update_dotview()
-        self.page.preview.update_preview()
+        # 检查目前是否有现有对象
+        if self.page.preview.object_this:
+            try:
+                # 尝试重设媒体参数
+                for key in keywords:
+                    # 使用了MediaDef的value_execute，将字典类型解析为对象
+                    exec_value = ref_medef.value_execute(self.section[key])
+                    self.page.preview.object_this.configure(key=key,value=exec_value)
+            except Exception:
+                # 如果在重设媒体参数的时候，发生了异常，移除现有预览媒体，显示错误画面
+                # 建议：重新梳理和预览相关的操作的触发流程，并在所有敏感节点添加异常处理！
+                self.page.preview.set_error()
+            finally:
+                # 更新显示
+                self.page.preview.update_dotview()
+                self.page.preview.update_preview()
+        else:
+            # 如果之前是无预览媒体，那么重新执行一次预览
+            self.page.preview.preview(media_name=self.section_index)
     # 新建一个多项sep
     def update_sep_button(self):
         if self.line_type == 'Balloon':

@@ -271,7 +271,11 @@ class PreviewWindow(ttk.Toplevel):
     def update_items(self):
         self.preview.pack(fill='both',expand=True)
     def preview_line(self,line:int):
-        self.preview.preview(line_index=str(line-1))
+        try:
+            self.preview.preview(line_index=str(line-1))
+        except Exception as E:
+            print(E)
+            self.preview.show_error()
     def close(self):
         self.destroy() 
 # 脚本模式

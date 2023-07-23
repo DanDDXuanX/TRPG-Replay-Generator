@@ -1994,7 +1994,7 @@ class BGM(MediaObj):
         if key == 'filepath':
             super().configure(key, value, index)
             self.media = self.filepath.exact()
-            self.length:int = int(self.media.get_length()*self.frame_rate)
+            # self.length:int = int(self.media.get_length()*self.frame_rate)
         elif key == 'volume':
             self.volume = value/100
         else:

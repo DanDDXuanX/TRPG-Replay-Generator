@@ -76,7 +76,7 @@ class SectionElement:
                     try:
                         filepath = Filepath(filepath=section['filepath']).exact()
                         image = Image.open(filepath)
-                    except MediaError:
+                    except Exception:
                         image = Image.open('./media/icon/Error.png')
                 # 缩略名
                 thumbnail_name_this = thumbname%self.thumbnail_idx

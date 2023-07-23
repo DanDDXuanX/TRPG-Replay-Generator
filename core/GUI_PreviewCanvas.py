@@ -251,9 +251,10 @@ class PreviewCanvas(ttk.Frame):
         # 重置背景
         else:
             self.canvas.blit(self.empty_canvas,(0,0))
+        # 待重载
     def show_error(self):
         # 错误背景
-        RGB = pygame.surfarray.pixels3d(self.empty_canvas)
+        RGB = pygame.surfarray.array3d(self.empty_canvas)
         RGB[...,1] = 0
         RGB[...,2] = 0
         error_canvas = pygame.surfarray.make_surface(RGB)
@@ -318,17 +319,15 @@ class MDFPreviewCanvas(PreviewCanvas):
             if self.object_this:
                 self.object_this.preview(self.canvas)
                 self.recode = self.canvas.copy()
-            else:
-                return
-        # 有press（是在交互式调用这个方法）则只更新点
-        else:
-            if self.recode:
-                self.canvas.blit(self.recode,(0,0))
-        # 刷新点
-        if pressed is None:
+            # 刷新点
             for dot in self.dots:
                 self.dots[dot].draw(self.canvas,self.canvas_zoom.get())
+        # 有press（是在交互式调用这个方法）则只更新点
         else:
+            # 显示底图
+            if self.recode:
+                self.canvas.blit(self.recode,(0,0))
+            # 刷新点
             self.selected_dot = None
             self.selected_dot_name = None
             for dot in self.dots:
@@ -541,6 +540,13 @@ class MDFPreviewCanvas(PreviewCanvas):
             self.update_media_object(pressed=(p_x, p_y))
         else:
             pass
+    # 异常时
+    def set_error(self):
+        # super().show_error() # 暂时不显示红了
+        # 清除当前的显示对象，recode，和全部的dot
+        self.object_this = None
+        self.recode = self.empty_canvas.copy()
+        self.dots.clear()
 class CTBPreviewCanvas(PreviewCanvas):
     def __init__(self, master, screenzoom, chartab, mediadef):
         self.chartab:CharTable = chartab

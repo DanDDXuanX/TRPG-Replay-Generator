@@ -192,11 +192,11 @@ class Container(FluentFrame):
                 self.edit_select(to_preview)
                 self.preview_canvas.preview(to_preview)
             except Exception as E:
-                # from traceback import print_exc
-                # print(to_preview)
-                # print_exc()
-                # Messagebox().show_error(message=str(E),title='预览错误',parent=self.page.preview)
-                Messagebox().show_error(message=re.sub('\x1B\[\d+m','',str(E)),title='错误',parent=self.page.preview)
+                Messagebox().show_error(
+                    message = re.sub('\x1B\[\d+m','',str(E)),
+                    title   = '错误',
+                    parent  = self.page.preview
+                )
     def edit_select(self,to_preview):
         self.edit_window.update_from_section(index=to_preview, section=self.content.struct[to_preview])
     # 删除项目
