@@ -40,10 +40,15 @@ class RplGenStudioWelcome(ttk.Window):
     # 获取系统的缩放比例
     def get_screen(self)->float:
         if 'win32' in sys.platform:
-            from ctypes import windll
-            self.sz = windll.shcore.GetScaleFactorForDevice(0) / 100
-            self.screen_width = int(windll.user32.GetSystemMetrics(0) * self.sz)
-            self.screen_height = int(windll.user32.GetSystemMetrics(1) * self.sz)
+            try:
+                from ctypes import windll
+                self.sz = windll.shcore.GetScaleFactorForDevice(0) / 100
+                self.screen_width = int(windll.user32.GetSystemMetrics(0) * self.sz)
+                self.screen_height = int(windll.user32.GetSystemMetrics(1) * self.sz)
+            except Exception:
+                self.sz = 1
+                self.screen_width = 1920
+                self.screen_height = 1080
         else:
             # macbook pro 13
             self.sz = 2.0

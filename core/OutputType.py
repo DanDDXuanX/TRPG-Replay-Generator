@@ -402,12 +402,11 @@ class PreviewDisplay(OutputMediaType):
     def display_init(self)->int:
         # 修复缩放错误
         # if self.fix_screen == True:
-        if True:
-            try:
-                import ctypes
-                ctypes.windll.user32.SetProcessDPIAware() #修复错误的缩放，尤其是在移动设备。
-            except Exception:
-                print(WarningPrint('FixScrZoom'))
+        try:
+            import ctypes
+            ctypes.windll.user32.SetProcessDPIAware() #修复错误的缩放，尤其是在移动设备。
+        except Exception:
+            print(WarningPrint('FixScrZoom'))
         # 初始化显示窗口
         pygame.init()
         pygame.display.set_caption('TRPG Replay Generator '+EDITION)
