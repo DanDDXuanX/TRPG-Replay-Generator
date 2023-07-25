@@ -122,9 +122,13 @@ class RGLSnippets(CodeSnippet):
         self.ref_media = mediadef
         self.ref_char = chartab
         # 光标位置
-        index_,x,y = self.get_insert_curser()
-        self.curser_idx = index_
-        self.curser_pos = (x,y)
+        try:
+            index_,x,y = self.get_insert_curser()
+            self.curser_idx = index_
+            self.curser_pos = (x,y)
+        except TypeError:
+            # 如果光标在屏幕外面，get_insert_curser会typeError
+            return
         # 初始化
         self.parse_up_down_stream()
         # 显示
