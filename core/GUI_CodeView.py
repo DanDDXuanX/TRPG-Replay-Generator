@@ -287,11 +287,17 @@ class RGLCodeViewFrame(ttk.Frame):
         # 引用的角色和媒体资源
         self.chartab = chartab
         self.mediadef = mediadef
+        # 是否存在异常
+        self.is_error = False
         # 代码
         self.content:RplGenLog = rplgenlog
         self.codeview = CodeView(master=self, lexer=RplGenLogLexer, color_scheme="monokai", font=('Sarasa Mono SC',12), undo=True)
-        self.codeview.insert("end",self.content.export()) # 插入脚本文本
-        self.codeview.edit_reset() # 清除撤回队列
+        self.codeview.insert("end",self.content.export(allowed_exception=True)) # 插入脚本文本，允许插入异常行
+        # 高亮所有异常
+        self.hightlight_error()
+        # 清除撤回队列
+        self.codeview.edit_reset() 
+        # 绑定案件
         self.codeview.bind('<Control-Key-f>',self.show_search)
         self.codeview.bind('<Control-Key-s>',self.save_command)
         self.codeview.bind('<Control-Key-r>',self.update_codeview)
@@ -417,8 +423,6 @@ class RGLCodeViewFrame(ttk.Frame):
             self.preview_window = None
     # 保存
     def save_command(self,event):
-        # 刷新log对象
-        # self.update_rplgenlog() # 在file_manager.savefile中已经做过了，不需要重复做。
         # 保存
         mainwindow = self.winfo_toplevel()
         # 找到保存项目的命令
@@ -442,15 +446,12 @@ class RGLCodeViewFrame(ttk.Frame):
         # 将log中，从开头到当前行的内容转为RplGenLog.struct
         code_text = self.codeview.get('0.0','end')
         # 脚本更新到content
-        try:
-            self.content.struct = self.content.parser(code_text)
-        except Exception as E:
-            self.hightlight_error(E)
-            # 将异常继续向上传递
-            raise E
+        self.content.struct = self.content.parser(code_text,allowed_exception=True)
+        # 高亮全部异常
+        self.hightlight_error()
         # 如果成功，清除error
-        # self.clear_modified()
-        self.codeview.tag_remove('error','1.0','end')
+        if not self.is_error:
+            self.codeview.tag_remove('error','1.0','end')
     # 将对话行分割
     def split_dialog(self,event):
         index_ = self.codeview.index('insert')
@@ -484,15 +485,25 @@ class RGLCodeViewFrame(ttk.Frame):
             return '\n'
     # 高亮出错的行
     def hightlight_error(self,E:Exception=None,line:int=None):
+        # 初始化错误
+        self.is_error = False
         if line:
             errorline = line
+            self.is_error = True
             self.codeview.tag_add('error', f"{errorline}.0", f"{errorline}.end")
-        else:
+        elif E:
+            self.is_error = True
             try:
                 errorline = re.findall('.*错误.*第(\d+)行.*',str(E))[0]
                 self.codeview.tag_add('error', f"{errorline}.0", f"{errorline}.end")
             except:
                 print(E)
+        # 高亮所有异常
+        else:
+            for key in self.content.struct:
+                if self.content.struct[key]['type'] == 'exception':
+                    self.hightlight_error(line=int(key)+1)
+        return self.is_error
     # 变更是否同步？TODO：暂时没用
     def on_modified(self,event):
         if self.is_modified:

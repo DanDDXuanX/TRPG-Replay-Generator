@@ -767,7 +767,7 @@ class RplGenLog(Script):
         this_bubble['tx_method'] = self.method_parser(this_method_label)
         # 返回
         return this_bubble
-    def parser(self,script:str) -> dict:
+    def parser(self,script:str,allowed_exception:False) -> dict:
         # 分割小节
         stdin_text = script.split('\n')
         # 结构体
@@ -998,8 +998,17 @@ class RplGenLog(Script):
                     raise ParserError('UnrecLine',str(i+1))
                 struct[str(i)] = this_section
             except Exception as E:
+                print(E)
                 # TODO: 这是临时的！
-                raise ParserError("ParErr",str(i+1))
+                if allowed_exception:
+                    struct[str(i)] = {
+                        'type'      : 'exception',
+                        'info'      : str(E),
+                        'content'   : text
+                    }
+                    print(ParserError("ParErr",str(i+1)))
+                else:
+                    raise ParserError("ParErr",str(i+1))
         # 返回值
         return struct
     # struct -> RGL
@@ -1075,7 +1084,7 @@ class RplGenLog(Script):
                     CK,
                     this_dice['face']))
         return ','.join(list_of_dice_express)
-    def export(self) -> str:
+    def export(self,allowed_exception=False) -> str:
         list_of_scripts = []
         for section_key in self.struct.keys():
             this_section:dict = self.struct[section_key]
@@ -1166,6 +1175,12 @@ class RplGenLog(Script):
             # 停留
             elif type_this == 'wait':
                 this_script = '<wait>:{}'.format(this_section['time'])
+            # 异常
+            elif type_this == 'exception':
+                if allowed_exception:
+                    this_script = this_section['content']
+                else:
+                    this_script = ''
             else:
                 this_script = ''
             # 添加到列表

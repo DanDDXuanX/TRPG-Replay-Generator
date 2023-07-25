@@ -287,28 +287,28 @@ class VerticalOutputCommand(OutPutCommand):
             item.pack(fill='x',anchor='n',side='bottom',pady=(SZ_5,0))
     # 因为垂直输出命令，涉及的是CodeView，因此在导出前应该添加：将CodeView的内容更新到RGL
     def preview_display(self):
-        try:
-            self.codeview.update_rplgenlog()
-        except Exception as E:
-            print(E)
+        # 更新rgl
+        self.codeview.update_rplgenlog()
+        # 如果log中存在错误！
+        if self.codeview.is_error:
             Link['terminal_control'].configure(state='disable')
             self.winfo_toplevel().navigate_bar.enable_navigate()
             return
         return super().preview_display()
     def export_video(self):
-        try:
-            self.codeview.update_rplgenlog()
-        except Exception as E:
-            print(E)
+        # 更新rgl
+        self.codeview.update_rplgenlog()
+        # 如果log中存在错误！
+        if self.codeview.is_error:
             Link['terminal_control'].configure(state='disable')
             self.winfo_toplevel().navigate_bar.enable_navigate()
             return
         return super().export_video()
     def export_xml(self):
-        try:
-            self.codeview.update_rplgenlog()
-        except Exception as E:
-            print(E)
+        # 更新rgl
+        self.codeview.update_rplgenlog()
+        # 如果log中存在错误！
+        if self.codeview.is_error:
             Link['terminal_control'].configure(state='disable')
             self.winfo_toplevel().navigate_bar.enable_navigate()
             return
@@ -316,10 +316,9 @@ class VerticalOutputCommand(OutPutCommand):
     # 因为语音合成涉及到RGL的改变，因此执行成功之后，应该返回给RGL对象，并更新给CodeView！
     def synth_speech(self):
         # 更新rgl
-        try:
-            self.codeview.update_rplgenlog()
-        except Exception as E:
-            print(E)
+        self.codeview.update_rplgenlog()
+        # 如果log中存在错误！
+        if self.codeview.is_error:
             Link['terminal_control'].configure(state='disable')
             self.winfo_toplevel().navigate_bar.enable_navigate()
             return
