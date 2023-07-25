@@ -767,7 +767,7 @@ class RplGenLog(Script):
         this_bubble['tx_method'] = self.method_parser(this_method_label)
         # 返回
         return this_bubble
-    def parser(self,script:str,allowed_exception:False) -> dict:
+    def parser(self,script:str,allowed_exception=False) -> dict:
         # 分割小节
         stdin_text = script.split('\n')
         # 结构体
