@@ -9,10 +9,11 @@ import ttkbootstrap as ttk
 from chlorophyll import CodeView
 from .ScriptParser import CharTable, MediaDef
 from .GUI_CustomDialog import abmethod_query
+from .GUI_Link import Link
 
 class CodeSnippet(ttk.Menu):
     def __init__(self,master):
-        super().__init__(master=master, tearoff=0, font=('Sarasa Mono SC',10))
+        super().__init__(master=master, tearoff=0, font=(Link['terminal_font_family'],10))
 
 class RGLSnippets(CodeSnippet):
     Snippets = {

@@ -12,8 +12,8 @@ from ttkbootstrap.dialogs import Messagebox, MessageCatalog
 from PIL import Image, ImageTk
 
 from .ProjConfig import Preference, preference
+from .GUI_Link import Link
 from .Utils import EDITION
-from tkextrafont import Font as FileFont
 # 项目视图
 from .GUI_View import EmptyView, ProjectView, ConsoleView, ScriptView, PreferenceView
 
@@ -52,9 +52,51 @@ class RplGenStudioMainWindow(ttk.Window):
             }
         self.show = 'project'
         self.view_show('project')
+    # 初始化字体
+    def font_init(self):
+        # 字体
+        # 系统字体
+        if preference.lang == 'zh':
+            if 'win32' in sys.platform:
+                system_font_family = '微软雅黑'
+            elif 'linux' in sys.platform:
+                system_font_family = '文泉驿微米黑'
+            elif 'darwin' in sys.platform:
+                system_font_family = '华文黑体'
+            else:
+                system_font_family = '华文黑体'
+        else:
+            # TODO: 英文
+            if 'win32' in sys.platform:
+                system_font_family = '微软雅黑'
+            elif 'linux' in sys.platform:
+                system_font_family = '文泉驿微米黑'
+            elif 'darwin' in sys.platform:
+                system_font_family = '华文黑体'
+            else:
+                system_font_family = '华文黑体'
+        self.system_font_family = system_font_family
+        Link['system_font_family'] = system_font_family
+        # 终端字体
+        if preference.lang == 'zh':
+            try:
+                from tkextrafont import Font as FileFont
+                self.terminal_font = FileFont(file='./media/sarasa-mono-sc-regular.ttf')
+                terminal_font_family = 'Sarasa Mono SC'
+            except:
+                terminal_font_family = system_font_family
+        else:
+            try:
+                from tkextrafont import Font as FileFont
+                self.terminal_font = FileFont(file='./media/sarasa-mono-sc-regular.ttf')
+                terminal_font_family = 'Sarasa Mono SC'
+            except:
+                terminal_font_family = system_font_family
+        self.terminal_font_family = terminal_font_family
+        Link['terminal_font_family'] = terminal_font_family
     # 初始化主题
     def theme_config(self,theme):
-        self.terminal_font = FileFont(file='./media/sarasa-mono-sc-regular.ttf')
+        self.font_init()
         self.style.load_user_themes('./media/GUI_theme.json')
         # 样式
         SZ_5 = int(5 * self.sz)
@@ -64,88 +106,88 @@ class RplGenStudioMainWindow(ttk.Window):
         # self
         # 使用主题
         if theme == 'rplgenlight':
-            self.style.configure('terminal.TButton',compound='left',font="-family 微软雅黑 -size 14 -weight bold")
-            self.style.configure('output.TButton',compound='left',font="-family 微软雅黑 -size 14 -weight bold")
+            self.style.configure('terminal.TButton',compound='left',font=(self.system_font_family, 14, "bold"))
+            self.style.configure('output.TButton',compound='left',font=(self.system_font_family, 14, "bold"))
             # bootstyle
-            self.style.configure('success.TButton',font="-family 微软雅黑 -size 18 -weight bold",anchor='w') # dark
-            self.style.configure('info.TButton',font="-family 微软雅黑 -size 16 -weight bold",anchor='center',foreground="#555555") # lightgrey
+            self.style.configure('success.TButton',font=(self.system_font_family, 18, "bold"),anchor='w') # dark
+            self.style.configure('info.TButton',font=(self.system_font_family, 16, "bold"),anchor='center',foreground="#555555") # lightgrey
             self.style.configure('light.TButton',anchor='w') # light
             # 媒体定义的颜色标签
-            self.style.configure('Violet.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#ffffff',background='#a690e0')
-            self.style.configure('Iris.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#ffffff',background='#729acc')
-            self.style.configure('Caribbean.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#ffffff',background='#29d698')
-            self.style.configure('Lavender.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#ffffff',background='#e384e3')
-            self.style.configure('Cerulean.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#ffffff',background='#2fbfde')
-            self.style.configure('Forest.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#ffffff',background='#51b858')
-            self.style.configure('Rose.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#ffffff',background='#f76fa4')
-            self.style.configure('Mango.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#ffffff',background='#eda63b')
-            self.style.configure('Purple.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#ffffff',background='#970097')
-            self.style.configure('Blue.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#ffffff',background='#3c3cff')
-            self.style.configure('Teal.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#ffffff',background='#008080')
-            self.style.configure('Magenta.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#ffffff',background='#e732e7')
-            self.style.configure('Tan.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#ffffff',background='#cec195')
-            self.style.configure('Green.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#ffffff',background='#1d7021')
-            self.style.configure('Brown.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#ffffff',background='#8b4513')
-            self.style.configure('Yellow.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#ffffff',background='#e2e264')
+            self.style.configure('Violet.TLabel',anchor='center',font=(self.system_font_family, 12, "bold"),padding=text_label_pad,foreground='#ffffff',background='#a690e0')
+            self.style.configure('Iris.TLabel',anchor='center',font=(self.system_font_family, 12, "bold"),padding=text_label_pad,foreground='#ffffff',background='#729acc')
+            self.style.configure('Caribbean.TLabel',anchor='center',font=(self.system_font_family, 12, "bold"),padding=text_label_pad,foreground='#ffffff',background='#29d698')
+            self.style.configure('Lavender.TLabel',anchor='center',font=(self.system_font_family, 12, "bold"),padding=text_label_pad,foreground='#ffffff',background='#e384e3')
+            self.style.configure('Cerulean.TLabel',anchor='center',font=(self.system_font_family, 12, "bold"),padding=text_label_pad,foreground='#ffffff',background='#2fbfde')
+            self.style.configure('Forest.TLabel',anchor='center',font=(self.system_font_family, 12, "bold"),padding=text_label_pad,foreground='#ffffff',background='#51b858')
+            self.style.configure('Rose.TLabel',anchor='center',font=(self.system_font_family, 12, "bold"),padding=text_label_pad,foreground='#ffffff',background='#f76fa4')
+            self.style.configure('Mango.TLabel',anchor='center',font=(self.system_font_family, 12, "bold"),padding=text_label_pad,foreground='#ffffff',background='#eda63b')
+            self.style.configure('Purple.TLabel',anchor='center',font=(self.system_font_family, 12, "bold"),padding=text_label_pad,foreground='#ffffff',background='#970097')
+            self.style.configure('Blue.TLabel',anchor='center',font=(self.system_font_family, 12, "bold"),padding=text_label_pad,foreground='#ffffff',background='#3c3cff')
+            self.style.configure('Teal.TLabel',anchor='center',font=(self.system_font_family, 12, "bold"),padding=text_label_pad,foreground='#ffffff',background='#008080')
+            self.style.configure('Magenta.TLabel',anchor='center',font=(self.system_font_family, 12, "bold"),padding=text_label_pad,foreground='#ffffff',background='#e732e7')
+            self.style.configure('Tan.TLabel',anchor='center',font=(self.system_font_family, 12, "bold"),padding=text_label_pad,foreground='#ffffff',background='#cec195')
+            self.style.configure('Green.TLabel',anchor='center',font=(self.system_font_family, 12, "bold"),padding=text_label_pad,foreground='#ffffff',background='#1d7021')
+            self.style.configure('Brown.TLabel',anchor='center',font=(self.system_font_family, 12, "bold"),padding=text_label_pad,foreground='#ffffff',background='#8b4513')
+            self.style.configure('Yellow.TLabel',anchor='center',font=(self.system_font_family, 12, "bold"),padding=text_label_pad,foreground='#ffffff',background='#e2e264')
             # 角色表的表头样式
-            self.style.configure('CharHead.TLabel',anchor='left',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#ffffff',background='#51b858')
+            self.style.configure('CharHead.TLabel',anchor='left',font=(self.system_font_family, 12, "bold"),padding=text_label_pad,foreground='#ffffff',background='#51b858')
             # 显示内容的头文本
-            self.style.configure('comment.TLabel',anchor='w',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#bfbfbf') # 浅灰色
-            self.style.configure('dialog.TLabel',anchor='w',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#0f86cb') # 蓝色的
-            self.style.configure('setdync.TLabel',anchor='w',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#008000') # 绿色的
-            self.style.configure('place.TLabel',anchor='w',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#e60074') # 品红
-            self.style.configure('invasterisk.TLabel',anchor='w',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#cc0000') # 红色的
+            self.style.configure('comment.TLabel',anchor='w',font=(self.system_font_family, 12, "bold"),padding=text_label_pad,foreground='#bfbfbf') # 浅灰色
+            self.style.configure('dialog.TLabel',anchor='w',font=(self.system_font_family, 12, "bold"),padding=text_label_pad,foreground='#0f86cb') # 蓝色的
+            self.style.configure('setdync.TLabel',anchor='w',font=(self.system_font_family, 12, "bold"),padding=text_label_pad,foreground='#008000') # 绿色的
+            self.style.configure('place.TLabel',anchor='w',font=(self.system_font_family, 12, "bold"),padding=text_label_pad,foreground='#e60074') # 品红
+            self.style.configure('invasterisk.TLabel',anchor='w',font=(self.system_font_family, 12, "bold"),padding=text_label_pad,foreground='#cc0000') # 红色的
             # 显示内容的主文本
-            self.style.configure('main.TLabel',anchor='w',font="-family 微软雅黑 -size 10",padding=text_label_pad) # 黑色的
-            self.style.configure('ingore.TLabel',anchor='w',font="-family 微软雅黑 -size 10",padding=text_label_pad,foreground='#bfbfbf') # 浅灰色
-            self.style.configure('method.TLabel',anchor='w',font="-family 微软雅黑 -size 10 -weight bold",padding=text_label_pad,foreground='#bf8000') # 橙色的
-            self.style.configure('digit.TLabel',anchor='w',font="-family 微软雅黑 -size 10 -weight bold",padding=text_label_pad,foreground='#6600cc') # 紫色的
-            self.style.configure('fuction.TLabel',anchor='w',font="-family 微软雅黑 -size 10 -weight bold",padding=text_label_pad,foreground='#009898') # 蓝色的
-            self.style.configure('object.TLabel',anchor='w',font="-family 微软雅黑 -size 10 -weight bold",padding=text_label_pad,foreground='#303030') # 深灰色
-            self.style.configure('exception.TLabel',anchor='w',font="-family 微软雅黑 -size 10 -weight bold",padding=text_label_pad,foreground='#cc0000') # 红色的
+            self.style.configure('main.TLabel',anchor='w',font=(self.system_font_family, 10),padding=text_label_pad) # 黑色的
+            self.style.configure('ingore.TLabel',anchor='w',font=(self.system_font_family, 10),padding=text_label_pad,foreground='#bfbfbf') # 浅灰色
+            self.style.configure('method.TLabel',anchor='w',font=(self.system_font_family, 10, "bold"),padding=text_label_pad,foreground='#bf8000') # 橙色的
+            self.style.configure('digit.TLabel',anchor='w',font=(self.system_font_family, 10, "bold"),padding=text_label_pad,foreground='#6600cc') # 紫色的
+            self.style.configure('fuction.TLabel',anchor='w',font=(self.system_font_family, 10, "bold"),padding=text_label_pad,foreground='#009898') # 蓝色的
+            self.style.configure('object.TLabel',anchor='w',font=(self.system_font_family, 10, "bold"),padding=text_label_pad,foreground='#303030') # 深灰色
+            self.style.configure('exception.TLabel',anchor='w',font=(self.system_font_family, 10, "bold"),padding=text_label_pad,foreground='#cc0000') # 红色的
             # 预览窗体
             self.style.configure('preview.TLabel',anchor='center',background='#333333',borderwidth=0)
         elif theme == 'rplgendark':
             # self.dark_title_bar() # 有bug，在win10不正常显示
-            self.style.configure('terminal.TButton',compound='left',font="-family 微软雅黑 -size 14 -weight bold")
-            self.style.configure('output.TButton',compound='left',font="-family 微软雅黑 -size 14 -weight bold")
+            self.style.configure('terminal.TButton',compound='left',font=(self.system_font_family, 14, "bold"))
+            self.style.configure('output.TButton',compound='left',font=(self.system_font_family, 14, "bold"))
             # bootstyle
-            self.style.configure('success.TButton',font="-family 微软雅黑 -size 18 -weight bold",anchor='w') # dark
-            self.style.configure('info.TButton',font="-family 微软雅黑 -size 16 -weight bold",anchor='center',foreground="#aaaaaa") # lightgrey
+            self.style.configure('success.TButton',font=(self.system_font_family, 18, "bold"),anchor='w') # dark
+            self.style.configure('info.TButton',font=(self.system_font_family, 16, "bold"),anchor='center',foreground="#aaaaaa") # lightgrey
             self.style.configure('light.TButton',anchor='w') # light
             # 媒体定义的颜色标签
-            self.style.configure('Violet.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,background='#1d1d1d',foreground='#a690e0')
-            self.style.configure('Iris.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,background='#1d1d1d',foreground='#729acc')
-            self.style.configure('Caribbean.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,background='#1d1d1d',foreground='#29d698')
-            self.style.configure('Lavender.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,background='#1d1d1d',foreground='#e384e3')
-            self.style.configure('Cerulean.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,background='#1d1d1d',foreground='#2fbfde')
-            self.style.configure('Forest.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,background='#1d1d1d',foreground='#51b858')
-            self.style.configure('Rose.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,background='#1d1d1d',foreground='#f76fa4')
-            self.style.configure('Mango.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,background='#1d1d1d',foreground='#eda63b')
-            self.style.configure('Purple.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,background='#1d1d1d',foreground='#970097')
-            self.style.configure('Blue.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,background='#1d1d1d',foreground='#3c3cff')
-            self.style.configure('Teal.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,background='#1d1d1d',foreground='#008080')
-            self.style.configure('Magenta.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,background='#1d1d1d',foreground='#e732e7')
-            self.style.configure('Tan.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,background='#1d1d1d',foreground='#cec195')
-            self.style.configure('Green.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,background='#1d1d1d',foreground='#1d7021')
-            self.style.configure('Brown.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,background='#1d1d1d',foreground='#8b4513')
-            self.style.configure('Yellow.TLabel',anchor='center',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,background='#1d1d1d',foreground='#e2e264')
+            self.style.configure('Violet.TLabel',anchor='center',font=(self.system_font_family, 12, "bold"),padding=text_label_pad,background='#1d1d1d',foreground='#a690e0')
+            self.style.configure('Iris.TLabel',anchor='center',font=(self.system_font_family, 12, "bold"),padding=text_label_pad,background='#1d1d1d',foreground='#729acc')
+            self.style.configure('Caribbean.TLabel',anchor='center',font=(self.system_font_family, 12, "bold"),padding=text_label_pad,background='#1d1d1d',foreground='#29d698')
+            self.style.configure('Lavender.TLabel',anchor='center',font=(self.system_font_family, 12, "bold"),padding=text_label_pad,background='#1d1d1d',foreground='#e384e3')
+            self.style.configure('Cerulean.TLabel',anchor='center',font=(self.system_font_family, 12, "bold"),padding=text_label_pad,background='#1d1d1d',foreground='#2fbfde')
+            self.style.configure('Forest.TLabel',anchor='center',font=(self.system_font_family, 12, "bold"),padding=text_label_pad,background='#1d1d1d',foreground='#51b858')
+            self.style.configure('Rose.TLabel',anchor='center',font=(self.system_font_family, 12, "bold"),padding=text_label_pad,background='#1d1d1d',foreground='#f76fa4')
+            self.style.configure('Mango.TLabel',anchor='center',font=(self.system_font_family, 12, "bold"),padding=text_label_pad,background='#1d1d1d',foreground='#eda63b')
+            self.style.configure('Purple.TLabel',anchor='center',font=(self.system_font_family, 12, "bold"),padding=text_label_pad,background='#1d1d1d',foreground='#970097')
+            self.style.configure('Blue.TLabel',anchor='center',font=(self.system_font_family, 12, "bold"),padding=text_label_pad,background='#1d1d1d',foreground='#3c3cff')
+            self.style.configure('Teal.TLabel',anchor='center',font=(self.system_font_family, 12, "bold"),padding=text_label_pad,background='#1d1d1d',foreground='#008080')
+            self.style.configure('Magenta.TLabel',anchor='center',font=(self.system_font_family, 12, "bold"),padding=text_label_pad,background='#1d1d1d',foreground='#e732e7')
+            self.style.configure('Tan.TLabel',anchor='center',font=(self.system_font_family, 12, "bold"),padding=text_label_pad,background='#1d1d1d',foreground='#cec195')
+            self.style.configure('Green.TLabel',anchor='center',font=(self.system_font_family, 12, "bold"),padding=text_label_pad,background='#1d1d1d',foreground='#1d7021')
+            self.style.configure('Brown.TLabel',anchor='center',font=(self.system_font_family, 12, "bold"),padding=text_label_pad,background='#1d1d1d',foreground='#8b4513')
+            self.style.configure('Yellow.TLabel',anchor='center',font=(self.system_font_family, 12, "bold"),padding=text_label_pad,background='#1d1d1d',foreground='#e2e264')
             # 角色表的表头样式
-            self.style.configure('CharHead.TLabel',anchor='left',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#eeeeee',background='#505050')
+            self.style.configure('CharHead.TLabel',anchor='left',font=(self.system_font_family, 12, "bold"),padding=text_label_pad,foreground='#eeeeee',background='#505050')
             # 显示内容的头文本
-            self.style.configure('comment.TLabel',anchor='w',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#bfbfbf') # 浅灰色
-            self.style.configure('dialog.TLabel',anchor='w',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#c188e9') # 蓝色的
-            self.style.configure('setdync.TLabel',anchor='w',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#008000') # 绿色的
-            self.style.configure('place.TLabel',anchor='w',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#e60074') # 品红
-            self.style.configure('invasterisk.TLabel',anchor='w',font="-family 微软雅黑 -size 12 -weight bold",padding=text_label_pad,foreground='#cc0000') # 红色的
+            self.style.configure('comment.TLabel',anchor='w',font=(self.system_font_family, 12, "bold"),padding=text_label_pad,foreground='#bfbfbf') # 浅灰色
+            self.style.configure('dialog.TLabel',anchor='w',font=(self.system_font_family, 12, "bold"),padding=text_label_pad,foreground='#c188e9') # 蓝色的
+            self.style.configure('setdync.TLabel',anchor='w',font=(self.system_font_family, 12, "bold"),padding=text_label_pad,foreground='#008000') # 绿色的
+            self.style.configure('place.TLabel',anchor='w',font=(self.system_font_family, 12, "bold"),padding=text_label_pad,foreground='#e60074') # 品红
+            self.style.configure('invasterisk.TLabel',anchor='w',font=(self.system_font_family, 12, "bold"),padding=text_label_pad,foreground='#cc0000') # 红色的
             # 显示内容的主文本
-            self.style.configure('main.TLabel',anchor='w',font="-family 微软雅黑 -size 10",padding=text_label_pad) # 黑色的
-            self.style.configure('ingore.TLabel',anchor='w',font="-family 微软雅黑 -size 10",padding=text_label_pad,foreground='#bfbfbf') # 浅灰色
-            self.style.configure('method.TLabel',anchor='w',font="-family 微软雅黑 -size 10 -weight bold",padding=text_label_pad,foreground='#bf8000') # 橙色的
-            self.style.configure('digit.TLabel',anchor='w',font="-family 微软雅黑 -size 10 -weight bold",padding=text_label_pad,foreground='#6600cc') # 紫色的
-            self.style.configure('fuction.TLabel',anchor='w',font="-family 微软雅黑 -size 10 -weight bold",padding=text_label_pad,foreground='#009898') # 蓝色的
-            self.style.configure('object.TLabel',anchor='w',font="-family 微软雅黑 -size 10 -weight bold",padding=text_label_pad,foreground='#303030') # 深灰色
-            self.style.configure('exception.TLabel',anchor='w',font="-family 微软雅黑 -size 10 -weight bold",padding=text_label_pad,foreground='#cc0000') # 红色的
+            self.style.configure('main.TLabel',anchor='w',font=(self.system_font_family, 10),padding=text_label_pad) # 黑色的
+            self.style.configure('ingore.TLabel',anchor='w',font=(self.system_font_family, 10),padding=text_label_pad,foreground='#bfbfbf') # 浅灰色
+            self.style.configure('method.TLabel',anchor='w',font=(self.system_font_family, 10, "bold"),padding=text_label_pad,foreground='#bf8000') # 橙色的
+            self.style.configure('digit.TLabel',anchor='w',font=(self.system_font_family, 10, "bold"),padding=text_label_pad,foreground='#6600cc') # 紫色的
+            self.style.configure('fuction.TLabel',anchor='w',font=(self.system_font_family, 10, "bold"),padding=text_label_pad,foreground='#009898') # 蓝色的
+            self.style.configure('object.TLabel',anchor='w',font=(self.system_font_family, 10, "bold"),padding=text_label_pad,foreground='#303030') # 深灰色
+            self.style.configure('exception.TLabel',anchor='w',font=(self.system_font_family, 10, "bold"),padding=text_label_pad,foreground='#cc0000') # 红色的
             # 预览窗体
             self.style.configure('preview.TLabel',anchor='center',background='#333333',borderwidth=0)
     # 当关闭窗口时

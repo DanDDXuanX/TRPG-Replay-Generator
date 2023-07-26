@@ -13,6 +13,7 @@ from .TTSengines import Aliyun_TTS_engine, Azure_TTS_engine, Beats_engine, voice
 from .Exceptions import WarningPrint
 from .Medias import Audio
 from .Utils import mod62_timestamp
+from .GUI_Link import Link
 # 语音参数
 class VoiceArgs(ttk.Frame):
     def __init__(self,master,screenzoom,service:str,voice:str='',speech_rate:int=0,pitch_rate:int=0):
@@ -273,7 +274,7 @@ class VoiceChooser(ttk.Frame):
             service = "Aliyun"
             speaker = voice
         # 建立元件
-        self.title = ttk.Label(master=self,text='选择音源',font='-family 微软雅黑 -size 15 -weight bold')
+        self.title = ttk.Label(master=self,text='选择音源',font=(Link['system_font_family'], 15, "bold"))
         self.argument_notebook = ttk.Notebook(master=self,bootstyle="primary")
         self.args_frame = {
             'Aliyun'    : AliyunVoiceArgs(master=self.argument_notebook,screenzoom=self.sz,voice=speaker,speech_rate=speech_rate,pitch_rate=pitch_rate),
@@ -286,7 +287,7 @@ class VoiceChooser(ttk.Frame):
         self.argument_notebook.select(self.args_frame[service])
         # 测试文本
         self.preview_frame = ttk.LabelFrame(master=self, text='测试文本',padding=(SZ_10,SZ_5,SZ_10,SZ_10))
-        self.preview_text = ttk.Text(master=self.preview_frame,font='-family 微软雅黑 -size 12',height=5,width=20)
+        self.preview_text = ttk.Text(master=self.preview_frame,font=(Link['system_font_family'], 12),height=5,width=20)
         self.preview_text.insert("end",'在这里输入你想要合成的文本！')
         self.preview_text.pack(fill='both',expand=True)
         # 按钮

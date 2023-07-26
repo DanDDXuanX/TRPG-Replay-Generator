@@ -7,6 +7,7 @@ from PIL import Image, ImageTk
 from .ProjConfig import preference, Preference
 from .GUI_PageElement import OutPutCommand
 from .GUI_Util import TextSeparator, KeyValueDescribe, FluentFrame
+from .GUI_Link import Link
 from .GUI_TableStruct import PreferenceTableStruct, ExecuteTableStruct
 from .GUI_TableStruct import language, True_False, theme, progressbar, import_mode
 
@@ -23,7 +24,7 @@ class TableEdit(ttk.Frame):
         self.sz = screenzoom
         SZ_10 = int(self.sz*10)
         super().__init__(master,borderwidth=0,padding=SZ_10)
-        self.title = ttk.Label(master=self,text=title,font='-family 微软雅黑 -size 20 -weight bold',anchor='center')
+        self.title = ttk.Label(master=self,text=title,font=(Link['system_font_family'], 20, "bold"),anchor='center')
         self.options = FluentFrame(master=self,autohide=True)
         self.options.vscroll.config(bootstyle='primary-round')
         self.outputs = ttk.Frame(master=self)
@@ -90,7 +91,7 @@ class ScriptExecuter(TableEdit):
         ttk.Label(
             master=self.options,
             text='暂时禁用，未来可能移除！',
-            font="-family 微软雅黑 -size 30 -weight bold",
+            font=(Link['system_font_family'], 30, "bold"),
             foreground='#bbbbbb',
             anchor='center'
         ).pack(

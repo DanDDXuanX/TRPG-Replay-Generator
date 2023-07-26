@@ -13,6 +13,7 @@ from .GUI_VoiceChooser import VoiceChooserDialog
 from .GUI_NewProject import CreateProjectDialog
 from .GUI_Relocate import RelocateDialog
 from .GUI_Util import DictCombobox
+from .GUI_Link import Link
 # 语法解释器
 from .ScriptParser import MediaDef
 
@@ -116,7 +117,7 @@ class ABMethodQurey(SelectionQurey):
         self.seperator = ttk.Separator(master=frame)
         self.seperator.pack(fill='x',side='top',pady=(0,5))
         self.varible = StringVar(master=self, value='')
-        self.result_show = ttk.Label(master=frame, textvariable=self.varible,anchor='center',font=('Sarasa Mono SC',10))
+        self.result_show = ttk.Label(master=frame, textvariable=self.varible,anchor='center',font=(Link['terminal_font_family'],10))
         self.result_show.pack(fill='x',side='top',pady=(0,0))
         self.update_result(None)
         # 放置主视图

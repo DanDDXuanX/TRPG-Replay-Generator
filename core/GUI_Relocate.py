@@ -9,6 +9,7 @@ import tkinter as tk
 import ttkbootstrap as ttk
 from ttkbootstrap.dialogs import Messagebox, Dialog
 from tkinter.filedialog import askdirectory
+from .GUI_Link import Link
 
 # 框
 class RelocateFile(ttk.Frame):
@@ -25,7 +26,7 @@ class RelocateFile(ttk.Frame):
         # 建立表格
         self.data = pd.DataFrame(columns=['media_name','file_name','invalid_path','relocate_path'])
         # 建立原件
-        self.title = ttk.Label(master=self,font='-family 微软雅黑 -size 15 -weight bold')
+        self.title = ttk.Label(master=self,font=(Link['system_font_family'], 15, "bold"))
         # 表格
         self.table = ttk.Treeview(
             master=self,

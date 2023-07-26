@@ -90,7 +90,7 @@ class Terminal(ttk.Frame):
             foreground='#eeeeee',
             insertbackground='#eeeeee',
             autostyle=False,
-            font=('Sarasa Mono SC',14),
+            font=(Link['terminal_font_family'],14),
             autohide=True
             )
         self.terminal._text.configure(padx=2*SZ_10)
