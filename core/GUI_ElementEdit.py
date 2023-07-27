@@ -562,8 +562,8 @@ class MediaEdit(EditWindow):
             self.elements['ht_pos_%d'%sep_new].describe.configure(command=self.select_dot_idx(sep_new))
             self.elements['ht_target_%d'%sep_new].input.update_dict(self.get_avaliable_charcol())
         if self.line_type == 'ChatWindow':
-            self.elements["sub_Bubble_%d"%sep_new].input.configure(values=['Bubble()']+self.get_avaliable_bubble(cw=False))
-            self.elements["sub_Anime_%d"%sep_new].input.configure(values=['None']+self.get_avaliable_anime())
+            self.elements["sub_Bubble_%d"%sep_new].input.configure(values=['Bubble()']+self.get_avaliable_bubble(cw=False),state='readonly')
+            self.elements["sub_Anime_%d"%sep_new].input.configure(values=['None']+self.get_avaliable_anime(),state='readonly')
             self.elements["sub_align_%d"%sep_new].input.update_dict(chatalign)
         # 更新显示
         SZ_10 = int(self.sz * 10)
