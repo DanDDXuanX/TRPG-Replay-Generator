@@ -2066,6 +2066,26 @@ PreferenceTableStruct = {
                 "vtype": "float",
                 "default": 0.0521
             },
+            "BIA.dice_mode":{
+                "ktext": "骰子模式：",
+                "tooltip":"在骰子动画中，类COC规则是出目小于检定值为成功，而类DND规则是相反的。",
+                "dtext": "（选择）",
+                "ditem": "label",
+                "valuekey": "BIA.dice_mode",
+                "vitem": "combox",
+                "vtype": "str",
+                "default": 'COC'
+            },
+            "BIA.dice_threshold":{
+                "ktext": "骰子阈值：",
+                "tooltip":"在骰子动画中，最极端的出目值被规定为大成功/大失败，指定大成功的阈值（比例）。",
+                "dtext": "（输入）",
+                "ditem": "label",
+                "valuekey": "BIA.dice_threshold",
+                "vitem": "entry",
+                "vtype": "float",
+                "default": 0.05
+            },
             "BIA.heart_pic":{
                 "ktext": "HP动画前景：",
                 "tooltip":"在血条动画中，代表剩余生命值的符号的图片。",
@@ -2532,6 +2552,10 @@ progressbar = {
 import_mode = {
     '新增' : 'add',
     '覆盖' : 'replace'
+}
+dice_mode = {
+    '类COC' : 'COC',
+    '类DND' : 'DND'
 }
 # 新建媒体按钮的结构
 NewElement = {

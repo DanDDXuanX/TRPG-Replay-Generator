@@ -228,11 +228,16 @@ class RplGenStudioMainWindow(ttk.Window):
     # 获取系统的缩放比例
     def get_screenzoom(self)->float:
         if 'win32' in sys.platform:
-            from ctypes import windll
-            return windll.shcore.GetScaleFactorForDevice(0) / 100
+            try:
+                from ctypes import windll
+                return windll.shcore.GetScaleFactorForDevice(0) / 100
+            except:
+                return 1.0
+        elif 'linux' in sys.platform:
+            return 1.0
         else:
             print(sys.platform)
-            return 1.0
+            return 2.0
     # 进入或者取消全屏
     def switch_fullscreen(self,event):
         self.attributes("-fullscreen", not self.attributes("-fullscreen"))

@@ -8,7 +8,7 @@ from pathlib import Path
 from PIL import ImageFile
 from .Exceptions import ArgumentError,WarningPrint,Print,RplGenError
 from .Motion import MotionMethod
-from .Medias import MediaObj, BuiltInAnimation, HitPoint
+from .Medias import MediaObj, BuiltInAnimation, HitPoint, Dice
 from .TTSengines import Aliyun_TTS_engine,Azure_TTS_engine
 
 # 项目设置
@@ -107,6 +107,8 @@ class Preference:
             # 媒体
             self.BIA_font:str = dict_input['BIA.font']
             self.BIA_font_size:float =dict_input['BIA.font_size']
+            self.dice_mode:str = dict_input['BIA.dice_mode']
+            self.dice_threshold:float = dict_input['BIA.dice_threshold']
             self.heart_pic:str = dict_input['BIA.heart_pic']
             self.heart_shape:str = dict_input['BIA.heart_shape']
             self.heart_distance:float = dict_input['BIA.heart_distance']
@@ -137,6 +139,9 @@ class Preference:
             self.BIA_font:str = './media/SourceHanSerifSC-Heavy.otf'
             # 内建动画的字体大小
             self.BIA_font_size:float = 0.0521 # W
+            # 骰子动画的模式
+            self.dice_mode:str = 'COC'
+            self.dice_threshold:float = 0.05 # 5%
             # 生命动画的前景图
             self.heart_pic:str = './media/heart.png'
             # 生命动画的背景图
@@ -169,6 +174,8 @@ class Preference:
             # 媒体
             'BIA.font'                  : self.BIA_font,
             'BIA.font_size'             : self.BIA_font_size,
+            'BIA.dice_mode'             : self.dice_mode,
+            'BIA.dice_threshold'        : self.dice_threshold,
             'BIA.heart_pic'             : self.heart_pic,
             'BIA.heart_shape'           : self.heart_shape,
             'BIA.heart_distance'        : self.heart_distance,
@@ -205,6 +212,8 @@ class Preference:
         HitPoint.heart_image = self.heart_pic
         HitPoint.heart_shape = self.heart_shape
         HitPoint.heart_distance = self.heart_distance
+        Dice.significant = self.dice_threshold
+        Dice.mode = self.dice_mode
     def load_json(self,filepath)->dict:
         with open(filepath,'r') as json_file:
             data =json.load(json_file)
