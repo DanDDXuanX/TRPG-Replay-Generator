@@ -8,14 +8,14 @@
 import tkinter as tk
 import ttkbootstrap as ttk
 from ttkbootstrap.dialogs import Messagebox
-from PIL import Image, ImageTk
 from .GUI_FileManager import FileManager
 from .GUI_TabPage import PageFrame
 from .GUI_Terminal import Terminal
 from .GUI_TableEdit import ScriptExecuter, PreferenceTable, ResetConfirm
-from .GUI_Util import Texture, FreeToolTip
+from .GUI_Util import Texture
 from .GUI_DialogWindow import browse_file
 from .GUI_CustomDialog import new_project
+from .GUI_EmptyHomeView import HomePageElements
 # 脚本视图：运行 MDF、CTB、RGL 脚本文件的视图。
 # 控制台视图：容纳控制台输出内容的视图。
 # 首选项视图：设置整个程序的首选项的视图。
@@ -31,30 +31,11 @@ class EmptyView(ttk.Frame):
         # 子原件
         icon_size = (SZ_150, SZ_150)
         self.texture = Texture(master=self, screenzoom=self.sz, file='./media/icon/texture3.png')
-        self.content = ttk.Frame(master=self,padding=SZ_10)
-        self.image = {
-            'open_p' : ImageTk.PhotoImage(name='open_p',  image=Image.open('./media/icon/open.png').resize(icon_size)),
-            'new_p'  : ImageTk.PhotoImage(name='new_p',   image=Image.open('./media/icon/new.png').resize(icon_size)),
-            'intel_p': ImageTk.PhotoImage(name='intel_p', image=Image.open('./media/icon/intel.png').resize(icon_size)),
-        }
-        self.open_project_buttons = {
-            'open_p' : ttk.Button(master=self.content, text='打开项目',     compound='top', image='open_p' ,bootstyle='info',command=self.open_project),
-            'new_p'  : ttk.Button(master=self.content, text='新建空白项目', compound='top', image='new_p'  ,bootstyle='info',command=self.empty_project),
-            'intel_p': ttk.Button(master=self.content, text='新建智能项目', compound='top', image='intel_p',bootstyle='info',command=self.intel_project),
-        }
-        self.tooltips = {
-            'open_p' : FreeToolTip(widget=self.open_project_buttons['open_p'], text='从文件夹中打开一个现有的项目。',bootstyle='light-inverse'),
-            'new_p'  : FreeToolTip(widget=self.open_project_buttons['new_p'], text='创建一个空白的项目，导入回声工坊1.0版本的工程文件，或者从头开始创建你的项目。',bootstyle='light-inverse',screenzoom=self.sz),
-            'intel_p': FreeToolTip(widget=self.open_project_buttons['intel_p'], text='选择样式模板，智能解析导入聊天记录或者染色器log文件，直接创建一个半成品项目。',bootstyle='light-inverse',screenzoom=self.sz),
-        }
+        self.content = HomePageElements(master=self, screenzoom=self.sz)
         self.update_items()
     def update_items(self):
         self.texture.place(relx=0,rely=0,relwidth=1,relheight=1)
-        self.content.place(relx=0.25,rely=0.3,relwidth=0.5,relheight=0.3)
-        for keyword in self.open_project_buttons:
-            SZ_10 = int(self.sz * 10)
-            this_button:ttk.Button = self.open_project_buttons[keyword]
-            this_button.pack(side='left', fill='both',expand=True,padx=SZ_10,pady=SZ_10)
+        self.content.place(relx=0.25,rely=0.15,relwidth=0.5,relheight=0.65)
     def open_project_file(self,filepath):
         try:
             PView = ProjectView(master=self.master,screenzoom=self.sz,project_file=filepath)
@@ -63,7 +44,8 @@ class EmptyView(ttk.Frame):
             self.master.view_show('project')
             self.destroy()
         except Exception as E:
-            print(E)
+            from traceback import print_exc
+            print_exc()
             Messagebox().show_error(message='无法读取工程文件，该文件可能已损坏。',title='打开失败',parent=self.winfo_toplevel())
     def open_project(self):
         get_file:str = browse_file(master=self.winfo_toplevel(),text_obj=tk.StringVar(),method='file',filetype='rplgenproj',related=False)

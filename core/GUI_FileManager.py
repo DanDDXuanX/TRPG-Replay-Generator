@@ -94,6 +94,8 @@ class FileManager(ttk.Frame):
         }
         # 标题
         self.project_title = ttk.Frame(master=self,borderwidth=0,bootstyle='light')
+        # 保存一次
+        self.write_recent_project(name=self.project.config.Name, path=self.project_file)
         # 封面图
         self.title_pic = ttk.Label(master=self.project_title,borderwidth=0)
         self.load_cover()
@@ -413,6 +415,17 @@ class FileManager(ttk.Frame):
     def update_pages_elements(self,ftype='medef'):
         # -> page_frame
         return self.page_frame.update_pages_elements(ftype)
+    # 写入最近使用的文件
+    def write_recent_project(self,name,path):
+        list_of_project:list = Link['recent_files'] # 前4个
+        text = name + '\t' + path
+        if text in list_of_project:
+            list_of_project.remove(text)
+        elif len(list_of_project)>=5:
+            list_of_project.pop(-1)
+        else:
+            pass
+        list_of_project.insert(0,text)
 # 项目视图-可折叠类容器-基类
 class FileCollapsing(ttk.Frame):
     def __init__(self,master,screenzoom:float,fileclass:str,content,page_frame:PageFrame):

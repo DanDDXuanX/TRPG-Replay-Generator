@@ -3,10 +3,11 @@
 
 # 图形界面的主界面
 
+import os
 import sys
-
 import tkinter as tk
 import ttkbootstrap as ttk
+from pathlib import Path
 from ttkbootstrap.toast import ToastNotification
 from ttkbootstrap.dialogs import Messagebox, MessageCatalog
 from PIL import Image, ImageTk
@@ -29,6 +30,9 @@ class RplGenStudioMainWindow(ttk.Window):
             size        = (int(1500*self.sz),int(800*self.sz)),
             resizable   = (True,True),
         )
+        # home
+        self.home_dir = Path(os.path.expanduser("~"))
+        self.load_recent_project()
         # 关闭
         self.protocol('WM_DELETE_WINDOW',self.on_close)
         # 主题配置
@@ -209,6 +213,7 @@ class RplGenStudioMainWindow(ttk.Window):
                 return False
         # project_view:ProjectView = self.view['project']
         # project_view.file_manager.project.dump_json('./test_project.json')
+        self.dump_recent_project()
         self.destroy()
     # 当导航栏被点击时
     def navigateBar_get_click(self,event):
@@ -260,7 +265,28 @@ class RplGenStudioMainWindow(ttk.Window):
             value = ctypes.c_int(value)
             set_window_attribute(hwnd, rendering_policy, ctypes.byref(value), ctypes.sizeof(value)) # 设置
             self.update() # 更新
-
+    # 载入最近的项目
+    def load_recent_project(self):
+        path = self.home_dir /'.rplgen' /'recent_project.log'
+        try:
+            # 从home目录读取
+            self.recent_files = open(path,'r',encoding='utf-8').read().split('\n')
+        except:
+            # 在home目录新建目录
+            try:
+                os.makedirs(self.home_dir / '.rplgen')
+            except FileExistsError:
+                pass
+            self.recent_files = []
+            self.dump_recent_project()
+        Link['recent_files'] = self.recent_files
+    def dump_recent_project(self):
+        try:
+            path = self.home_dir /'.rplgen' /'recent_project.log'
+            with open(path,'w',encoding='utf-8') as of:
+                of.write('\n'.join(self.recent_files))
+        except FileNotFoundError:
+            pass
 # 最右导航栏的
 class NavigateBar(ttk.Frame):
     """
