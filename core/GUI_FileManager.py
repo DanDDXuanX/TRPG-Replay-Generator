@@ -219,6 +219,10 @@ class FileManager(ttk.Frame):
             imported:CharTable = object
             collapse:CTBCollapsing = self.items['chartab']
             new_charactor:list = []
+            # 检查，是否存在额外的自定义列，有则新建自定义列
+            for col in imported.customize_col:
+                if col not in self.project.chartab.customize_col:
+                    self.project.chartab.add_customize(colname=col)
             # 检查，是否存在重名对象
             for keyword in imported.struct:
                 name, subtype = keyword.split('.')

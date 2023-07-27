@@ -501,6 +501,8 @@ class CharTable(Script):
         # 如果没有输入
         else:
             self.struct:dict = {}
+        # 最后，获取当前自定义列的情况
+        self.customize_col = self.get_customize()
     # 从文件读取表格
     def load_table(self, filepath: str) -> pd.DataFrame:
         # 读取表格，并把表格中的空值处理为 "NA"
@@ -552,7 +554,7 @@ class CharTable(Script):
             chartab = pd.DataFrame(columns=table_col)
             return chartab
         else:
-            customize_col = self.get_customize(chartab)
+            customize_col = self.customize_col
             return chartab[table_col+customize_col]
     # 保存为文本文件 (tsv)
     def dump_file(self,filepath:str)->None:
@@ -584,15 +586,7 @@ class CharTable(Script):
     # 添加角色的默认差分
     def add_chara_default(self,name:str):
         if name + '.default' not in self.struct.keys():
-            self.struct[name+'.default'] = {
-                'Name'      : name,
-                'Subtype'   : 'default',
-                'Animation' : 'NA',
-                'Bubble'    : 'NA',
-                'Voice'     : 'NA',
-                'SpeechRate': 0,
-                'PitchRate' : 0,
-            }
+            return self.new_subtype(name=name,subtype='default')
     # 添加一个角色差分
     def new_subtype(self,name:str,subtype:str)->str:
         keyword  = name + '.' + subtype
@@ -611,7 +605,7 @@ class CharTable(Script):
                 'PitchRate' : 0,
             }
             # 自定义项目
-            for custom in self.get_customize():
+            for custom in self.customize_col:
                 new_struct[custom] = 'init'
             # 赋值
             self.struct[keyword] = new_struct
@@ -623,11 +617,13 @@ class CharTable(Script):
         if colname in self.table_col or colname in self.customize_col:
             return
         else:
+            self.customize_col.append(colname)
             for keyword in self.struct:
                 self.struct[keyword][colname] = 'init'
     # 移除一个自定义
     def del_customize(self,colname):
         if colname in self.customize_col:
+            self.customize_col.remove(colname)
             for keyword in self.struct:
                 try:
                     self.struct[keyword].pop(colname)
@@ -650,16 +646,10 @@ class CharTable(Script):
             return table[table['Name'] == name]['Subtype'].unique().tolist()
         except:
             return []
-    def get_customize(self,df:pd.DataFrame=None)->list:
-        try:
-            return self.customize_col
-        except AttributeError:
-            if df is not None:
-                chartab = df
-            else:
-                chartab = pd.DataFrame(self.struct).T.fillna('NA')
-            self.customize_col = [col for col in chartab.columns if col not in self.table_col]
-            return self.customize_col
+    def get_customize(self)->list:
+        chartab = pd.DataFrame(self.struct).T.fillna('NA')
+        customize_col = [col for col in chartab.columns if col not in self.table_col]
+        return customize_col
 # log文件
 class RplGenLog(Script):
     # RGL -> struct

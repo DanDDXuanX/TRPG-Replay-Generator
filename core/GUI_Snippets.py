@@ -272,7 +272,7 @@ class RGLSnippets(CodeSnippet):
                     self.add_command(label=name, command=self.insert_snippets(name, len(name)))
             if kw_args['dot']:
                 menu = CodeSnippet(master=self)
-                list_of_columns = self.ref_char.get_customize()
+                list_of_columns = self.ref_char.customize_col
                 for name in list_of_columns:
                     menu.add_command(label=name, command=self.insert_snippets(name, len(name)+2))
                 self.add_separator()
@@ -353,7 +353,7 @@ class RGLSnippets(CodeSnippet):
             self.add_cascade(label='（坐标）',menu=coord_menu)
         # 角色表
         elif self.snippets_type=='columns':
-            list_of_snippets = self.ref_char.get_customize()
+            list_of_snippets = self.ref_char.customize_col
             for name in list_of_snippets:
                 self.add_command(label=name, command=self.insert_snippets(name, len(name)+2))
         # 音效和文字效果组合

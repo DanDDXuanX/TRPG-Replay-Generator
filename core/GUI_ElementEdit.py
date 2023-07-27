@@ -196,7 +196,7 @@ class EditWindow(FluentFrame):
         return charactor_columns_this
     def get_avaliable_custom(self)->dict:
         charactor_columns_this = {}
-        for key in Link['project_chartab'].get_customize():
+        for key in Link['project_chartab'].customize_col:
             charactor_columns_this["{}（自定义）".format(key)] = "'{}'".format(key)
         return charactor_columns_this
     # 刷新预览
@@ -213,7 +213,7 @@ class CharactorEdit(EditWindow):
     def update_from_section(self,index:str,section:dict,line_type='charactor'):
         # 继承
         super().update_from_section(index,section,line_type=line_type)
-        CharactorEdit.custom_col = self.page.content.get_customize()
+        CharactorEdit.custom_col = self.page.content.customize_col # 直接引用，read only！
         # 补充自定义列的内容
         self.seperator['CustomSep'].add_button(text='添加+',command=self.add_customs)
         self.seperator['CustomSep'].add_button(text='删除-',command=self.remove_customs)
@@ -302,7 +302,6 @@ class CharactorEdit(EditWindow):
         else:
             # 在角色表中新建
             self.page.content.add_customize(get_string)
-            CharactorEdit.custom_col.append(get_string)
             # 新建KVD
             self.add_a_custom_kvd(custom=get_string)
     # 移除一个自定义列
@@ -313,7 +312,6 @@ class CharactorEdit(EditWindow):
             if del_colname in self.custom_col:
                 # 在角色表中删除
                 self.page.content.del_customize(del_colname)
-                CharactorEdit.custom_col.remove(del_colname)
                 # 移除KVD
                 self.del_a_custom_kvd(custom=del_colname)
     # 在自定义区新建一个KVD
