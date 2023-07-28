@@ -9,6 +9,7 @@ import ttkbootstrap as ttk
 from chlorophyll import CodeView
 from .ScriptParser import CharTable, MediaDef
 from .GUI_CustomDialog import abmethod_query
+from .GUI_DialogWindow import browse_file
 from .GUI_Link import Link
 
 class CodeSnippet(ttk.Menu):
@@ -299,9 +300,12 @@ class RGLSnippets(CodeSnippet):
         # 背景音乐
         elif self.snippets_type=='bgm':
             self.add_command(label='（停止）', command=self.insert_snippets("stop", 4))
+            self.add_separator() # --------------------
             list_of_snippets = self.ref_media.get_type('bgm')
             for name in list_of_snippets:
                 self.add_command(label=name, command=self.insert_snippets(name, len(name)))
+            self.add_separator() # --------------------
+            self.add_command(label='（浏览文件）', command=self.open_browse_file(mtype='BGM'))
         # 音效
         elif self.snippets_type=='audio':
             if kw_args['asterisk']:
@@ -309,9 +313,12 @@ class RGLSnippets(CodeSnippet):
             else:
                 self.add_command(label='（语音合成）', command=self.insert_snippets("{*}", 3), state='disabled')
             self.add_command(label='（无）', command=self.insert_snippets(r"{NA}", 4))
+            self.add_separator() # --------------------
             list_of_snippets = self.ref_media.get_type('audio')
             for name in list_of_snippets:
                 self.add_command(label=name, command=self.insert_snippets("{"+name+"}", len(name)+2))
+            self.add_separator() # --------------------
+            self.add_command(label='（浏览文件）', command=self.open_browse_file(mtype='SE'))
         # 清除对话框
         elif self.snippets_type=='chatwindow':
             list_of_snippets = self.ref_media.get_type('chatwindow')
@@ -371,9 +378,12 @@ class RGLSnippets(CodeSnippet):
                 tx_met_menu.add_command(label=option, command=self.insert_snippets(snippet, cpos))
             # 音效
             audio_menu.add_command(label='（无）', command=self.insert_snippets(r"{NA}", 4))
+            audio_menu.add_separator() #------------------------
             list_of_snippets = self.ref_media.get_type('audio')
             for name in list_of_snippets:
                 audio_menu.add_command(label=name, command=self.insert_snippets("{"+name+"}", len(name)+2))
+            audio_menu.add_separator() #------------------------
+            audio_menu.add_command(label='（浏览文件）', command=self.open_browse_file(mtype='SE'))
     # 闭包
     def insert_snippets(self, snippet, cpos):
         # 命令内容
@@ -399,6 +409,26 @@ class RGLSnippets(CodeSnippet):
             self.codeview.insert(self.curser_idx,chars=snippet)
             self.codeview.mark_set("insert",f'{self.curser_idx}+{cpos}c')
             self.codeview.highlight_all()
+    # 浏览文件：闭包
+    def open_browse_file(self,mtype='SE'):
+        def insert(snippet,cpos):
+            self.codeview.insert(self.curser_idx,chars=snippet)
+            self.codeview.mark_set("insert",f'{self.curser_idx}+{cpos}c')
+            self.codeview.highlight_all()
+        def command():
+            browsed_file = tk.StringVar(value='')
+            # TODO: log里面的路径暂时不支持@相对路径！
+            if mtype == 'SE':
+                browse_file(master=self.codeview,text_obj=browsed_file,method='file',filetype='soundeff',related=False,convert=True,quote=True)
+                getfile = browsed_file.get()
+                if getfile != '':
+                    insert('{'+getfile+'}',len(getfile)+2)
+            elif mtype == 'BGM':
+                browse_file(master=self.codeview,text_obj=browsed_file,method='file',filetype='BGM',related=False,convert=True,quote=True)
+                getfile = browsed_file.get()
+                if getfile != '':                
+                    insert(getfile,len(getfile))
+        return command
 
 class VirtualEvent:
     def __init__(self,key):
