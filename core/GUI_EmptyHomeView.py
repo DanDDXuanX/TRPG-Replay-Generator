@@ -5,6 +5,7 @@ import ttkbootstrap as ttk
 from PIL import Image, ImageTk
 from .GUI_Util import FreeToolTip
 from .GUI_Link import Link
+from .ProjConfig import preference
 
 # 空白的首页
 
@@ -24,6 +25,13 @@ class RecentProject(ttk.Button):
             text=self.text,
             command=lambda:callback(self.path)
             )
+        self.tooltip = FreeToolTip(
+            widget=self,
+            text=self.path,
+            bootstyle='light-inverse',
+            wraplength=3000,
+            delay=1000
+            )
 class HomePageElements(ttk.Frame):
     def __init__(self,master,screenzoom)->None:
         # 缩放比例
@@ -32,21 +40,26 @@ class HomePageElements(ttk.Frame):
         SZ_10 = int(self.sz * 10)
         icon_size = (SZ_150, SZ_150)
         super().__init__(master,borderwidth=0,bootstyle='light')
+        # color
+        self.font_color = {
+            'rplgenlight'   : '#606060',
+            'rplgendark'    : '#b0b0b0',
+        }[preference.theme]
         # slogan
         self.slogan = ttk.Frame(master=self,padding=(SZ_10,SZ_10,SZ_10,0))
         self.labels = {
             'welcome' : ttk.Label(
                 master=self.slogan,
-                text='欢迎使用 回声工坊！',
+                text='回声工坊',
                 font=(Link['system_font_family'],30,'bold'),
-                foreground='#808080'
+                foreground=self.font_color
                 ),
             # "Embrace your imagination, weave tales untold."
             'poetry'  : ttk.Label(
                 master=self.slogan,
-                text='拥抱你的想象力，编织未曾讲述的故事。',
+                text='点亮创作火花',
                 font=(Link['system_font_family'],15),
-                foreground='#808080'
+                foreground=self.font_color
                 )
         }
         # buttons
@@ -72,7 +85,7 @@ class HomePageElements(ttk.Frame):
             master=self.recent_project,
             text='最近项目：',
             font=(Link['system_font_family'],15,'bold'),
-            foreground='#808080'
+            foreground=self.font_color
         )
         self.clear = ttk.Button(
             master=self.title,
