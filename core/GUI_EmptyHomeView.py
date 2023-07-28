@@ -94,6 +94,13 @@ class HomePageElements(ttk.Frame):
             command=self.clear_recent,
             padding=0
         )
+        self.empty = ttk.Label(
+            master=self.recent_project,
+            text='无记录',
+            font=(Link['system_font_family'],12),
+            foreground=self.font_color,
+            anchor='center'
+        )
         self.recents = {}
         self.load_recent_project()
         # 显示
@@ -115,6 +122,8 @@ class HomePageElements(ttk.Frame):
         for keyword in self.recents:
             this_button:RecentProject = self.recents[keyword]
             this_button.pack(side='top', fill='x',expand=False,padx=SZ_10,pady=SZ_1)
+        if len(self.recents) == 0: # 空白的时候，显示无记录
+            self.empty.pack(side='top', fill='both',expand=True)
         # frame
         SZ_100 = int(self.sz * 100)
         self.slogan.place(relx=0,relwidth=1,y=0,height=SZ_100)
@@ -137,3 +146,4 @@ class HomePageElements(ttk.Frame):
         Link['recent_files'].clear()
         for keyword in self.recents:
             self.recents[keyword].destroy()
+        self.empty.pack(side='top', fill='both',expand=True)
