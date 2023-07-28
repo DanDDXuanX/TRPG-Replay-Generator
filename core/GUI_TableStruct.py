@@ -2142,6 +2142,16 @@ PreferenceTableStruct = {
                 "vtype": "str",
                 "default": 'add'
             },
+            'Edit.auto_convert':{
+                "ktext": "音频转格式：",
+                "tooltip":"选择音频文件时，如果是不支持的格式，是否自动生成一个推荐的格式的副本？",
+                "dtext": "（选择）",
+                "ditem": "label",
+                "valuekey": "Edit.auto_convert",
+                "vitem": "combox",
+                "vtype": "str",
+                "default": 'ask'
+            }
         }
     },
     "PreviewSep":{
@@ -2535,6 +2545,11 @@ fit_axis = {
 True_False = {
     "是": True,
     "否": False
+}
+askyesno = {
+    "每次询问"  : 'ask',
+    "始终是"    : 'yes',
+    "始终否"    : 'no'
 }
 language = {
     '中文' : 'zh',

@@ -3,12 +3,14 @@
 
 # tk内置的会话框
 
-from ttkbootstrap.dialogs import colorchooser
+import os
+from ttkbootstrap.dialogs import colorchooser, Messagebox
 from ttkbootstrap.localization import MessageCatalog
 from tkinter.filedialog import askopenfilename, askdirectory, asksaveasfilename, askopenfilenames
 from tkinter import StringVar
-from .Utils import rgba_str_2_hex
+from .Utils import rgba_str_2_hex, convert_audio
 from .GUI_Link import Link
+from .ProjConfig import preference
 
 class ColorChooserDialogZH(colorchooser.ColorChooserDialog):
     # 重载：在中文系统里，OK被翻译为确定了，这回导致选色的值不输出到result
@@ -53,8 +55,8 @@ filetype_dic = {
     'mediadef':     [('媒体定义文件',('*.txt','*.py')),('全部文件','*.*')],
     'rgscripts':    [('全部文件','*.*'),('剧本文件',('*.rgl','*.txt')),('角色配置表',('*.tsv','*.csv','*.xlsx','*.txt')),('媒体定义文件',('*.txt','*.py'))],
     'picture':      [('图片文件',('*.png','*.jpg','*.jpeg','*.bmp')),('全部文件','*.*')],
-    'soundeff':     [('音效文件','*.wav'),('全部文件','*.*')],
-    'BGM':          [('背景音乐文件','*.ogg'),('全部文件','*.*')],
+    'soundeff':     [('音效文件',('*.wav','*.mp3')),('全部文件','*.*')],
+    'BGM':          [('背景音乐文件',('*.ogg','*.mp3','*.wav')),('全部文件','*.*')],
     'fontfile':     [('字体文件',('*.ttf','*.otf','*.ttc')),('全部文件','*.*')],
     'rplgenproj':   [('回声工程',('*.rgpj','*.json')),('全部文件','*.*')],
     'prefix':       [('全部文件','*.*')]
@@ -89,7 +91,7 @@ def browse_multi_file(master, filetype=None ,related:bool=True)->list:
         # 返回
         return out_path
 # 浏览文件，并把路径输出给 StringVar
-def browse_file(master, text_obj:StringVar, method='file', filetype=None, quote:bool=True, related:bool=True):
+def browse_file(master, text_obj:StringVar, method='file', filetype=None, quote:bool=True, related:bool=True, convert:bool=False):
     if method == 'file':
         if filetype is None:
             getname = askopenfilename(parent=master,)
@@ -97,14 +99,47 @@ def browse_file(master, text_obj:StringVar, method='file', filetype=None, quote:
             getname = askopenfilename(parent=master,filetypes=filetype_dic[filetype])
     else:
         getname = askdirectory(parent=master)
-    # 可用性检查
-    # if (' ' in getname) | ('$' in getname) | ('(' in getname) | (')' in getname):
-    #    messagebox.showwarning(title='警告', message='请勿使用包含空格、括号或特殊符号的路径！')
-    #    text_obj.set('')
-    #    return None
+    # 输出
     if getname == '':
         return getname
     else:
+        # 是否需要转换格式
+        if convert and filetype in ['soundeff','BGM']:
+            target_type = {'soundeff':'wav','BGM':'ogg'}[filetype]
+            suffix = getname.split('.')[-1]
+            prefix = getname.split('/')[-1][:-(len(suffix)+1)]
+            if suffix != target_type:
+                # 确定是否转格式
+                if preference.auto_convert == 'ask':
+                    choice = Messagebox().show_question(
+                        message='选择了一个不支持的音频文件，是否转换格式？\n如果不希望每次询问，请修改：首选项-编辑设置-音频转格式',
+                        title='不支持的音频',
+                        buttons=["否:secondary","是:primary"],
+                        parent=master
+                        )
+                elif preference.auto_convert == 'yes':
+                    choice = '是'
+                else:
+                    choice = '否'
+                # 判断选择
+                if choice == '是':
+                    # 输出路径
+                    output_path = Link['media_dir'] + f'convert/'
+                    # 检查输出路径是否存在
+                    if not os.path.isdir(output_path):
+                        os.makedirs(output_path)
+                    output_file = output_path + f'{prefix}.{target_type}'
+                    state, info = convert_audio(target_type=target_type,ifile=getname,ofile=output_file)
+                    if state:
+                        getname = info
+                    else:
+                        Messagebox().show_error(message=info,title='音频格式转换错误',parent=master)
+                else:
+                    pass
+            else:
+                pass
+        else:
+            pass
         # 是否是媒体路径下的文件夹
         if related:
             try:

@@ -7,6 +7,8 @@ import numpy as np
 import pygame
 import time
 import re
+import os
+import subprocess
 from .Regexs import RE_rich
 
 # 文字处理
@@ -147,3 +149,42 @@ def mod62_timestamp():
             outstring = outstring + chr(97+residual-36)
         timestamp = mod
     return outstring[::-1]
+
+# 文件格式
+def convert_audio(target_type:str,ifile:str,ofile:str):
+    # ffmpeg
+    if os.path.isfile('./ffmpeg.exe'):
+        ffmpeg_exec = 'ffmpeg.exe'
+    else:
+        ffmpeg_exec = 'ffmpeg'
+    # 目标格式
+    if target_type == 'wav':
+        target_format = target_type
+        ffmpeg_cmd = [
+            ffmpeg_exec,
+            '-i',ifile,
+            '-f',target_format,
+            '-y',
+            ofile,
+            '-loglevel','quiet'
+        ]
+    elif target_type == 'ogg':
+        target_format = target_type
+        ffmpeg_cmd = [
+            ffmpeg_exec,
+            '-i',ifile,
+            '-f',target_format,
+            '-acodec','libvorbis',
+            '-ab','128k',
+            '-y',
+            ofile,
+            '-loglevel','quiet'
+        ]
+    else:
+        return False, f"不支持的格式：{target_type}"
+    # 执行
+    try:
+        subprocess.run(ffmpeg_cmd, check=True)
+        return True, ofile
+    except subprocess.CalledProcessError as E:
+        return False, str(E)

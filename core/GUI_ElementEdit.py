@@ -475,9 +475,9 @@ class MediaEdit(EditWindow):
             self.elements['tick'].input.configure(from_=1,to=30,increment=1)
             self.elements['loop'].input.update_dict(True_False)
         if self.line_type == 'Audio':
-            self.elements['filepath'].bind_button(dtype='soundeff-file')
+            self.elements['filepath'].bind_button(dtype='soundeff-file',convert=True)
         if self.line_type == 'BGM':
-            self.elements['filepath'].bind_button(dtype='BGM-file')
+            self.elements['filepath'].bind_button(dtype='BGM-file',convert=True)
             self.elements['volume'].input.configure(from_=0,to=100,increment=10)
             self.elements['loop'].input.update_dict(True_False)
     def struct_2_value(self,section):
