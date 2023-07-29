@@ -19,10 +19,11 @@ from .FilePaths import Filepath
 from .ProjConfig import Config, preference
 from .Exceptions import MediaError
 from .Medias import MediaObj
+from .Boardcast import BoardcastHandler
 from .GUI_TabPage import PageFrame, RGLPage, CTBPage, MDFPage
 from .GUI_DialogWindow import browse_file, save_file, browse_multi_file
 from .GUI_CustomDialog import relocate_file, configure_project
-from .GUI_Util import FluentFrame
+from .GUI_Util import FluentFrame, ask_rename_boardcast
 from .GUI_Link import Link
 # 项目视图-文件管理器-RGPJ
 class RplGenProJect(Script):
@@ -52,7 +53,14 @@ class RplGenProJect(Script):
             self.logfile    = {}
             for key in self.struct['logfile'].keys():
                 self.logfile[key] = RplGenLog(dict_input=self.struct['logfile'][key])
+        # 广播
+        self.boardcast = BoardcastHandler(
+            mediadef=self.mediadef,
+            chartab=self.chartab,
+            logfile=self.logfile
+        )
         # 保存在全局连接
+        Link['boardcast'] = self.boardcast
         Link['project_chartab'] = self.chartab
         Link['project_config'] = self.config
         Link['media_dir'] = Filepath.Mediapath
@@ -759,6 +767,8 @@ class CTBCollapsing(FileCollapsing):
                 self.page_frame.page_notebook.delete("角色-"+origin_keyword)
             # 重命名 content
             self.content.rename(origin_keyword,new_keyword)
+            # 是否广播
+            ask_rename_boardcast(master=self,old_name=origin_keyword,new_name=new_keyword,otype='name')
     def open_item_as_page(self,event):
         # 获取点击按钮的关键字
         keyword = event.widget.cget('text')

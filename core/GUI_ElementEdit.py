@@ -3,13 +3,14 @@
 
 import re
 import ttkbootstrap as ttk
-from .GUI_Util import KeyValueDescribe, TextSeparator, FluentFrame
+from .GUI_Util import KeyValueDescribe, TextSeparator, FluentFrame, ask_rename_boardcast
 from .GUI_TableStruct import EditTableStruct, label_colors, projection, alignments, chatalign, charactor_columns, fill_mode, fit_axis, True_False
 from .ScriptParser import MediaDef, RplGenLog, CharTable
 from .GUI_CustomDialog import voice_chooser, selection_query
 from .Exceptions import SyntaxsError
 from .GUI_Link import Link
 from ttkbootstrap.dialogs import Messagebox, Querybox
+from ttkbootstrap.toast import ToastNotification
 # 编辑区
 
 # 编辑窗
@@ -222,6 +223,8 @@ class CharactorEdit(EditWindow):
         # 是否是default？是则禁用相应entry
         if self.elements['Subtype'].get() == 'default':
             self.elements['Subtype'].input.configure(state='disable')
+        self.elements['Subtype'].enable_trace()
+        self.elements['Subtype'].input.bind("<FocusIn>",self.notice_enter)
         # 媒体
         self.elements['Animation'].input.configure(values=['NA']+self.get_avaliable_anime(),state='readonly')
         self.elements['Bubble'].input.configure(values=['NA']+self.get_avaliable_bubble(cw=True),state='readonly')
@@ -261,17 +264,24 @@ class CharactorEdit(EditWindow):
             if new_keyword in self.page.content.struct:
                 # BUG：如何避免使用 focus out？ 这样会导致重复弹出两次！
                 Messagebox().show_warning(message='这个差分名已经被使用了！',title='重名',parent=self)
-                self.elements['Subtype'].value.set(self.section['Subtype'])
+                self.reset_name()
                 return self.section
             elif re.fullmatch("^\w+$",new_section['Subtype']) is None:
                 Messagebox().show_warning(message='这个差分名是非法的！',title='非法名',parent=self)
-                self.elements['Subtype'].value.set(self.section['Subtype'])
+                self.reset_name()
                 return self.section
             else:
                 # 更新角色表的内容
                 self.section.update(new_section)
                 # 角色表执行重命名
                 self.section:dict = self.page.content.resubtype(to_resubtype=self.section_index,new_subtype=new_keyword)
+                # 广播
+                ask_rename_boardcast(
+                    master  = self,
+                    old_name= self.section_index,
+                    new_name= new_keyword,
+                    otype   = 'subtype'
+                    )
                 # 视图刷新显示
                 self.page.container.refresh_element(keyword=self.section_index,new_keyword=new_keyword)
                 self.section_index = new_keyword
@@ -351,6 +361,17 @@ class CharactorEdit(EditWindow):
         self.update()
         self.enable_scrolling()
         self.yview_moveto(1.0)
+    # 重设名字
+    def reset_name(self):
+        self.elements['Subtype'].value.set(self.section['Subtype'])
+    # 提醒回车键
+    def notice_enter(self,event):
+        # 弹出消息提示，Toast
+        ToastNotification(
+            title='按回车确定',
+            message='如果确认修改差分名，请按回车键！',
+            duration=1000
+        ).show_toast()
 class MediaEdit(EditWindow):
     medef_tool = MediaDef()
     def __init__(self, master, screenzoom):
@@ -384,17 +405,24 @@ class MediaEdit(EditWindow):
             # 检查新名字是否可用
             if new_keyword in self.page.content.struct:
                 Messagebox().show_warning(message='这个媒体名已经被使用了！',title='重名',parent=self)
-                self.elements['Name'].value.set(self.section_index)
+                self.reset_name()
                 return self.section
             elif re.fullmatch("^\w+$",new_keyword) is None or new_keyword[0].isdigit():
                 Messagebox().show_warning(message='这个媒体名是非法的！',title='非法名',parent=self)
-                self.elements['Name'].value.set(self.section_index)
+                self.reset_name()
                 return self.section
             else:
                 # 更新媒体库的内容
                 self.section.update(new_section)
                 # 媒体库执行重命名
                 self.section:dict = self.page.content.rename(to_rename=self.section_index,new_name=new_keyword)
+                # 广播
+                ask_rename_boardcast(
+                    master  = self,
+                    old_name= self.section_index,
+                    new_name= new_keyword,
+                    otype   = self.section['type']
+                    )
                 # 视图刷新显示
                 self.page.container.refresh_element(keyword=self.section_index,new_keyword=new_keyword)
                 self.section_index = new_keyword
@@ -406,6 +434,9 @@ class MediaEdit(EditWindow):
         self.update_preview(keywords=changed_key)
         return self.section
     def update_media_element_prop(self):
+        # 媒体名：禁用focus out
+        self.elements['Name'].enable_trace()
+        self.elements['Name'].input.bind("<FocusIn>",self.notice_enter)
         # 标签色
         if self.line_type not in ['Pos','FreePos','PosGrid']:
             self.elements['label_color'].input.update_dict(label_colors)
@@ -599,6 +630,17 @@ class MediaEdit(EditWindow):
         def command():
             self.select_dot('b%d'%idx,'p1')
         return command
+    # 重设名字
+    def reset_name(self,toast=False):
+        self.elements['Name'].value.set(self.section_index)
+    # 提醒回车键
+    def notice_enter(self,event):
+        # 弹出消息提示，Toast
+        ToastNotification(
+            title='按回车确定',
+            message='如果确认修改媒体名，请按回车键！',
+            duration=1000
+        ).show_toast()
 class LogEdit(EditWindow):
     def __init__(self, master, screenzoom):
         super().__init__(master, screenzoom)

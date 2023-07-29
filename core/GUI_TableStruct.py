@@ -2151,6 +2151,16 @@ PreferenceTableStruct = {
                 "vitem": "combox",
                 "vtype": "str",
                 "default": 'ask'
+            },
+            'Edit.rename_boardcast':{
+                "ktext": "更名广播：",
+                "tooltip":"当修改一个角色或媒体对象的名称时，是否将变更同步到所有引用这个对象的位置？",
+                "dtext": "（选择）",
+                "ditem": "label",
+                "valuekey": "Edit.rename_boardcast",
+                "vitem": "combox",
+                "vtype": "str",
+                "default": 'ask'
             }
         }
     },

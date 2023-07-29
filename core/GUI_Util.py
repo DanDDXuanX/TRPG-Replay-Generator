@@ -4,9 +4,12 @@
 import ttkbootstrap as ttk
 from ttkbootstrap.tooltip import ToolTip
 from ttkbootstrap.scrolled import ScrolledFrame
+from ttkbootstrap.dialogs import Messagebox
+from ttkbootstrap.toast import ToastNotification
 import tkinter as tk
 from PIL import Image, ImageTk
 from .GUI_DialogWindow import color_chooser, browse_file
+from .Boardcast import BoardcastHandler
 from .ProjConfig import preference
 from .GUI_Link import Link
 
@@ -189,6 +192,8 @@ class KeyValueDescribe(ttk.Frame):
         # 回调函数
         if self.callback:
             self.callback()
+        # 清除焦点
+        self.describe.focus_set()
     def get(self):
         return self.value.get()
     def set(self,value):
@@ -216,6 +221,17 @@ class KeyValueDescribe(ttk.Frame):
         else:
             self.input.configure(state='normal')
         self.describe.configure(state='normal')
+    def enable_trace(self):
+        if type(self.input) is ttk.Entry:
+            self.input.unbind("<FocusOut>")
+            self.input.bind("<Return>",self.clear_trace,'+')
+            self.value.trace(mode='w',callback=self.show_trace)
+        else:
+            pass
+    def show_trace(self,*args):
+        self.input.configure(bootstyle='danger')
+    def clear_trace(self,event):
+        self.input.configure(bootstyle='primary')
 # 一个比上面的KVD更详细的最小单位，常用于设置
 class DetailedKeyValueDescribe(KeyValueDescribe):
     def __init__(self,master,screenzoom:float,key:str,value:dict,describe:dict,tooltip:str=None,callback=None):
@@ -383,3 +399,37 @@ def thumbnail(image:Image.Image,icon_size:int)->Image.Image:
         icon_height = icon_size
         icon_width = int(origin_w/origin_h * icon_size)
     return image.resize([icon_width,icon_height]).convert('RGBA')
+# 询问更名广播
+def ask_rename_boardcast(master, old_name, new_name, otype):
+    boardcast:BoardcastHandler = Link['boardcast']
+    # 判断是否要做
+    if preference.rename_boardcast == 'ask':
+        choice = Messagebox().show_question(
+            message='是否要将更名同步到所有引用位置？\n如果不希望每次询问，请修改：首选项-编辑设置-更名广播',
+            title='更名广播',
+            buttons=["否:secondary","是:primary"],
+            parent= master
+            )
+    elif preference.rename_boardcast == 'yes':
+        choice = '是'
+    else:
+        choice = '否'
+    # 广播
+    if choice == '是':
+        if otype == 'name':
+            result = boardcast.rename_charactor(old_name=old_name,new_name=new_name)
+        elif otype == 'subtype':
+            result = boardcast.rename_subtype(old_name=old_name,new_name=new_name)
+        else:
+            result = boardcast.rename_media(mtype=otype,old_name=old_name,new_name=new_name)
+        # 弹出消息提示，Toast
+        message = f'{otype}: {old_name}->{new_name}\n'
+        message += '在媒体库中更新了{mediadef}处引用\n在角色配置中更新了{chartab}处引用\n在剧本文件中更新了{logfile}处引用'.format(**result)
+        ToastNotification(
+            title='更名广播',
+            message=message,
+            duration=3000
+        ).show_toast()
+        return True
+    else:
+        return False
