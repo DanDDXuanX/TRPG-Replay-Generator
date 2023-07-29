@@ -116,6 +116,7 @@ class Preference:
             self.auto_periods:bool = dict_input['Edit.auto_periods']
             self.import_mode:str = dict_input['Edit.import_mode']
             self.auto_convert:str = dict_input['Edit.auto_convert']
+            self.asterisk_import:str = dict_input['Edit.asterisk_import']
             self.rename_boardcast:str = dict_input['Edit.rename_boardcast']
             # 预览
             self.progress_bar_style:str = dict_input['Preview.progress_bar_style']
@@ -164,6 +165,7 @@ class Preference:
             self.import_mode:str = 'add'
             self.auto_convert:str = 'ask'
             self.rename_boardcast:str = 'ask'
+            self.asterisk_import:bool = True
     def get_struct(self)->dict:
         return {
             # 语音合成
@@ -187,6 +189,7 @@ class Preference:
             'Edit.auto_periods'         : self.auto_periods,
             'Edit.import_mode'          : self.import_mode,
             'Edit.auto_convert'         : self.auto_convert,
+            'Edit.asterisk_import'      : self.asterisk_import,
             'Edit.rename_boardcast'     : self.rename_boardcast,
             # 预览
             'Preview.progress_bar_style': self.progress_bar_style,

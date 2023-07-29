@@ -7,6 +7,8 @@ import re
 import tkinter as tk
 import ttkbootstrap as ttk
 from chlorophyll import CodeView
+from .ProjConfig import preference
+from .Medias import Audio
 from .ScriptParser import CharTable, MediaDef
 from .GUI_CustomDialog import abmethod_query
 from .GUI_DialogWindow import browse_file
@@ -174,7 +176,7 @@ class RGLSnippets(CodeSnippet):
         elif re.fullmatch('<(BGM|bgm)>:',text_upstream) and text_downstream == '':
             self.init_snippets_options('bgm')
         # 音效:如果光标已经在最后
-        elif re.fullmatch('^\[[\w\ \.\,\(\)]+\](<\w+(=\d+)>)?:[^\\"]+',text_upstream) and text_downstream == '':
+        elif re.fullmatch('^\[[\w\ \.\,\(\)]+\](<\w+(=\d+)?>)?:[^\\"]+',text_upstream) and text_downstream == '':
             # 如果前面已经有切换效果和音效了
             if text_upstream[-1] in ['>','}']:
                 # 检查上游是否已经包含了星标了
@@ -318,7 +320,10 @@ class RGLSnippets(CodeSnippet):
             for name in list_of_snippets:
                 self.add_command(label=name, command=self.insert_snippets("{"+name+"}", len(name)+2))
             self.add_separator() # --------------------
-            self.add_command(label='（浏览文件）', command=self.open_browse_file(mtype='SE'))
+            if kw_args['asterisk']:
+                self.add_command(label='（浏览文件）', command=self.open_browse_file(mtype='SE',asterisk=True))
+            else:
+                self.add_command(label='（浏览文件）', command=self.open_browse_file(mtype='SE'))
         # 清除对话框
         elif self.snippets_type=='chatwindow':
             list_of_snippets = self.ref_media.get_type('chatwindow')
@@ -383,7 +388,7 @@ class RGLSnippets(CodeSnippet):
             for name in list_of_snippets:
                 audio_menu.add_command(label=name, command=self.insert_snippets("{"+name+"}", len(name)+2))
             audio_menu.add_separator() #------------------------
-            audio_menu.add_command(label='（浏览文件）', command=self.open_browse_file(mtype='SE'))
+            audio_menu.add_command(label='（浏览文件）', command=self.open_browse_file(mtype='SE',asterisk=True))
     # 闭包
     def insert_snippets(self, snippet, cpos):
         # 命令内容
@@ -410,7 +415,7 @@ class RGLSnippets(CodeSnippet):
             self.codeview.mark_set("insert",f'{self.curser_idx}+{cpos}c')
             self.codeview.highlight_all()
     # 浏览文件：闭包
-    def open_browse_file(self,mtype='SE'):
+    def open_browse_file(self,mtype='SE',asterisk=False):
         def insert(snippet,cpos):
             self.codeview.insert(self.curser_idx,chars=snippet)
             self.codeview.mark_set("insert",f'{self.curser_idx}+{cpos}c')
@@ -422,7 +427,16 @@ class RGLSnippets(CodeSnippet):
                 browse_file(master=self.codeview,text_obj=browsed_file,method='file',filetype='soundeff',related=False,convert=True,quote=True)
                 getfile = browsed_file.get()
                 if getfile != '':
-                    insert('{'+getfile+'}',len(getfile)+2)
+                    if asterisk and preference.asterisk_import:
+                        try:
+                            audio_length = round(Audio(getfile[1:-1]).media.get_length(),2)
+                            text = '{' + f'{getfile};*{audio_length}' + '}'
+                            insert(text, len(text)+2)
+                        except Exception as E:
+                            print(E)
+                            insert('{'+getfile+'}',len(getfile)+2)
+                    else:
+                        insert('{'+getfile+'}',len(getfile)+2)
             elif mtype == 'BGM':
                 browse_file(master=self.codeview,text_obj=browsed_file,method='file',filetype='BGM',related=False,convert=True,quote=True)
                 getfile = browsed_file.get()

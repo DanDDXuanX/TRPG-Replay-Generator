@@ -146,6 +146,7 @@ class PreferenceTable(TableEdit):
         self.elements['Edit.auto_periods'].input.update_dict(True_False)
         self.elements['Edit.import_mode'].input.update_dict(import_mode)
         self.elements['Edit.auto_convert'].input.update_dict(askyesno)
+        self.elements['Edit.asterisk_import'].input.update_dict(True_False)
         self.elements['Edit.rename_boardcast'].input.update_dict(askyesno)
         self.elements['BIA.dice_mode'].input.update_dict(dice_mode)
         # spine

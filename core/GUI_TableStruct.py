@@ -2124,7 +2124,7 @@ PreferenceTableStruct = {
         "Content":{
             "Edit.auto_periods":{
                 "ktext": "自动句号：",
-                "tooltip":"当拆分对话行时，是否自动纠正句尾的标点符号。",
+                "tooltip":"当拆分对话行时，是否自动纠正句尾的标点符号？",
                 "dtext": "（选择）",
                 "ditem": "label",
                 "valuekey": "Edit.auto_periods",
@@ -2151,6 +2151,16 @@ PreferenceTableStruct = {
                 "vitem": "combox",
                 "vtype": "str",
                 "default": 'ask'
+            },
+            'Edit.asterisk_import':{
+                "ktext": "自动星标语音：",
+                "tooltip":"在剧本页，使用tab菜单浏览文件导入音频时，是否自动将音频处理为星标语音？",
+                "dtext": "（选择）",
+                "ditem": "label",
+                "valuekey": "Edit.asterisk_import",
+                "vitem": "combox",
+                "vtype": "bool",
+                "default": True
             },
             'Edit.rename_boardcast':{
                 "ktext": "更名广播：",
@@ -2196,7 +2206,7 @@ PreferenceTableStruct = {
         "Content":{
             "Export.force_split_clip":{
                 "ktext": "强制拆分剪辑：",
-                "tooltip":"如果选择是，在所有小节断点，都会强制拆分所有剪辑，即使这个断点前后是同一个媒体。",
+                "tooltip":"导出PR项目时，如果选择是，在所有小节断点，都会强制拆分所有剪辑，即使这个断点前后是同一个媒体。",
                 "dtext": "（选择）",
                 "ditem": "label",
                 "valuekey": "Export.force_split_clip",
@@ -2206,7 +2216,7 @@ PreferenceTableStruct = {
             },
             "Export.crf":{
                 "ktext": "视频质量：",
-                "tooltip":"导出为mp4视频时的质量，即ffmpeg程序的crf值；取值范围为0-51，越小对应越高的视频质量，通常合理范围为18-28。",
+                "tooltip":"导出为mp4视频时的质量，即ffmpeg的crf值；取值范围为0-51，越小对应越高的视频质量，通常合理范围为18-28。",
                 "dtext": "（选择）",
                 "ditem": "label",
                 "valuekey": "Export.crf",
