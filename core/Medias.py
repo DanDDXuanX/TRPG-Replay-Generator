@@ -1716,9 +1716,11 @@ class HitPoint(BuiltInAnimation):
                     canvas.blit(left_heart,(posx,posy))
                 else:
                     pass
-            if heart_end%2 == 1: # end是奇数
-                left_heart = heart.subsurface((0,0,int(hx/2),hy))
-                canvas.blit(left_heart,(heart_end//2*(hx + distance),0))
+            # FIXME：我不太理解，当时写这一段的意义是什么
+            # if heart_end%2 == 1: # end是奇数
+            #     left_heart = heart.subsurface((0,0,int(hx/2),hy))
+            #     canvas.blit(left_heart,(heart_end//2*(hx + distance),0))
+            #     print('特殊的',heart_end//2*(hx + distance))
             # 恢复的动画
             if heal_heart == True:
                 crop_timeline = sigmoid(0,lost_heart,frame_rate).astype(int) # 裁剪时间线

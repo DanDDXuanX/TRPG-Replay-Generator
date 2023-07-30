@@ -661,7 +661,7 @@ class RGLPreviewCanvas(PreviewCanvas):
                         layer= layer
                         )
                     if layer == 2:
-                        layer_this.display(surface=self.canvas, alpha=50)
+                        layer_this.display(surface=self.canvas, alpha=50, frame=-1)
                     else:
                         layer_this.preview(surface=self.canvas)
             elif section_dict_this['type'] == 'dice':

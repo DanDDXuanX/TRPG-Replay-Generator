@@ -391,7 +391,7 @@ class VoiceChooser(ttk.Frame):
                 self.running_thread.start()
                 self.after(500,self.wait_message)
         else:
-            self.running_thread = threading.Thread(target=self.preview_command)
+            self.running_thread = threading.Thread(target=self.savefile_command)
             self.running_thread.start()
             self.after(500,self.wait_message)
     # 等待返回消息
