@@ -124,6 +124,7 @@ class Preference:
             # 导出
             self.force_split_clip:bool = dict_input['Export.force_split_clip']
             self.crf:int = dict_input['Export.crf']
+            self.hwaccels:bool = dict_input['Export.hwaccels']
         else:
             # 合成语音时：key
             self.accesskey:str = 'Your_AccessKey'
@@ -133,6 +134,7 @@ class Preference:
             self.service_region:str = 'eastasia'
             # 导出视频时：视频质量
             self.crf:int = 24
+            self.hwaccels:bool = False
             # 语言
             self.lang:str = 'zh'
             # 编辑
@@ -197,6 +199,7 @@ class Preference:
             # 导出
             'Export.crf'                : self.crf,
             'Export.force_split_clip'   : self.force_split_clip,
+            'Export.hwaccels'           : self.hwaccels
         }
     def execute(self):
         # 修改语言

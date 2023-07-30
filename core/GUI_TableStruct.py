@@ -2224,6 +2224,16 @@ PreferenceTableStruct = {
                 "vtype": "int",
                 "default": 24
             },
+            "Export.hwaccels":{
+                "ktext": "硬件加速：",
+                "tooltip":"导出为mp4视频时，是否使用GPU硬件加速导出？注意，仅适用于支持CUDA的NVIDIA GPU，如果硬件不支持会发生错误！",
+                "dtext": "（选择）",
+                "ditem": "label",
+                "valuekey": "Export.hwaccels",
+                "vitem": "combox",
+                "vtype": "bool",
+                "default": False
+            },
         }
     },
 }

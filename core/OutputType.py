@@ -752,26 +752,49 @@ class ExportVideo(OutputMediaType):
     # ffmepg 导出视频的接口
     def ffmpeg_output(self):
         self.vidio_path = f'{self.output_path}{self.stdout_name}.video.mp4'
-        self.output_engine = (
-            ffmpeg
-            .input(
-                'pipe:',
-                format  = 'rawvideo',
-                r       = self.config.frame_rate,
-                pix_fmt = 'rgb24',
-                s       = '{0}x{1}'.format(self.config.Width,self.config.Height)
-                ) # 视频来源
-            .output(
-                ffmpeg.input(self.audio_path).audio,
-                self.vidio_path,
-                pix_fmt = 'yuv420p',
-                r       = self.config.frame_rate,
-                crf     = preference.crf,
-                **{'loglevel':'quiet'}
-                ) # 输出
-            .overwrite_output()
-            .run_async(pipe_stdin=True)
-        )
+        if preference.hwaccels:
+            self.output_engine = (
+                ffmpeg
+                .input(
+                    'pipe:',
+                    format  = 'rawvideo',
+                    r       = self.config.frame_rate,
+                    pix_fmt = 'rgb24',
+                    s       = '{0}x{1}'.format(self.config.Width,self.config.Height)
+                    ) # 视频来源
+                .output(
+                    ffmpeg.input(self.audio_path).audio,
+                    self.vidio_path,
+                    pix_fmt = 'yuv420p',
+                    r       = self.config.frame_rate,
+                    crf     = preference.crf,
+                    loglevel= 'quiet',
+                    **{'c:v':'h264_nvenc'}
+                    ) # 输出
+                .overwrite_output()
+                .run_async(pipe_stdin=True)
+            )
+        else:
+            self.output_engine = (
+                ffmpeg
+                .input(
+                    'pipe:',
+                    format  = 'rawvideo',
+                    r       = self.config.frame_rate,
+                    pix_fmt = 'rgb24',
+                    s       = '{0}x{1}'.format(self.config.Width,self.config.Height)
+                    ) # 视频来源
+                .output(
+                    ffmpeg.input(self.audio_path).audio,
+                    self.vidio_path,
+                    pix_fmt = 'yuv420p',
+                    r       = self.config.frame_rate,
+                    crf     = preference.crf,
+                    loglevel= 'quiet',
+                    ) # 输出
+                .overwrite_output()
+                .run_async(pipe_stdin=True)
+            )
         return self.vidio_path
     # 主流程：0终止，1异常，2终止
     def main(self)->int:
