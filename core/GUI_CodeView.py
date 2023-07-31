@@ -311,6 +311,11 @@ class RGLCodeViewFrame(ttk.Frame):
         self.is_modified = False
         # self.codeview.bind_class("Text", "<Button-3>", self.click_right_menu,'+')
         # 代码视图
+        if preference.theme == 'rplgendark':
+            self.codeview._line_numbers.colors=('#dddddd','#2e2e2c')
+        else:
+            self.codeview._line_numbers.colors=('#2e2e2c','#dddddd')
+        self.codeview._line_numbers.set_colors()
         self.codeview._line_numbers.bind('<ButtonRelease-3>',self.click_2_preview,'+')
         self.codeview._line_numbers.bind('<Leave>',self.close_preview,'+')
         self.codeview._line_numbers.configure(borderwidth=0)
