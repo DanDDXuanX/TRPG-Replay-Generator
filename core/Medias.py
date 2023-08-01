@@ -13,7 +13,7 @@ from .FilePaths import Filepath
 from .FreePos import Pos,FreePos
 from .Exceptions import MediaError, WarningPrint
 from .Formulas import sigmoid
-from .Utils import hex_2_rgba
+from .Utils import hex_2_rgba, rotate_surface, rotate_vector
 from .Regexs import RE_rich
 
 # 主程序 replay_generator
@@ -407,17 +407,22 @@ class Bubble(MediaObj):
     # 初始化
     def __init__(
             self,
-            filepath:str     = None,
-            scale:float      = 1.0,
-            Main_Text:Text   = Text(),
-            Header_Text:Text = None,
-            pos:tuple        = (0,0),
-            mt_pos:tuple     = (0,0),
-            ht_pos:tuple     = (0,0),
-            ht_target:str    = 'Name',
-            align:str        = 'left',
+            filepath:str        = None,
+            scale:float         = 1.0,
+            Main_Text:Text      = Text(),
+            Header_Text:Text    = None,
+            pos:tuple           = (0,0),
+            mt_pos:tuple        = (0,0),
+            mt_rotate:int       = 0,
+            ht_pos:tuple        = (0,0),
+            ht_rotate:int       = 0,
+            ht_target:str       = 'Name',
+            align:str           = 'left',
+            vertical_align:str  = 'top',
+            head_align:str      = 'left',
             line_distance:float = 1.5,
-            label_color:str  = 'Lavender'
+            line_num_est:int    = 4,
+            label_color:str     = 'Lavender'
             ):
         # 媒体和路径
         super().__init__(filepath=filepath,label_color=label_color)
@@ -445,8 +450,10 @@ class Bubble(MediaObj):
         # 主文本和头文本
         self.MainText:Text = Main_Text
         self.mt_pos:tuple  = mt_pos # 只可以是tuple
+        self.mt_rotate:int = int(mt_rotate)
         self.Header:Text   = Header_Text
         self.ht_pos:tuple  = ht_pos # 只可以是tuple or list tuple
+        self.ht_rotate     = ht_rotate # 待气球类重载
         self.target:str    = ht_target
         # 主文本行距
         if line_distance >= 1:
@@ -456,11 +463,20 @@ class Bubble(MediaObj):
             print(WarningPrint('LineDist'))
         else:
             raise MediaError('ILineDist',line_distance)
-        # 主文本对齐
-        if align in ('left','center'):
-            self.align = align
-        else:
-            raise MediaError('BadAlign',align)
+        # 期望主文本行数
+        self.line_num_est = line_num_est
+        # 对齐
+        self.align = align
+        self.vertical_align = vertical_align
+        self.head_align = head_align
+        if self.align not in ('left','center','right'):
+            raise MediaError('BadAlign',self.align)
+        # if self.head_align not in ('left','center','right'):
+        #     raise MediaError('BadAlign',self.head_align)
+        if self.vertical_align not in ('top','center','bottom'):
+            raise MediaError('BadAlign',self.vertical_align)
+        # 文本画板:和底图相同的大小
+        self.temp = pygame.Surface(self.size,pygame.SRCALPHA)
     # 主文本效果，裁切
     def tx_effect(self,main_text:str,effect:float=np.nan)->str:
         # 效果
@@ -472,24 +488,89 @@ class Bubble(MediaObj):
     def recode(self,main_text:str,header_text:str)->None:
         self.main_text = main_text
         self.header_text = header_text
-    # (气泡:surface, 文本:surface, size:tuple)
-    def draw(self, text:str, header:str='',effect:float=np.nan)->tuple:
-        # 文本画板:和底图相同的大小
-        temp = pygame.Surface(self.size,pygame.SRCALPHA)
-        temp.fill(self.cmap['empty'])
-        # 头文本有定义，且输入文本不为空
-        if (self.Header!=None) & (header!=''):
-            temp.blit(self.Header.draw(header)[0],self.ht_pos)
+    # draw的一部分，渲染主文本
+    def draw_maintext(self,text,effect):
         # 主文本，应用效果
         x,y = self.mt_pos
         main_text = self.tx_effect(text,effect)
-        for i,s in enumerate(self.MainText.draw(main_text)):
+        est_width = self.MainText.size*self.MainText.line_limit
+        est_ldist = self.MainText.size*self.line_distance
+        est_height = est_ldist * self.line_num_est
+        # 渲染全部
+        all_lines = self.MainText.draw(main_text)
+        lines_num = len(all_lines)
+        # 垂直对齐
+        if self.vertical_align == 'top':
+            y_start = 0
+        elif self.vertical_align == 'center':
+            y_start = (est_height - lines_num*est_ldist)//2
+        else:
+            y_start = est_height - lines_num*est_ldist
+        # 水平对齐
+        for i,s in enumerate(all_lines):
+            word_w,word_h = s.get_size()
+            # 水平对齐
             if self.align == 'left':
-                temp.blit(s,(x,y+i*self.MainText.size*self.line_distance))
-            else: # 就只可能是center了
-                word_w,word_h = s.get_size()
-                temp.blit(s,(x+(self.MainText.size*self.MainText.line_limit - word_w)//2,y+i*self.MainText.size*self.line_distance))
-        return (self.media.copy(), temp, self.size)
+                dist_vict = (0, y_start+i*self.MainText.size*self.line_distance)
+            elif self.align == 'center':
+                dist_vict = ((est_width - word_w)//2, y_start+i*est_ldist)
+            elif self.align == 'right':
+                dist_vict = (est_width - word_w, y_start+i*self.MainText.size*self.line_distance)
+            else:
+                dist_vict = (0, y_start+i*self.MainText.size*self.line_distance)
+            # 旋转
+            if self.mt_rotate ==0:
+                text_surf = s
+                dist_vict:np.ndarray = np.array(dist_vict)
+            else:
+                text_surf, r_SA = rotate_surface(s,self.mt_rotate)
+                dist_vict:np.ndarray = rotate_vector(dist_vict,self.mt_rotate) - r_SA
+            # 显示
+            x_this, y_this = np.array(self.mt_pos) + dist_vict
+            self.temp.blit(
+                source  = text_surf,
+                dest    = (int(x_this), int(y_this))
+            )
+        return self.temp
+    # draw的一部分，渲染头文本
+    def draw_headtext(self,header):
+        # 头文本有定义，且输入文本不为空
+        if (self.Header!=None) & (header!=''):
+            s = self.Header.draw(header)[0] # 头文本只显示一行
+            est_width = self.Header.size*self.Header.line_limit
+            word_w,word_h = s.get_size()
+            # 水平对齐
+            if self.align == 'left':
+                dist_vict = (0,0)
+            elif self.align == 'center':
+                dist_vict = ((est_width-word_w)//2, 0)
+            elif self.align == 'right':
+                dist_vict = ((est_width-word_w), 0)
+            else:
+                dist_vict = (0,0)
+            # 旋转
+            if self.ht_rotate ==0:
+                text_surf = s
+                dist_vict:np.ndarray = np.array(dist_vict)
+            else:
+                text_surf, r_SA = rotate_surface(s,self.ht_rotate)
+                dist_vict = rotate_vector(dist_vict,self.ht_rotate) - r_SA
+            # 显示
+            x_this, y_this = np.array(self.ht_pos) + dist_vict
+            self.temp.blit(
+                source  = text_surf,
+                dest    = (int(x_this), int(y_this))
+            )
+        return self.temp
+    # (气泡:surface, 文本:surface, size:tuple)
+    def draw(self, text:str, header:str='',effect:float=np.nan)->tuple:
+        # 初始化画板
+        self.temp.fill(self.cmap['empty'])
+        # 头文本有定义，且输入文本不为空
+        self.draw_headtext(header=header)
+        # 主文本，应用效果
+        self.draw_maintext(text=text,effect=effect)
+        return (self.media.copy(), self.temp, self.size)
     # 将气泡对象丢上主Surface
     def display(self, surface:pygame.surface, text:str, header:str='',effect:float=np.nan,alpha:int=100,center:str='NA',adjust:str='NA'):
         # 中心位置
@@ -667,43 +748,67 @@ class Balloon(Bubble):
             Header_Text:list = [None],
             pos:tuple        = (0,0),
             mt_pos:tuple     = (0,0),
+            mt_rotate:int    = 0,
             ht_pos:list      = [(0,0)],
+            ht_rotate:list    = [0],
             ht_target:list   = ['Name'],
             align:str        = 'left',
+            vertical_align:str  = 'top',
+            head_align:str      = ['left'],
             line_distance:float = 1.5,
+            line_num_est:int    = 4,
             label_color:str  = 'Lavender'
             ):
         # 继承Bubble
-        super().__init__(filepath=filepath,scale=scale,Main_Text=Main_Text,Header_Text=Header_Text,pos=pos,mt_pos=mt_pos,ht_pos=ht_pos,ht_target=ht_target,align=align,line_distance=line_distance,label_color=label_color)
+        super().__init__(
+            filepath=filepath, scale=scale,
+            Main_Text=Main_Text, Header_Text=Header_Text,
+            pos=pos, mt_pos=mt_pos,mt_rotate=mt_rotate, ht_pos=ht_pos, ht_rotate=ht_rotate, ht_target=ht_target,
+            align=align, vertical_align=vertical_align, head_align=head_align,
+            line_distance=line_distance, line_num_est=line_num_est,
+            label_color=label_color
+        )
         # 检查头文本列表长度是否匹配
-        if len(self.Header)!=len(self.ht_pos) or len(self.Header)!=len(self.target):
+        if len(self.Header)!=len(self.ht_pos) or len(self.Header)!=len(self.target) or len(self.Header)!=len(self.ht_rotate):
             raise MediaError('BnHead')
         else:
             self.header_num = len(self.Header)
-    # 重载draw: -> (气泡:surface, 文本:surface, size:tuple)
-    def draw(self, text:str, header:str='', effect:float=np.nan)->tuple: 
-        # 文本画板:和底图相同的大小
-        temp =  pygame.Surface(self.size,pygame.SRCALPHA)
-        temp.fill(self.cmap['empty'])
+    # 重载draw_head
+    def draw_headtext(self, header):
         # 复合header用|作为分隔符
         header_texts = header.split('|')
         for i,header_text_this in enumerate(header_texts):
             # Header 不为None ，且输入文本不为空
             if (self.Header[i]!=None) & (header_text_this!=''):
-                temp.blit(self.Header[i].draw(header_text_this)[0],self.ht_pos[i])
+                s = self.Header[i].draw(header_text_this)[0] # 头文本只显示一行
+                est_width = self.Header[i].size*self.Header[i].line_limit
+                word_w,word_h = s.get_size()
+                # 水平对齐
+                if self.head_align[i] == 'left':
+                    dist_vict = (0,0)
+                elif self.head_align[i] == 'center':
+                    dist_vict = ((est_width-word_w)//2, 0)
+                elif self.head_align[i] == 'right':
+                    dist_vict = ((est_width-word_w), 0)
+                else:
+                    dist_vict = (0,0)
+                # 旋转
+                if self.ht_rotate[i] ==0:
+                    text_surf = s
+                    dist_vict:np.ndarray = np.array(dist_vict)
+                else:
+                    text_surf, r_SA = rotate_surface(s,self.ht_rotate[i])
+                    dist_vict = rotate_vector(dist_vict,self.ht_rotate[i]) - r_SA
+                # 显示
+                x_this, y_this = np.array(self.ht_pos[i]) + dist_vict
+                self.temp.blit(
+                    source  = text_surf,
+                    dest    = (int(x_this), int(y_this))
+                )
             # 如果达到了header数量上限，多余的header_text弃用
             if i == self.header_num -1:
                 break
-        # 头文本
-        main_text = self.tx_effect(text,effect)
-        x,y = self.mt_pos
-        for i,s in enumerate(self.MainText.draw(main_text)):
-            if self.align == 'left':
-                temp.blit(s,(x,y+i*self.MainText.size*self.line_distance))
-            else: # 就只可能是center了
-                word_w,word_h = s.get_size()
-                temp.blit(s,(x+(self.MainText.size*self.MainText.line_limit - word_w)//2,y+i*self.MainText.size*self.line_distance))
-        return (self.media.copy(), temp, self.size)
+        return self.temp
     # 重载preview
     def test_header(self):
         test_head = []
@@ -778,7 +883,14 @@ class DynamicBubble(Bubble):
             label_color:str  = 'Lavender'
             ):
         # 继承：Bubble
-        super().__init__(filepath=filepath,scale=scale,Main_Text=Main_Text,Header_Text=Header_Text,pos=pos,mt_pos=mt_pos,ht_pos=ht_pos,ht_target=ht_target,line_distance=line_distance,label_color=label_color)
+        super().__init__(
+            filepath=filepath,scale=scale,
+            Main_Text=Main_Text,Header_Text=Header_Text,
+            pos=pos,mt_pos=mt_pos,
+            ht_pos=ht_pos,ht_target=ht_target,
+            line_distance=line_distance,
+            label_color=label_color
+        )
         # 检查气泡分割位置的合法性
         if (mt_pos[0] >= mt_end[0]) | (mt_pos[1] >= mt_end[1]) | (mt_end[0] > self.media.get_size()[0]) | (mt_end[1] > self.media.get_size()[1]):
             raise MediaError('InvSep','mt_end')

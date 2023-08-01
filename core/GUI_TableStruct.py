@@ -733,8 +733,18 @@ EditTableStruct = {
                         "vtype": "str",
                         "default": "(0,0)"
                     },
+                    "mt_rotate": {
+                        "ktext": "旋转：",
+                        "tooltip":None,
+                        "dtext": "（数值）",
+                        "ditem": "label",
+                        "valuekey": "mt_rotate",
+                        "vitem": "spine",
+                        "vtype": "int",
+                        "default": 0
+                    },
                     "align": {
-                        "ktext": "对齐：",
+                        "ktext": "水平对齐：",
                         "tooltip":None,
                         "dtext": "（选择）",
                         "ditem": "label",
@@ -742,6 +752,16 @@ EditTableStruct = {
                         "vitem": "combox",
                         "vtype": "str",
                         "default": "'left'"
+                    },
+                    "vertical_align": {
+                        "ktext": "垂直对齐：",
+                        "tooltip":None,
+                        "dtext": "（选择）",
+                        "ditem": "label",
+                        "valuekey": "vertical_align",
+                        "vitem": "combox",
+                        "vtype": "str",
+                        "default": "'top'"
                     },
                     "line_distance": {
                         "ktext": "行距：",
@@ -752,6 +772,16 @@ EditTableStruct = {
                         "vitem": "spine",
                         "vtype": "float",
                         "default": 1.5
+                    },
+                    "line_num_est": {
+                        "ktext": "行数：",
+                        "tooltip":None,
+                        "dtext": "（数值）",
+                        "ditem": "label",
+                        "valuekey": "line_num_est",
+                        "vitem": "spine",
+                        "vtype": "int",
+                        "default": 4
                     },
                 }
             },
@@ -779,6 +809,26 @@ EditTableStruct = {
                         "vtype": "str",
                         "default": "(0,0)"
                     },
+                    "ht_rotate": {
+                        "ktext": "旋转：",
+                        "tooltip":None,
+                        "dtext": "（数值）",
+                        "ditem": "label",
+                        "valuekey": "ht_rotate",
+                        "vitem": "spine",
+                        "vtype": "int",
+                        "default": "0"
+                    },
+                    "head_align": {
+                        "ktext": "对齐：",
+                        "tooltip":None,
+                        "dtext": "（选择）",
+                        "ditem": "label",
+                        "valuekey": "head_align",
+                        "vitem": "combox",
+                        "vtype": "str",
+                        "default": "'left'"
+                    },
                     "ht_target": {
                         "ktext": "目标：",
                         "tooltip":None,
@@ -799,10 +849,15 @@ EditTableStruct = {
             "pos"           : "pos",
             "Main_Text"     : "Main_Text",
             "mt_pos"        : "mt_pos",
+            "mt_rotate"     : "mt_rotate",
             "align"         : "align",
+            "vertical_align": "vertical_align",
+            "head_align"    : "head_align",
             "line_distance" : "line_distance",
+            "line_num_est"  : "line_num_est",
             "Header_Text"   : "Header_Text",
             "ht_pos"        : "ht_pos",
+            "ht_rotate"     : "ht_rotate",
             "ht_target"     : "ht_target",
             "label_color"   : "label_color",
         },
@@ -903,8 +958,18 @@ EditTableStruct = {
                         "vtype": "str",
                         "default": "(0,0)"
                     },
+                    "mt_rotate": {
+                        "ktext": "旋转：",
+                        "tooltip":None,
+                        "dtext": "（数值）",
+                        "ditem": "label",
+                        "valuekey": "mt_rotate",
+                        "vitem": "spine",
+                        "vtype": "int",
+                        "default": 0
+                    },
                     "align": {
-                        "ktext": "对齐：",
+                        "ktext": "水平对齐：",
                         "tooltip":None,
                         "dtext": "（选择）",
                         "ditem": "label",
@@ -912,6 +977,16 @@ EditTableStruct = {
                         "vitem": "combox",
                         "vtype": "str",
                         "default": "'left'"
+                    },
+                    "vertical_align": {
+                        "ktext": "垂直对齐：",
+                        "tooltip":None,
+                        "dtext": "（选择）",
+                        "ditem": "label",
+                        "valuekey": "vertical_align",
+                        "vitem": "combox",
+                        "vtype": "str",
+                        "default": "'top'"
                     },
                     "line_distance": {
                         "ktext": "行距：",
@@ -922,6 +997,16 @@ EditTableStruct = {
                         "vitem": "spine",
                         "vtype": "float",
                         "default": 1.5
+                    },
+                    "line_num_est": {
+                        "ktext": "行数：",
+                        "tooltip":None,
+                        "dtext": "（数值）",
+                        "ditem": "label",
+                        "valuekey": "line_num_est",
+                        "vitem": "spine",
+                        "vtype": "int",
+                        "default": 4
                     },
                 }
             },
@@ -952,6 +1037,26 @@ EditTableStruct = {
                         "vtype": "str",
                         "default": "(0,0)"
                     },
+                    "ht_rotate_%d": {
+                        "ktext": "旋转：",
+                        "tooltip":None,
+                        "dtext": "（数值）",
+                        "ditem": "label",
+                        "valuekey": "ht_rotate",
+                        "vitem": "spine",
+                        "vtype": "int",
+                        "default": "0"
+                    },
+                    "head_align_%d": {
+                        "ktext": "对齐：",
+                        "tooltip":None,
+                        "dtext": "（选择）",
+                        "ditem": "label",
+                        "valuekey": "head_align",
+                        "vitem": "combox",
+                        "vtype": "str",
+                        "default": "'left'"
+                    },
                     "ht_target_%d": {
                         "ktext": "目标：",
                         "tooltip":None,
@@ -972,10 +1077,15 @@ EditTableStruct = {
             "pos"           : "pos",
             "Main_Text"     : "Main_Text",
             "mt_pos"        : "mt_pos",
+            "mt_rotate"     : "mt_rotate",
             "align"         : "align",
+            "vertical_align": "vertical_align",
+            "head_align"    : "head_align_%d",
             "line_distance" : "line_distance",
+            "line_num_est"  : "line_num_est",
             "Header_Text"   : "Header_Text_%d",
             "ht_pos"        : "ht_pos_%d",
+            "ht_rotate"     : "ht_rotate_%d",
             "ht_target"     : "ht_target_%d",
             "label_color"   : "label_color",
         },
@@ -2548,7 +2658,13 @@ projection = {
 }
 alignments = {
     "左对齐" : "'left'",
-    "居中对齐": "'center'"
+    "居中对齐": "'center'",
+    "右对齐" : "'right'",
+}
+vertical_alignments = {
+    "顶部对齐" : "'top'",
+    "居中对齐": "'center'",
+    "底部对齐" : "'bottom'",
 }
 chatalign = {
     "靠左" : "'left'",

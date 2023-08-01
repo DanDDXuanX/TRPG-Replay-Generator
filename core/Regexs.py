@@ -28,7 +28,7 @@ RE_dice = re.compile('\((.+?),(\d+),([\d]+|NA),(\d+)\)') # a 1.7.5 骰子预设�
 RE_wait = re.compile('^<wait>:(.+)$')
 # 媒体定义的解析
 RE_mediadef = re.compile('^(\w+) *= *(Pos|FreePos|PosGrid|Text|StrokeText|RichText|Bubble|Balloon|DynamicBubble|ChatWindow|Animation|GroupedAnimation|BuiltInAnimation|Background|BGM|Audio)(\(.*\))')
-RE_mediadef_args = re.compile("(fontfile|fontsize|color|line_limit|filepath|scale|Main_Text|Header_Text|pos|end|x_step|y_step|mt_pos|mt_end|ht_pos|ht_target|fill_mode|fit_axis|align|line_distance|tick|loop|volume|edge_color|edge_width|projection|sub_key|sub_Bubble|sub_Anime|sub_align|sub_pos|sub_end|am_left|am_right|sub_distance|label_color)?\ {0,4}=?\ {0,4}(Text\(\)|Pos\(\)|\[[\w,'()]+\]|\w+\[[\d\,]+\]|[^,()]+|\([-\d,\ ]+\))")
+RE_mediadef_args = re.compile("(fontfile|fontsize|color|line_limit|filepath|scale|Main_Text|Header_Text|pos|end|x_step|y_step|mt_pos|mt_rotate|mt_end|ht_pos|ht_rotate|ht_target|fill_mode|fit_axis|align|vertical_align|head_align|line_distance|line_num_est|tick|loop|volume|edge_color|edge_width|projection|sub_key|sub_Bubble|sub_Anime|sub_align|sub_pos|sub_end|am_left|am_right|sub_distance|label_color)?\ {0,4}=?\ {0,4}(Text\(\)|Pos\(\)|\[[\w,'()]+\]|\w+\[[\d\,]+\]|[^,()]+|\([-\d,\ ]+\))")
 RE_subscript_def = re.compile('^(\w+) *= *(\w+\[.*\])')
 # 富文本的富标记
 RE_rich = re.compile("(\[/?[\w\^\#]{1,2}(?:\:[\w\#]+)?\])")

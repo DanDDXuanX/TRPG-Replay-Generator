@@ -192,6 +192,8 @@ class Container(FluentFrame):
                 self.edit_select(to_preview)
                 self.preview_canvas.preview(to_preview)
             except Exception as E:
+                from traceback import print_exc
+                print_exc()
                 Messagebox().show_error(
                     message = re.sub('\x1B\[\d+m','',str(E)),
                     title   = '错误',
