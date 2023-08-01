@@ -469,7 +469,7 @@ class MediaEdit(EditWindow):
             self.elements['line_distance'].input.configure(from_=0.8,to=3,increment=0.1)
         if self.line_type in ['Bubble','Balloon']:
             self.elements['mt_pos'].describe.configure(command=lambda :self.select_dot('b0','p1'))
-            self.elements["mt_rotate"].input.configure(from_=-180,to=180,increment=5)
+            self.elements["mt_rotate"].input.configure(from_=-180,to=180,increment=1)
             self.elements['align'].input.update_dict(alignments)
             self.elements['vertical_align'].input.update_dict(vertical_alignments)
             self.elements['line_num_est'].input.configure(from_=1,to=10,increment=1)
@@ -479,7 +479,7 @@ class MediaEdit(EditWindow):
             self.elements['ht_target'].input.update_dict(self.get_avaliable_charcol())
         if self.line_type == 'Bubble':
             self.elements["head_align"].input.update_dict(alignments)
-            self.elements["ht_rotate"].input.configure(from_=-180,to=180,increment=5)
+            self.elements["ht_rotate"].input.configure(from_=-180,to=180,increment=1)
         if self.line_type == 'DynamicBubble':
             self.elements['mt_pos'].describe.configure(command=lambda :self.select_dot('m0','p1'))
             self.elements['mt_end'].describe.configure(command=lambda :self.select_dot('m0','p2'))
@@ -492,7 +492,7 @@ class MediaEdit(EditWindow):
                     self.elements['ht_pos_%d'%idx].describe.configure(command=self.select_dot_idx(idx))
                     self.elements['ht_target_%d'%idx].input.update_dict(self.get_avaliable_charcol())
                     self.elements["head_align_%d"%idx].input.update_dict(alignments)
-                    self.elements["ht_rotate_%d"%idx].input.configure(from_=-180,to=180,increment=5)
+                    self.elements["ht_rotate_%d"%idx].input.configure(from_=-180,to=180,increment=1)
                 else:
                     break
             self.update_sep_button()
@@ -601,7 +601,7 @@ class MediaEdit(EditWindow):
             self.elements['ht_pos_%d'%sep_new].describe.configure(command=self.select_dot_idx(sep_new))
             self.elements['ht_target_%d'%sep_new].input.update_dict(self.get_avaliable_charcol())
             self.elements["head_align_%d"%sep_new].input.update_dict(alignments)
-            self.elements["ht_rotate_%d"%sep_new].input.configure(from_=-180,to=180,increment=5)
+            self.elements["ht_rotate_%d"%sep_new].input.configure(from_=-180,to=180,increment=1)
         if self.line_type == 'ChatWindow':
             self.elements["sub_Bubble_%d"%sep_new].input.configure(values=['Bubble()']+self.get_avaliable_bubble(cw=False),state='readonly')
             self.elements["sub_Anime_%d"%sep_new].input.configure(values=['None']+self.get_avaliable_anime(),state='readonly')

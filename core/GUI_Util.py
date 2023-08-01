@@ -189,11 +189,17 @@ class KeyValueDescribe(ttk.Frame):
         self.input.pack(fill='x',side='left',padx=SZ_5,expand=True)
         self.describe.pack(fill='none',side='left',padx=SZ_5)
     def config_content(self, *args):
+        print(args)
         # 回调函数
         if self.callback:
             self.callback()
         # 清除焦点
-        self.describe.focus_set()
+        if args:
+            try:
+                if args[0].keysym == 'Return':
+                    self.describe.focus_set()
+            except:
+                pass
     def get(self):
         return self.value.get()
     def set(self,value):

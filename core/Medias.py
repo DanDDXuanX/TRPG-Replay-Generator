@@ -653,6 +653,8 @@ class Bubble(MediaObj):
         return (clip_bubble, clip_text)
     # GUI预览
     def test_maintext(self, lines=4):
+        if lines <= 0:
+            lines = 1
         # 主文本
         if self.MainText is not None:
             line1 = ((self.MainText.line_limit//lines+1)*"测试文本")
@@ -677,7 +679,7 @@ class Bubble(MediaObj):
         return test_head
     def preview(self, surface: pygame.Surface, key=None):
         # 主文本
-        test_text = self.test_maintext()
+        test_text = self.test_maintext(lines=self.line_num_est-1)
         # 头文本
         test_head = self.test_header()
         self.display(surface, text=test_text, header=test_head)
@@ -701,7 +703,7 @@ class Bubble(MediaObj):
             pos_dict['blue']['b0']['mt_pos'] = self.mt_pos
             pos_dict['blue']['b0']['mt_end'] = (
                     self.mt_pos[0] + self.MainText.line_limit*self.MainText.size,
-                    self.mt_pos[1] + self.line_distance*self.MainText.size*4
+                    self.mt_pos[1] + self.line_distance*self.MainText.size*self.line_num_est
                 )
         if type(self.Header) in [Text, StrokeText, RichText]:
             pos_dict['blue']['b1'] = {}
