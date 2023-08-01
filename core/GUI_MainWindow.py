@@ -40,21 +40,19 @@ class RplGenStudioMainWindow(ttk.Window):
         # 标题
         self.window_title = f'回声工坊 {EDITION}'
         # 导航栏
+        self.show = 'project'
         self.navigate_bar = NavigateBar(master=self,screenzoom=self.sz)
         self.navigate_bar.place(x=0,y=0,width=int(80*self.sz),relheight=1)
         # event
         self.navigate_bar.bind('<ButtonRelease-1>', self.navigateBar_get_click)
-        # self.bind('<F12>', self.show_toast)
         # self.bind('<F11>', self.switch_fullscreen) # BUG 全屏模式下的窗口上下顺序会出现异常
         # 视图
         self.view = {
-            # 'project': ProjectView(master=self,screenzoom=self.sz,project_file=None),
             'project': EmptyView(master=self,screenzoom=self.sz),
             'console': ConsoleView(master=self,screenzoom=self.sz),
             'script' : ScriptView( master=self,screenzoom=self.sz),
             'setting': PreferenceView(master=self,screenzoom=self.sz)
-            }
-        self.show = 'project'
+        }
         self.view_show('project')
     # 初始化字体
     def font_init(self):
@@ -201,18 +199,18 @@ class RplGenStudioMainWindow(ttk.Window):
         elif type(self.view['project']) is ProjectView:
             w = int(self.winfo_width()/2)
             h = int(self.winfo_height()/2-self.sz*100)
+            x = int(self.winfo_x())
+            y = int(self.winfo_y())
             choice = Messagebox().show_question(
             message='确认要关闭软件？\n尚未保存的项目变更将会丢失！',
             title='警告！',
             buttons=["取消:secondary","确定:danger"],
             alert=True,
-            position=(w,h),
+            position=(x+w,y+h),
             width=100
             )
             if choice != '确定':
                 return False
-        # project_view:ProjectView = self.view['project']
-        # project_view.file_manager.project.dump_json('./test_project.json')
         self.dump_recent_project()
         self.destroy()
     # 当导航栏被点击时
@@ -366,7 +364,7 @@ class NavigateBar(ttk.Frame):
             else:
                 button.place_configure(width=width)
         # 高亮的线
-        self.press_button('project')
+        self.press_button(self.master.show)
     # 点击按键的绑定事件：标注
     def press_button(self,button,force=False):
         # 检查是否禁用

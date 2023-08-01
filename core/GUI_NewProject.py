@@ -213,7 +213,12 @@ class CreateIntelProject(CreateProject):
         self.tplt_path = self.intel_dir + tplt_name + '/main.rgint'
         # @ 路径
         self.at_path = self.intel_dir+tplt_name
-        self.template:dict = json.load(open(self.tplt_path,'r',encoding='utf-8'))
+        try:
+            self.template:dict = json.load(open(self.tplt_path,'r',encoding='utf-8'))
+        except:
+            Messagebox().show_error('该预设模板可能已经损坏！',title='错误',parent=self)
+            self.elements['template'].set('')
+            return
         # 显示
         self.frame_metainfo = ttk.Frame(master=self.seperator['TpltSep'],borderwidth=0)
         ttk.Separator(master=self.frame_metainfo,bootstyle='secondary',orient='horizontal').pack(fill='x',side='top',pady=SZ_5)
@@ -240,8 +245,8 @@ class CreateIntelProject(CreateProject):
             self.frame_metainfo.destroy()
             # self.frame_metainfo.pack_forget()
         try:
-            self.load_template(self.elements['template'].get())
-            self.frame_metainfo.pack(fill='x',side='top',pady=(0,int(self.sz*5)))
+            if self.load_template(self.elements['template'].get()):
+                self.frame_metainfo.pack(fill='x',side='top',pady=(0,int(self.sz*5)))
         except Exception as E:
             self.elements['template'].set("")
             raise Exception()
@@ -446,11 +451,15 @@ class CreateIntelProject(CreateProject):
                     return
     # 当正在导入时，终止导入
     def terminate_load(self):
-        if self.thread.is_alive():
-            self.story.terminate_load()
-            self.thread.join()
-            self.reset_comfirm()
-        else:
+        # 当点的足够快的时候，可能还没创建线程，就点下了终止。
+        try:
+            if self.thread.is_alive():
+                self.story.terminate_load()
+                self.thread.join()
+                self.reset_comfirm()
+            else:
+                pass
+        except AttributeError:
             pass
     def import_story(self):
         self.story.load(text=self.load_text)

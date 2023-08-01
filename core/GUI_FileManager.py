@@ -384,6 +384,8 @@ class FileManager(ttk.Frame):
         toplevel = self.winfo_toplevel()
         w = int(toplevel.winfo_width()/2)
         h = int(toplevel.winfo_height()/2-self.sz*100)
+        x = int(self.winfo_x())
+        y = int(self.winfo_y())
         choice = Messagebox().show_question(
             message='在关闭项目前，是否要保存项目？',
             title='关闭项目',
@@ -391,7 +393,7 @@ class FileManager(ttk.Frame):
             alert=True,
             parent=toplevel,
             width=10,
-            position=(w,h)
+            position=(x+w,y+h)
             )
         if choice == ' 是 ':
             self.save_file()
