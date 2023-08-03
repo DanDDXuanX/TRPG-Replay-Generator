@@ -778,7 +778,7 @@ class Bubble(MediaObj):
             elif type(self.MainText) is HPLabel:
                 test_text = ''
                 for k in range(0,lines):
-                    test_text += f'{lines+1}/{lines+5}#'
+                    test_text += f'{k+5}/{lines+5}#'
                 test_text = test_text[:-1]
             else:
                 test_text = ''
