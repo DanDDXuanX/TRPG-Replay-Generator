@@ -504,7 +504,7 @@ class WarningPrint(Print):
                         "描边宽度被设置超过3，这可能导致意料之外的显示效果。"],
         'InvRichlab'  :["Unrecognized rich label : {} , which will be ignored.",
                         "无法识别的富文本标记：{}，这将被忽略。"],
-        'InvHpLabel'  :["Unrecognized hipoint text : {} , which will be rendered as plain text.",
+        'InvHpLabel'  :["Unrecognized hitpoint text : {} , which will be rendered as plain text.",
                         "无法识别的生命标记文本：{}，这将被渲染为纯文本。"],
     }
     # 类型：警告
