@@ -401,9 +401,121 @@ class RichText(Text):
             else:
                 WarningPrint('InvRichlab', richlabel)
         return False
+# 血条标签
+class HPLabel(Text):
+    def __init__(
+            self,
+            fontfile:str        = './media/SourceHanSansCN-Regular.otf',
+            fontsize:int        = 40,
+            color:tuple         = (0,0,0,255),
+            marker:str          = "A/B",
+            fg_path:str         = './media/heart.png',
+            bg_path:str         = './media/heart_shape.png',
+            align:str           = 'left',
+            width:int           = 0,
+            repeat:int          = 2,
+            label_color:str     = 'Lavender'
+            ):
+        # 继承
+        super().__init__(fontfile=fontfile,fontsize=fontsize,color=color,line_limit=10,label_color=label_color)
+        # 派生
+        self.marker = marker
+        self.fg_path = Filepath(fg_path)
+        self.bg_path = Filepath(bg_path)
+        self.fg_media = self.load_image(self.fg_path)
+        self.bg_media = self.load_image(self.bg_path)
+        self.align = align
+        self.width = width
+        self.repeat = repeat
+    # 将图形缩放到和字体相当的大小
+    def load_image(self,path:Filepath):
+        image_surface = pygame.image.load(path.exact())
+        height = image_surface.get_height()
+        scale = self.size / height
+        return self.zoom(image_surface, scale)
+    # 渲染一行
+    def render(self, tx:str):
+        try:
+            d1 = int(tx.split('/')[0])
+            d2 = int(tx.split('/')[1])
+            if d2<d1 or d1 < 0 or d2 <0:
+                raise ValueError('invalid hp value')
+        except Exception:
+            print(WarningPrint('InvHpLabel',tx))
+            return super().render(tx)
+        # 渲染文本
+        text_to_draw = self.marker.replace('A',str(d1)).replace('B',str(d2))
+        text_surface = super().render(text_to_draw)
+        # 渲染血条
+        if self.repeat == 0:
+            bg_nw = 1
+            fg_nw = d1/d2
+        else:
+            fg_nw = d1 / self.repeat
+            bg_nw = d2 / self.repeat
+        bg_sw = self.bg_media.get_width()
+        line_height = max(text_surface.get_height(), self.size)
+        bar_y = (line_height - self.size)//2
+        bg_canvas = pygame.Surface(
+            size = (bg_sw*bg_nw, line_height),
+            flags= pygame.SRCALPHA
+        )
+        fg_canvas = bg_canvas.copy()
+        for n in np.arange(0, np.ceil(bg_nw)):
+            bg_canvas.blit(self.bg_media, dest=(int(n*bg_sw), bar_y))
+        for n in np.arange(0, np.ceil(fg_nw)):
+            fg_canvas.blit(self.fg_media, dest=(int(n*bg_sw), bar_y))
+        # 将fg渲染到bg上
+        bg_canvas.blit(
+            fg_canvas.subsurface([0,0,bg_sw*fg_nw,line_height]),
+            dest=(0,0)
+        )
+        # 根据width，重设宽度
+        if self.width <= 0:
+            pass
+        else:
+            target_size = (self.width, line_height)
+            bg_canvas = pygame.transform.smoothscale(bg_canvas, target_size)
+        # 将text和bar合并在一起
+        merge_surface = pygame.Surface(
+            size = (bg_canvas.get_width()+int(self.size*0.5)+text_surface.get_width(), line_height),
+            flags= pygame.SRCALPHA
+        )
+        if self.align == 'left':
+            merge_surface.blit(bg_canvas,(0,0))
+            merge_surface.blit(text_surface,(bg_canvas.get_width()+int(self.size*0.5), 0))
+        else:
+            merge_surface.blit(text_surface,(0,0))
+            merge_surface.blit(bg_canvas,(text_surface.get_width()+int(self.size*0.5), 0))
+        return merge_surface
+    # 预览的接口
+    def preview(self, surface: pygame.Surface):
+        # 测试文本
+        test_text = '5/10'
+        text_surf:pygame.Surface = self.draw(test_text)[0]
+        # 尺寸
+        w,h = text_surf.get_size()
+        W,H = surface.get_size()
+        # 显示在正中间
+        surface.blit(text_surf,((W-w)/2,(H-h)/2))
+    # 修改的接口
+    def configure(self, key: str, value, index: int = 0):
+        if key == 'fontsize':
+            self.size = value
+            self.text_render = pygame.font.Font(self.filepath.exact(), self.size)
+            self.fg_media = self.load_image(self.fg_path)
+            self.bg_media = self.load_image(self.bg_path)
+        if key == 'fg_path':
+            self.fg_path = Filepath(value)
+            self.fg_media = self.load_image(self.fg_path)
+        elif key == 'bg_path':
+            self.bg_path = Filepath(value)
+            self.bg_media = self.load_image(self.bg_path)
+        else:
+            return super().configure(key, value, index)
 
 # 气泡
-class Bubble(MediaObj):                                   
+class Bubble(MediaObj):
     # 初始化
     def __init__(
             self,
@@ -663,6 +775,11 @@ class Bubble(MediaObj):
                 test_text = '[^]'
                 for k in range(0,lines):
                     test_text += richlabels[k]+line1[0:self.MainText.line_limit*(lines-k)//lines]+'[#]'
+            elif type(self.MainText) is HPLabel:
+                test_text = ''
+                for k in range(0,lines):
+                    test_text += f'{lines+1}/{lines+5}#'
+                test_text = test_text[:-1]
             else:
                 test_text = ''
                 for k in range(0,lines):
@@ -673,7 +790,10 @@ class Bubble(MediaObj):
         return test_text
     def test_header(self):
         if self.Header is not None:
-            test_head = ((self.Header.line_limit//4+1)*"测试文本")[0:self.Header.line_limit]
+            if type(self.Header) is HPLabel:
+                test_head = '5/10'
+            else:
+                test_head = ((self.Header.line_limit//4+1)*"测试文本")[0:self.Header.line_limit]
         else:
             test_head = ''
         return test_head
@@ -705,7 +825,7 @@ class Bubble(MediaObj):
                     self.mt_pos[0] + self.MainText.line_limit*self.MainText.size,
                     self.mt_pos[1] + self.line_distance*self.MainText.size*self.line_num_est
                 )
-        if type(self.Header) in [Text, StrokeText, RichText]:
+        if type(self.Header) in [Text, StrokeText, RichText, HPLabel]:
             pos_dict['blue']['b1'] = {}
             pos_dict['blue']['b1']['ht_pos'] = self.ht_pos
             pos_dict['blue']['b1']['ht_end'] = (
@@ -771,10 +891,16 @@ class Balloon(Bubble):
             label_color=label_color
         )
         # 检查头文本列表长度是否匹配
-        if len(self.Header)!=len(self.ht_pos) or len(self.Header)!=len(self.target) or len(self.Header)!=len(self.ht_rotate):
-            raise MediaError('BnHead')
-        else:
-            self.header_num = len(self.Header)
+        for idx, header in enumerate(self.Header):
+            if idx >= len(self.ht_pos):
+                self.ht_pos.append((0,0))
+            if idx >= len(self.target):
+                self.target.append('Name')
+            if idx >= len(self.ht_rotate):
+                self.ht_rotate.append(0)
+            if idx >= len(self.head_align):
+                self.head_align.append('left')
+        self.header_num = len(self.Header)
     # 重载draw_head
     def draw_headtext(self, header):
         # 复合header用|作为分隔符
@@ -816,7 +942,10 @@ class Balloon(Bubble):
         test_head = []
         for header_this in self.Header:
             if header_this is not None:
-                test_head.append(((header_this.line_limit//4+1)*"测试文本")[0:header_this.line_limit])
+                if type(header_this) is HPLabel:
+                    test_head.append('5/10')
+                else:
+                    test_head.append(((header_this.line_limit//4+1)*"测试文本")[0:header_this.line_limit])
             else:
                 test_head.append('')
         test_head = '|'.join(test_head)
@@ -824,7 +953,7 @@ class Balloon(Bubble):
     def get_pos(self) -> dict:
         pos_dict = super().get_pos()
         for i, HT in enumerate(self.Header):
-            if type(HT) in [Text, StrokeText, RichText]:
+            if type(HT) in [Text, StrokeText, RichText, HPLabel]:
                 pos_dict['blue'][f'b{str(i+1)}'] = {}
                 pos_dict['blue'][f'b{str(i+1)}']['ht_pos'] = self.ht_pos[i]
                 pos_dict['blue'][f'b{str(i+1)}']['ht_end'] = (
@@ -1115,7 +1244,7 @@ class DynamicBubble(Bubble):
         }
         blue_dot = {}
         # 如果有头文本
-        if type(self.Header) in [Text, StrokeText, RichText]:
+        if type(self.Header) in [Text, StrokeText, RichText, HPLabel]:
             blue_dot['b1'] = {}
             blue_dot['b1']['ht_pos'] = self.ht_pos
             blue_dot['b1']['ht_end'] = (

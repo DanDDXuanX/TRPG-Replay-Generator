@@ -4,7 +4,7 @@
 import re
 import ttkbootstrap as ttk
 from .GUI_Util import KeyValueDescribe, TextSeparator, FluentFrame, ask_rename_boardcast
-from .GUI_TableStruct import EditTableStruct, label_colors, projection, alignments, vertical_alignments, chatalign, charactor_columns, fill_mode, fit_axis, True_False
+from .GUI_TableStruct import EditTableStruct, label_colors, projection, alignments, vertical_alignments, chatalign, charactor_columns, fill_mode, fit_axis, True_False, left_right
 from .ScriptParser import MediaDef, RplGenLog, CharTable
 from .GUI_CustomDialog import voice_chooser, selection_query
 from .Exceptions import SyntaxsError
@@ -448,11 +448,18 @@ class MediaEdit(EditWindow):
             self.elements['y_step'].input.configure(from_=1,to=100,increment=1)
             self.elements['end'].describe.configure(command=lambda :self.select_dot('o1','p1'))
         # 字体
-        if self.line_type in ['Text','StrokeText','RichText']:
-            self.elements['line_limit'].input.configure(from_=0,to=100,increment=1)
+        if self.line_type in ['Text','StrokeText','RichText','HPLabel']:
             self.elements['fontsize'].input.configure(from_=0,to=300,increment=5)
             self.elements['fontfile'].bind_button(dtype='fontfile-file')
             self.elements['color'].bind_button(dtype='color')
+            if self.line_type != 'HPLabel':
+                self.elements['line_limit'].input.configure(from_=0,to=100,increment=1)
+            else:
+                self.elements['fg_path'].bind_button(dtype='picture-file')
+                self.elements['bg_path'].bind_button(dtype='picture-file')
+                self.elements['align'].input.update_dict(left_right)
+                self.elements['width'].input.configure(from_=0,to=1000,increment=50)
+                self.elements['repeat'].input.configure(from_=0,to=100,increment=1)
             if self.line_type == 'StrokeText':
                 self.elements['edge_color'].bind_button(dtype='color')
                 self.elements['edge_width'].input.configure(from_=0,to=30,increment=1)

@@ -272,7 +272,7 @@ class RGLPage(ttk.Frame):
 # 页面视图：媒体定义文件
 class MDFPage(ttk.Frame):
     categroy_dict = {
-        'Text'      : ['Text', 'StrokeText', 'RichText'],
+        'Text'      : ['Text', 'StrokeText', 'RichText', 'HPLabel'],
         'Pos'       : ['Pos','FreePos','PosGrid'],
         'Animation' : ['Animation'],
         'Bubble'    : ['Bubble','Balloon','DynamicBubble','ChatWindow'],

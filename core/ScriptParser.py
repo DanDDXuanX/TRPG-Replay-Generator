@@ -11,7 +11,7 @@ import json
 from .Exceptions import DecodeError,ParserError,WarningPrint,SyntaxsError
 from .Regexs import *
 from .Formulas import *
-from .Medias import Text,StrokeText,RichText,Bubble,Balloon,DynamicBubble,ChatWindow,Animation,GroupedAnimation,Dice,HitPoint,Background,BGM,Audio
+from .Medias import Text,StrokeText,RichText,HPLabel,Bubble,Balloon,DynamicBubble,ChatWindow,Animation,GroupedAnimation,Dice,HitPoint,Background,BGM,Audio
 from .FreePos import Pos,FreePos,PosGrid
 from .FilePaths import Filepath
 from .ProjConfig import Config
@@ -23,7 +23,7 @@ class Script:
     # 类型名对应的Class
     Media_type = {
         'Pos':Pos,'FreePos':FreePos,'PosGrid':PosGrid,
-        'Text':Text,'StrokeText':StrokeText,'RichText':RichText,
+        'Text':Text,'StrokeText':StrokeText,'RichText':RichText,'HPLabel':HPLabel,
         'Bubble':Bubble,'Balloon':Balloon,'DynamicBubble':DynamicBubble,'ChatWindow':ChatWindow,
         'Animation':Animation,'GroupedAnimation':GroupedAnimation,'HitPoint':HitPoint,'Dice':Dice,
         'Background':Background,
@@ -37,6 +37,7 @@ class Script:
         'Text'          :['fontfile','fontsize','color','line_limit','label_color'],
         'StrokeText'    :['fontfile','fontsize','color','line_limit','edge_color','edge_width','projection','label_color'],
         'RichText'      :['fontfile','fontsize','color','line_limit','label_color'],
+        'HPLabel'       :['fontfile','fontsize','color','marker','fg_path','bg_path','align','width','repeat','label_color'],
         'Bubble'        :['filepath','scale','Main_Text','Header_Text','pos','mt_pos','mt_rotate','ht_pos','ht_rotate','ht_target','align','vertical_align','head_align','line_distance','line_num_est','label_color'],
         'Balloon'       :['filepath','scale','Main_Text','Header_Text','pos','mt_pos','mt_rotate','ht_pos','ht_rotate','ht_target','align','vertical_align','head_align','line_distance','line_num_est','label_color'],
         'DynamicBubble' :['filepath','scale','Main_Text','Header_Text','pos','mt_pos','mt_end','ht_pos','ht_target','fill_mode','fit_axis','line_distance','label_color'],
@@ -53,6 +54,7 @@ class Script:
         'Text'          :['./media/SourceHanSansCN-Regular.otf',40,[0,0,0,255],20,'Lavender'],
         'StrokeText'    :['./media/SourceHanSansCN-Regular.otf',40,[0,0,0,255],20,[255,255,255,255],1,'C','Lavender'],
         'RichText'      :['./media/SourceHanSansCN-Regular.otf',40,[0,0,0,255],20,'Lavender'],
+        'HPLabel'       :['./media/SourceHanSansCN-Regular.otf',40,[0,0,0,255],'A/B','./media/heart.png','./media/heart_shape.png','left',0,2,'Lavender'],
         'Bubble'        :[None,1.0,{'type':'Text'},None,[0,0],[0,0],0,[0,0],0,'Name','left','top','left',1.5,4,'Lavender'],
         'Balloon'       :[None,1.0,{'type':'Text'},[None],[0,0],[0,0],0,[[0,0]],[0],['Name'],'left','top',['left'],1.5,4,'Lavender'],
         'DynamicBubble' :[None,1.0,{'type':'Text'},None,[0,0],[0,0],[100,100],[0,0],'Name','stretch','free',1.5,'Lavender'],
@@ -409,7 +411,7 @@ class MediaDef(Script):
         type_name = {
             'anime'     :['Animation'],
             'bubble'    :['Bubble','Balloon','DynamicBubble'],
-            'text'      :['Text','StrokeText','RichText'],
+            'text'      :['Text','StrokeText','RichText','HPLabel'],
             'pos'       :['Pos','FreePos'],
             'posgrid'   :['PosGrid'],
             'freepos'   :['FreePos'],
@@ -453,8 +455,8 @@ class MediaDef(Script):
 
     def update_media_file(self,name:str,old_path:str,new_path:str):
         this_section = self.struct[name]
-        # 获取关键字
-        if this_section['type'] in ['Text','StrokeText','RichText']:
+        # 获取关键字 # TODO: HPLabel类似乎无法兼容这个方法
+        if this_section['type'] in ['Text','StrokeText','RichText','HPLabel']:
             keyword = 'fontfile'
         else:
             keyword = 'filepath'

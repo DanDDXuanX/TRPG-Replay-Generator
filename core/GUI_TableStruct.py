@@ -352,7 +352,7 @@ EditTableStruct = {
                         "valuekey": "fontfile",
                         "vitem": "entry",
                         "vtype": "str",
-                        "default": "./media/SourceHanSansCN-Regular.otf"
+                        "default": "'./media/SourceHanSansCN-Regular.otf'"
                     },
                     "line_limit": {
                         "ktext": "单行字数：",
@@ -450,7 +450,7 @@ EditTableStruct = {
                         "valuekey": "fontfile",
                         "vitem": "entry",
                         "vtype": "str",
-                        "default": "./media/SourceHanSansCN-Regular.otf"
+                        "default": "'./media/SourceHanSansCN-Regular.otf'"
                     },
                     "line_limit": {
                         "ktext": "单行字数：",
@@ -587,7 +587,7 @@ EditTableStruct = {
                         "valuekey": "fontfile",
                         "vitem": "entry",
                         "vtype": "str",
-                        "default": "./media/SourceHanSansCN-Regular.otf"
+                        "default": "'./media/SourceHanSansCN-Regular.otf'"
                     },
                     "line_limit": {
                         "ktext": "单行字数：",
@@ -634,6 +634,171 @@ EditTableStruct = {
             "fontsize"      : "fontsize",
             "color"         : "color",
             "line_limit"    : "line_limit",
+            "label_color"   : "label_color"
+        },
+        "HPLabel":{
+            "InfoSep":{
+                "Text": "基本信息",
+                "Command":None,
+                "Content":{
+                    "type": {
+                        "ktext": "类型：",
+                        "tooltip":None,
+                        "dtext": "帮助",
+                        "ditem": "button",
+                        "valuekey": "type",
+                        "vitem": "label",
+                        "vtype": "str",
+                        "default": "HPLabel"
+                    },
+                    "Name": {
+                        "ktext": "媒体名：",
+                        "tooltip":None,
+                        "dtext": "（输入）",
+                        "ditem": "label",
+                        "valuekey": "$key",
+                        "vitem": "entry",
+                        "vtype": "str",
+                        "default": "新建文字"
+                    },
+                    "label_color": {
+                        "ktext": "标签色：",
+                        "tooltip":None,
+                        "dtext": "（选择）",
+                        "ditem": "label",
+                        "valuekey": "label_color",
+                        "vitem": "combox",
+                        "vtype": "str",
+                        "default": "'Lavender'"
+                    },
+                }
+            },
+            "FontSep":{
+                "Text": "字体",
+                "Command":None,
+                "Content":{
+                    "fontfile": {
+                        "ktext": "字体路径：",
+                        "tooltip":None,
+                        "dtext": "浏览",
+                        "ditem": "button",
+                        "valuekey": "fontfile",
+                        "vitem": "entry",
+                        "vtype": "str",
+                        "default": "'./media/SourceHanSansCN-Regular.otf'"
+                    },
+                    "marker": {
+                        "ktext": "文字标签：",
+                        "tooltip":None,
+                        "dtext": "（输入）",
+                        "ditem": "label",
+                        "valuekey": "marker",
+                        "vitem": "entry",
+                        "vtype": "str",
+                        "default": "'A/B'"
+                    },
+                    "align": {
+                        "ktext": "血条位置：",
+                        "tooltip":None,
+                        "dtext": "浏览",
+                        "ditem": "button",
+                        "valuekey": "align",
+                        "vitem": "combox",
+                        "vtype": "str",
+                        "default": "'left'"
+                    },
+                }
+            },
+            "StyleSep":{
+                "Text": "样式",
+                "Command":None,
+                "Content":{
+                    "fontsize": {
+                        "ktext": "大小：",
+                        "tooltip":None,
+                        "dtext": "（数值）",
+                        "ditem": "label",
+                        "valuekey": "fontsize",
+                        "vitem": "spine",
+                        "vtype": "int",
+                        "default": 40
+                    },
+                    "color": {
+                        "ktext": "颜色：",
+                        "tooltip":None,
+                        "dtext": "选择",
+                        "ditem": "button",
+                        "valuekey": "color",
+                        "vitem": "entry",
+                        "vtype": "str",
+                        "default": "(0,0,0,255)"
+                    },
+                }
+            },
+            "ImageSep":{
+                "Text": "图形",
+                "Command":None,
+                "Content":{
+                    "fg_path": {
+                        "ktext": "前景路径：",
+                        "tooltip":None,
+                        "dtext": "浏览",
+                        "ditem": "button",
+                        "valuekey": "fg_path",
+                        "vitem": "entry",
+                        "vtype": "str",
+                        "default": "'./media/heart.png'"
+                    },
+                    "bg_path": {
+                        "ktext": "背景路径：",
+                        "tooltip":None,
+                        "dtext": "浏览",
+                        "ditem": "button",
+                        "valuekey": "bg_path",
+                        "vitem": "entry",
+                        "vtype": "str",
+                        "default": "'./media/heart_shape.png'"
+                    },
+                }
+            },
+            "BarSep":{
+                "Text": "血条",
+                "Command":None,
+                "Content":{
+                    "width": {
+                        "ktext": "宽度：",
+                        "tooltip":None,
+                        "dtext": "（数值）",
+                        "ditem": "label",
+                        "valuekey": "width",
+                        "vitem": "spine",
+                        "vtype": "int",
+                        "default": 0
+                    },
+                    "repeat": {
+                        "ktext": "单位：",
+                        "tooltip":None,
+                        "dtext": "（数值）",
+                        "ditem": "label",
+                        "valuekey": "repeat",
+                        "vitem": "spine",
+                        "vtype": "int",
+                        "default": 2
+                    },
+                }
+            }
+        },
+        "HPLabel.args":{
+            "type"          : "type",
+            "fontfile"      : "fontfile",
+            "fontsize"      : "fontsize",
+            "color"         : "color",
+            "marker"        : "marker",
+            "fg_path"       : "fg_path",
+            "bg_path"       : "bg_path",
+            "align"         : "align",
+            "width"         : "width",
+            "repeat"        : "repeat",
             "label_color"   : "label_color"
         },
         "Bubble":{
@@ -2656,6 +2821,10 @@ projection = {
     "右上"  :"'NE'",
     "右下"  :"'SE'",
 }
+left_right = {
+    '左侧' : "'left'",
+    '右侧' : "'right'"
+}
 alignments = {
     "左对齐" : "'left'",
     "居中对齐": "'center'",
@@ -2759,6 +2928,11 @@ NewElement = {
             "text":"富文本",
             "tooltip":"使用【富文本】的气泡，可以灵活调整文本的斜体、粗体、字号和颜色。",
             "icon":'./media/icon/new/RichText.png'
+        },
+        "HPLabel":{
+            "text":"血条标签",
+            "tooltip":"使用【血条标签】，可以把特定的文本显示为血条样式。",
+            "icon":'./media/icon/new/HPLabel.png'
         },
     },
     "Bubble":{

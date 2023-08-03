@@ -22,7 +22,7 @@ class BoardcastHandler:
             # 媒体
             counter['mediadef'] += self._handle_pos(old_name=old_name, new_name=new_name)
             counter['logfile'] += self._handle_rplgenlog(old_name=old_name, new_name=new_name, etype='move_pos')
-        elif mtype in ['Text','StrokeText','RichText']:
+        elif mtype in ['Text','StrokeText','RichText','HPLabel']:
             counter['mediadef'] += self._handle_text(old_name=old_name, new_name=new_name)
         elif mtype in ['Bubble','Balloon','DynamicBubble']:
             counter['mediadef'] += self._handle_bubble(old_name=old_name, new_name=new_name)
