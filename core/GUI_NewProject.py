@@ -323,6 +323,10 @@ class CreateIntelProject(CreateProject):
                 Messagebox().show_error('无法解读导入文件的编码！\n请确定导入的是文本文件？',title='格式错误',parent=self)
                 self.reset_comfirm()
                 return False
+        except FileNotFoundError:
+            Messagebox().show_error('找不到导入的剧本文件，请检查文件名！',title='找不到文件',parent=self)
+            self.reset_comfirm()
+            return False
         # 5. 开始解析
         self.story = StoryImporter()
         self.thread = threading.Thread(target=self.import_story)
