@@ -652,11 +652,11 @@ class Bubble(MediaObj):
             est_width = self.Header.size*self.Header.line_limit
             word_w,word_h = s.get_size()
             # 水平对齐
-            if self.align == 'left':
+            if self.head_align == 'left':
                 dist_vict = (0,0)
-            elif self.align == 'center':
+            elif self.head_align == 'center':
                 dist_vict = ((est_width-word_w)//2, 0)
-            elif self.align == 'right':
+            elif self.head_align == 'right':
                 dist_vict = ((est_width-word_w), 0)
             else:
                 dist_vict = (0,0)
