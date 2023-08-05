@@ -4,14 +4,10 @@
 
 import numpy as np
 import pandas as pd
-import sys
 import os
 import pydub
-import base64
-import wave
-# import requests
-import json
-import time
+import nls
+import azure.cognitiveservices.speech as speechsdk
 
 from .Exceptions import SynthesisError, WarningPrint
 
@@ -35,9 +31,6 @@ class Aliyun_TTS_engine(TTS_engine):
     # 音源表
     voice_list = voice_lib[voice_lib['service'] == 'Aliyun'].index
     def __init__(self,name='unnamed',voice = 'ailun',speech_rate=0,pitch_rate=0,aformat='wav'):
-        if 'nls' not in sys.modules: # 兼容没有安装nls的使用 
-            global nls
-            import nls
         self.ID = name
         self.voice = voice
         self.aformat = aformat
@@ -143,9 +136,6 @@ class Azure_TTS_engine(TTS_engine):
         return text.replace('&','&amp;').replace('<','&lt;').replace('>','&gt;').replace("'",'&apos;')
     # 初始化
     def __init__(self,name='unnamed',voice = 'zh-CN-XiaomoNeural:general:1:Default',speech_rate=0,pitch_rate=0,aformat='wav'):
-        if 'azure.cognitiveservices.speech' not in sys.modules:
-            global speechsdk
-            import azure.cognitiveservices.speech as speechsdk
         self.ID = name
         self.aformat = Azure_TTS_engine.output_format[aformat]
         # 500 - 2; -500 - 0.5
