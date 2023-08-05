@@ -45,6 +45,9 @@ class StdoutRedirector:
             self.text_widget.delete(f"{line_this}.0", "end") # 删除前一行
             self.text_widget.insert(f"{line_this}.0", '\n') # 插入一个空行
             self.return_begin = False # 删除一次，置空
+        # 检查string到底有没有东西
+        if string == '':
+            return
         # 构建index->color的字典
         color_index=[]
         color_tag = []

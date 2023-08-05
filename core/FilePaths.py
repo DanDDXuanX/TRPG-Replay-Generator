@@ -27,13 +27,18 @@ class Filepath:
             self._list_absol = list(map(lambda x:x.replace('\\','/'),glob.glob(self._absolute)))
             # 如果匹配到的列表为空白
             if len(self._list_absol) == 0:
-                raise MediaError('FileNFound',filepath)
+                # 校验原文件可用性
+                if os.path.isfile(self._absolute) == False:
+                    raise MediaError('FileNFound',filepath)
+                else:
+                    self._list_absol = [self._absolute]
         # 单文件
         else:
             # 校验文件可用性
             if os.path.isfile(self._absolute) == False:
                 raise MediaError('FileNFound',filepath)
-            self._list_absol = [self._absolute]
+            else:
+                self._list_absol = [self._absolute]
     # 首字母大写
     def upper(self,_str:str) -> str:
         if _str[0].islower():

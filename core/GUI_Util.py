@@ -189,7 +189,6 @@ class KeyValueDescribe(ttk.Frame):
         self.input.pack(fill='x',side='left',padx=SZ_5,expand=True)
         self.describe.pack(fill='none',side='left',padx=SZ_5)
     def config_content(self, *args):
-        print(args)
         # 回调函数
         if self.callback:
             self.callback()

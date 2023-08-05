@@ -44,8 +44,6 @@ class EmptyView(ttk.Frame):
             self.master.view_show('project')
             self.destroy()
         except Exception as E:
-            from traceback import print_exc
-            print_exc()
             Messagebox().show_error(message='无法读取工程文件，该文件可能已损坏。',title='打开失败',parent=self.winfo_toplevel())
     def open_project(self):
         get_file:str = browse_file(master=self.winfo_toplevel(),text_obj=tk.StringVar(),method='file',filetype='rplgenproj',related=False)
