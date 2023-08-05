@@ -164,6 +164,7 @@ def convert_audio(target_type:str,ifile:str,ofile:str):
             ffmpeg_exec,
             '-i',ifile,
             '-f',target_format,
+            '-vn',
             '-y',
             ofile,
             '-loglevel','quiet'
@@ -174,6 +175,7 @@ def convert_audio(target_type:str,ifile:str,ofile:str):
             ffmpeg_exec,
             '-i',ifile,
             '-f',target_format,
+            '-vn',
             '-acodec','libvorbis',
             '-ab','128k',
             '-y',
