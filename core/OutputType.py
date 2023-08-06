@@ -433,14 +433,171 @@ class PreviewDisplay(OutputMediaType):
         return 0
     # 欢迎界面：2退出、0开始、1异常
     def welcome(self) -> int:
-        self.medias['white'].display(self.screen)
-        self.screen.blit(pygame.transform.scale(pygame.image.load('./media/icon.png'),(self.config.Height//5,self.config.Height//5)),(0.01*self.config.Height,0.79*self.config.Height))
-        self.screen.blit(self.note_text.render('Welcome to TRPG Replay Generator!',fgcolor=(150,150,150,255),size=0.0315*self.config.Width)[0],(0.230*self.config.Width,0.460*self.config.Height)) # for 1080p
-        self.screen.blit(self.note_text.render(EDITION,fgcolor=(150,150,150,255),size=0.0278*self.config.Height)[0],(0.900*self.config.Width,0.963*self.config.Height))
-        self.screen.blit(self.note_text.render('Press space to begin.',fgcolor=(150,150,150,255),size=0.0278*self.config.Height)[0],(0.417*self.config.Width,0.926*self.config.Height))
-        pygame.display.update()
+        color = {
+            'text_fg':'#333333',
+            'text_bg':'#ffffff',
+            'text_mg':'#808080',
+        }
+        size = {
+            'main':36,
+            'head':64,
+            'space':48,
+        }
+        rect = {
+            'square':(40,40,1000,1000),
+            'square_shade':(50,50,1000,1000),
+            'space': (-400,-112,360,72),
+            'dialog': (-840,40,0,72),
+            'sprit':(-670,150,0,0),
+            'h1' : (990,60,30,5),
+            'h2' : (990,1015,30,5),
+            'v1' : (1015,990,5,30),
+            'v2' : (1015,60,5,30),
+            'k1' : (57,0,10,80),
+            'k2' : (77,0,175,80),
+            'k3' : (80,150,900,2),
+        }
+        head = {
+            'software':57,
+            'project':310,
+            'logfile':675
+        }
+        content={
+            'software':{
+                'head':'软件',
+                'describe':f'RplGen Studio {EDITION} for Dev',
+                'element':[
+                    'Copyright Betelgeuse Industry 2022-2023'
+                ]
+            },
+            'project':{
+                'head':'项目',
+                'describe':'星尘的研究  (保存时间：2023-08-08 21:44)',
+                'element':[
+                    '分辨率　：{} x {}'.format(self.config.Width, self.config.Height),
+                    '帧率　　：{}'.format(self.config.frame_rate),
+                    '图层顺序：{}'.format('-'.join(self.config.zorder)),
+                ]
+            },
+            'logfile':{
+                'head':'剧本',
+                'describe':"Log18  (预览时间：2023-08-08 21:48)",
+                'element':[
+                    "字数　　：6512/8654（发言/合计）",
+                    "小节　　：165/201（发言/合计）",
+                    "时长　　：18:54",
+                ]
+            }
+        }
+        def get_tips()->pygame.Surface:
+            text = '伊可的售价是9磅15便士'
+            text_surf = main_text.render(text,True,color['text_bg'])
+            w = text_surf.get_width()+30
+            h = 120
+            bubble_surface = pygame.Surface((w+30,120),pygame.SRCALPHA)
+            bubble_surface.fill((0,0,0,0))
+            pygame.draw.polygon(
+                bubble_surface,
+                color=color['text_mg'],
+                points=[(0,0),(w+30,0),(w+30,72),(160,72),(205,120),(84,72),(0,72),(0,0)]
+            )
+            bubble_surface.blit(text_surf,(15,5))
+            return pygame.transform.smoothscale(bubble_surface,(w*zoom,h*zoom))
+
+        # 方边
+        circle_canvas = pygame.image.load('./media/welcome/circle.png')
+        if self.config.Width >= self.config.Height:
+            square = self.config.Height
+        else:
+            square = self.config.Width
+            circle_canvas = pygame.transform.flip(pygame.transform.rotate(circle_canvas, 90),1,0)
+        zoom = square/1080
+        # 主要形状
+        main_canvas = pygame.Surface((self.config.Width,self.config.Height))
+        # 纹理
+        texture = pygame.image.load('./media/icon/texture2.png')
+        for x in range(0, self.config.Width, texture.get_width()):
+            for y in range(0, self.config.Height, texture.get_width()):
+                main_canvas.blit(texture, (x, y))
+        # 环形
+        main_canvas.blit(circle_canvas,(0,0))
+        # 文本方形
+        text_background = pygame.Surface((1080,1080),pygame.SRCALPHA)
+        text_background.fill((0,0,0,0))
+        pygame.draw.rect(text_background,color=color['text_mg'],rect=rect['square_shade'])
+        pygame.draw.rect(text_background,color=color['text_bg'],rect=rect['square'])
+        text_background.set_alpha(120)
+        main_canvas.blit(pygame.transform.smoothscale(text_background,(square,square)),(0,0))
+        # 文本内容
+        text_foreground = pygame.Surface((1080,1080),pygame.SRCALPHA)
+        text_foreground.fill((0,0,0,0))
+        # freetext = pygame.freetype.Font('./media/SourceHanSerifSC-Heavy.otf')
+        main_text = pygame.font.Font('./media/SourceHanSerifSC-Heavy.otf',size=size['main'])
+        head_text = pygame.font.Font('./media/SourceHanSerifSC-Heavy.otf',size=size['head'])
+        space_text = pygame.font.Font('./media/SourceHanSerifSC-Heavy.otf',size=size['space'])
+        # 角
+        for key in ['h1','h2','v1','v2']:
+            pygame.draw.rect(text_foreground,color=color['text_fg'],rect=rect[key])
+        # 文字
+        for key in head:
+            y_this = head[key]
+            # 底纹
+            for rc in ['k1','k2','k3']:
+                x,y,w,h = rect[rc]
+                pygame.draw.rect(text_foreground,color=color['text_fg'],rect=(x,y+y_this,w,h))
+            text_foreground.blit(head_text.render(content[key]['head'],True,color['text_bg']),(88,y_this-10))
+            text_foreground.blit(main_text.render(content[key]['describe'],True,color['text_fg']),(88,y_this+88))
+            for idx, element in enumerate(content[key]['element']):
+                text_foreground.blit(main_text.render(element,True,color['text_fg']),(88,y_this+160+idx*56))
+        main_canvas.blit(pygame.transform.smoothscale(text_foreground,(square,square)),(0,0))
+        # 按空格键开始
+        x,y,w,h = rect['space']
+        space_begin = pygame.Surface(size=(w,h))
+        space_begin.fill(color=color['text_mg'])
+        space_begin.blit(space_text.render('按空格键开始',True,color['text_bg']),(36,0))
+        main_canvas.blit(pygame.transform.smoothscale(space_begin,(w*zoom,h*zoom)),(self.config.Width+x*zoom,self.config.Height+y*zoom))
+        # sprit
+        sprit = pygame.image.load('./media/welcome/sprit_light.png')
         begin = False
+        sprit_digit = {
+            'idx' : 0,
+            'max' : 240,
+            'yps' : 10 * np.sin(np.linspace(0, 2*np.pi, 240)) 
+        }
+        tip_digit = {
+            'idx' : 0,
+            'max' : 600,
+            'alpha' : np.hstack([
+                np.linspace(0,255,60),
+                255*np.ones(60*8),
+                np.linspace(255,0,60),
+            ])
+        }
+        tip = get_tips()
         while begin == False:
+            # 放在主屏幕
+            self.screen.blit(main_canvas,(0,0))
+            # 摸摸伊可
+            x,y,w,h = rect['sprit']
+            X = int(x*zoom)
+            Y = int(y*zoom)
+            self.screen.blit(sprit,(self.config.Width+X,int(sprit_digit['yps'][sprit_digit['idx']])+Y))
+            sprit_digit['idx']+=1
+            if sprit_digit['idx']>=sprit_digit['max']:
+                sprit_digit['idx'] = 0
+            # 小贴士
+            x,y,w,h = rect['dialog']
+            X = int(x*zoom)
+            Y = int(y*zoom)
+            tip.set_alpha(tip_digit['alpha'][tip_digit['idx']])
+            self.screen.blit(tip,(self.config.Width+X, Y))
+            tip_digit['idx']+=1
+            if tip_digit['idx']>=tip_digit['max']:
+                tip_digit['idx'] = 0
+                # 刷新小贴士
+                tip = get_tips()
+            # 刷新
+            pygame.display.update()
             if self.is_terminated:
                 pygame.quit()
                 return 2
@@ -456,6 +613,8 @@ class PreviewDisplay(OutputMediaType):
                     elif event.key == pygame.K_SPACE:
                         begin = True
                         break
+            # 下一帧
+            self.fps_clock.tick(60)
         return 0
     # 播放窗口：异常1，正常退出0，手动终止2
     def preview_display(self) -> int:
