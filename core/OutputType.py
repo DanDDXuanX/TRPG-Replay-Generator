@@ -6,9 +6,9 @@ import numpy as np
 import pygame
 import ffmpeg
 import time
-import sys
 import os
 
+from datetime import datetime
 import pygame.freetype
 
 from .ScriptParser import RplGenLog, MediaDef, CharTable
@@ -18,7 +18,7 @@ from .Exceptions import RenderError, MediaError
 from .Exceptions import WarningPrint, MainPrint, VideoPrint, PrxmlPrint
 from .Medias import *
 
-from .Utils import EDITION
+from .Utils import EDITION, zoom_surface
 
 # 输出模式：预览、XML或者MP4
 
@@ -27,6 +27,7 @@ class OutputMediaType:
     # 初始化模块功能，载入外部参数
     def __init__(self,rplgenlog:RplGenLog,config:Config,output_path:str=None,key:str=None):
         # 载入项目
+        self.rplgenlog:RplGenLog = rplgenlog
         self.timeline:pd.DataFrame = rplgenlog.main_timeline
         self.breakpoint:pd.Series  = rplgenlog.break_point
         self.medias:dict           = rplgenlog.medias
@@ -261,8 +262,9 @@ class OutputMediaType:
         self.is_terminated = True
 # 以前台预览的形式播放
 class PreviewDisplay(OutputMediaType):
-    def __init__(self, rplgenlog: RplGenLog, config: Config):
+    def __init__(self, rplgenlog: RplGenLog, config: Config, title:str=''):
         super().__init__(rplgenlog, config)
+        self.title = title
         # self.main()
     # 重载render，继承显示画面的同时，播放声音
     def render(self, surface: pygame.Surface, this_frame: pd.Series):
@@ -431,12 +433,49 @@ class PreviewDisplay(OutputMediaType):
             return 1
         # 正常结束
         return 0
+    # 获取元信息
+    def get_meta(self) -> dict:
+        # 项目名称
+        name = self.config.Name
+        # 总小节字数
+        all_count = len(self.rplgenlog.struct)
+        all_word_count = len(self.rplgenlog.export())
+        # 对话小节字数
+        dialog_word_count = 0
+        dialog_count = 0
+        for idx in self.rplgenlog.struct:
+            if self.rplgenlog.struct[idx]['type'] == 'dialog':
+                dialog_count += 1
+                dialog_word_count += len(self.rplgenlog.struct[idx]['content'])
+        # 总时长
+        all_second = int(self.breakpoint.max()/self.config.frame_rate)
+        hours = all_second // 3600
+        minutes = (all_second % 3600) // 60
+        seconds = (all_second % 3600) % 60
+        if hours > 1:
+            time = f"{hours:02d}:{minutes:02d}:{seconds:02d}"
+        else:
+            time = f"{minutes:02d}:{seconds:02d}"
+        # 当前时间
+        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        # 返回
+        return {
+            'name' : name,
+            'title' : self.title.split('-')[-1],
+            'section':{
+                'all' : all_count,
+                'dialog' : dialog_count
+            },
+            'words':{
+                'all' : all_word_count,
+                'dialog' : dialog_word_count
+            },
+            'time':time,
+            'current':current_time
+        }
     # 欢迎界面：2退出、0开始、1异常
     def welcome(self) -> int:
         color = {
-            'text_fg':'#333333',
-            'text_bg':'#ffffff',
-            'text_mg':'#808080',
         }
         size = {
             'main':36,
@@ -448,7 +487,6 @@ class PreviewDisplay(OutputMediaType):
             'square_shade':(50,50,1000,1000),
             'space': (-400,-112,360,72),
             'dialog': (-840,40,0,72),
-            'sprit':(-670,150,0,0),
             'h1' : (990,60,30,5),
             'h2' : (990,1015,30,5),
             'v1' : (1015,990,5,30),
@@ -462,6 +500,7 @@ class PreviewDisplay(OutputMediaType):
             'project':310,
             'logfile':675
         }
+        meta = self.get_meta()
         content={
             'software':{
                 'head':'软件',
@@ -472,7 +511,7 @@ class PreviewDisplay(OutputMediaType):
             },
             'project':{
                 'head':'项目',
-                'describe':'星尘的研究  (保存时间：2023-08-08 21:44)',
+                'describe': meta['name'],
                 'element':[
                     '分辨率　：{} x {}'.format(self.config.Width, self.config.Height),
                     '帧率　　：{}'.format(self.config.frame_rate),
@@ -481,37 +520,44 @@ class PreviewDisplay(OutputMediaType):
             },
             'logfile':{
                 'head':'剧本',
-                'describe':"Log18  (预览时间：2023-08-08 21:48)",
+                'describe':"{}  (预览时间：{})".format(meta['title'], meta['current']),
                 'element':[
-                    "字数　　：6512/8654（发言/合计）",
-                    "小节　　：165/201（发言/合计）",
-                    "时长　　：18:54",
+                    "字数　　：{dialog}/{all}（发言/合计）".format(**meta['words']),
+                    "小节　　：{dialog}/{all}（发言/合计）".format(**meta['section']),
+                    "时长　　：{}".format(meta['time']),
                 ]
             }
         }
+        # 获取tip
+        tip_list = open('./media/tips.txt','r',encoding='utf-8').read().split('\n')
         def get_tips()->pygame.Surface:
-            text = '伊可的售价是9磅15便士'
+            text = np.random.choice(tip_list)
             text_surf = main_text.render(text,True,color['text_bg'])
             w = text_surf.get_width()+30
             h = 120
-            bubble_surface = pygame.Surface((w+30,120),pygame.SRCALPHA)
+            bubble_surface = pygame.Surface((w,120),pygame.SRCALPHA)
             bubble_surface.fill((0,0,0,0))
             pygame.draw.polygon(
                 bubble_surface,
                 color=color['text_mg'],
-                points=[(0,0),(w+30,0),(w+30,72),(160,72),(205,120),(84,72),(0,72),(0,0)]
+                points=[(0,0),(w,0),(w,72),(160,72),(205,120),(84,72),(0,72),(0,0)]
             )
-            bubble_surface.blit(text_surf,(15,5))
+            bubble_surface.blit(text_surf,(15,7))
             return pygame.transform.smoothscale(bubble_surface,(w*zoom,h*zoom))
-
-        # 方边
+        # 获取窄边宽度
         circle_canvas = pygame.image.load('./media/welcome/circle.png')
         if self.config.Width >= self.config.Height:
             square = self.config.Height
         else:
             square = self.config.Width
             circle_canvas = pygame.transform.flip(pygame.transform.rotate(circle_canvas, 90),1,0)
+        # 缩放率
         zoom = square/1080
+        if zoom != 1:
+            w,h = circle_canvas.get_size()
+            W = int(w*zoom)
+            H = int(h*zoom)
+            circle_canvas = pygame.transform.smoothscale(circle_canvas,size=(W,H))
         # 主要形状
         main_canvas = pygame.Surface((self.config.Width,self.config.Height))
         # 纹理
@@ -519,8 +565,24 @@ class PreviewDisplay(OutputMediaType):
         for x in range(0, self.config.Width, texture.get_width()):
             for y in range(0, self.config.Height, texture.get_width()):
                 main_canvas.blit(texture, (x, y))
-        # 环形
+        # 显示环形
         main_canvas.blit(circle_canvas,(0,0))
+        # 主题
+        if preference.theme == 'rplgenlight':
+            color['text_mg'] = '#808080'
+            color['text_fg'] = '#333333'
+            color['text_bg'] = '#ffffff'
+            sprit = pygame.image.load('./media/welcome/sprit_light.png')
+            rect['sprit'] = (-670,150,0,0)
+        else:
+            color['text_mg'] = '#a0a0a0'
+            color['text_fg'] = '#dddddd'
+            color['text_bg'] = '#222222'
+            sprit = pygame.image.load('./media/welcome/sprit_dark.png')
+            rect['sprit'] = (-670,120,0,0)
+            # 反相
+            main_array = pygame.surfarray.array3d(main_canvas)
+            main_canvas = pygame.surfarray.make_surface(270-main_array)
         # 文本方形
         text_background = pygame.Surface((1080,1080),pygame.SRCALPHA)
         text_background.fill((0,0,0,0))
@@ -554,10 +616,10 @@ class PreviewDisplay(OutputMediaType):
         x,y,w,h = rect['space']
         space_begin = pygame.Surface(size=(w,h))
         space_begin.fill(color=color['text_mg'])
-        space_begin.blit(space_text.render('按空格键开始',True,color['text_bg']),(36,0))
+        space_begin.blit(space_text.render('按空格键开始',True,color['text_bg']),(36,-3))
         main_canvas.blit(pygame.transform.smoothscale(space_begin,(w*zoom,h*zoom)),(self.config.Width+x*zoom,self.config.Height+y*zoom))
-        # sprit
-        sprit = pygame.image.load('./media/welcome/sprit_light.png')
+        # 伊可
+        sprit = zoom_surface(sprit,zoom)
         begin = False
         sprit_digit = {
             'idx' : 0,

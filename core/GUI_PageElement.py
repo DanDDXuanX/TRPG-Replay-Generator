@@ -112,6 +112,7 @@ class OutPutCommand(ttk.Frame):
             Link['pipeline'] = PreviewDisplay(
                 rplgenlog   = self.rplgenlog,
                 config      = self.pconfig,
+                title       = self.page.page_name
             )
             # 启用终止按钮
             Link['terminal_control'].configure(state='normal')

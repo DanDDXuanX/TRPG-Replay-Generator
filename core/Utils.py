@@ -99,6 +99,15 @@ def rotate_surface(surface, angle):
     # 计算r_SA，在blit的时候，应该在锚点A上减去r_SA，才是新Surface的位置
     r_SA = r_SO + r_OA
     return rotated_surface, r_SA
+# 基本的缩放操作
+def zoom_surface(surface,zoom):
+    if zoom == 1:
+        return surface
+    else:
+        w,h = surface.get_size()
+        W = int(w*zoom)
+        H = int(h*zoom)
+        return pygame.transform.smoothscale(surface,size=(W,H))
 
 # 颜色
 # hexcolor 转 rgb(a)
