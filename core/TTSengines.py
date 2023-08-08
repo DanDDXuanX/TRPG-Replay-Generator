@@ -207,12 +207,10 @@ class Beats_engine(TTS_engine):
     # 指定一个文字显示效果，重设单位时间
     def tx_method_specify(self, tx_method:dict)->None:
         # 通过文字显示方法，获取单个字的时长
-        if tx_method['method'] != 'w2w':
-            print('warning')
-        if tx_method['method_dur'] == 0:
-            print('error')
-        # 单位时间，单位为秒
-        self.time_unit:float = tx_method['method_dur']/self.frame_rate
+        if tx_method['method'] != 'w2w' or tx_method['method_dur'] == 0:
+            self.time_unit = 0
+        else:
+            self.time_unit:float = tx_method['method_dur']/self.frame_rate
     # 开始语音合成
     def start(self,text:str, ofile:str):
         self.ofile = ofile
@@ -221,13 +219,14 @@ class Beats_engine(TTS_engine):
             duration=int(len(text)*self.time_unit*1000 + 1), # 持续时间=文本时间+1
             frame_rate=48000
             )
-        for idx,word in enumerate(text):
-            # 如果是中文、数字、英文，则附加一次单位音频
-            if word.isalnum():
-                this_Track = this_Track.overlay(
-                    seg = self.unit,
-                    position = int(idx*self.time_unit*1000)
-                )
+        if self.time_unit != 0:
+            for idx,word in enumerate(text):
+                # 如果是中文、数字、英文，则附加一次单位音频
+                if word.isalnum():
+                    this_Track = this_Track.overlay(
+                        seg = self.unit,
+                        position = int(idx*self.time_unit*1000)
+                    )
         # 保存为文件
         if len(text) >= 5:
             print_text = text[0:5]+'...'

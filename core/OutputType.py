@@ -532,7 +532,7 @@ class PreviewDisplay(OutputMediaType):
         tip_list = open('./media/tips.txt','r',encoding='utf-8').read().split('\n')
         def get_tips()->pygame.Surface:
             text = np.random.choice(tip_list)
-            text_surf = main_text.render(text,True,color['text_bg'])
+            text_surf = freetext.render(text,size=size['main'],fgcolor=color['text_bg'])[0]
             w = text_surf.get_width()+30
             h = 120
             bubble_surface = pygame.Surface((w,120),pygame.SRCALPHA)
@@ -542,7 +542,7 @@ class PreviewDisplay(OutputMediaType):
                 color=color['text_mg'],
                 points=[(0,0),(w,0),(w,72),(160,72),(205,120),(84,72),(0,72),(0,0)]
             )
-            bubble_surface.blit(text_surf,(15,7))
+            bubble_surface.blit(text_surf,(15,17))
             return pygame.transform.smoothscale(bubble_surface,(w*zoom,h*zoom))
         # 获取窄边宽度
         circle_canvas = pygame.image.load('./media/welcome/circle.png')
@@ -593,10 +593,7 @@ class PreviewDisplay(OutputMediaType):
         # 文本内容
         text_foreground = pygame.Surface((1080,1080),pygame.SRCALPHA)
         text_foreground.fill((0,0,0,0))
-        # freetext = pygame.freetype.Font('./media/SourceHanSerifSC-Heavy.otf')
-        main_text = pygame.font.Font('./media/SourceHanSerifSC-Heavy.otf',size=size['main'])
-        head_text = pygame.font.Font('./media/SourceHanSerifSC-Heavy.otf',size=size['head'])
-        space_text = pygame.font.Font('./media/SourceHanSerifSC-Heavy.otf',size=size['space'])
+        freetext = pygame.freetype.Font('./media/SourceHanSerifSC-Heavy.otf')
         # 角
         for key in ['h1','h2','v1','v2']:
             pygame.draw.rect(text_foreground,color=color['text_fg'],rect=rect[key])
@@ -607,16 +604,16 @@ class PreviewDisplay(OutputMediaType):
             for rc in ['k1','k2','k3']:
                 x,y,w,h = rect[rc]
                 pygame.draw.rect(text_foreground,color=color['text_fg'],rect=(x,y+y_this,w,h))
-            text_foreground.blit(head_text.render(content[key]['head'],True,color['text_bg']),(88,y_this-10))
-            text_foreground.blit(main_text.render(content[key]['describe'],True,color['text_fg']),(88,y_this+88))
+            text_foreground.blit(freetext.render(content[key]['head'],size=size['head'],fgcolor=color['text_bg'])[0],(88,y_this+7))
+            text_foreground.blit(freetext.render(content[key]['describe'],size=size['main'],fgcolor=color['text_fg'])[0],(88,y_this+98))
             for idx, element in enumerate(content[key]['element']):
-                text_foreground.blit(main_text.render(element,True,color['text_fg']),(88,y_this+160+idx*56))
+                text_foreground.blit(freetext.render(element,size=size['main'],fgcolor=color['text_fg'])[0],(88,y_this+170+idx*56))
         main_canvas.blit(pygame.transform.smoothscale(text_foreground,(square,square)),(0,0))
         # 按空格键开始
         x,y,w,h = rect['space']
         space_begin = pygame.Surface(size=(w,h))
         space_begin.fill(color=color['text_mg'])
-        space_begin.blit(space_text.render('按空格键开始',True,color['text_bg']),(36,-3))
+        space_begin.blit(freetext.render('按空格键开始',size=size['space'],fgcolor=color['text_bg'])[0],(36,10))
         main_canvas.blit(pygame.transform.smoothscale(space_begin,(w*zoom,h*zoom)),(self.config.Width+x*zoom,self.config.Height+y*zoom))
         # 伊可
         sprit = zoom_surface(sprit,zoom)
