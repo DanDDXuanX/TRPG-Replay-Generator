@@ -11,7 +11,7 @@ import azure.cognitiveservices.speech as speechsdk
 
 from .Exceptions import SynthesisError, WarningPrint
 
-voice_lib = pd.read_csv('./media/voice_volume.tsv',sep='\t').set_index('Voice')
+voice_lib = pd.read_csv('./assets/voice_volume.tsv',sep='\t').set_index('Voice')
 
 # 没用的基类
 class TTS_engine:
@@ -91,7 +91,7 @@ class Azure_TTS_engine(TTS_engine):
     # 音源表
     voice_list = voice_lib[voice_lib['service'] == 'Azure'].index
     # SSML模板
-    SSML_tplt = open('./xml_templates/tplt_ssml.xml','r').read()
+    SSML_tplt = open('./assets/xml_templates/tplt_ssml.xml','r').read()
     # 输出文件格式配置
     output_format = {'mp3':23,# SpeechSynthesisOutputFormat.Audio48Khz192KBitRateMonoMp3
                      'wav':21}# SpeechSynthesisOutputFormat.Riff48Khz16BitMonoPcm
@@ -190,10 +190,10 @@ class Azure_TTS_engine(TTS_engine):
 # 节奏音 alpha 1.22
 class Beats_engine(TTS_engine):
     voice_list = {
-        'dadada': './media/beats/da.wav',
-        'dududu': './media/beats/dang.wav',
-        'kakaka': './media/beats/ka.wav',
-        'zizizi': './media/beats/zi.wav',
+        'dadada': './assets/beats/da.wav',
+        'dududu': './assets/beats/dang.wav',
+        'kakaka': './assets/beats/ka.wav',
+        'zizizi': './assets/beats/zi.wav',
     }
     def __init__(self,name='unnamed',voice='dadada',aformat='wav',frame_rate:int=30) -> None:
         # 初始化的参数

@@ -53,7 +53,7 @@
             },
             "\u5934\u6587\u672c\u7eff": {
                 "type": "Text",
-                "fontfile": "./media/SourceHanSerifSC-Heavy.otf",
+                "fontfile": "./assets/SourceHanSerifSC-Heavy.otf",
                 "fontsize": 40,
                 "color": [
                     80,
@@ -66,7 +66,7 @@
             },
             "\u5934\u6587\u672c\u7ea2": {
                 "type": "Text",
-                "fontfile": "./media/SourceHanSerifSC-Heavy.otf",
+                "fontfile": "./assets/SourceHanSerifSC-Heavy.otf",
                 "fontsize": 40,
                 "color": [
                     248,
@@ -79,7 +79,7 @@
             },
             "\u5934\u6587\u672c\u84dd": {
                 "type": "Text",
-                "fontfile": "./media/SourceHanSerifSC-Heavy.otf",
+                "fontfile": "./assets/SourceHanSerifSC-Heavy.otf",
                 "fontsize": 40,
                 "color": [
                     75,
@@ -92,7 +92,7 @@
             },
             "\u5934\u6587\u672c\u9ec4": {
                 "type": "Text",
-                "fontfile": "./media/SourceHanSerifSC-Heavy.otf",
+                "fontfile": "./assets/SourceHanSerifSC-Heavy.otf",
                 "fontsize": 40,
                 "color": [
                     239,
@@ -105,7 +105,7 @@
             },
             "\u5934\u6587\u672c\u767d": {
                 "type": "Text",
-                "fontfile": "./media/SourceHanSerifSC-Heavy.otf",
+                "fontfile": "./assets/SourceHanSerifSC-Heavy.otf",
                 "fontsize": 40,
                 "color": [
                     255,
@@ -118,7 +118,7 @@
             },
             "\u5934\u6587\u672c\u7d2b": {
                 "type": "Text",
-                "fontfile": "./media/SourceHanSerifSC-Heavy.otf",
+                "fontfile": "./assets/SourceHanSerifSC-Heavy.otf",
                 "fontsize": 40,
                 "color": [
                     188,
@@ -131,7 +131,7 @@
             },
             "\u573a\u666f\u6807\u9898\u5b57\u4f53": {
                 "type": "Text",
-                "fontfile": "./media/SourceHanSerifSC-Heavy.otf",
+                "fontfile": "./assets/SourceHanSerifSC-Heavy.otf",
                 "fontsize": 50,
                 "color": [
                     255,

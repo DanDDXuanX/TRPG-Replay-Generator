@@ -26,7 +26,7 @@ class RplGenStudioMainWindow(ttk.Window):
         self.sz = self.get_screenzoom()
         super().__init__(
             title       = f'回声工坊 {EDITION}',
-            iconphoto   = './media/icon.png',
+            iconphoto   = './assets/icon.png',
             size        = (int(1500*self.sz),int(800*self.sz)),
             resizable   = (True,True),
         )
@@ -83,14 +83,14 @@ class RplGenStudioMainWindow(ttk.Window):
         if preference.lang == 'zh':
             try:
                 from tkextrafont import Font as FileFont
-                self.terminal_font = FileFont(file='./media/sarasa-mono-sc-regular.ttf')
+                self.terminal_font = FileFont(file='./assets/sarasa-mono-sc-regular.ttf')
                 terminal_font_family = 'Sarasa Mono SC'
             except:
                 terminal_font_family = system_font_family
         else:
             try:
                 from tkextrafont import Font as FileFont
-                self.terminal_font = FileFont(file='./media/sarasa-mono-sc-regular.ttf')
+                self.terminal_font = FileFont(file='./assets/sarasa-mono-sc-regular.ttf')
                 terminal_font_family = 'Sarasa Mono SC'
             except:
                 terminal_font_family = system_font_family
@@ -99,7 +99,7 @@ class RplGenStudioMainWindow(ttk.Window):
     # 初始化主题
     def theme_config(self,theme):
         self.font_init()
-        self.style.load_user_themes('./media/GUI_theme.json')
+        self.style.load_user_themes('./assets/GUI_theme.json')
         # 样式
         SZ_5 = int(5 * self.sz)
         text_label_pad = (SZ_5,0,SZ_5,0)
@@ -306,11 +306,11 @@ class NavigateBar(ttk.Frame):
         self.is_wide = False
         # 图形
         self.image = {
-            'logo'      : ImageTk.PhotoImage(name='logo',   image=Image.open('./media/icon.png').resize(icon_size)),
-            'setting'   : ImageTk.PhotoImage(name='setting',image=Image.open('./media/icon/setting.png').resize(icon_size)),
-            'project'   : ImageTk.PhotoImage(name='project',image=Image.open('./media/icon/project.png').resize(icon_size)),
-            'script'    : ImageTk.PhotoImage(name='script', image=Image.open('./media/icon/script.png').resize(icon_size)),
-            'console'   : ImageTk.PhotoImage(name='console',image=Image.open('./media/icon/console.png').resize(icon_size)),
+            'logo'      : ImageTk.PhotoImage(name='logo',   image=Image.open('./assets/icon.png').resize(icon_size)),
+            'setting'   : ImageTk.PhotoImage(name='setting',image=Image.open('./assets/icon/setting.png').resize(icon_size)),
+            'project'   : ImageTk.PhotoImage(name='project',image=Image.open('./assets/icon/project.png').resize(icon_size)),
+            'script'    : ImageTk.PhotoImage(name='script', image=Image.open('./assets/icon/script.png').resize(icon_size)),
+            'console'   : ImageTk.PhotoImage(name='console',image=Image.open('./assets/icon/console.png').resize(icon_size)),
         }
         # 顶部
         self.titles = {

@@ -65,9 +65,9 @@ class HomePageElements(ttk.Frame):
         # buttons
         self.buttons = ttk.Frame(master=self,padding=(SZ_10,0,SZ_10,0))
         self.image = {
-            'open_p' : ImageTk.PhotoImage(name='open_p',  image=Image.open('./media/icon/open.png').resize(icon_size)),
-            'new_p'  : ImageTk.PhotoImage(name='new_p',   image=Image.open('./media/icon/new.png').resize(icon_size)),
-            'intel_p': ImageTk.PhotoImage(name='intel_p', image=Image.open('./media/icon/intel.png').resize(icon_size)),
+            'open_p' : ImageTk.PhotoImage(name='open_p',  image=Image.open('./assets/icon/open.png').resize(icon_size)),
+            'new_p'  : ImageTk.PhotoImage(name='new_p',   image=Image.open('./assets/icon/new.png').resize(icon_size)),
+            'intel_p': ImageTk.PhotoImage(name='intel_p', image=Image.open('./assets/icon/intel.png').resize(icon_size)),
         }
         self.open_project_buttons = {
             'open_p' : ttk.Button(master=self.buttons, text='打开项目',     compound='top', image='open_p' ,bootstyle='info',command=self.master.open_project),

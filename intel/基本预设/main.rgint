@@ -38,7 +38,7 @@
             },
             "\u6c14\u6ce1\u6807\u9898": {
                 "type": "Text",
-                "fontfile": "./media/SourceHanSansCN-Regular.otf",
+                "fontfile": "./assets/SourceHanSansCN-Regular.otf",
                 "fontsize": 40,
                 "color": [
                     0,
@@ -51,7 +51,7 @@
             },
             "\u6c14\u6ce1\u4e3b\u6587\u672c": {
                 "type": "Text",
-                "fontfile": "./media/SourceHanSansCN-Regular.otf",
+                "fontfile": "./assets/SourceHanSansCN-Regular.otf",
                 "fontsize": 40,
                 "color": [
                     0,

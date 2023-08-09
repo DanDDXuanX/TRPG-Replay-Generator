@@ -196,7 +196,7 @@ class PreviewCanvas(ttk.Frame):
     # 更新画布尺寸
     def update_canvas_size(self, event):
         self.canvas_size = (self.proj_config.Width, self.proj_config.Height)
-        self.empty_canvas = pygame.image.load('./media/canvas.png').subsurface([0,0,self.proj_config.Width,self.proj_config.Height])
+        self.empty_canvas = pygame.image.load('./assets/canvas.png').subsurface([0,0,self.proj_config.Width,self.proj_config.Height])
         # 如果是黑暗模式，做反相
         if preference.theme == 'rplgendark':
             self.empty_canvas = pygame.surfarray.make_surface(270-pygame.surfarray.array3d(self.empty_canvas))

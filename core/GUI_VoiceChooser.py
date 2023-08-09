@@ -115,8 +115,8 @@ class VoiceArgs(ttk.Frame):
         )
         # 执行合成
         try:
-            this_TTS.start(text=text, ofile='./media/preview_tempfile.wav')
-            return True, './media/preview_tempfile.wav'
+            this_TTS.start(text=text, ofile='./assets/preview_tempfile.wav')
+            return True, './assets/preview_tempfile.wav'
         except Exception as E:
             print(WarningPrint('PrevFail',E))
             return False, '语音合成失败！检视控制台获取详细信息。'
@@ -181,8 +181,8 @@ class BeatsVoiceArgs(VoiceArgs):
         this_TTS.tx_method_specify(tx_method={"method":"w2w","method_dur":3})
         # 执行合成
         try:
-            this_TTS.start(text=text, ofile='./media/preview_tempfile.wav')
-            return True, './media/preview_tempfile.wav'
+            this_TTS.start(text=text, ofile='./assets/preview_tempfile.wav')
+            return True, './assets/preview_tempfile.wav'
         except Exception as E:
             print(WarningPrint('PrevFail',E))
             return False, '语音合成失败！检视控制台获取详细信息。'

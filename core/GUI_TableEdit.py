@@ -114,8 +114,8 @@ class ResetConfirm(ttk.Frame):
         super().__init__(master=master,borderwidth=SZ_5)
         self.preferencetable = preferencetable
         self.image = {
-            'reset'     : ImageTk.PhotoImage(image=Image.open('./media/icon/reset.png').resize(icon_size)),
-            'confirm'   : ImageTk.PhotoImage(image=Image.open('./media/icon/confirm.png').resize(icon_size)),
+            'reset'     : ImageTk.PhotoImage(image=Image.open('./assets/icon/reset.png').resize(icon_size)),
+            'confirm'   : ImageTk.PhotoImage(image=Image.open('./assets/icon/confirm.png').resize(icon_size)),
         }
         # 输出选项
         self.buttons = {

@@ -70,10 +70,10 @@ class OutPutCommand(ttk.Frame):
         self.page = self.master
         icon_size = [int(30*self.sz),int(30*self.sz)]
         self.image = {
-            'display'   : ImageTk.PhotoImage(name='display',image=Image.open('./media/icon/display.png').resize(icon_size)),
-            'synth'     : ImageTk.PhotoImage(name='synth',image=Image.open('./media/icon/synth.png').resize(icon_size)),
-            'exportpr'  : ImageTk.PhotoImage(name='exportpr', image=Image.open('./media/icon/premiere.png').resize(icon_size)),
-            'recode'    : ImageTk.PhotoImage(name='recode',image=Image.open('./media/icon/ffmpeg.png').resize(icon_size)),
+            'display'   : ImageTk.PhotoImage(name='display',image=Image.open('./assets/icon/display.png').resize(icon_size)),
+            'synth'     : ImageTk.PhotoImage(name='synth',image=Image.open('./assets/icon/synth.png').resize(icon_size)),
+            'exportpr'  : ImageTk.PhotoImage(name='exportpr', image=Image.open('./assets/icon/premiere.png').resize(icon_size)),
+            'recode'    : ImageTk.PhotoImage(name='recode',image=Image.open('./assets/icon/ffmpeg.png').resize(icon_size)),
         }
         self.buttons = {
             'display'   : ttk.Button(master=self,image='display',text='播放预览',compound='left',style='output.TButton',command=lambda:self.open_new_thread('display')),
@@ -257,7 +257,7 @@ class VerticalOutputCommand(OutPutCommand):
         SZ_5 = int(self.sz * 5)
         # 额外的按钮
         icon_size = [int(30*self.sz),int(30*self.sz)]
-        self.image['asterisk_add'] = ImageTk.PhotoImage(name='asterisk_add',image=Image.open('./media/icon/asterisk.png').resize(icon_size)),
+        self.image['asterisk_add'] = ImageTk.PhotoImage(name='asterisk_add',image=Image.open('./assets/icon/asterisk.png').resize(icon_size)),
         self.side_button = {
             'asterisk_add'   : ttk.Button(master=self,image='asterisk_add',bootstyle='secondary',command=self.add_asterisk_marks,padding=SZ_5),
         }

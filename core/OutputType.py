@@ -412,12 +412,12 @@ class PreviewDisplay(OutputMediaType):
         # 初始化显示窗口
         pygame.init()
         pygame.display.set_caption('TRPG Replay Generator '+EDITION)
-        pygame.display.set_icon(pygame.image.load('./media/icon.png'))
+        pygame.display.set_icon(pygame.image.load('./assets/icon.png'))
         self.fps_clock    = pygame.time.Clock()
         self.screen       = pygame.display.set_mode(size=(self.config.Width,self.config.Height),flags=pygame.SHOWN)
         self.display_size = (self.config.Width,self.config.Height)
         # 用来写注释的文本
-        self.note_text = pygame.freetype.Font('./media/SourceHanSansCN-Regular.otf')
+        self.note_text = pygame.freetype.Font('./assets/SourceHanSansCN-Regular.otf')
         # 建立图形轨道
         self.image  = pygame.Surface((self.config.Width,self.config.Height))
         self.annot  = pygame.Surface((self.config.Width,self.config.Height),pygame.SRCALPHA)
@@ -529,7 +529,7 @@ class PreviewDisplay(OutputMediaType):
             }
         }
         # 获取tip
-        tip_list = open('./media/tips.txt','r',encoding='utf-8').read().split('\n')
+        tip_list = open('./assets/tips.txt','r',encoding='utf-8').read().split('\n')
         def get_tips()->pygame.Surface:
             text = np.random.choice(tip_list)
             text_surf = freetext.render(text,size=size['main'],fgcolor=color['text_bg'])[0]
@@ -545,7 +545,7 @@ class PreviewDisplay(OutputMediaType):
             bubble_surface.blit(text_surf,(15,17))
             return pygame.transform.smoothscale(bubble_surface,(w*zoom,h*zoom))
         # 获取窄边宽度
-        circle_canvas = pygame.image.load('./media/welcome/circle.png')
+        circle_canvas = pygame.image.load('./assets/welcome/circle.png')
         if self.config.Width >= self.config.Height:
             square = self.config.Height
         else:
@@ -561,7 +561,7 @@ class PreviewDisplay(OutputMediaType):
         # 主要形状
         main_canvas = pygame.Surface((self.config.Width,self.config.Height))
         # 纹理
-        texture = pygame.image.load('./media/icon/texture2.png')
+        texture = pygame.image.load('./assets/icon/texture2.png')
         for x in range(0, self.config.Width, texture.get_width()):
             for y in range(0, self.config.Height, texture.get_width()):
                 main_canvas.blit(texture, (x, y))
@@ -572,13 +572,13 @@ class PreviewDisplay(OutputMediaType):
             color['text_mg'] = '#808080'
             color['text_fg'] = '#333333'
             color['text_bg'] = '#ffffff'
-            sprit = pygame.image.load('./media/welcome/sprit_light.png')
+            sprit = pygame.image.load('./assets/welcome/sprit_light.png')
             rect['sprit'] = (-670,150,0,0)
         else:
             color['text_mg'] = '#a0a0a0'
             color['text_fg'] = '#dddddd'
             color['text_bg'] = '#222222'
-            sprit = pygame.image.load('./media/welcome/sprit_dark.png')
+            sprit = pygame.image.load('./assets/welcome/sprit_dark.png')
             rect['sprit'] = (-670,120,0,0)
             # 反相
             main_array = pygame.surfarray.array3d(main_canvas)
@@ -593,7 +593,7 @@ class PreviewDisplay(OutputMediaType):
         # 文本内容
         text_foreground = pygame.Surface((1080,1080),pygame.SRCALPHA)
         text_foreground.fill((0,0,0,0))
-        freetext = pygame.freetype.Font('./media/SourceHanSerifSC-Heavy.otf')
+        freetext = pygame.freetype.Font('./assets/SourceHanSerifSC-Heavy.otf')
         # 角
         for key in ['h1','h2','v1','v2']:
             pygame.draw.rect(text_foreground,color=color['text_fg'],rect=rect[key])
@@ -1053,9 +1053,9 @@ class ExportXML(OutputMediaType):
     # 构建序列：成功0，异常1，终止2
     def bulid_sequence(self) -> str:
         # 载入xml模板
-        project_tplt = open('./xml_templates/tplt_sequence.xml','r',encoding='utf8').read()
-        track_tplt = open('./xml_templates/tplt_track.xml','r',encoding='utf8').read()
-        audio_track_tplt = open('./xml_templates/tplt_audiotrack.xml','r',encoding='utf8').read()
+        project_tplt = open('./assets/xml_templates/tplt_sequence.xml','r',encoding='utf8').read()
+        track_tplt = open('./assets/xml_templates/tplt_track.xml','r',encoding='utf8').read()
+        audio_track_tplt = open('./assets/xml_templates/tplt_audiotrack.xml','r',encoding='utf8').read()
         # 轨道列表
         video_tracks = []
         audio_tracks = []

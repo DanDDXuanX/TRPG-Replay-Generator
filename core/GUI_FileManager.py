@@ -94,11 +94,11 @@ class FileManager(ttk.Frame):
         SZ_30 = int(self.sz * 30)
         icon_size = [SZ_30,SZ_30]
         self.image = {
-            'save'      : ImageTk.PhotoImage(name='save' ,   image=Image.open('./media/icon/save.png').resize(icon_size)),
-            'config'    : ImageTk.PhotoImage(name='config',   image=Image.open('./media/icon/setting.png').resize(icon_size)),
-            'import'    : ImageTk.PhotoImage(name='import',   image=Image.open('./media/icon/import.png').resize(icon_size)),
-            'export'    : ImageTk.PhotoImage(name='export',   image=Image.open('./media/icon/export.png').resize(icon_size)),
-            'close'     : ImageTk.PhotoImage(name='close',   image=Image.open('./media/icon/close.png').resize(icon_size)),
+            'save'      : ImageTk.PhotoImage(name='save' ,   image=Image.open('./assets/icon/save.png').resize(icon_size)),
+            'config'    : ImageTk.PhotoImage(name='config',   image=Image.open('./assets/icon/setting.png').resize(icon_size)),
+            'import'    : ImageTk.PhotoImage(name='import',   image=Image.open('./assets/icon/import.png').resize(icon_size)),
+            'export'    : ImageTk.PhotoImage(name='export',   image=Image.open('./assets/icon/export.png').resize(icon_size)),
+            'close'     : ImageTk.PhotoImage(name='close',   image=Image.open('./assets/icon/close.png').resize(icon_size)),
         }
         # 标题
         self.project_title = ttk.Frame(master=self,borderwidth=0,bootstyle='light')
@@ -410,12 +410,12 @@ class FileManager(ttk.Frame):
         try:
             image = Image.open(self.project.config.Cover).resize([960,540]).convert('RGBA')
         except Exception as E:
-            cover_path = f'./media/default_cover/{preference.theme}.jpg'
+            cover_path = f'./assets/default_cover/{preference.theme}.jpg'
             image = Image.open(cover_path).convert('RGBA')
         # 渲染标题
         title = Image.new("RGBA",size=(960,160),color='#b3b3b3b3')
         draw = ImageDraw.Draw(title)
-        title_font = ImageFont.truetype('./media/SourceHanSerifSC-Heavy.otf',size=100)
+        title_font = ImageFont.truetype('./assets/SourceHanSerifSC-Heavy.otf',size=100)
         draw.text((20,0),text=self.project.config.Name,font=title_font,fill='#1e1e1eff')
         # 合并
         image.paste(title,(0,380),mask=title)
@@ -665,12 +665,12 @@ class MDFCollapsing(FileCollapsing):
         SZ_15 = int(self.sz * 15)
         icon_size = [SZ_15,SZ_15]
         self.image_path = {
-            'Pos'       : './media/icon/FM_pos.png',
-            'Text'      : './media/icon/FM_text.png',
-            'Bubble'    : './media/icon/FM_bubble.png',
-            'Animation' : './media/icon/FM_animation.png',
-            'Background': './media/icon/FM_background.png',
-            'Audio'     : './media/icon/FM_audio.png',
+            'Pos'       : './assets/icon/FM_pos.png',
+            'Text'      : './assets/icon/FM_text.png',
+            'Bubble'    : './assets/icon/FM_bubble.png',
+            'Animation' : './assets/icon/FM_animation.png',
+            'Background': './assets/icon/FM_background.png',
+            'Audio'     : './assets/icon/FM_audio.png',
         }
         self.image = {}
         for mediatype in ['Pos', 'Text', 'Bubble', 'Animation', 'Background', 'Audio']:
@@ -713,7 +713,7 @@ class CTBCollapsing(FileCollapsing):
         SZ_3  = int(self.sz * 3 )
         SZ_1  = int(self.sz * 1 )
         icon_size = [SZ_15,SZ_15]
-        image = Image.open('./media/icon/FM_charactor.png').resize(icon_size)
+        image = Image.open('./assets/icon/FM_charactor.png').resize(icon_size)
         if preference.theme == 'rplgendark':
             self.image = [
                 ImageTk.PhotoImage(name='FM_charactor' , image=self.enhance_image(image)),
@@ -792,7 +792,7 @@ class RGLCollapsing(FileCollapsing):
         SZ_3  = int(self.sz * 3 )
         SZ_1  = int(self.sz * 1 )
         icon_size = [SZ_15,SZ_15]
-        image = Image.open('./media/icon/FM_logfile.png').resize(icon_size)
+        image = Image.open('./assets/icon/FM_logfile.png').resize(icon_size)
         if preference.theme == 'rplgendark':
             self.image = [
                 ImageTk.PhotoImage(name='FM_logfile' , image=self.enhance_image(image)),

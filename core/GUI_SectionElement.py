@@ -77,7 +77,7 @@ class SectionElement:
                         filepath = Filepath(filepath=section['filepath']).exact()
                         image = Image.open(filepath)
                     except Exception:
-                        image = Image.open('./media/icon/Error.png')
+                        image = Image.open('./assets/icon/Error.png')
                 # 缩略名
                 thumbnail_name_this = thumbname%self.thumbnail_idx
                 self.__class__.thumbnail_idx += 1
@@ -116,7 +116,7 @@ class SectionElement:
                 # 转为Image
                 image = Image.frombytes(mode='RGB',size=(icon_size,icon_size),data=pygame.image.tostring(temp_canvas,'RGB'))
             except Exception as E:
-                image = Image.open('./media/icon/Error.png')
+                image = Image.open('./assets/icon/Error.png')
             # 缩略名
             thumbnail_name_this = 'thumbnail%d'%self.thumbnail_idx
             self.__class__.thumbnail_idx += 1
@@ -126,16 +126,16 @@ class SectionElement:
             self.thumb = thumbnail_name_this
         elif self.line_type in ['Audio','BGM']:
             if self.line_type not in self.thumbnail_name.keys():
-                self.__class__.thumbnail_image['Audio'] = ImageTk.PhotoImage(name='Audio', image=Image.open('./media/icon/audio.png').resize([icon_size,icon_size]))
-                self.__class__.thumbnail_image['BGM']   = ImageTk.PhotoImage(name='BGM',   image=Image.open('./media/icon/bgm.png').resize([icon_size,icon_size]))
+                self.__class__.thumbnail_image['Audio'] = ImageTk.PhotoImage(name='Audio', image=Image.open('./assets/icon/audio.png').resize([icon_size,icon_size]))
+                self.__class__.thumbnail_image['BGM']   = ImageTk.PhotoImage(name='BGM',   image=Image.open('./assets/icon/bgm.png').resize([icon_size,icon_size]))
                 self.thumbnail_name['Audio'] = 'Audio'
                 self.thumbnail_name['BGM'] = 'BGM'
             self.thumb = self.line_type
         elif self.line_type in ['Pos','PosGrid','FreePos']:
             if self.line_type not in self.thumbnail_name.keys():
-                self.__class__.thumbnail_image['Pos']        = ImageTk.PhotoImage(name='Pos',    image=Image.open('./media/icon/Pos.png').resize([icon_size,icon_size]))
-                self.__class__.thumbnail_image['PosGrid']    = ImageTk.PhotoImage(name='PosGrid',image=Image.open('./media/icon/PosGrid.png').resize([icon_size,icon_size]))
-                self.__class__.thumbnail_image['FreePos']    = ImageTk.PhotoImage(name='FreePos',image=Image.open('./media/icon/FreePos.png').resize([icon_size,icon_size]))
+                self.__class__.thumbnail_image['Pos']        = ImageTk.PhotoImage(name='Pos',    image=Image.open('./assets/icon/Pos.png').resize([icon_size,icon_size]))
+                self.__class__.thumbnail_image['PosGrid']    = ImageTk.PhotoImage(name='PosGrid',image=Image.open('./assets/icon/PosGrid.png').resize([icon_size,icon_size]))
+                self.__class__.thumbnail_image['FreePos']    = ImageTk.PhotoImage(name='FreePos',image=Image.open('./assets/icon/FreePos.png').resize([icon_size,icon_size]))
                 self.thumbnail_name['Pos'] = 'Pos'
                 self.thumbnail_name['PosGrid'] = 'PosGrid'
                 self.thumbnail_name['FreePos'] = 'FreePos'
@@ -469,10 +469,10 @@ class CTBSectionElement(ttk.Frame,SectionElement):
         # 图标大小
         icon_size = int(self.sz * 93)
         if 'NA' not in self.thumbnail_name.keys():
-            self.thumbnail_image['NA'] = ImageTk.PhotoImage(name='NA', image=Image.open('./media/icon/NA.png').resize([icon_size,icon_size]))
+            self.thumbnail_image['NA'] = ImageTk.PhotoImage(name='NA', image=Image.open('./assets/icon/NA.png').resize([icon_size,icon_size]))
             self.thumbnail_name['NA'] = 'NA'
         if 'MediaNotFound' not in self.thumbnail_name.keys():
-            self.thumbnail_image['MediaNotFound'] = ImageTk.PhotoImage(name='MediaNotFound', image=Image.open('./media/icon/Error.png').resize([icon_size,icon_size]))
+            self.thumbnail_image['MediaNotFound'] = ImageTk.PhotoImage(name='MediaNotFound', image=Image.open('./assets/icon/Error.png').resize([icon_size,icon_size]))
             self.thumbnail_name['MediaNotFound'] = 'MediaNotFound'
     def update_image_from_section(self,media_name:str)->str:
         # 图标大小

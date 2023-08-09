@@ -72,8 +72,8 @@ In current version, all available Classes are list below:
 
 1.	**Text, StrokeText**
 ```python 
-Text(fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0,0,255),line_limit=20)
-StrokeText(fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0,0,255),line_limit=20,edge_color=(255,255,255,255))
+Text(fontfile='./assets/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0,0,255),line_limit=20)
+StrokeText(fontfile='./assets/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0,0,255),line_limit=20,edge_color=(255,255,255,255))
 ```
 
 - Text object is part of Bubble object, and cannot be called directly as media.

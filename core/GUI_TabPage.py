@@ -190,7 +190,7 @@ class TabNote(ttk.Button):
 class EmptyPage(ttk.Frame):
     def __init__(self,master,screenzoom):
         super().__init__(master,borderwidth=0)
-        self.image = ImageTk.PhotoImage(image=Image.open('./media/icon2.png'))
+        self.image = ImageTk.PhotoImage(image=Image.open('./assets/icon2.png'))
         self.label = ttk.Label(master=self,image=self.image,anchor='center')
         self.label.pack(fill='both',expand=True)
     def update_page_display(self):

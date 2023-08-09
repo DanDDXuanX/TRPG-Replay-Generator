@@ -117,8 +117,8 @@ PosGrid(pos,end,x_step,y_step)
 
 3.	**文本、描边文本 Text、StrokeText**
 ```python 
-Text(fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0,0,255),line_limit=20,label_color='Lavender')
-StrokeText(fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0,0,255),line_limit=20,edge_color=(255,255,255,255),edge_width=1,label_color='Lavender')
+Text(fontfile='./assets/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0,0,255),line_limit=20,label_color='Lavender')
+StrokeText(fontfile='./assets/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0,0,255),line_limit=20,edge_color=(255,255,255,255),edge_width=1,label_color='Lavender')
 ```
 
 - 文本是气泡对象的一部分，无法单独使用；
@@ -254,7 +254,7 @@ Audio(filepath,label_color='Caribbean')
 - `label_color`	可选参数，设置音频音效在PR中显示的标签颜色，参考[可用颜色列表](./doc/XML_available_label_color.md)；默认值是加勒比海蓝色。
 
 > 注意：本文提及的 *文件路径* 的格式均为字符串，即需要引号引起来。例子：`"./pic/zhang.png"`<p>
-> 注意：定义的媒体变量名需要符合python变量名标准，且不可以使用程序代码中已占用的变量名（详见[已占用变量名](./media/occupied_variable_name.list)）。<p>
+> 注意：定义的媒体变量名需要符合python变量名标准，且不可以使用程序代码中已占用的变量名（详见[已占用变量名](./assets/occupied_variable_name.list)）。<p>
 > 注意：replay视频中通常包含大量的语音文件，不建议全建立 `Audio` 对象，会消耗较大的内存；在Log文件的 *对话行* 的 *音效框* 里指定文件路径即可。<p>
 > 注意：通过文件路径指定的音频，在PR项目中标签颜色是加勒比海蓝色，且将占用 `语音轨道(Voice)` 而非 `音效轨道(SE)`
 
@@ -688,13 +688,13 @@ python speech_synthesizer.py \
 
 1. `{*}` ：待语音合成的标志，将本对话行的全部发言文本执行语音合成；
 2. `{*speech_text}` ：合成指定文本的语音的标志；指定文本只能包含`，。：？！“”`等中文符号；
-3. `{"./media/voice.wav";*}` ：当需要使用外部音频，而非语音合成时，可以读取音频文件持续时间，并填补到星标之后；这可以使小节的时长和音频时长同步。
+3. `{"./assets/voice.wav";*}` ：当需要使用外部音频，而非语音合成时，可以读取音频文件持续时间，并填补到星标之后；这可以使小节的时长和音频时长同步。
 
 待处理log文件例子:
 ```
 [张安翔]:阿里云语音合成。{*}
 [张安翔]:指定语音合成内容。{*将这一段文字合成为语音}
-[张安翔]:使用现成的音频文件。{'./media/voice.wav';*}
+[张安翔]:使用现成的音频文件。{'./assets/voice.wav';*}
 ```
 
 > 注意：若语音合成未成功，会自动重试至多五次；五次重试后仍未成功则会终止语音合成程序。<p>

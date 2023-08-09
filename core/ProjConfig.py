@@ -55,7 +55,7 @@ class Config:
         else:
             # 项目基本信息
             self.Name:str = "Dev"
-            self.Cover:str = "./media/cover.jpg"
+            self.Cover:str = "./assets/cover.jpg"
             # 分辨率参数
             self.Width = 1920
             self.Height = 1080
@@ -141,16 +141,16 @@ class Preference:
             self.auto_periods:bool = False
             # 媒体
             # 内建动画的字体文件
-            self.BIA_font:str = './media/SourceHanSerifSC-Heavy.otf'
+            self.BIA_font:str = './assets/SourceHanSerifSC-Heavy.otf'
             # 内建动画的字体大小
             self.BIA_font_size:float = 0.0521 # W
             # 骰子动画的模式
             self.dice_mode:str = 'COC'
             self.dice_threshold:float = 0.05 # 5%
             # 生命动画的前景图
-            self.heart_pic:str = './media/heart.png'
+            self.heart_pic:str = './assets/heart.png'
             # 生命动画的背景图
-            self.heart_shape:str = './media/heart_shape.png'
+            self.heart_shape:str = './assets/heart_shape.png'
             # 心与心的距离
             self.heart_distance:float = 0.026 # W
             # 预览

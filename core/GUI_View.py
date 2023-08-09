@@ -30,7 +30,7 @@ class EmptyView(ttk.Frame):
         super().__init__(master,borderwidth=0,bootstyle='light')
         # 子原件
         icon_size = (SZ_150, SZ_150)
-        self.texture = Texture(master=self, screenzoom=self.sz, file='./media/icon/texture3.png')
+        self.texture = Texture(master=self, screenzoom=self.sz, file='./assets/icon/texture3.png')
         self.content = HomePageElements(master=self, screenzoom=self.sz)
         self.update_items()
     def update_items(self):
@@ -105,7 +105,7 @@ class ScriptView(ttk.Frame):
         self.sz = screenzoom
         super().__init__(master,borderwidth=0,bootstyle='light')
         # 子原件
-        self.texture = Texture(master=self, screenzoom=self.sz, file='./media/icon/texture2.png')
+        self.texture = Texture(master=self, screenzoom=self.sz, file='./assets/icon/texture2.png')
         self.content = ScriptExecuter(master=self,screenzoom=self.sz)
         # 更新
         self.update_item()
@@ -125,9 +125,9 @@ class ConsoleView(ttk.Frame):
         self.sz = screenzoom
         super().__init__(master,borderwidth=0,bootstyle='light')
         # 子原件
-        self.texture = Texture(master=self, screenzoom=self.sz, file='./media/icon/texture4.png')
+        self.texture = Texture(master=self, screenzoom=self.sz, file='./assets/icon/texture4.png')
         # self.terminal = VoiceChooser(master=self,screenzoom=self.sz,voice='Azure::zh-CN-YunxiNeural:assistant:1.0:Boy',speech_rate=30,pitch_rate=-70)
-        # self.terminal = RelocateFile(master=self, screenzoom=self.sz, file_not_found={'A':'./media/icon/texture4.png','B':'./media/icon/texture2.png','C':'./media/icon/texture3.png'})
+        # self.terminal = RelocateFile(master=self, screenzoom=self.sz, file_not_found={'A':'./assets/icon/texture4.png','B':'./assets/icon/texture2.png','C':'./assets/icon/texture3.png'})
         # self.terminal = CreateEmptyProject(master=self,screenzoom=self.sz)
         self.terminal = Terminal(master=self,screenzoom=self.sz)
         # 更新
@@ -148,7 +148,7 @@ class PreferenceView(ttk.Frame):
         self.sz = screenzoom
         super().__init__(master,borderwidth=0,bootstyle='light')
         # 子原件
-        self.texture = Texture(master=self, screenzoom=self.sz, file='./media/icon/texture1.png')
+        self.texture = Texture(master=self, screenzoom=self.sz, file='./assets/icon/texture1.png')
         self.content = PreferenceTable(master=self,screenzoom=self.sz)
         self.buttons = ResetConfirm(master=self,screenzoom=self.sz,preferencetable=self.content)
         # 更新

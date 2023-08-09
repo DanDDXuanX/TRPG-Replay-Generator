@@ -4,12 +4,12 @@ KP立绘位置 = FreePos(0,480)
 位置网格 = PosGrid(pos=(400,100),end=(1500,1000),x_step=11,y_step=9)
 
 # Text
-气泡主文本 = Text(fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(60,60,60,255),line_limit=30,label_color='Lavender')
-气泡富文本 = RichText(fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(60,60,60,255),line_limit=30,label_color='Lavender')
-大文本 = Text(fontfile='./media/SourceHanSerifSC-Heavy.otf',fontsize=100,color=(255,255,255,255),line_limit=15,label_color='Lavender')
+气泡主文本 = Text(fontfile='./assets/SourceHanSansCN-Regular.otf',fontsize=40,color=(60,60,60,255),line_limit=30,label_color='Lavender')
+气泡富文本 = RichText(fontfile='./assets/SourceHanSansCN-Regular.otf',fontsize=40,color=(60,60,60,255),line_limit=30,label_color='Lavender')
+大文本 = Text(fontfile='./assets/SourceHanSerifSC-Heavy.otf',fontsize=100,color=(255,255,255,255),line_limit=15,label_color='Lavender')
 血条字体 = Text(fontfile='@/media/consola.ttf',fontsize=40,color=(255,87,87,255),line_limit=20,label_color='Lavender')
-聊天窗主文本 = Text(fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(60,60,60,255),line_limit=20,label_color='Lavender')
-气泡头文本 = StrokeText(fontfile='./media/SourceHanSerifSC-Heavy.otf',fontsize=40,color=(255,255,255,255),line_limit=10,edge_color=(60,60,60,255),edge_width=2,projection='SE',label_color='Lavender')
+聊天窗主文本 = Text(fontfile='./assets/SourceHanSansCN-Regular.otf',fontsize=40,color=(60,60,60,255),line_limit=20,label_color='Lavender')
+气泡头文本 = StrokeText(fontfile='./assets/SourceHanSerifSC-Heavy.otf',fontsize=40,color=(255,255,255,255),line_limit=10,edge_color=(60,60,60,255),edge_width=2,projection='SE',label_color='Lavender')
 
 # Animation
 张安翔 = Animation(filepath='@/media/am1.png',pos=张安翔立绘位置,tick=1,loop=True,label_color='Purple')

@@ -34,8 +34,8 @@ class MediaObj:
         }
     # 导出PR项目相关的类变量
     # clip_XML 模板
-    clip_tplt = open('./xml_templates/tplt_clip.xml','r',encoding='utf-8').read()
-    audio_clip_tplt = open('./xml_templates/tplt_audio_clip.xml','r',encoding='utf-8').read()
+    clip_tplt = open('./assets/xml_templates/tplt_clip.xml','r',encoding='utf-8').read()
+    audio_clip_tplt = open('./assets/xml_templates/tplt_audio_clip.xml','r',encoding='utf-8').read()
     # PR 工程的项目参数
     Is_NTSC:bool = True
     Audio_type:str = 'Stereo'
@@ -127,7 +127,7 @@ class MediaObj:
 # 文字对象
 class Text(MediaObj):
     pygame.font.init()
-    def __init__(self,fontfile:str='./media/SourceHanSansCN-Regular.otf',fontsize:int=40,color:tuple=(0,0,0,255),line_limit:int=20,label_color:str='Lavender'):
+    def __init__(self,fontfile:str='./assets/SourceHanSansCN-Regular.otf',fontsize:int=40,color:tuple=(0,0,0,255),line_limit:int=20,label_color:str='Lavender'):
         super().__init__(filepath=fontfile,label_color=label_color)
         self.text_render = pygame.font.Font(self.filepath.exact(),fontsize)
         self.color=color
@@ -185,7 +185,7 @@ class Text(MediaObj):
 # 描边文本
 class StrokeText(Text):
     pygame.font.init()
-    def __init__(self,fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0,0,255),line_limit=20,edge_color=(255,255,255,255),edge_width=1,projection='C',label_color='Lavender'):
+    def __init__(self,fontfile='./assets/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0,0,255),line_limit=20,edge_color=(255,255,255,255),edge_width=1,projection='C',label_color='Lavender'):
         super().__init__(fontfile=fontfile,fontsize=fontsize,color=color,line_limit=line_limit,label_color=label_color) # 继承
         # 描边颜色
         self.edge_color = edge_color
@@ -245,7 +245,7 @@ class StrokeText(Text):
 
 # 富文本
 class RichText(Text):
-    def __init__(self,fontfile='./media/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0,0,255),line_limit=20,label_color='Lavender'):
+    def __init__(self,fontfile='./assets/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0,0,255),line_limit=20,label_color='Lavender'):
         super().__init__(fontfile=fontfile,fontsize=fontsize,color=color,line_limit=line_limit,label_color=label_color) # 继承
     def raw(self, tx:str):
         # 原始文本：
@@ -405,12 +405,12 @@ class RichText(Text):
 class HPLabel(Text):
     def __init__(
             self,
-            fontfile:str        = './media/SourceHanSansCN-Regular.otf',
+            fontfile:str        = './assets/SourceHanSansCN-Regular.otf',
             fontsize:int        = 40,
             color:tuple         = (0,0,0,255),
             marker:str          = "A/B",
-            fg_path:str         = './media/heart.png',
-            bg_path:str         = './media/heart_shape.png',
+            fg_path:str         = './assets/heart.png',
+            bg_path:str         = './assets/heart_shape.png',
             align:str           = 'left',
             width:int           = 0,
             repeat:int          = 2,
@@ -1751,7 +1751,7 @@ class Animation(MediaObj):
             self.load_image(scale=self.scale)
 # 内建动画的基类：不可以直接使用
 class BuiltInAnimation(Animation):
-    BIA_font = './media/SourceHanSerifSC-Heavy.otf'
+    BIA_font = './assets/SourceHanSerifSC-Heavy.otf'
     BIA_font_size = 0.0521
     # BIA初始化：需要在media确定之后！
     def __init__(
@@ -1848,8 +1848,8 @@ class GroupedAnimation(BuiltInAnimation):
 
 # 血条
 class HitPoint(BuiltInAnimation):
-    heart_image = './media/heart.png'
-    heart_shape = './media/heart_shape.png'
+    heart_image = './assets/heart.png'
+    heart_shape = './assets/heart_shape.png'
     heart_distance = 0.026
     def __init__(
         self,

@@ -30,7 +30,7 @@ class RplGenStudioWelcome(ttk.Window):
             overrideredirect    = True,
         )
         # 画面
-        self.image = ImageTk.PhotoImage(name='welcome',image=Image.open('./media/cover.jpg').resize([window_width-2*border,window_height-2*border]))
+        self.image = ImageTk.PhotoImage(name='welcome',image=Image.open('./assets/cover.jpg').resize([window_width-2*border,window_height-2*border]))
         self.image_show = ttk.Label(master=self,image='welcome',borderwidth=border,anchor='center',background='#963fff')
         self.image_show.pack(fill='both',expand=True)
         # 主循环

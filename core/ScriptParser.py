@@ -51,17 +51,17 @@ class Script:
         'Pos'           :[[0,0]],
         'FreePos'       :[[0,0]],
         'PosGrid'       :[[0,0],[100,100],2,2],
-        'Text'          :['./media/SourceHanSansCN-Regular.otf',40,[0,0,0,255],20,'Lavender'],
-        'StrokeText'    :['./media/SourceHanSansCN-Regular.otf',40,[0,0,0,255],20,[255,255,255,255],1,'C','Lavender'],
-        'RichText'      :['./media/SourceHanSansCN-Regular.otf',40,[0,0,0,255],20,'Lavender'],
-        'HPLabel'       :['./media/SourceHanSansCN-Regular.otf',40,[0,0,0,255],'A/B','./media/heart.png','./media/heart_shape.png','left',0,2,'Lavender'],
+        'Text'          :['./assets/SourceHanSansCN-Regular.otf',40,[0,0,0,255],20,'Lavender'],
+        'StrokeText'    :['./assets/SourceHanSansCN-Regular.otf',40,[0,0,0,255],20,[255,255,255,255],1,'C','Lavender'],
+        'RichText'      :['./assets/SourceHanSansCN-Regular.otf',40,[0,0,0,255],20,'Lavender'],
+        'HPLabel'       :['./assets/SourceHanSansCN-Regular.otf',40,[0,0,0,255],'A/B','./assets/heart.png','./assets/heart_shape.png','left',0,2,'Lavender'],
         'Bubble'        :[None,1.0,{'type':'Text'},None,[0,0],[0,0],0,[0,0],0,'Name','left','top','left',1.5,4,'Lavender'],
         'Balloon'       :[None,1.0,{'type':'Text'},[None],[0,0],[0,0],0,[[0,0]],[0],['Name'],'left','top',['left'],1.5,4,'Lavender'],
         'DynamicBubble' :[None,1.0,{'type':'Text'},None,[0,0],[0,0],[100,100],[0,0],'Name','stretch','free',1.5,'Lavender'],
         'ChatWindow'    :[None,1.0,['Key1'],[{'type':'Bubble'}],[None],['left'],[0,0],[0,0],[100,100],0,100,0,'Lavender'],
         'Background'    :['black',1.0,[0,0],'Lavender'],
-        'Animation'     :['./media/heart_shape.png',1.0,[0,0],1,True,'Lavender'], # TODO:这个默认的filepath应该修改！
-        'Audio'         :['./media/SE_dice.wav','Caribbean'], # TODO:这个默认的filepath应该修改！
+        'Animation'     :['./assets/heart_shape.png',1.0,[0,0],1,True,'Lavender'], # TODO:这个默认的filepath应该修改！
+        'Audio'         :['./assets/SE_dice.wav','Caribbean'], # TODO:这个默认的filepath应该修改！
         'BGM'           :['./toy/media/BGM.ogg',100,True,'Caribbean'] # TODO:这个默认的filepath应该修改！
         }
     # 初始化
@@ -2177,7 +2177,7 @@ class RplGenLog(Script):
                     this_timeline['Am1_c'] = 'NA'
                     this_timeline['Am1_p'] = 'NA'
                     # SE
-                    this_timeline.loc[frame_rate//3,'SE'] = "'./media/SE_dice.wav'"
+                    this_timeline.loc[frame_rate//3,'SE'] = "'./assets/SE_dice.wav'"
                     # BGM
                     if BGM_queue != []:
                         this_timeline.loc[0,'BGM'] = BGM_queue.pop(0) #从BGM_queue里取第一个出来 alpha 1.13.5
