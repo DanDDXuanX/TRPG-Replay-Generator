@@ -8,6 +8,8 @@ hiddenimports = []
 datas += collect_data_files('chlorophyll')
 tmp_ret = collect_all('tkextrafont')
 datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
+tmp_ret = collect_all('azure')
+datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
 
 
 block_cipher = None
@@ -50,5 +52,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['media\\icon.ico'],
+    icon=['assets\\icon.ico'],
 )

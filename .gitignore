@@ -1,8 +1,8 @@
 test_output/*
 gui/*
 .VSCodeCounter/*
-media/save_config
-media/preview_tempfile.wav
+assets/save_config
+assets/preview_tempfile.wav
 *.timeline
 *.breakpoint
 *.exe
