@@ -475,8 +475,6 @@ class PreviewDisplay(OutputMediaType):
         }
     # 欢迎界面：2退出、0开始、1异常
     def welcome(self) -> int:
-        color = {
-        }
         size = {
             'main':36,
             'head':64,
@@ -569,15 +567,23 @@ class PreviewDisplay(OutputMediaType):
         main_canvas.blit(circle_canvas,(0,0))
         # 主题
         if preference.theme == 'rplgenlight':
-            color['text_mg'] = '#808080'
-            color['text_fg'] = '#333333'
-            color['text_bg'] = '#ffffff'
+            color = {
+                'text_mg'       : '#808080',
+                'text_fg'       : '#333333',
+                'text_bg'       : '#ffffff',
+                'button'        : '#158cba',
+                'button_press'  : '#0e5f80',
+            }
             sprit = pygame.image.load('./assets/welcome/sprit_light.png')
             rect['sprit'] = (-670,150,0,0)
         else:
-            color['text_mg'] = '#a0a0a0'
-            color['text_fg'] = '#dddddd'
-            color['text_bg'] = '#222222'
+            color = {
+                'text_mg'       : '#a0a0a0',
+                'text_fg'       : '#dddddd',
+                'text_bg'       : '#222222',
+                'button'        : '#8352a4',
+                'button_press'  : '#ad6cd9',
+            }
             sprit = pygame.image.load('./assets/welcome/sprit_dark.png')
             rect['sprit'] = (-670,120,0,0)
             # 反相
@@ -611,17 +617,30 @@ class PreviewDisplay(OutputMediaType):
         main_canvas.blit(pygame.transform.smoothscale(text_foreground,(square,square)),(0,0))
         # 按空格键开始
         x,y,w,h = rect['space']
-        space_begin = pygame.Surface(size=(w,h))
-        space_begin.fill(color=color['text_mg'])
-        space_begin.blit(freetext.render('按空格键开始',size=size['space'],fgcolor=color['text_bg'])[0],(36,10))
-        main_canvas.blit(pygame.transform.smoothscale(space_begin,(w*zoom,h*zoom)),(self.config.Width+x*zoom,self.config.Height+y*zoom))
+        press_space_text = freetext.render('按空格键开始',size=size['space'],fgcolor=color['text_bg'])[0]
+        space = {
+            'text_mg'         :pygame.Surface(size=(w,h)),
+            'button'      :pygame.Surface(size=(w,h)),
+            'button_press'   :pygame.Surface(size=(w,h)),
+        }
+        for key in space:
+            space[key].fill(color[key])
+            space[key].blit(press_space_text,(36,10))
+            space[key] = pygame.transform.smoothscale(space[key],(w*zoom,h*zoom))
+        button_area = pygame.Rect(self.config.Width+x*zoom,self.config.Height+y*zoom,w*zoom,h*zoom)
         # 伊可
         sprit = zoom_surface(sprit,zoom)
+        sprit_mask = pygame.mask.from_surface(sprit)
         begin = False
         sprit_digit = {
             'idx' : 0,
             'max' : 240,
             'yps' : 10 * np.sin(np.linspace(0, 2*np.pi, 240)) 
+        }
+        damp_digit = {
+            'idx' : 59,
+            'max' : 60,
+            'yps' : 10 * np.exp(-0.5*np.linspace(0,10,60)) * np.sin(2*np.pi*np.linspace(0,10,60))
         }
         tip_digit = {
             'idx' : 0,
@@ -633,28 +652,43 @@ class PreviewDisplay(OutputMediaType):
             ])
         }
         tip = get_tips()
+        tip_mask = pygame.mask.from_surface(tip)
         while begin == False:
             # 放在主屏幕
             self.screen.blit(main_canvas,(0,0))
+            # button
+            if button_area.collidepoint(pygame.mouse.get_pos()):
+                if pygame.mouse.get_pressed()[0]:
+                    self.screen.blit(space['button_press'],button_area)
+                else:
+                    self.screen.blit(space['button'],button_area)
+            else:
+                self.screen.blit(space['text_mg'],button_area)
             # 摸摸伊可
             x,y,w,h = rect['sprit']
-            X = int(x*zoom)
-            Y = int(y*zoom)
-            self.screen.blit(sprit,(self.config.Width+X,int(sprit_digit['yps'][sprit_digit['idx']])+Y))
+            SX = int(x*zoom + self.config.Width)
+            SY = int((y + sprit_digit['yps'][sprit_digit['idx']] + damp_digit['yps'][damp_digit['idx']]) * zoom)
+            self.screen.blit(sprit,(SX,SY))
+            # 伊可的位置和震动
             sprit_digit['idx']+=1
+            damp_digit['idx'] +=1
             if sprit_digit['idx']>=sprit_digit['max']:
                 sprit_digit['idx'] = 0
+            if damp_digit['idx']>=damp_digit['max']:
+                damp_digit['idx'] = damp_digit['max']-1
             # 小贴士
             x,y,w,h = rect['dialog']
-            X = int(x*zoom)
-            Y = int(y*zoom)
+            TX = int(x*zoom) + self.config.Width
+            TY = int(y*zoom)
             tip.set_alpha(tip_digit['alpha'][tip_digit['idx']])
-            self.screen.blit(tip,(self.config.Width+X, Y))
+            self.screen.blit(tip,(TX, TY))
+            # 小贴士的透明度
             tip_digit['idx']+=1
             if tip_digit['idx']>=tip_digit['max']:
                 tip_digit['idx'] = 0
                 # 刷新小贴士
                 tip = get_tips()
+                tip_mask = pygame.mask.from_surface(tip)
             # 刷新
             pygame.display.update()
             if self.is_terminated:
@@ -664,6 +698,7 @@ class PreviewDisplay(OutputMediaType):
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     return 2
+                # 键盘事件
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         pygame.time.delay(1000)
@@ -672,6 +707,24 @@ class PreviewDisplay(OutputMediaType):
                     elif event.key == pygame.K_SPACE:
                         begin = True
                         break
+                # 鼠标释放事件
+                elif event.type == pygame.MOUSEBUTTONUP:
+                    # 是否是按钮
+                    if button_area.collidepoint(event.pos):
+                        begin = True
+                        break
+                    # 是否摸摸伊可
+                    try:
+                        if sprit_mask.get_at((event.pos[0] - SX, event.pos[1] - SY)):
+                            damp_digit['idx'] = 0
+                    except:
+                        pass
+                    # 是否点击小贴士
+                    try:
+                        if tip_mask.get_at((event.pos[0] - TX, event.pos[1] - TY)):
+                            tip_digit['idx'] = tip_digit['max'] - 1
+                    except:
+                        pass
             # 下一帧
             self.fps_clock.tick(60)
         return 0
