@@ -8,7 +8,7 @@ import re
 
 from .ScriptParser import RplGenLog,CharTable,MediaDef
 from .ProjConfig import Config
-from .TTSengines import Aliyun_TTS_engine,Azure_TTS_engine,Beats_engine
+from .TTSengines import Aliyun_TTS_engine,Azure_TTS_engine,Beats_engine,System_TTS_engine
 from .Exceptions import WarningPrint,RplGenError,SynthesisError,SynthPrint,ParserError
 from .Medias import Audio
 
@@ -65,6 +65,13 @@ class SpeechSynthesizer:
                         name=key,
                         voice=value.Voice[7:],
                         frame_rate=self.config.frame_rate
+                        )
+                # System 模式：如果音源名以 "System::" 作为开头
+                elif value.Voice[0:8] == 'System::':
+                    TTS[key] = System_TTS_engine(
+                        name=key,
+                        voice=value.Voice[8:],
+                        speech_rate=int(value.SpeechRate)
                         )
                 # 否则，是非法的音源名
                 else:

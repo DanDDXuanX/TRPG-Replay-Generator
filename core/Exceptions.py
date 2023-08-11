@@ -227,6 +227,10 @@ class SynthesisError(RplGenError):
                         "Azure错误：非法的音源名：“{}”"],
         'AzuErrRetu'  :["AzureError: {}",
                         "Azure错误：{}"],
+        'SysInvArg'   :["SysTTSError: Unknown Voice argument: '{}'",
+                        "系统语音错误：未知的音源名：“{}”"],
+        'SysFailed'   :["SysTTSError: : Synthesis failed, due to: {}",
+                        "系统语音错误：语音合成错误，由于：{}"],
     }
     error_type = ["\x1B[31m[SynthesisError]:\x1B[0m ",
                   "\x1B[31m[合成错误]:\x1B[0m "]

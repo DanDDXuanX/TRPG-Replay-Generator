@@ -8,6 +8,7 @@ import os
 import pydub
 import nls
 import azure.cognitiveservices.speech as speechsdk
+import pyttsx3
 
 from .Exceptions import SynthesisError, WarningPrint
 
@@ -19,7 +20,19 @@ class TTS_engine:
         pass
     def start(self,text,ofile):
         pass
-
+    def linear_mapping(self,value):
+        if value == 0:
+            return 1
+        elif value > 0:
+            return 1 + value/500
+        else:
+            return 1 + value/1000
+    def print_success(self,text,ofile):
+        if len(text) >= 5:
+            print_text = text[0:5]+'...'
+        else:
+            print_text = text
+        print("[{0}({1})]: {2} -> '{3}'".format(self.ID,self.voice,print_text,ofile))
 # 阿里云的TTS引擎
 class Aliyun_TTS_engine(TTS_engine):
     # Keys
@@ -65,11 +78,7 @@ class Aliyun_TTS_engine(TTS_engine):
             # os.remove(ofile)
             raise SynthesisError('AliOther')
         else:
-            if len(text) >= 5:
-                print_text = text[0:5]+'...'
-            else:
-                print_text = text
-            print("[{0}({1})]: {2} -> '{3}'".format(self.ID,self.voice,print_text,ofile))            
+            self.print_success(text=text,ofile=ofile)
     def on_close(self, *args):
         #print("on_close: args=>{}".format(args))
         try:
@@ -173,11 +182,8 @@ class Azure_TTS_engine(TTS_engine):
         if speech_synthesis_result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted:
             # 先裁剪掉前后的静音部分
             Azure_TTS_engine.silence_slicer(ofile)
-            if len(text) >= 5:
-                print_text = text[0:5]+'...'
-            else:
-                print_text = text
-            print("[{0}({1})]: {2} -> '{3}'".format(self.ID,self.voice,print_text,ofile))
+            # 输出成功
+            self.print_success(text=text,ofile=ofile)
         elif speech_synthesis_result.reason == speechsdk.ResultReason.Canceled:
             cancellation_details = speech_synthesis_result.cancellation_details
             if cancellation_details.reason == speechsdk.CancellationReason.Error:
@@ -228,11 +234,7 @@ class Beats_engine(TTS_engine):
                         position = int(idx*self.time_unit*1000)
                     )
         # 保存为文件
-        if len(text) >= 5:
-            print_text = text[0:5]+'...'
-        else:
-            print_text = text
-        print("[{0}({1})]: {2} -> '{3}'".format(self.ID,self.voice,print_text,ofile))            
+        self.print_success(text=text,ofile=ofile)
         this_Track.export(ofile,format='wav')
 
 # 腾讯云的TTS
@@ -241,4 +243,40 @@ class Beats_engine(TTS_engine):
 
 # 讯飞的TTS
 
-# 标贝的TTS？
+# 系统的TTS
+class System_TTS_engine(TTS_engine):
+    # 初始化的参数
+    def __init__(self, name='unnamed', voice=None, speech_rate=0, aformat='wav'):
+        self.ID = name
+        self.voice = voice
+        self.aformat = aformat
+        self.speech_rate = speech_rate
+        # 合成器
+        self.voice_list = {}
+        self.synthesizer = pyttsx3.init()
+        # 应用参数
+        if not self.voice_list:
+            self.get_available()
+        else:
+            try:
+                if voice:
+                    self.synthesizer.setProperty('voice', self.voice_list[self.voice])
+                self.synthesizer.setProperty('rate', int(self.linear_mapping(self.speech_rate)*200))
+            except KeyError:
+                raise SynthesisError('SysInvArg',self.voice)
+    # 获取可用语音列表
+    def get_available(self):
+        for voice in pyttsx3.init().getProperty('voices'):
+            self.voice_list[voice.name] = voice.id
+        return self.voice_list
+    # 开始
+    def start(self, text, ofile):
+        self.synthesizer.save_to_file(text, ofile)
+        try:
+            self.synthesizer.runAndWait()
+        except Exception as E:
+            SynthesisError('SysFailed',E)
+        if not os.path.isfile(ofile):
+            SynthesisError('SysFailed','No file saved!')
+        # 输出显示
+        self.print_success(text=text,ofile=ofile)

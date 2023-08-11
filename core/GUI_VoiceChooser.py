@@ -9,7 +9,7 @@ import threading
 import ttkbootstrap as ttk
 from ttkbootstrap.dialogs import Messagebox, Dialog
 from tkinter.filedialog import asksaveasfilename
-from .TTSengines import Aliyun_TTS_engine, Azure_TTS_engine, Beats_engine, voice_lib
+from .TTSengines import Aliyun_TTS_engine, Azure_TTS_engine, Beats_engine, System_TTS_engine, voice_lib
 from .Exceptions import WarningPrint
 from .Medias import Audio
 from .Utils import mod62_timestamp
@@ -253,6 +253,19 @@ class AzureVoiceArgs(VoiceArgs):
         roleplay = self.variables['roleplay'].get()
         args['voice'] = 'Azure::' + ':'.join([args['voice'], style, degree, roleplay])
         return args
+class SystemVoiceArgs(VoiceArgs):
+    def __init__(self, master, screenzoom, voice: str = '', speech_rate: int = 0, pitch_rate: int = 0):
+        # 重设列表 # TODO
+        # 继承
+        super().__init__(master, screenzoom, service='System', voice=voice, speech_rate=0, pitch_rate=0)
+        self.TTS = System_TTS_engine
+        # 禁用语调
+        self.inputs['pitchrate'].configure(state='disable')
+        self.addition['pitchrate'].configure(state='disable')
+        # 放置元件
+        self.update_selected_voice(None)
+        self.update_elements()
+        self.update_items()
 # 语音选择
 class VoiceChooser(ttk.Frame):
     def __init__(self,master,screenzoom,voice:str,speech_rate:int,pitch_rate:int,close_func):
