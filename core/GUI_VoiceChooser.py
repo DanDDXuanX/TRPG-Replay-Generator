@@ -133,6 +133,8 @@ class AliyunVoiceArgs(VoiceArgs):
     def get_args(self) -> dict:
         if self.variables['voice'].get() in self.voice_lib.index:
             return super().get_args()
+        elif self.variables['voice'].get() == '':
+            raise ValueError('必须选择一个音源！')
         else:
             raise ValueError('音源名是无效的！')
 class BeatsVoiceArgs(VoiceArgs):
@@ -158,8 +160,10 @@ class BeatsVoiceArgs(VoiceArgs):
             args = super().get_args()
             args['voice'] = 'Beats::' + args['voice']
             return args
+        elif self.variables['voice'].get() == '':
+            raise ValueError('必须选择一个音源！')
         else:
-            raise Exception('Invalid Voice Name.')
+            raise ValueError('音源名是无效的！')
     def exec_synthesis(self,text:str):
         # 载入音源名
         try:
@@ -248,6 +252,8 @@ class AzureVoiceArgs(VoiceArgs):
         # 继承（voice,speech,pitch）
         super().load_input_args(speaker, speech_rate, pitch_rate)
     def get_args(self) -> dict:
+        if self.variables['voice'].get() == '':
+            raise ValueError('必须选择一个音源！')
         args = super().get_args()
         style = self.variables['style'].get()
         degree = str(self.variables['degree'].get())
@@ -295,8 +301,10 @@ class SystemVoiceArgs(VoiceArgs):
             args = super().get_args()
             args['voice'] = 'System::' + args['voice']
             return args
+        elif self.variables['voice'].get() == '':
+            raise ValueError('必须选择一个音源！')
         else:
-            raise Exception('Invalid Voice Name.')
+            raise ValueError('音源名是无效的！')
 # 语音选择
 class VoiceChooser(ttk.Frame):
     def __init__(self,master,screenzoom,voice:str,speech_rate:int,pitch_rate:int,close_func):
@@ -363,7 +371,7 @@ class VoiceChooser(ttk.Frame):
         try:
             args = this_VoiceArgs.get_args()
         except ValueError as E:
-            Messagebox().show_error(message=E,title='错误')
+            Messagebox().show_error(message=str(E),title='错误',parent=self)
             return
         # 添加到剪贴板
         self.clipboard_clear()
@@ -375,7 +383,7 @@ class VoiceChooser(ttk.Frame):
             # 关闭
             self.close_func(result=args)
         except ValueError as E:
-            Messagebox().show_error(message=E,title='错误')
+            Messagebox().show_error(message=str(E),title='错误',parent=self)
             return
     def preview_command(self)->bool:
         this_VoiceArgs = self.get_select_args()
