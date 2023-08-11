@@ -246,7 +246,7 @@ class Beats_engine(TTS_engine):
 # 系统的TTS
 class System_TTS_engine(TTS_engine):
     # 初始化的参数
-    def __init__(self, name='unnamed', voice=None, speech_rate=0, aformat='wav'):
+    def __init__(self, name='unnamed', voice=None, speech_rate=0, pitch_rate=0, aformat='wav'):
         self.ID = name
         self.voice = voice
         self.aformat = aformat

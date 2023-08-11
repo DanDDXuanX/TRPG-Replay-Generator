@@ -3,6 +3,7 @@
 
 # 语音合成音源的浏览框体
 
+import pandas as pd
 from shutil import copy
 import tkinter as tk
 import threading
@@ -255,8 +256,8 @@ class AzureVoiceArgs(VoiceArgs):
         return args
 class SystemVoiceArgs(VoiceArgs):
     def __init__(self, master, screenzoom, voice: str = '', speech_rate: int = 0, pitch_rate: int = 0):
-        # 重设列表 # TODO
         # 继承
+        self.update_voice_lib()
         super().__init__(master, screenzoom, service='System', voice=voice, speech_rate=0, pitch_rate=0)
         self.TTS = System_TTS_engine
         # 禁用语调
@@ -266,6 +267,36 @@ class SystemVoiceArgs(VoiceArgs):
         self.update_selected_voice(None)
         self.update_elements()
         self.update_items()
+    # 重设列表
+    def update_voice_lib(self):
+        global voice_lib
+        # 如果已经有了，就什么都不做
+        if 'System' in voice_lib['service'].values:
+            return
+        list_of_voice = System_TTS_engine().get_available().keys()
+        L = len(list_of_voice)
+        df_of_voice = pd.DataFrame(columns=voice_lib.columns,index = range(L))
+        # 设置值
+        df_of_voice['service'] = 'System'
+        df_of_voice['Voice'] = list_of_voice
+        df_of_voice['description'] = '系统语音'
+        df_of_voice['avaliable_volume'] = 100
+        df_of_voice['style'] = 'general'
+        df_of_voice['role'] = 'Default'
+        df_of_voice = df_of_voice.set_index('Voice')
+        # 延长表
+        voice_lib = pd.concat([voice_lib, df_of_voice],axis=0)
+    def load_input_args(self, voice, speech_rate, pitch_rate):
+        super().load_input_args(voice, speech_rate, pitch_rate)
+        # 强制归零语调
+        self.variables['pitchrate'].set(0)
+    def get_args(self) -> dict:
+        if self.variables['voice'].get() in self.voice_lib.index:
+            args = super().get_args()
+            args['voice'] = 'System::' + args['voice']
+            return args
+        else:
+            raise Exception('Invalid Voice Name.')
 # 语音选择
 class VoiceChooser(ttk.Frame):
     def __init__(self,master,screenzoom,voice:str,speech_rate:int,pitch_rate:int,close_func):
@@ -293,6 +324,7 @@ class VoiceChooser(ttk.Frame):
             'Aliyun'    : AliyunVoiceArgs(master=self.argument_notebook,screenzoom=self.sz,voice=speaker,speech_rate=speech_rate,pitch_rate=pitch_rate),
             'Azure'     : AzureVoiceArgs(master=self.argument_notebook,screenzoom=self.sz,voice=speaker,speech_rate=speech_rate,pitch_rate=pitch_rate),
             'Beats'     : BeatsVoiceArgs(master=self.argument_notebook,screenzoom=self.sz,voice=speaker,speech_rate=speech_rate,pitch_rate=pitch_rate),
+            'System'    : SystemVoiceArgs(master=self.argument_notebook,screenzoom=self.sz,voice=speaker,speech_rate=speech_rate,pitch_rate=pitch_rate),
         }
         for keyword in self.args_frame:
             self.argument_notebook.add(self.args_frame[keyword],text='{}'.format(keyword))
