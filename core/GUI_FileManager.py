@@ -118,8 +118,8 @@ class FileManager(ttk.Frame):
         self.buttons_tooltip = {
             'save'      : ToolTip(widget=self.buttons['save']  ,text='保存项目',bootstyle='secondary-inverse'),
             'config'    : ToolTip(widget=self.buttons['config'],text='项目设置',bootstyle='secondary-inverse'),
-            'import'    : ToolTip(widget=self.buttons['import'],text='导入文件',bootstyle='secondary-inverse'),
-            'export'    : ToolTip(widget=self.buttons['export'],text='导出文件',bootstyle='secondary-inverse'),
+            'import'    : ToolTip(widget=self.buttons['import'],text='导入工程文件',bootstyle='secondary-inverse'),
+            'export'    : ToolTip(widget=self.buttons['export'],text='导出工程文件',bootstyle='secondary-inverse'),
             'close'     : ToolTip(widget=self.buttons['close'], text='关闭项目',bootstyle='danger-inverse'),
         }
         # 放置
