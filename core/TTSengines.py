@@ -5,6 +5,8 @@
 import uuid
 import time
 import hmac
+import wave
+import urllib
 import hashlib
 import base64
 import json
@@ -15,9 +17,7 @@ import pydub
 import nls
 import azure.cognitiveservices.speech as speechsdk
 import pyttsx3
-
 from websocket import ABNF, WebSocketApp
-
 from .Exceptions import SynthesisError, WarningPrint
 
 voice_lib = pd.read_csv('./assets/voice_volume.tsv',sep='\t').set_index('Voice')
@@ -41,6 +41,7 @@ class TTS_engine:
         else:
             print_text = text
         print("[{0}({1})]: {2} -> '{3}'".format(self.ID,self.voice,print_text,ofile))
+
 # 阿里云的TTS引擎
 class Aliyun_TTS_engine(TTS_engine):
     # Keys
@@ -246,9 +247,6 @@ class Beats_engine(TTS_engine):
         this_Track.export(ofile,format='wav')
 
 # 腾讯云的TTS
-
-import urllib
-
 class Tencent_TTS_engine(TTS_engine):
     APPID = ''
     SecretId = ''
@@ -269,17 +267,19 @@ class Tencent_TTS_engine(TTS_engine):
     }
 
     def __init__(self, name='unnamed', voice='ailun', speech_rate=0, pitch_rate=0, aformat='wav'):
-        # TODO: 设置参数的地方
         self.status = self.Status["NOTOPEN"]
         self.ws = None
-        self.wst = None
-        # self.listener = listener
-
-        self.text = "欢迎使用腾讯云实时语音合成"
-        self.voice_type = 0
-        self.codec = "pcm"
+        self.ID = name
+        self.voice = voice
+        self.aformat = aformat
         self.volume = 0
         self.speed = 0
+        # 处理
+        self.voice_type = 101001
+        if self.aformat == 'wav':
+            self.codec = 'pcm'
+        else:
+            self.codec = 'mp3'
         # 暂时不兼容情感
         # self.emotion_category = ""
         # self.emotion_intensity = 0
@@ -339,51 +339,61 @@ class Tencent_TTS_engine(TTS_engine):
         signstr = signstr[:-1]
         return signstr
     def start(self, text, ofile):
+        # 结果对象
+        self.audio_data = bytes()
         # Websockets 的回调函数
         def _close_conn(reason):
             self.ws.close()
         def _on_data(ws, data, opcode, flag):
             # logger.info("data={} opcode={} flag={}".format(data, opcode, flag))
+            # 接收到音频
             if opcode == ABNF.OPCODE_BINARY:
-                # self.listener.on_audio_result(data) # <class 'bytes'>
-                pass
+                self.audio_data += data
+            # 接收到文字
             elif opcode == ABNF.OPCODE_TEXT:
                 resp = json.loads(data) # WSResponseMessage
+                # 错误
                 if resp['code'] != 0:
-                    # logger.error("server synthesis fail request_id={} code={} msg={}".format(
-                    #     resp['request_id'], resp['code'], resp['message']
-                    # ))
-                    # self.listener.on_synthesis_fail(resp)
                     return
+                # 终结
                 if "final" in resp and resp['final'] == 1:
                     # logger.info("recv FINAL frame")
                     self.status = self.Status['FINAL']
                     _close_conn("after recv final")
-                    # self.listener.on_synthesis_end()
+                    # 保存文件
+                    if self.aformat == "wav":
+                        wav_fp = wave.open(ofile, "wb")
+                        wav_fp.setnchannels(1)
+                        wav_fp.setsampwidth(2)
+                        wav_fp.setframerate(16000)
+                        wav_fp.writeframes(self.audio_data)
+                        wav_fp.close()
+                    elif self.aformat == "mp3":
+                        fp = open(ofile, "wb")
+                        fp.write(self.audio_data)
+                        fp.close()
+                    # 显示保存文本log
+                    self.print_success(text=text,ofile=ofile)
                     return
+                # 字幕
                 if "result" in resp:
                     if "subtitles" in resp["result"] and resp["result"]["subtitles"] is not None:
-                        # self.listener.on_text_result(resp)
+                        # self.listener.on_text_result(resp) # 如果有字幕，暂时不处理这个情况
                         pass
                     return
+            # 异常的情况，略过
             else:
-                # logger.error("invalid on_data code, opcode=".format(opcode))
                 pass
-
         def _on_error(ws, error):
             if self.status == self.Status['FINAL'] or self.status == self.Status['CLOSED']:
                 return
             self.status = self.Status['ERROR']
-            # logger.error("error={}, session_id={}".format(error, self.session_id))
             _close_conn("after recv error")
-
         def _on_close(ws, close_status_code, close_msg):
-            # logger.info("conn closed, close_status_code={} close_msg={}".format(close_status_code, close_msg))
             self.status = self.Status['CLOSED']
-
         def _on_open(ws):
-            # logger.info("conn opened")
             self.status = self.Status['OPENED']
+        # 主要逻辑
         session_id = str(uuid.uuid1())
         params = self.__gen_params(text=text, session_id=session_id)
         signature = self.__gen_signature(params)
@@ -391,7 +401,6 @@ class Tencent_TTS_engine(TTS_engine):
 
         autho = urllib.parse.quote(signature)
         requrl += "&Signature=%s" % autho
-        # logger.info("req_url={}".format(requrl))
         # WebSocket
         self.ws = WebSocketApp(
             url = requrl, 
@@ -404,8 +413,8 @@ class Tencent_TTS_engine(TTS_engine):
         # 开始执行（不采用多线程）
         self.status = self.Status['STARTED']
         self.ws.run_forever()
-        # logger.info("synthesizer start: end")
-    # TODO: 好像还没涉及到关于保存文件到本地的功能
+    # TODO: 根据Status，获取返回值
+
 # 百度的TTS
 
 # 讯飞的TTS
