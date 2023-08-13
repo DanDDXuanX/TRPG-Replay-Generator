@@ -2,6 +2,12 @@
 # coding: utf-8
 # 语音服务类定义
 
+import uuid
+import time
+import hmac
+import hashlib
+import base64
+import json
 import numpy as np
 import pandas as pd
 import os
@@ -9,6 +15,8 @@ import pydub
 import nls
 import azure.cognitiveservices.speech as speechsdk
 import pyttsx3
+
+from websocket import ABNF, WebSocketApp
 
 from .Exceptions import SynthesisError, WarningPrint
 
@@ -239,6 +247,165 @@ class Beats_engine(TTS_engine):
 
 # 腾讯云的TTS
 
+import urllib
+
+class Tencent_TTS_engine(TTS_engine):
+    APPID = ''
+    SecretId = ''
+    SecretKey = ''
+
+    _PROTOCOL = "wss://"
+    _HOST = "tts.cloud.tencent.com"
+    _PATH = "/stream_ws"
+    _ACTION = "TextToStreamAudioWS"
+
+    Status = {
+        'NOTOPEN'   : 0,
+        'STARTED'   : 1,
+        'OPENED'    : 2,
+        'FINAL'     : 3,
+        'ERROR'     : 4,
+        'CLOSED'    : 5,
+    }
+
+    def __init__(self, name='unnamed', voice='ailun', speech_rate=0, pitch_rate=0, aformat='wav'):
+        # TODO: 设置参数的地方
+        self.status = self.Status["NOTOPEN"]
+        self.ws = None
+        self.wst = None
+        # self.listener = listener
+
+        self.text = "欢迎使用腾讯云实时语音合成"
+        self.voice_type = 0
+        self.codec = "pcm"
+        self.volume = 0
+        self.speed = 0
+        # 暂时不兼容情感
+        # self.emotion_category = ""
+        # self.emotion_intensity = 0
+        # 初始化的会话ID
+        self.session_id = ""
+    def __gen_signature(self, params):
+        sort_dict = sorted(params.keys())
+        sign_str = "GET" + self._HOST + self._PATH + "?"
+        for key in sort_dict:
+            sign_str = sign_str + key + "=" + str(params[key]) + '&'
+        sign_str = sign_str[:-1]
+        sign_str = sign_str.encode('utf-8')
+        # secret_key = self.credential.secret_key.encode('utf-8')
+        hmacstr = hmac.new(self.SecretKey.encode('utf-8'), sign_str, hashlib.sha1).digest()
+        s = base64.b64encode(hmacstr)
+        s = s.decode('utf-8')
+        return s
+    def __gen_params(self, text, session_id):
+        # 随机生成UID
+        self.session_id = session_id
+        # 时间戳
+        timestamp = int(time.time())
+
+        params = dict()
+        params['Action'] = self._ACTION
+        params['AppId'] = int(self.APPID)
+        params['SecretId'] = self.SecretId
+        params['ModelType'] = 1
+        params['VoiceType'] = self.voice_type
+        params['Codec'] = self.codec
+        params['SampleRate'] = 16000
+        params['Speed'] = self.speed
+        params['Volume'] = self.volume
+        params['SessionId'] = self.session_id
+        params['Text'] = text
+        params['EnableSubtitle'] = False
+        params['Timestamp'] = timestamp
+        params['Expired'] = timestamp + 24 * 60 * 60
+        # if self.emotion_category != "":
+        #     params['EmotionCategory'] = self.emotion_category
+        #     if self.emotion_intensity != 0:
+        #         params['EmotionIntensity'] = self.emotion_intensity
+        return params
+    def __create_query_string(self, param):
+        param['Text'] = urllib.parse.quote(param['Text'])
+        param = sorted(param.items(), key=lambda d: d[0])
+
+        url = self._PROTOCOL + self._HOST + self._PATH
+        signstr = url + "?"
+        for x in param:
+            tmp = x
+            for t in tmp:
+                signstr += str(t)
+                signstr += "="
+            signstr = signstr[:-1]
+            signstr += "&"
+        signstr = signstr[:-1]
+        return signstr
+    def start(self, text, ofile):
+        # Websockets 的回调函数
+        def _close_conn(reason):
+            self.ws.close()
+        def _on_data(ws, data, opcode, flag):
+            # logger.info("data={} opcode={} flag={}".format(data, opcode, flag))
+            if opcode == ABNF.OPCODE_BINARY:
+                # self.listener.on_audio_result(data) # <class 'bytes'>
+                pass
+            elif opcode == ABNF.OPCODE_TEXT:
+                resp = json.loads(data) # WSResponseMessage
+                if resp['code'] != 0:
+                    # logger.error("server synthesis fail request_id={} code={} msg={}".format(
+                    #     resp['request_id'], resp['code'], resp['message']
+                    # ))
+                    # self.listener.on_synthesis_fail(resp)
+                    return
+                if "final" in resp and resp['final'] == 1:
+                    # logger.info("recv FINAL frame")
+                    self.status = self.Status['FINAL']
+                    _close_conn("after recv final")
+                    # self.listener.on_synthesis_end()
+                    return
+                if "result" in resp:
+                    if "subtitles" in resp["result"] and resp["result"]["subtitles"] is not None:
+                        # self.listener.on_text_result(resp)
+                        pass
+                    return
+            else:
+                # logger.error("invalid on_data code, opcode=".format(opcode))
+                pass
+
+        def _on_error(ws, error):
+            if self.status == self.Status['FINAL'] or self.status == self.Status['CLOSED']:
+                return
+            self.status = self.Status['ERROR']
+            # logger.error("error={}, session_id={}".format(error, self.session_id))
+            _close_conn("after recv error")
+
+        def _on_close(ws, close_status_code, close_msg):
+            # logger.info("conn closed, close_status_code={} close_msg={}".format(close_status_code, close_msg))
+            self.status = self.Status['CLOSED']
+
+        def _on_open(ws):
+            # logger.info("conn opened")
+            self.status = self.Status['OPENED']
+        session_id = str(uuid.uuid1())
+        params = self.__gen_params(text=text, session_id=session_id)
+        signature = self.__gen_signature(params)
+        requrl = self.__create_query_string(params)
+
+        autho = urllib.parse.quote(signature)
+        requrl += "&Signature=%s" % autho
+        # logger.info("req_url={}".format(requrl))
+        # WebSocket
+        self.ws = WebSocketApp(
+            url = requrl, 
+            header = None,
+            on_error=_on_error, 
+            on_close=_on_close,
+            on_data=_on_data
+        )
+        self.ws.on_open = _on_open
+        # 开始执行（不采用多线程）
+        self.status = self.Status['STARTED']
+        self.ws.run_forever()
+        # logger.info("synthesizer start: end")
+    # TODO: 好像还没涉及到关于保存文件到本地的功能
 # 百度的TTS
 
 # 讯飞的TTS
