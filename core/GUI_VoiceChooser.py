@@ -14,6 +14,7 @@ from .TTSengines import Aliyun_TTS_engine, Azure_TTS_engine, Beats_engine, Syste
 from .Exceptions import WarningPrint
 from .Medias import Audio
 from .Utils import mod62_timestamp
+from .GUI_Util import DictCombobox
 from .GUI_Link import Link
 # 语音参数
 class VoiceArgs(ttk.Frame):
@@ -43,11 +44,12 @@ class VoiceArgs(ttk.Frame):
         }
         # input
         self.inputs = {
-            'voice'         : ttk.Combobox(master=self.frames['voice'],textvariable=self.variables['voice'],values=list(self.voice_lib.index)),
+            'voice'         : DictCombobox(master=self.frames['voice'],textvariable=self.variables['voice']),
             'speechrate'    : ttk.Scale(self.frames['speechrate'],from_=-500,to=500,variable=self.variables['speechrate'],command=lambda _:self.get_scale_to_intvar(self.variables['speechrate'])),
             'pitchrate'     : ttk.Scale(self.frames['pitchrate'],from_=-500,to=500,variable=self.variables['pitchrate'],command=lambda _:self.get_scale_to_intvar(self.variables['pitchrate'])),
         }
-        self.inputs['voice'].bind("<<ComboboxSelected>>",self.update_selected_voice)
+        self.inputs['voice'].update_dict(pd.Series(self.voice_lib.index, index=self.voice_lib['description']).to_dict())
+        self.inputs['voice'].bind("<<ComboboxSelected>>",self.update_selected_voice,'+')
         # addition
         self.addition = {
             'voice'         : ttk.Label(self.frames['voice'],text=self.voice_description, width=18),
@@ -79,13 +81,15 @@ class VoiceArgs(ttk.Frame):
             self.variables['speechrate'] = tk.IntVar(master=self, value=0)
             self.variables['pitchrate'] = tk.IntVar(master=self, value=0)
     def get_voice_info(self,colname='description')->str:
+        if colname == 'voice':
+            return self.variables['voice'].get()
         try:
             return self.voice_lib.loc[self.variables['voice'].get(),colname]
         except Exception:
             return {'description':'无','style':'general','role':'Default'}[colname]
     def update_selected_voice(self,event):
         # 更新介绍label
-        self.addition['voice'].configure(text=self.get_voice_info('description'))
+        self.addition['voice'].configure(text=self.get_voice_info('voice'))
     def get_scale_to_intvar(self,variable):
         variable.set(int(variable.get()))
     def get_args(self) -> dict:
@@ -285,7 +289,7 @@ class SystemVoiceArgs(VoiceArgs):
         # 设置值
         df_of_voice['service'] = 'System'
         df_of_voice['Voice'] = list_of_voice
-        df_of_voice['description'] = '系统语音'
+        df_of_voice['description'] = list_of_voice
         df_of_voice['avaliable_volume'] = 100
         df_of_voice['style'] = 'general'
         df_of_voice['role'] = 'Default'

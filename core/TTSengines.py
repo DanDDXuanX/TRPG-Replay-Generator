@@ -265,17 +265,19 @@ class Tencent_TTS_engine(TTS_engine):
         'ERROR'     : 4,
         'CLOSED'    : 5,
     }
-
-    def __init__(self, name='unnamed', voice='ailun', speech_rate=0, pitch_rate=0, aformat='wav'):
+    voice_list = voice_lib[voice_lib['service'] == 'Tencent'].index
+    def __init__(self, name='unnamed', voice='101001', speech_rate=0, pitch_rate=0, aformat='wav'):
+        self.ID = name
         self.status = self.Status["NOTOPEN"]
         self.ws = None
-        self.ID = name
         self.voice = voice
         self.aformat = aformat
-        self.volume = 0
-        self.speed = 0
+        self.speed = self.speechrate_formula(speech_rate)
         # 处理
-        self.voice_type = 101001
+        if self.voice in self.voice_list:
+            self.voice_type = int(self.voice)
+            self.volume = int(voice_lib.loc[self.voice,'avaliable_volume'])
+        # self.voice = 101001
         if self.aformat == 'wav':
             self.codec = 'pcm'
         else:
@@ -285,6 +287,9 @@ class Tencent_TTS_engine(TTS_engine):
         # self.emotion_intensity = 0
         # 初始化的会话ID
         self.session_id = ""
+    def speechrate_formula(self, speechrate):
+        # value in [-2,4] = 0.25 * value + 1
+        return (self.linear_mapping(speechrate) - 1)/0.25
     def __gen_signature(self, params):
         sort_dict = sorted(params.keys())
         sign_str = "GET" + self._HOST + self._PATH + "?"
@@ -311,8 +316,8 @@ class Tencent_TTS_engine(TTS_engine):
         params['VoiceType'] = self.voice_type
         params['Codec'] = self.codec
         params['SampleRate'] = 16000
-        params['Speed'] = self.speed
-        params['Volume'] = self.volume
+        params['Speed'] = self.speed # [-2，6]
+        params['Volume'] = self.volume/10 # [0,10]
         params['SessionId'] = self.session_id
         params['Text'] = text
         params['EnableSubtitle'] = False
@@ -413,6 +418,7 @@ class Tencent_TTS_engine(TTS_engine):
         # 开始执行（不采用多线程）
         self.status = self.Status['STARTED']
         self.ws.run_forever()
+        print(self.status)
     # TODO: 根据Status，获取返回值
 
 # 百度的TTS
