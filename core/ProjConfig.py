@@ -135,7 +135,7 @@ class Preference:
             self.appkey:str = 'Your_Appkey'
             self.azurekey:str = 'Your_Azurekey'
             self.service_region:str = 'eastasia'
-            self.appid:str = 'Your_AppID'
+            self.appid:str = '0'
             self.secretid:str = 'Your_SecretID'
             self.secretkey:str = 'Your_SecretKey'
             # 导出视频时：视频质量
