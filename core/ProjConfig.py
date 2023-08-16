@@ -9,7 +9,7 @@ from PIL import ImageFile
 from .Exceptions import ArgumentError,WarningPrint,Print,RplGenError
 from .Motion import MotionMethod
 from .Medias import MediaObj, BuiltInAnimation, HitPoint, Dice
-from .TTSengines import Aliyun_TTS_engine,Azure_TTS_engine
+from .TTSengines import Aliyun_TTS_engine,Azure_TTS_engine,Tencent_TTS_engine
 
 # 项目设置
 class Config:
@@ -101,6 +101,9 @@ class Preference:
             self.appkey:str = dict_input['Aliyun.appkey']
             self.azurekey:str = dict_input['Azure.azurekey']
             self.service_region:str = dict_input['Azure.service_region']
+            self.appid:str = dict_input['Tencent.appid']
+            self.secretid:str = dict_input['Tencent.secretid']
+            self.secretkey:str = dict_input['Tencent.secretkey']
             # 系统
             self.lang:str = dict_input['System.lang']
             self.theme:str = dict_input['System.theme']
@@ -132,6 +135,9 @@ class Preference:
             self.appkey:str = 'Your_Appkey'
             self.azurekey:str = 'Your_Azurekey'
             self.service_region:str = 'eastasia'
+            self.appid:str = 'Your_AppID'
+            self.secretid:str = 'Your_SecretID'
+            self.secretkey:str = 'Your_SecretKey'
             # 导出视频时：视频质量
             self.crf:int = 24
             self.hwaccels:bool = False
@@ -176,6 +182,9 @@ class Preference:
             'Aliyun.appkey'             : self.appkey,
             'Azure.azurekey'            : self.azurekey,
             'Azure.service_region'      : self.service_region,
+            'Tencent.appid'             : self.appid,
+            'Tencent.secretid'          : self.secretid,
+            'Tencent.secretkey'         : self.secretkey,
             # 系统
             'System.lang'               : self.lang,
             'System.theme'              : self.theme,
@@ -218,6 +227,10 @@ class Preference:
         # Azure语音合成key
         Azure_TTS_engine.AZUKEY = self.azurekey
         Azure_TTS_engine.service_region = self.service_region
+        # 腾讯的语音合成key
+        Tencent_TTS_engine.APPID = int(self.appid)
+        Tencent_TTS_engine.SecretId = self.secretid
+        Tencent_TTS_engine.SecretKey = self.secretkey
         # 内建动画
         BuiltInAnimation.BIA_font = self.BIA_font
         BuiltInAnimation.BIA_font_size = self.BIA_font_size

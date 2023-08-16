@@ -231,6 +231,12 @@ class SynthesisError(RplGenError):
                         "系统语音错误：未知的音源名：“{}”"],
         'SysFailed'   :["SysTTSError: : Synthesis failed, due to: {}",
                         "系统语音错误：语音合成错误，由于：{}"],
+        'TctInvArg'   :["TencentError: Invalid Voice argument: '{}'",
+                        "腾讯语音错误：非法的音源名：“{}”"],
+        'TctErrRetu'  :["TencentError: Synthesis failed, due to: {}",
+                        "腾讯语音错误：语音合成错误，由于：{}"],
+        'TctUknErr'   :["TencentError: Unknown Error, exit status: {}",
+                        "腾讯语音错误：发生了未知错误，退出状态是：{}"],
     }
     error_type = ["\x1B[31m[SynthesisError]:\x1B[0m ",
                   "\x1B[31m[合成错误]:\x1B[0m "]

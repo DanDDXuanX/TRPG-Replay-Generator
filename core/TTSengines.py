@@ -248,7 +248,7 @@ class Beats_engine(TTS_engine):
 
 # 腾讯云的TTS
 class Tencent_TTS_engine(TTS_engine):
-    APPID = ''
+    APPID = 0
     SecretId = ''
     SecretKey = ''
 
@@ -277,6 +277,8 @@ class Tencent_TTS_engine(TTS_engine):
         if self.voice in self.voice_list:
             self.voice_type = int(self.voice)
             self.volume = int(voice_lib.loc[self.voice,'avaliable_volume'])
+        else:
+            raise SynthesisError('TctInvArg', str(self.voice))
         # self.voice = 101001
         if self.aformat == 'wav':
             self.codec = 'pcm'
@@ -346,6 +348,7 @@ class Tencent_TTS_engine(TTS_engine):
     def start(self, text, ofile):
         # 结果对象
         self.audio_data = bytes()
+        self.message = []
         # Websockets 的回调函数
         def _close_conn(reason):
             self.ws.close()
@@ -359,11 +362,13 @@ class Tencent_TTS_engine(TTS_engine):
                 resp = json.loads(data) # WSResponseMessage
                 # 错误
                 if resp['code'] != 0:
-                    return
+                    self.status = self.Status['ERROR']
+                    self.message.append(
+                        "[E{}]:{}".format(resp['code'], resp['message'])
+                        )
                 # 终结
                 if "final" in resp and resp['final'] == 1:
                     # logger.info("recv FINAL frame")
-                    self.status = self.Status['FINAL']
                     _close_conn("after recv final")
                     # 保存文件
                     if self.aformat == "wav":
@@ -377,8 +382,8 @@ class Tencent_TTS_engine(TTS_engine):
                         fp = open(ofile, "wb")
                         fp.write(self.audio_data)
                         fp.close()
-                    # 显示保存文本log
-                    self.print_success(text=text,ofile=ofile)
+                    # 更新状态
+                    self.status = self.Status['FINAL']
                     return
                 # 字幕
                 if "result" in resp:
@@ -393,6 +398,7 @@ class Tencent_TTS_engine(TTS_engine):
             if self.status == self.Status['FINAL'] or self.status == self.Status['CLOSED']:
                 return
             self.status = self.Status['ERROR']
+            self.message.append("[ERROR]:{}".format(error))
             _close_conn("after recv error")
         def _on_close(ws, close_status_code, close_msg):
             self.status = self.Status['CLOSED']
@@ -419,7 +425,13 @@ class Tencent_TTS_engine(TTS_engine):
         self.status = self.Status['STARTED']
         self.ws.run_forever()
         print(self.status)
-    # TODO: 根据Status，获取返回值
+        # 根据Status，获取返回值
+        if self.status == 3: # FINAL
+            self.print_success(text=text,ofile=ofile)
+        elif self.status == 5: # ERROR
+            raise SynthesisError('TctErrRetu', '; '.join(self.message))
+        else:
+            raise SynthesisError('TctUknErr', self.status)
 
 # 百度的TTS
 

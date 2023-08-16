@@ -10,7 +10,8 @@ import threading
 import ttkbootstrap as ttk
 from ttkbootstrap.dialogs import Messagebox, Dialog
 from tkinter.filedialog import asksaveasfilename
-from .TTSengines import Aliyun_TTS_engine, Azure_TTS_engine, Beats_engine, System_TTS_engine, voice_lib
+from .TTSengines import Aliyun_TTS_engine, Azure_TTS_engine, Beats_engine
+from .TTSengines import System_TTS_engine, Tencent_TTS_engine, voice_lib
 from .Exceptions import WarningPrint
 from .Medias import Audio
 from .Utils import mod62_timestamp
@@ -309,6 +310,31 @@ class SystemVoiceArgs(VoiceArgs):
             raise ValueError('必须选择一个音源！')
         else:
             raise ValueError('音源名是无效的！')
+class TencentVoiceArgs(VoiceArgs):
+    def __init__(self, master, screenzoom, voice: str = '', speech_rate: int = 0, pitch_rate: int = 0):
+        # 继承
+        super().__init__(master, screenzoom, service='Tencent', voice=voice, speech_rate=0, pitch_rate=0)
+        self.TTS = Tencent_TTS_engine
+        # 禁用语调
+        self.inputs['pitchrate'].configure(state='disable')
+        self.addition['pitchrate'].configure(state='disable')
+        # 放置元件
+        self.update_selected_voice(None)
+        self.update_elements()
+        self.update_items()
+    def load_input_args(self, voice, speech_rate, pitch_rate):
+        super().load_input_args(voice, speech_rate, pitch_rate)
+        # 强制归零语调
+        self.variables['pitchrate'].set(0)
+    def get_args(self) -> dict:
+        if self.variables['voice'].get() in self.voice_lib.index:
+            args = super().get_args()
+            args['voice'] = 'Tencent::' + args['voice']
+            return args
+        elif self.variables['voice'].get() == '':
+            raise ValueError('必须选择一个音源！')
+        else:
+            raise ValueError('音源名是无效的！')
 # 语音选择
 class VoiceChooser(ttk.Frame):
     def __init__(self,master,screenzoom,voice:str,speech_rate:int,pitch_rate:int,close_func):
@@ -335,6 +361,7 @@ class VoiceChooser(ttk.Frame):
         self.args_frame = {
             'Aliyun'    : AliyunVoiceArgs(master=self.argument_notebook,screenzoom=self.sz,voice=speaker,speech_rate=speech_rate,pitch_rate=pitch_rate),
             'Azure'     : AzureVoiceArgs(master=self.argument_notebook,screenzoom=self.sz,voice=speaker,speech_rate=speech_rate,pitch_rate=pitch_rate),
+            'Tencent'   : TencentVoiceArgs(master=self.argument_notebook,screenzoom=self.sz,voice=speaker,speech_rate=speech_rate,pitch_rate=pitch_rate),
             'Beats'     : BeatsVoiceArgs(master=self.argument_notebook,screenzoom=self.sz,voice=speaker,speech_rate=speech_rate,pitch_rate=pitch_rate),
             'System'    : SystemVoiceArgs(master=self.argument_notebook,screenzoom=self.sz,voice=speaker,speech_rate=speech_rate,pitch_rate=pitch_rate),
         }

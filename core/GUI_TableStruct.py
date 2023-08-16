@@ -2289,6 +2289,36 @@ PreferenceTableStruct = {
                 "vtype": "str",
                 "default": "eastasia"
             },
+            "Tencent.appid": {
+                "ktext": "腾讯云-AppId",
+                "tooltip":"在腾讯云权限管理中获取，是一段长度为10的数字。",
+                "dtext": "（输入）",
+                "ditem": "label",
+                "valuekey": "Tencent.appid",
+                "vitem": "entry",
+                "vtype": "str",
+                "default": "请输入你的AppId！"
+            },
+            "Tencent.secretid": {
+                "ktext": "腾讯云-SecretId",
+                "tooltip":"在腾讯云权限管理中获取，是一段长度为36的乱码。",
+                "dtext": "（输入）",
+                "ditem": "label",
+                "valuekey": "Tencent.secretid",
+                "vitem": "entry",
+                "vtype": "str",
+                "default": "请输入你的SecretId！"
+            },
+            "Tencent.secretkey": {
+                "ktext": "腾讯云-SecretKey",
+                "tooltip":"在腾讯云权限管理中获取，是一段长度为32的乱码。",
+                "dtext": "（输入）",
+                "ditem": "label",
+                "valuekey": "Tencent.secretkey",
+                "vitem": "entry",
+                "vtype": "str",
+                "default": "请输入你的AppKey！"
+            },
         }
     },
     "AppearanceSep":{
