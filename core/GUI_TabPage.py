@@ -11,6 +11,7 @@ import ttkbootstrap as ttk
 import tkinter as tk
 from PIL import Image,ImageTk
 
+from .ProjConfig import preference
 from .ScriptParser import MediaDef, CharTable, RplGenLog, Script
 from .GUI_PageElement import SearchBar, OutPutCommand, NewElementCommand, VerticalOutputCommand
 from .GUI_CodeView import RGLCodeViewFrame
@@ -191,7 +192,11 @@ class EmptyPage(ttk.Frame):
     def __init__(self,master,screenzoom):
         super().__init__(master,borderwidth=0)
         self.image = ImageTk.PhotoImage(image=Image.open('./assets/icon2.png'))
-        self.label = ttk.Label(master=self,image=self.image,anchor='center',background='#fafafa')
+        if preference.theme == 'rplgenlight':
+            color = '#fafafa'
+        else:
+            color = '#222222'
+        self.label = ttk.Label(master=self,image=self.image,anchor='center',background=color)
         self.label.pack(fill='both',expand=True)
     def update_page_display(self):
         pass

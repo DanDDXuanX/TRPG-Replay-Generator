@@ -57,7 +57,7 @@ class HomePageElements(ttk.Frame):
             # "Embrace your imagination, weave tales untold."
             'poetry'  : ttk.Label(
                 master=self.slogan,
-                text='点亮创作火花',
+                text='点亮创意火花',
                 font=(Link['system_font_family'],15),
                 foreground=self.font_color
                 )

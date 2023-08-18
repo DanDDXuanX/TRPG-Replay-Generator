@@ -36,7 +36,26 @@ class FluentFrame(ScrolledFrame):
         first, _ = self.vscroll.get()
         fraction = (number / (base*10)) + first
         self.yview_moveto(fraction)
-
+    # 重载，关于不绑定鼠标滚轮的情况
+    def _add_scroll_binding(self, parent):
+        """Recursive adding of scroll binding to all descendants."""
+        children = parent.winfo_children()
+        for widget in [parent, *children]:
+            # 不操作这三类的
+            if type(widget) in [ttk.Spinbox,ttk.Combobox,DictCombobox]:
+                continue
+            bindings = widget.bind()
+            if self.winsys.lower() == "x11":
+                if "<Button-4>" in bindings or "<Button-5>" in bindings:
+                    continue
+                else:
+                    widget.bind("<Button-4>", self._on_mousewheel, "+")
+                    widget.bind("<Button-5>", self._on_mousewheel, "+")
+            else:
+                if "<MouseWheel>" not in bindings:
+                    widget.bind("<MouseWheel>", self._on_mousewheel, "+")
+            if widget.winfo_children() and widget != parent:
+                self._add_scroll_binding(widget)
 # 可以自由指定显示位置的tooltip
 class FreeToolTip(ToolTip):
     def __init__(self, widget, text="widget info", bootstyle=None, wraplength=None, delay=250, side='right', screenzoom=1.0, **kwargs):
@@ -164,15 +183,9 @@ class KeyValueDescribe(ttk.Frame):
             self.input.bind("<FocusOut>",self.config_content,'+')
         elif value['style'] == 'spine':
             self.input = ttk.Spinbox(master=self,textvariable=self.value,width=30,command=self.config_content)
-            # BUG: 无法正常禁用
-            self.input.unbind_all("<MouseWheel>")
-            self.input.bind("<MouseWheel>",lambda _:'break')
         elif value['style'] == 'combox':
             self.input = DictCombobox(master=self,textvariable=self.value,width=30)
-            # BUG: 无法正常禁用
             self.input.bind("<<ComboboxSelected>>",self.config_content,'+')
-            self.input.unbind_all("<MouseWheel>")
-            self.input.bind("<MouseWheel>",lambda _:'break')
         elif value['style'] == 'label':
             self.input = ttk.Label(master=self,textvariable=self.value,width=30)
         else:
