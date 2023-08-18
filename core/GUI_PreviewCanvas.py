@@ -278,6 +278,7 @@ class MDFPreviewCanvas(PreviewCanvas):
         self.canvas_label.bind('<Button-1>',self.get_pressed)
         self.canvas_label.bind('<B1-Motion>',self.get_drag)
         self.canvas_label.bind('<ButtonRelease-1>',self.get_drag_done)
+        self.canvas_label.bind('<Control-Button-1>',self.click_move_select_dot)
         # 最大化显示预览窗
         self.canvas_label.bind('<Tab>',self.switch_fullview)
         # 方向控制
@@ -447,6 +448,12 @@ class MDFPreviewCanvas(PreviewCanvas):
         # 根据当前选点，刷新媒体对象
         if self.selected_dot:
             self.update_media_object(pressed=pressed)
+    # ctrl点击，直接移动到鼠标点击位置
+    def click_move_select_dot(self, event):
+        # 先直接把可交互点移动到鼠标点击位置
+        self.get_drag(event)
+        # 然后根据根据当前点的位置，更新参数
+        self.get_drag_done(event)
     # 将变更同步到编辑区和媒体对象的成员，并更新显示
     def update_edit(self):
         # 如果有选中点

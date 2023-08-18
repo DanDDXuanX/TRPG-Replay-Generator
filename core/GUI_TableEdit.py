@@ -151,6 +151,8 @@ class PreferenceTable(TableEdit):
         self.elements['Edit.rename_boardcast'].input.update_dict(askyesno)
         self.elements['BIA.dice_mode'].input.update_dict(dice_mode)
         # spine
+        self.elements['System.editer_fontsize'].input.configure(from_=5,to=30,increment=1)
+        self.elements['System.terminal_fontsize'].input.configure(from_=5,to=30,increment=1)
         self.elements['Export.crf'].input.configure(from_=0,to=51,increment=1)
         # button
         self.elements['BIA.font'].bind_button(dtype='fontfile-file',quote=False,related=False)
@@ -168,15 +170,26 @@ class PreferenceTable(TableEdit):
     def confirm(self):
         new_struct = {}
         for keyword in self.elements:
-            new_struct[keyword] = self.elements[keyword].get()
-        # 重设prefernce对象
-        preference.set_struct(new_struct)
-        preference.execute() # 执行变更
-        preference.dump_json() # 保存配置文件
-        # 主题
-        # self.winfo_toplevel().style.theme_use(preference.theme)
-        # 消息
-        self.show_toast(message='已经成功设置首选项！\n主题变更需要重启程序后才会生效',title='修改首选项')
+            element_value = self.elements[keyword].get()
+            # 去除key中潜在的换行符
+            if keyword.split('.')[0] in ['Aliyun','Azure','Tencent']:
+                element_value = element_value.replace('\n','')
+            # 结束
+            new_struct[keyword] = element_value
+        try:
+            # 重设prefernce对象
+            preference.set_struct(new_struct)
+            preference.execute() # 执行变更
+            preference.dump_json() # 保存配置文件
+            # 消息
+            self.show_toast(message='已经成功设置首选项！\n主题变更需要重启程序后才会生效',title='修改首选项')
+        except Exception as E:
+            error_message = f"[{E.__class__.__name__}]: {E.__str__()}"
+            # 错误
+            self.show_toast(
+                message='设置首选项时发生了如下错误！\n'+error_message,
+                title='错误'
+                )
     def show_toast(self,message,title='test'):
         toast = ToastNotification(title=title,message=message,duration=3000)
         toast.show_toast()

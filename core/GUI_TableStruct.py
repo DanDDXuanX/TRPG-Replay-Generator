@@ -2337,13 +2337,33 @@ PreferenceTableStruct = {
             },
             "System.theme":{
                 "ktext": "主题：",
-                "tooltip": "主界面的配色方案，有深色和浅色两个选择。",
+                "tooltip": "主界面的配色方案，有深色和浅色两个选择。变更后需要重启软件才会生效！",
                 "dtext": "（选择）",
                 "ditem": "label",
                 "valuekey": "System.theme",
                 "vitem": "combox",
                 "vtype": "str",
                 "default": 'rplgenlight'
+            },
+            "System.editer_fontsize":{
+                "ktext": "编辑器字体大小：",
+                "tooltip": "剧本编辑器中字体的大小。变更后需要重新打开剧本编辑页才会生效！",
+                "dtext": "（数值）",
+                "ditem": "label",
+                "valuekey": "System.editer_fontsize",
+                "vitem": "spine",
+                "vtype": "int",
+                "default": 12
+            },
+            "System.terminal_fontsize":{
+                "ktext": "控制台字体大小：",
+                "tooltip": "控制台输出页中中字体的大小。变更后需要重启软件才会生效！",
+                "dtext": "（数值）",
+                "ditem": "label",
+                "valuekey": "System.terminal_fontsize",
+                "vitem": "spine",
+                "vtype": "int",
+                "default": 14
             },
         }
     },       
@@ -2373,7 +2393,7 @@ PreferenceTableStruct = {
             },
             "BIA.dice_mode":{
                 "ktext": "骰子模式：",
-                "tooltip":"在骰子动画中，类COC规则是出目小于检定值为成功，而类DND规则是相反的。",
+                "tooltip":"在骰子动画中，类COC规则是出目小于检定值为成功，而类DND规则是相反的，无规则即不做任何判断。",
                 "dtext": "（选择）",
                 "ditem": "label",
                 "valuekey": "BIA.dice_mode",
@@ -2915,7 +2935,8 @@ import_mode = {
 }
 dice_mode = {
     '类COC' : 'COC',
-    '类DND' : 'DND'
+    '类DND' : 'DND',
+    '无规则' : 'ruleless'
 }
 # 新建媒体按钮的结构
 NewElement = {

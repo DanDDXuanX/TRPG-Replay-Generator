@@ -107,6 +107,8 @@ class Preference:
             # 系统
             self.lang:str = dict_input['System.lang']
             self.theme:str = dict_input['System.theme']
+            self.editer_fontsize:int = dict_input['System.editer_fontsize']
+            self.terminal_fontsize:int = dict_input['System.terminal_fontsize']
             # 媒体
             self.BIA_font:str = dict_input['BIA.font']
             self.BIA_font_size:float =dict_input['BIA.font_size']
@@ -143,6 +145,9 @@ class Preference:
             self.hwaccels:bool = False
             # 语言
             self.lang:str = 'zh'
+            # 字体大小
+            self.editer_fontsize:int = 12
+            self.terminal_fontsize:int = 14
             # 编辑
             self.auto_periods:bool = False
             # 媒体
@@ -188,6 +193,8 @@ class Preference:
             # 系统
             'System.lang'               : self.lang,
             'System.theme'              : self.theme,
+            'System.editer_fontsize'    : self.editer_fontsize,
+            'System.terminal_fontsize'  : self.terminal_fontsize,
             # 媒体
             'BIA.font'                  : self.BIA_font,
             'BIA.font_size'             : self.BIA_font_size,

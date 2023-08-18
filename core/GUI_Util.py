@@ -164,9 +164,15 @@ class KeyValueDescribe(ttk.Frame):
             self.input.bind("<FocusOut>",self.config_content,'+')
         elif value['style'] == 'spine':
             self.input = ttk.Spinbox(master=self,textvariable=self.value,width=30,command=self.config_content)
+            # BUG: 无法正常禁用
+            self.input.unbind_all("<MouseWheel>")
+            self.input.bind("<MouseWheel>",lambda _:'break')
         elif value['style'] == 'combox':
             self.input = DictCombobox(master=self,textvariable=self.value,width=30)
+            # BUG: 无法正常禁用
             self.input.bind("<<ComboboxSelected>>",self.config_content,'+')
+            self.input.unbind_all("<MouseWheel>")
+            self.input.bind("<MouseWheel>",lambda _:'break')
         elif value['style'] == 'label':
             self.input = ttk.Label(master=self,textvariable=self.value,width=30)
         else:

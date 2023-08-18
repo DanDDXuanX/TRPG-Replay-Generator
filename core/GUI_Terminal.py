@@ -6,7 +6,7 @@
 import ttkbootstrap as ttk
 from ttkbootstrap.scrolled import ScrolledText
 from ttkbootstrap.toast import ToastNotification
-from PIL import Image, ImageTk
+from .ProjConfig import preference
 from .Utils import EDITION
 from .Exceptions import MainPrint
 from .GUI_Link import Link
@@ -93,7 +93,7 @@ class Terminal(ttk.Frame):
             foreground='#eeeeee',
             insertbackground='#eeeeee',
             autostyle=False,
-            font=(Link['terminal_font_family'],14),
+            font=(Link['terminal_font_family'],preference.terminal_fontsize),
             autohide=True
             )
         self.terminal._text.configure(padx=2*SZ_10)

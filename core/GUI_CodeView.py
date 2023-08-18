@@ -291,7 +291,13 @@ class RGLCodeViewFrame(ttk.Frame):
         self.is_error = False
         # 代码
         self.content:RplGenLog = rplgenlog
-        self.codeview = CodeView(master=self, lexer=RplGenLogLexer, color_scheme="monokai", font=(Link['terminal_font_family'],12), undo=True)
+        self.codeview = CodeView(
+            master      = self,
+            lexer       = RplGenLogLexer,
+            color_scheme= "monokai",
+            font        = (Link['terminal_font_family'], preference.editer_fontsize),
+            undo        = True
+        )
         self.codeview.insert("end",self.content.export(allowed_exception=True)) # 插入脚本文本，允许插入异常行
         # 高亮所有异常
         self.hightlight_error()

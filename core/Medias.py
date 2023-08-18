@@ -2098,8 +2098,10 @@ class Dice(BuiltInAnimation):
                     face_rate = dice['face']/dice['dicemax']
                     if self.mode == 'COC':
                         color_flag = ((face_rate <=self.significant)|(face_rate>(1-self.significant)))*2 + (dice['face']<=dice['check'])
-                    else:
+                    elif self.mode == 'DND':
                         color_flag = ((face_rate <=self.significant)|(face_rate>(1-self.significant)))*2 + (dice['face']>=dice['check'])
+                    else: # ruleless
+                        color_flag = -1
                 # 有颜色的字体
                 BIA_color_Text = Text(self.BIA_font,fontsize=int(1.25*self.BIA_font_size*screensize[0]),color=self.dice_cmap[color_flag],line_limit=10)
                 face_surf = BIA_color_Text.render(str(dice['face']))
