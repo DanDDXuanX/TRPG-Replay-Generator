@@ -12,7 +12,7 @@ from .TTSengines import Aliyun_TTS_engine,Azure_TTS_engine,Beats_engine,System_T
 from .Exceptions import WarningPrint,RplGenError,SynthesisError,SynthPrint,ParserError
 from .Medias import Audio
 
-from .Utils import mod62_timestamp,EDITION
+from .Utils import mod62_timestamp,clean_ts,EDITION
 
 class SpeechSynthesizer:
     # 初始化
@@ -123,7 +123,7 @@ class SpeechSynthesizer:
                     this_content = this_asterisk['specified_speech']
                 else:
                     # 普通的语音合成
-                    this_content = this_section['content']
+                    this_content = clean_ts(this_section['content'])
                 # 取出首位角色名
                 this_name:dict = this_section['charactor_set']['0']
                 this_name_key:str = this_name['name'] + '.' + this_name['subtype']

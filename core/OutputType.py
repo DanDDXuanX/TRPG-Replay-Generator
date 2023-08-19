@@ -653,6 +653,8 @@ class PreviewDisplay(OutputMediaType):
         }
         tip = get_tips()
         tip_mask = pygame.mask.from_surface(tip)
+        # 摸摸伊可
+        click_sprite_se = pygame.mixer.Sound('./assets/SE_duck.wav')
         while begin == False:
             # 放在主屏幕
             self.screen.blit(main_canvas,(0,0))
@@ -717,6 +719,7 @@ class PreviewDisplay(OutputMediaType):
                     try:
                         if sprit_mask.get_at((event.pos[0] - SX, event.pos[1] - SY)):
                             damp_digit['idx'] = 0
+                            click_sprite_se.play()
                     except:
                         pass
                     # 是否点击小贴士
@@ -919,15 +922,15 @@ class ExportVideo(OutputMediaType):
         main_Track = pydub.AudioSegment.silent(duration=int(self.breakpoint.values.max()/self.config.frame_rate*1000),frame_rate=48000) # 主轨道
         # 开始逐个音轨完成混音
         for tr in tracks:
-            # 检查终止状态
-            if self.is_terminated:
-                return 2
             # 新建当前轨道
             this_Track = pydub.AudioSegment.silent(duration=int(self.breakpoint.values.max()/self.config.frame_rate*1000),frame_rate=48000)
             # 如果是BGM轨道
             if tr == 'BGM':
                 BGM_clips = self.parse_timeline_audio(tr)
                 for i,item in enumerate(BGM_clips):
+                    # 检查终止状态
+                    if self.is_terminated:
+                        return 2
                     voice,begin,drop = item
                     # 遇到stop，直切切到下一段
                     if voice == 'stop':
@@ -950,6 +953,9 @@ class ExportVideo(OutputMediaType):
             # 如果是语音和音效的轨道
             else:
                 for item in self.parse_timeline_audio(tr):
+                    # 检查终止状态
+                    if self.is_terminated:
+                        return 2
                     voice,begin,drop = item
                     # 如果是路径形式
                     if voice not in self.medias.keys():
@@ -999,14 +1005,14 @@ class ExportVideo(OutputMediaType):
                 self.output_engine.stdin.close()
                 pygame.quit()
                 return 1
-            if n%self.config.frame_rate == 1:
+            if n%100 == 1:
                 finish_rate = n/self.breakpoint.values.max()
                 used_time = time.time()-begin_time
                 est_time = int(used_time/finish_rate * (1-finish_rate))
                 print(VideoPrint('Progress',
                                 '\x1B[33m' + int(finish_rate*50)*'━' + '\x1B[30m' + (50-int(50*finish_rate))*'━' + '\x1B[0m',
                                 '%.1f'%(finish_rate*100)+'%', n, '%d'%self.breakpoint.values.max(), 
-                                'eta: '+time.strftime("%H:%M:%S", time.gmtime(est_time))), end = "\r")
+                                'etr: '+time.strftime("%H:%M:%S", time.gmtime(est_time))), end = "\r")
 
         # 改一个bug，如果最后一帧正好是显示帧，那么100% 不会正常显示
         print(VideoPrint('Progress', '\x1B[32m' + 50*'━' + '\x1B[0m', '%.1f'%100+'%', n, n ,' '*15))

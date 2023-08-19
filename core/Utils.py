@@ -195,7 +195,7 @@ def convert_audio(target_type:str,ifile:str,ofile:str):
         return False, f"不支持的格式：{target_type}"
     # 执行
     try:
-        subprocess.run(ffmpeg_cmd, check=True)
+        subprocess.run(ffmpeg_cmd, check=True, shell=True)
         return True, ofile
     except subprocess.CalledProcessError as E:
         return False, str(E)
