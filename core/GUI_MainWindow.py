@@ -293,8 +293,8 @@ class NavigateBar(ttk.Frame):
     1. 图标的尺寸：50，50
     2. 按钮的尺寸：60，60
     3. 宽版按钮的尺寸：160，60
-    4. 按钮和按钮之间的距离：80
-    5. 按钮和分割线的距离：80 + 20
+    4. 按钮和按钮之间的距离：70
+    5. 按钮和分割线的距离：70 + 10
     6. 选中标志，在按钮中的尺寸：5，60
     """
     def __init__(self,master,screenzoom) -> None:
@@ -342,7 +342,7 @@ class NavigateBar(ttk.Frame):
         else:
             width = 60
         width = int(width*self.sz)
-        distance = int(80 * self.sz)
+        distance = int(70 * self.sz)
         # self.titles
         for idx,key in enumerate(self.titles.keys()):
             button = self.titles[key]
@@ -355,7 +355,7 @@ class NavigateBar(ttk.Frame):
             self.separator.place(width=width,x=0,y= (idx+1)*distance)
         else:
             self.separator.place_configure(width=width)
-        y_this = idx*distance + int(100 * self.sz)
+        y_this = idx*distance + int(80 * self.sz)
         # self.buttons
         for idx,key in enumerate(self.buttons.keys()):
             button = self.buttons[key]
@@ -371,7 +371,7 @@ class NavigateBar(ttk.Frame):
         if self.disabled and force==False:
             ToastNotification(title='禁用图形界面',message='核心程序正在运行中！在核心程序终止前，图形界面已被暂时的禁用。').show_toast()
             return
-        position = {'setting':80,'project':180,'script':260,'console':340}[button]*self.sz
+        position = {'setting':70,'project':150,'script':220,'console':290}[button]*self.sz
         SZ_5 = int(self.sz * 5)
         SZ_60 = int(self.sz * 60)
         if len(self.choice.place_info()) == 0:

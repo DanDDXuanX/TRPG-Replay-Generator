@@ -11,6 +11,7 @@ import ttkbootstrap as ttk
 import threading
 import pygame
 from ttkbootstrap.tooltip import ToolTip
+from ttkbootstrap.toast import ToastNotification
 from PIL import Image, ImageTk
 from .GUI_Container import Container
 from .GUI_TableStruct import NewElement
@@ -81,6 +82,16 @@ class OutPutCommand(ttk.Frame):
             'exportpr'    : ttk.Button(master=self,image='exportpr',text='导出PR工程',compound='left',style='output.TButton',command=lambda:self.open_new_thread('exportpr')),
             'recode'    : ttk.Button(master=self,image='recode',text='导出视频',compound='left',style='output.TButton',command=lambda:self.open_new_thread('recode')),
         }
+        # 音效
+        self.toastSE = pygame.mixer.Sound('./assets/SE_toast.wav')
+        # 退出状态
+        self.status = {
+            0 : '正常',
+            1 : '异常',
+            2 : '终止',
+            3 : '初始化'
+        }
+        # 线程
         self.runing_thread = None
         self.update_item()
     def update_item(self):
@@ -105,6 +116,7 @@ class OutPutCommand(ttk.Frame):
         # 初始化log文件
         self.rplgenlog.execute(media_define=self.medef,char_table=self.chartab,config=self.pconfig)
     def preview_display(self):
+        exit_status = 3
         try:
             # 载入
             self.load_input()
@@ -117,7 +129,7 @@ class OutPutCommand(ttk.Frame):
             # 启用终止按钮
             Link['terminal_control'].configure(state='normal')
             # 执行
-            Link['pipeline'].main()
+            exit_status = Link['pipeline'].main()
             # 返回
             self.after(500,self.return_project)
         except Exception as E:
@@ -129,7 +141,14 @@ class OutPutCommand(ttk.Frame):
             Link['pipeline'] = None
             Link['terminal_control'].configure(state='disable')
             self.winfo_toplevel().navigate_bar.enable_navigate()
+            self.show_toast(
+                message='【预览播放】执行完毕\n退出状态是：【{}】'.format(
+                    self.status[exit_status]
+                ),
+                notice=False
+            )
     def synth_speech(self):
+        exit_status = 3
         # 项目配置
         self.pconfig = Link['project_config']
         # 脚本
@@ -154,7 +173,7 @@ class OutPutCommand(ttk.Frame):
             # 启用终止按钮
             Link['terminal_control'].configure(state='normal')
             # 执行
-            Link['pipeline'].main()
+            exit_status = Link['pipeline'].main()
             # 返回
             self.after(500,self.return_project)
         except Exception as E:
@@ -163,7 +182,13 @@ class OutPutCommand(ttk.Frame):
             Link['pipeline'] = None
             Link['terminal_control'].configure(state='disable')
             self.winfo_toplevel().navigate_bar.enable_navigate()
+            self.show_toast(
+                message='【语音合成】执行完毕\n退出状态是：【{}】'.format(
+                    self.status[exit_status]
+                )
+            )
     def export_video(self):
+        exit_status = 3
         try:
             # 载入
             timestamp = '%d'%time.time()
@@ -178,7 +203,7 @@ class OutPutCommand(ttk.Frame):
             # 启用终止按钮
             Link['terminal_control'].configure(state='normal')
             # 执行
-            Link['pipeline'].main()
+            exit_status = Link['pipeline'].main()
             # 返回
             self.after(500,self.return_project)
         except Exception as E:
@@ -190,7 +215,13 @@ class OutPutCommand(ttk.Frame):
             Link['pipeline'] = None
             Link['terminal_control'].configure(state='disable')
             self.winfo_toplevel().navigate_bar.enable_navigate()
+            self.show_toast(
+                message='【导出视频】执行完毕\n退出状态是：【{}】'.format(
+                    self.status[exit_status]
+                )
+            )
     def export_xml(self):
+        exit_status = 3
         try:
             # 调整全局变量
             timestamp = '%d'%time.time()
@@ -211,7 +242,7 @@ class OutPutCommand(ttk.Frame):
             # 启用终止按钮
             Link['terminal_control'].configure(state='normal')
             # 执行
-            Link['pipeline'].main()
+            exit_status = Link['pipeline'].main()
             # 返回
             self.after(500,self.return_project)
         except Exception as E:
@@ -224,6 +255,11 @@ class OutPutCommand(ttk.Frame):
             Link['pipeline'] = None
             Link['terminal_control'].configure(state='disable')
             self.winfo_toplevel().navigate_bar.enable_navigate()
+            self.show_toast(
+                message='【导出PR项目】执行完毕\n退出状态是：【{}】'.format(
+                    self.status[exit_status]
+                )
+            )
     def open_new_thread(self,output_type:str):
         # 先切换到终端页
         self.winfo_toplevel().navigate_bar.press_button('console')
@@ -250,6 +286,17 @@ class OutPutCommand(ttk.Frame):
         Link['runing_thread'] = self.runing_thread
     def return_project(self):
         self.winfo_toplevel().navigate_bar.press_button('project',force=True)
+    def show_toast(self,message,notice=True):
+        # 弹出消息提示，Toast
+        ToastNotification(
+            title='核心退出',
+            message=message,
+            duration=5000
+        ).show_toast()
+        # 播放吐司机音效
+        if notice:
+            self.toastSE.play()
+
 class VerticalOutputCommand(OutPutCommand):
     def __init__(self,master,screenzoom,codeview):
         # 继承
@@ -286,47 +333,42 @@ class VerticalOutputCommand(OutPutCommand):
         for key in self.side_button:
             item:ttk.Button = self.side_button[key]
             item.pack(fill='x',anchor='n',side='bottom',pady=(SZ_5,0))
+    def validate_rgl_syntax(self):
+        # 更新rgl
+        self.codeview.update_rplgenlog()
+        # 如果log中存在错误！
+        if self.codeview.is_error:
+            # 重新启用
+            Link['terminal_control'].configure(state='disable')
+            self.winfo_toplevel().navigate_bar.enable_navigate()
+            return False
+        else:
+            return True
     # 因为垂直输出命令，涉及的是CodeView，因此在导出前应该添加：将CodeView的内容更新到RGL
     def preview_display(self):
-        # 更新rgl
-        self.codeview.update_rplgenlog()
-        # 如果log中存在错误！
-        if self.codeview.is_error:
-            Link['terminal_control'].configure(state='disable')
-            self.winfo_toplevel().navigate_bar.enable_navigate()
-            return
-        return super().preview_display()
+        if self.validate_rgl_syntax():
+            return super().preview_display()
+        else:
+            return 
     def export_video(self):
-        # 更新rgl
-        self.codeview.update_rplgenlog()
-        # 如果log中存在错误！
-        if self.codeview.is_error:
-            Link['terminal_control'].configure(state='disable')
-            self.winfo_toplevel().navigate_bar.enable_navigate()
-            return
-        return super().export_video()
+        if self.validate_rgl_syntax():
+            return super().export_video()
+        else:
+            return 
     def export_xml(self):
-        # 更新rgl
-        self.codeview.update_rplgenlog()
-        # 如果log中存在错误！
-        if self.codeview.is_error:
-            Link['terminal_control'].configure(state='disable')
-            self.winfo_toplevel().navigate_bar.enable_navigate()
+        if self.validate_rgl_syntax():
+            return super().export_xml()
+        else:
             return
-        return super().export_xml()
     # 因为语音合成涉及到RGL的改变，因此执行成功之后，应该返回给RGL对象，并更新给CodeView！
     def synth_speech(self):
-        # 更新rgl
-        self.codeview.update_rplgenlog()
-        # 如果log中存在错误！
-        if self.codeview.is_error:
-            Link['terminal_control'].configure(state='disable')
-            self.winfo_toplevel().navigate_bar.enable_navigate()
+        if self.validate_rgl_syntax():
+            super().synth_speech()
+            # 更新codeview
+            self.codeview.update_codeview(None)
+            return 
+        else:
             return
-        # 执行语音合成
-        super().synth_speech()
-        # 更新codeview
-        self.codeview.update_codeview(None)
     # 对整个文件操作，添加语音合成标记
     def add_asterisk_marks(self):
         self.codeview.add_asterisk_marks()

@@ -21,7 +21,7 @@ UF_cut_str = np.frompyfunc(cut_str,2,1)
 # 清理ts文本中的标记符号
 def clean_ts(text):
     # 用于语音合成的内容，不应该包括富标记
-    return RE_rich.sub(text,'').replace('^','').replace('#','')
+    return RE_rich.sub('',text).replace('^','').replace('#','')
 # 是否是数值
 def isnumber(str):
     try:

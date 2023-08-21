@@ -1110,7 +1110,7 @@ class ExportXML(OutputMediaType):
         # 开始执行主程序
         # self.main()
     # 构建序列：成功0，异常1，终止2
-    def bulid_sequence(self) -> str:
+    def bulid_sequence(self) -> int:
         # 载入xml模板
         project_tplt = open('./assets/xml_templates/tplt_sequence.xml','r',encoding='utf8').read()
         track_tplt = open('./assets/xml_templates/tplt_track.xml','r',encoding='utf8').read()

@@ -2238,12 +2238,13 @@ class RplGenLog(Script):
         self.main_timeline = self.main_timeline.dropna(subset=['section']).fillna('NA') #假设一共10帧
         self.main_timeline['section'] = self.main_timeline['section'].astype(int)
         # 去掉和前一帧相同的帧，节约了性能
-        timeline_diff = self.main_timeline.iloc[:-1].copy() #取第0-9帧
-        timeline_diff.index = timeline_diff.index+1 #设置为第1-10帧
-        timeline_diff.loc[0]='NA' #再把第0帧设置为NA
-        dropframe = (self.main_timeline == timeline_diff.sort_index()).all(axis=1) # 这样，就是原来的第10帧和第9帧在比较了
-        # 去掉重复帧
-        self.main_timeline = self.main_timeline[dropframe == False].copy()
+        if len(self.main_timeline):
+            timeline_diff = self.main_timeline.iloc[:-1].copy() #取第0-9帧
+            timeline_diff.index = timeline_diff.index+1 #设置为第1-10帧
+            timeline_diff.loc[0]='NA' #再把第0帧设置为NA
+            dropframe = (self.main_timeline == timeline_diff.sort_index()).all(axis=1) # 这样，就是原来的第10帧和第9帧在比较了
+            self.main_timeline = self.main_timeline[dropframe == False].copy()
+        # 断点
         self.break_point = self.break_point.astype(int)
         # 返回
         return self.main_timeline
