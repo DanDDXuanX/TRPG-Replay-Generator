@@ -8,7 +8,7 @@ import re
 
 from .ScriptParser import RplGenLog,CharTable,MediaDef
 from .ProjConfig import Config
-from .TTSengines import Aliyun_TTS_engine,Azure_TTS_engine,Beats_engine,System_TTS_engine
+from .TTSengines import Aliyun_TTS_engine,Azure_TTS_engine,Tencent_TTS_engine,Beats_engine,System_TTS_engine
 from .Exceptions import WarningPrint,RplGenError,SynthesisError,SynthPrint,ParserError
 from .Medias import Audio
 
@@ -56,6 +56,14 @@ class SpeechSynthesizer:
                     TTS[key] = Azure_TTS_engine(
                         name=key,
                         voice=value.Voice[7:], 
+                        speech_rate=int(value.SpeechRate),
+                        pitch_rate=int(value.PitchRate)
+                        )
+                # Tencent 模式：如果音源名以 'Tencent::' 作为开头
+                elif value.Voice[0:9] == 'Tencent::':
+                    TTS[key] = Tencent_TTS_engine(
+                        name=key,
+                        voice=value.Voice[9:], 
                         speech_rate=int(value.SpeechRate),
                         pitch_rate=int(value.PitchRate)
                         )

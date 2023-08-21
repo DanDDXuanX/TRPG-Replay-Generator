@@ -10,3 +10,4 @@ ttkbootstrap>=1.10.0
 tkextrafont==0.6.3
 chlorophyll==0.3.1
 pyttsx3==2.90
+websocket-client==1.0.1

@@ -424,7 +424,6 @@ class Tencent_TTS_engine(TTS_engine):
         # 开始执行（不采用多线程）
         self.status = self.Status['STARTED']
         self.ws.run_forever()
-        print(self.status)
         # 根据Status，获取返回值
         if self.status == 3: # FINAL
             self.print_success(text=text,ofile=ofile)
