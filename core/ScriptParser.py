@@ -8,7 +8,7 @@ import pandas as pd
 import os
 import json
 
-from .Exceptions import DecodeError,ParserError,WarningPrint,SyntaxsError
+from .Exceptions import DecodeError,ParserError,WarningPrint,SyntaxsError,MediaError
 from .Regexs import *
 from .Formulas import *
 from .Medias import Text,StrokeText,RichText,HPLabel,Bubble,Balloon,DynamicBubble,ChatWindow,Animation,GroupedAnimation,Dice,HitPoint,Background,BGM,Audio
@@ -1650,6 +1650,13 @@ class RplGenLog(Script):
                         elif os.path.isfile(this_sound['sound'][1:-1]) == True:
                             # 如果是一个指向文件的路径：视为语音
                             this_timeline.loc[delay,'Voice'] = this_sound['sound']
+                        elif this_sound['sound'][1] == '@':
+                            try:
+                                Filepath(this_sound['sound'][1:-1])
+                                this_timeline.loc[delay,'Voice'] = this_sound['sound']
+                            except MediaError as E:
+                                print(E)
+                                raise ParserError('SEnotExist', this_sound['sound'], str(i+1))
                         elif this_sound['sound'] in ['NA','']:
                             # 如果音效对象是空值或NA
                             pass
@@ -2046,6 +2053,13 @@ class RplGenLog(Script):
                             BGM_queue.append(this_section['value'])
                     elif os.path.isfile(this_section['value'][1:-1]):
                         BGM_queue.append(this_section['value'])
+                    elif this_section['value'][1] == '@':
+                        try:
+                            Filepath(this_section['value'][1:-1])
+                            BGM_queue.append(this_section['value'])
+                        except MediaError as E:
+                            print(E)
+                            raise ParserError('UndefBGM',this_section['value'],str(i+1))
                     elif this_section['value'] == 'stop':
                         BGM_queue.append(this_section['value'])
                     else:

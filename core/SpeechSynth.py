@@ -10,8 +10,8 @@ from .ScriptParser import RplGenLog,CharTable,MediaDef
 from .ProjConfig import Config
 from .TTSengines import Aliyun_TTS_engine,Azure_TTS_engine,Tencent_TTS_engine,Beats_engine,System_TTS_engine
 from .Exceptions import WarningPrint,RplGenError,SynthesisError,SynthPrint,ParserError
+from .FilePaths import Filepath
 from .Medias import Audio
-
 from .Utils import mod62_timestamp,clean_ts,EDITION
 
 class SpeechSynthesizer:
@@ -169,7 +169,7 @@ class SpeechSynthesizer:
                     this_asterisk_synth['sound'] = 'NA'
                     this_asterisk_synth['time'] = 1.0
                 else:
-                    this_asterisk_synth['sound'] = "'" + result + "'"
+                    this_asterisk_synth['sound'] = "'" + Filepath(result).relative() + "'"
                     this_audio_obj = Audio(result)
                     this_asterisk_synth['time'] = round(this_audio_obj.media.get_length(),2)
             else:

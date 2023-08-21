@@ -9,7 +9,7 @@ from core.Exceptions import MediaError
 # 文件路径类
 class Filepath:
     # 工作路径，转义字符 .
-    RplGenpath:str = os.getcwd().replace('\\','/')
+    RplGenpath:str = os.getcwd().replace('\\','/') + '/'
     # 媒体定义文件路径，转义字符：@
     Mediapath:str = RplGenpath
     # 初始化
@@ -55,12 +55,12 @@ class Filepath:
     def relative(self) -> str:
         RplGenpath = self.upper(self.RplGenpath)
         Mediapath = self.upper(self.Mediapath)
-        # 优先使用：程序根目录
-        if RplGenpath in self._absolute:
-            return self._absolute.replace(RplGenpath,'.')
-        # 媒体目录
-        elif Mediapath in self._absolute:
-            return self._absolute.replace(Mediapath,'@')
+        # 优先使用：项目目录
+        if self._absolute.startswith(Mediapath):
+            return '@/' + self._absolute[len(Mediapath):]
+        # 程序目录
+        elif self._absolute.startswith(RplGenpath):
+            return './' + self._absolute[len(RplGenpath):]
         # 原始目录
         else:
             return self._absolute

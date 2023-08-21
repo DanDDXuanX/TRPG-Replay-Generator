@@ -284,7 +284,6 @@ class FileManager(ttk.Frame):
             return f"向剧本文件中添加新剧本【{filename}】，包含{count_of_add}个小节。"
     # 导入文件
     def import_file(self):
-        # get_file:str = browse_file(master=self.winfo_toplevel(),text_obj=tk.StringVar(),method='file',filetype='rgscripts',related=False)
         get_file:list = browse_multi_file(master=self.winfo_toplevel(),filetype='rgscripts',related=False)
         if get_file:
             # 尝试多个解析

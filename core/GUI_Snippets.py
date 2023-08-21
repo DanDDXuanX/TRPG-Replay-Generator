@@ -422,9 +422,8 @@ class RGLSnippets(CodeSnippet):
             self.codeview.highlight_all()
         def command():
             browsed_file = tk.StringVar(value='')
-            # TODO: log里面的路径暂时不支持@相对路径！
             if mtype == 'SE':
-                browse_file(master=self.codeview,text_obj=browsed_file,method='file',filetype='soundeff',related=False,convert=True,quote=True)
+                browse_file(master=self.codeview,text_obj=browsed_file,method='file',filetype='soundeff',related=True,convert=True,quote=True)
                 getfile = browsed_file.get()
                 if getfile != '':
                     if asterisk and preference.asterisk_import:
@@ -438,7 +437,7 @@ class RGLSnippets(CodeSnippet):
                     else:
                         insert('{'+getfile+'}',len(getfile)+2)
             elif mtype == 'BGM':
-                browse_file(master=self.codeview,text_obj=browsed_file,method='file',filetype='BGM',related=False,convert=True,quote=True)
+                browse_file(master=self.codeview,text_obj=browsed_file,method='file',filetype='BGM',related=True,convert=True,quote=True)
                 getfile = browsed_file.get()
                 if getfile != '':                
                     insert(getfile,len(getfile))

@@ -227,7 +227,8 @@ class KeyValueDescribe(ttk.Frame):
             return
         def command():
             if dtype == 'dir':
-                browse_file(master=self.winfo_toplevel(), text_obj=self.value, method='dir', filetype=None, quote=quote, related=related)
+                # 如果是路径，则不支持相对
+                browse_file(master=self.winfo_toplevel(), text_obj=self.value, method='dir', filetype=None, quote=quote, related=False)
             elif 'file' in dtype:
                 filetype = dtype.split('-')[0]
                 browse_file(master=self.winfo_toplevel(), text_obj=self.value, method='file', filetype=filetype, quote=quote, related=related, convert=convert)

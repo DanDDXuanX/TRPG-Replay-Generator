@@ -9,6 +9,7 @@ from ttkbootstrap.localization import MessageCatalog
 from tkinter.filedialog import askopenfilename, askdirectory, asksaveasfilename, askopenfilenames
 from tkinter import StringVar
 from .Utils import rgba_str_2_hex, convert_audio
+from .FilePaths import Filepath
 from .GUI_Link import Link
 from .ProjConfig import preference
 
@@ -79,13 +80,9 @@ def browse_multi_file(master, filetype=None ,related:bool=True)->list:
         return None # 注意，如果没选择，返回None！
     else:
         if related:
-            media_dir = Link['media_dir']
             out_path = []
             for path in getname:
-                if path.startswith(media_dir):
-                    out_path.append('@/' + getname[len(media_dir):])
-                else:
-                    out_path.append(path)
+                out_path.append(Filepath(path).relative())
         else:
             out_path = list(getname)
         # 返回
@@ -143,10 +140,8 @@ def browse_file(master, text_obj:StringVar, method='file', filetype=None, quote:
         # 是否是媒体路径下的文件夹
         if related:
             try:
-                media_dir = Link['media_dir']
-                if getname.startswith(media_dir):
-                    getname = '@/' + getname[len(media_dir):]
-            except KeyError:
+                getname = Filepath(getname).relative()
+            except Exception:
                 pass
         # 是否加引号
         if quote:
