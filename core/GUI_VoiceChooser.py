@@ -13,6 +13,7 @@ from tkinter.filedialog import asksaveasfilename
 from .TTSengines import Aliyun_TTS_engine, Azure_TTS_engine, Beats_engine
 from .TTSengines import System_TTS_engine, Tencent_TTS_engine, voice_lib
 from .Exceptions import WarningPrint
+from .ProjConfig import home_dir
 from .Medias import Audio
 from .Utils import mod62_timestamp
 from .GUI_Util import DictCombobox
@@ -121,8 +122,9 @@ class VoiceArgs(ttk.Frame):
         )
         # 执行合成
         try:
-            this_TTS.start(text=text, ofile='./assets/preview_tempfile.wav')
-            return True, './assets/preview_tempfile.wav'
+            temp_path = str(home_dir / '.rplgen' / 'preview_tempfile.wav')
+            this_TTS.start(text=text, ofile=temp_path)
+            return True, temp_path
         except Exception as E:
             print(WarningPrint('PrevFail',E))
             return False, '语音合成失败！检视控制台获取详细信息。'
@@ -191,8 +193,9 @@ class BeatsVoiceArgs(VoiceArgs):
         this_TTS.tx_method_specify(tx_method={"method":"w2w","method_dur":3})
         # 执行合成
         try:
-            this_TTS.start(text=text, ofile='./assets/preview_tempfile.wav')
-            return True, './assets/preview_tempfile.wav'
+            temp_path = str(home_dir / '.rplgen' / 'preview_tempfile.wav')
+            this_TTS.start(text=text, ofile=temp_path)
+            return True, temp_path
         except Exception as E:
             print(WarningPrint('PrevFail',E))
             return False, '语音合成失败！检视控制台获取详细信息。'
