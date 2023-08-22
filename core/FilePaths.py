@@ -13,7 +13,7 @@ class Filepath:
     # 媒体定义文件路径，转义字符：@
     Mediapath:str = RplGenpath
     # 初始化
-    def __init__(self,filepath:str) -> None:
+    def __init__(self,filepath:str,check_exist=True) -> None:
         # 相对路径 @
         if filepath[0] == '@':
             filepath = self.Mediapath + filepath[1:]
@@ -28,14 +28,14 @@ class Filepath:
             # 如果匹配到的列表为空白
             if len(self._list_absol) == 0:
                 # 校验原文件可用性
-                if os.path.isfile(self._absolute) == False:
+                if os.path.isfile(self._absolute) == False and check_exist:
                     raise MediaError('FileNFound',filepath)
                 else:
                     self._list_absol = [self._absolute]
         # 单文件
         else:
             # 校验文件可用性
-            if os.path.isfile(self._absolute) == False:
+            if os.path.isfile(self._absolute) == False and check_exist:
                 raise MediaError('FileNFound',filepath)
             else:
                 self._list_absol = [self._absolute]
@@ -76,6 +76,11 @@ class Filepath:
     # 文件名字
     def name(self) -> str:
         return self.exact().split('/')[-1]
+    # 文件名字，不含后缀
+    def prefix(self) -> str:
+        suffix = '.' + self.type()
+        name = self.name()
+        return name[:-len(suffix)]
     # PR路径（不包含通配符）
     def xml_reformated(self) -> str:
         to_format = self.exact()

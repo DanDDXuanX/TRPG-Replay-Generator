@@ -82,7 +82,7 @@ def browse_multi_file(master, filetype=None ,related:bool=True)->list:
         if related:
             out_path = []
             for path in getname:
-                out_path.append(Filepath(path).relative())
+                out_path.append(Filepath(path,check_exist=False).relative())
         else:
             out_path = list(getname)
         # 返回
@@ -140,7 +140,7 @@ def browse_file(master, text_obj:StringVar, method='file', filetype=None, quote:
         # 是否是媒体路径下的文件夹
         if related:
             try:
-                getname = Filepath(getname).relative()
+                getname = Filepath(getname,check_exist=False).relative()
             except Exception:
                 pass
         # 是否加引号

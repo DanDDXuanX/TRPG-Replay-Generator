@@ -270,7 +270,7 @@ class FileManager(ttk.Frame):
         else: # rplgenlog
             imported:RplGenLog = object
             collapse:RGLCollapsing = self.items['rplgenlog']
-            filename = Filepath(path).name().split('.')[0]
+            filename = Filepath(path).prefix()
             # 如果重名了，在名字后面加东西
             while filename in self.project.logfile.keys():
                 filename = filename+'_new'
