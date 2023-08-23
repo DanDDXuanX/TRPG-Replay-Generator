@@ -368,7 +368,7 @@ class VoiceChooser(ttk.Frame):
             'Beats'     : BeatsVoiceArgs(master=self.argument_notebook,screenzoom=self.sz,voice=speaker,speech_rate=speech_rate,pitch_rate=pitch_rate),
             'System'    : SystemVoiceArgs(master=self.argument_notebook,screenzoom=self.sz,voice=speaker,speech_rate=speech_rate,pitch_rate=pitch_rate),
         }
-        service_name = {
+        self.service_name = {
             'Aliyun'    : '阿里云',
             'Azure'     : '微软Azure',
             'Tencent'   : '腾讯云',
@@ -376,7 +376,7 @@ class VoiceChooser(ttk.Frame):
             'System'    : '系统',
         }
         for keyword in self.args_frame:
-            self.argument_notebook.add(self.args_frame[keyword],text='{}'.format(service_name[keyword]))
+            self.argument_notebook.add(self.args_frame[keyword],text='{}'.format(self.service_name[keyword]))
         # 切换初始化选择的标签
         self.argument_notebook.select(self.args_frame[service])
         # 测试文本
@@ -404,7 +404,8 @@ class VoiceChooser(ttk.Frame):
         self.button_frame.pack(side='top',fill='x',padx=SZ_10,pady=[SZ_5,SZ_10])
     def get_select_args(self)->VoiceArgs:
         # 当前选中的标签页的名字
-        service:str = self.argument_notebook.tab(self.argument_notebook.select(), "text")
+        service_name:str = self.argument_notebook.tab(self.argument_notebook.select(), "text")
+        service = {value:key for key,value in self.service_name.items()}[service_name]
         # 获取参数
         return self.args_frame[service]
     def copy_args(self):
