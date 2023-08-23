@@ -368,8 +368,15 @@ class VoiceChooser(ttk.Frame):
             'Beats'     : BeatsVoiceArgs(master=self.argument_notebook,screenzoom=self.sz,voice=speaker,speech_rate=speech_rate,pitch_rate=pitch_rate),
             'System'    : SystemVoiceArgs(master=self.argument_notebook,screenzoom=self.sz,voice=speaker,speech_rate=speech_rate,pitch_rate=pitch_rate),
         }
+        service_name = {
+            'Aliyun'    : '阿里云',
+            'Azure'     : '微软Azure',
+            'Tencent'   : '腾讯云',
+            'Beats'     : '节奏音',
+            'System'    : '系统',
+        }
         for keyword in self.args_frame:
-            self.argument_notebook.add(self.args_frame[keyword],text='{}'.format(keyword))
+            self.argument_notebook.add(self.args_frame[keyword],text='{}'.format(service_name[keyword]))
         # 切换初始化选择的标签
         self.argument_notebook.select(self.args_frame[service])
         # 测试文本
