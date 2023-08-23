@@ -321,7 +321,8 @@ class VerticalOutputCommand(OutPutCommand):
             'synth'          : FreeToolTip(widget=self.buttons['synth'],bootstyle='primary-inverse',text='语音合成',screenzoom=self.sz,side='left'),
             'exportpr'       : FreeToolTip(widget=self.buttons['exportpr'],bootstyle='primary-inverse',text='导出PR项目',screenzoom=self.sz,side='left'),
             'recode'         : FreeToolTip(widget=self.buttons['recode'],bootstyle='primary-inverse',text='导出视频',screenzoom=self.sz,side='left'),
-            'asterisk_add'   : FreeToolTip(widget=self.side_button['asterisk_add'],bootstyle='secondary-inverse',text='语音合成标记',screenzoom=self.sz,side='left'),
+            'asterisk_add'   : FreeToolTip(widget=self.side_button['asterisk_add'],bootstyle='secondary-inverse',text='添加语音合成标记',screenzoom=self.sz,side='left'),
+            'asterisk_add'   : FreeToolTip(widget=self.side_button['asterisk_del'],bootstyle='danger-inverse',text='移除星标语音',screenzoom=self.sz,side='left'),
         }
         self.update_side_button()
         self.configure(borderwidth=SZ_5,bootstyle='light')

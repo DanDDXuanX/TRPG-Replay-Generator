@@ -67,10 +67,10 @@ class FreeToolTip(ToolTip):
         """Create a show the tooltip window"""
         if self.toplevel:
             return
+        SZ_10 = int(self.sz * 10)
+        SZ_17 = int(self.sz * 17)
         SZ_25 = int(self.sz * 25)
         SZ_50 = 2 * SZ_25
-        SZ_100 = 2 * SZ_50
-        SZ_10 = int(self.sz * 10)
         if self.side == 'right':
             self.tx = SZ_25
             self.ty = SZ_10
@@ -78,7 +78,7 @@ class FreeToolTip(ToolTip):
             self.tx =  SZ_10
             self.ty = -SZ_50
         elif self.side == 'left':
-            self.tx = -SZ_100
+            self.tx = -SZ_17 * len(self.text) - SZ_25
             self.ty = -SZ_10
         self.toplevel = ttk.Toplevel(
             position=(
