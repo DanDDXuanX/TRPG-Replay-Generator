@@ -108,6 +108,7 @@ class Preference:
             self.lang:str = dict_input['System.lang']
             self.theme:str = dict_input['System.theme']
             self.editer_fontsize:int = dict_input['System.editer_fontsize']
+            self.editer_colorschemes:str = dict_input['System.editer_colorschemes']
             self.terminal_fontsize:int = dict_input['System.terminal_fontsize']
             # 媒体
             self.BIA_font:str = dict_input['BIA.font']
@@ -147,6 +148,7 @@ class Preference:
             self.lang:str = 'zh'
             # 字体大小
             self.editer_fontsize:int = 12
+            self.editer_colorschemes:str = "monokai"
             self.terminal_fontsize:int = 14
             # 编辑
             self.auto_periods:bool = False
@@ -194,6 +196,7 @@ class Preference:
             'System.lang'               : self.lang,
             'System.theme'              : self.theme,
             'System.editer_fontsize'    : self.editer_fontsize,
+            'System.editer_colorschemes': self.editer_colorschemes,
             'System.terminal_fontsize'  : self.terminal_fontsize,
             # 媒体
             'BIA.font'                  : self.BIA_font,

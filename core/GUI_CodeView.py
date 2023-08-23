@@ -294,7 +294,7 @@ class RGLCodeViewFrame(ttk.Frame):
         self.codeview = CodeView(
             master      = self,
             lexer       = RplGenLogLexer,
-            color_scheme= "monokai",
+            color_scheme= preference.editer_colorschemes,
             font        = (Link['terminal_font_family'], preference.editer_fontsize),
             undo        = True
         )

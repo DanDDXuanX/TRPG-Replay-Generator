@@ -6,10 +6,10 @@ from ttkbootstrap.toast import ToastNotification
 from PIL import Image, ImageTk
 from .ProjConfig import preference, Preference
 from .GUI_PageElement import OutPutCommand
-from .GUI_Util import TextSeparator, KeyValueDescribe, FluentFrame
+from .GUI_Util import TextSeparator, FluentFrame
 from .GUI_Link import Link
 from .GUI_TableStruct import PreferenceTableStruct, ExecuteTableStruct
-from .GUI_TableStruct import language, True_False, theme, progressbar, import_mode, dice_mode, askyesno
+from .GUI_TableStruct import language, True_False, theme, progressbar, import_mode, dice_mode, askyesno, colorschemes
 
 class OutPutCommandAtScriptExecuter(OutPutCommand):
     # 重载
@@ -140,6 +140,7 @@ class PreferenceTable(TableEdit):
         # combox
         self.elements['System.lang'].input.update_dict(language)
         self.elements['System.theme'].input.update_dict(theme)
+        self.elements['System.editer_colorschemes'].input.update_dict(colorschemes)
         self.elements['Preview.progress_bar_style'].input.update_dict(progressbar)
         self.elements['Preview.framerate_counter'].input.update_dict(True_False)
         self.elements['Export.force_split_clip'].input.update_dict(True_False)

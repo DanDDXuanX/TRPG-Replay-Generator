@@ -2355,6 +2355,16 @@ PreferenceTableStruct = {
                 "vtype": "int",
                 "default": 12
             },
+            "System.editer_colorschemes":{
+                "ktext": "编辑器颜色主题：",
+                "tooltip": "剧本编辑器的配色主题。变更后需要重新打开剧本编辑页才会生效！",
+                "dtext": "（选择）",
+                "ditem": "label",
+                "valuekey": "System.editer_colorschemes",
+                "vitem": "combox",
+                "vtype": "str",
+                "default": "monokai"
+            },
             "System.terminal_fontsize":{
                 "ktext": "控制台字体大小：",
                 "tooltip": "控制台输出页中中字体的大小。变更后需要重启软件才会生效！",
@@ -2937,6 +2947,13 @@ dice_mode = {
     '类COC' : 'COC',
     '类DND' : 'DND',
     '无规则' : 'ruleless'
+}
+colorschemes = {
+    "monokai"   : "monokai",
+    "ayu-dark"  : "ayu-dark",
+    "ayu-light" : "ayu-light",
+    "dracula"   : "dracula",
+    "mariana"   : "mariana",
 }
 # 新建媒体按钮的结构
 NewElement = {

@@ -414,7 +414,7 @@ class NewElementCommand(ttk.Frame):
                 width=5,
                 command=new_element
             )
-            self.buttons[keyword].bind('<Button-3>', batch_new_element)
+            self.buttons[keyword].bind('<ButtonRelease-3>', batch_new_element)
             self.buttons_tooltip[keyword] = FreeToolTip(
                 widget=self.buttons[keyword],
                 text=button_this['tooltip'],

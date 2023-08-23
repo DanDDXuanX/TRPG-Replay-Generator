@@ -48,20 +48,20 @@ class Script:
         'BGM'           :['filepath','volume','loop','label_color']
         }
     type_keyword_default = {
-        'Pos'           :[[0,0]],
-        'FreePos'       :[[0,0]],
-        'PosGrid'       :[[0,0],[100,100],2,2],
+        'Pos'           :[[100,100]],
+        'FreePos'       :[[100,100]],
+        'PosGrid'       :[[100,100],[300,300],2,2],
         'Text'          :['./assets/SourceHanSansCN-Regular.otf',40,[0,0,0,255],20,'Lavender'],
         'StrokeText'    :['./assets/SourceHanSansCN-Regular.otf',40,[0,0,0,255],20,[255,255,255,255],1,'C','Lavender'],
         'RichText'      :['./assets/SourceHanSansCN-Regular.otf',40,[0,0,0,255],20,'Lavender'],
         'HPLabel'       :['./assets/SourceHanSansCN-Regular.otf',40,[0,0,0,255],'A/B','./assets/heart.png','./assets/heart_shape.png','left',0,2,'Lavender'],
-        'Bubble'        :[None,1.0,{'type':'Text'},None,[0,0],[0,0],0,[0,0],0,'Name','left','top','left',1.5,4,'Lavender'],
-        'Balloon'       :[None,1.0,{'type':'Text'},[None],[0,0],[0,0],0,[[0,0]],[0],['Name'],'left','top',['left'],1.5,4,'Lavender'],
-        'DynamicBubble' :[None,1.0,{'type':'Text'},None,[0,0],[0,0],[100,100],[0,0],'Name','stretch','free',1.5,'Lavender'],
-        'ChatWindow'    :[None,1.0,['Key1'],[{'type':'Bubble'}],[None],['left'],[0,0],[0,0],[100,100],0,100,0,'Lavender'],
+        'Bubble'        :[None,1.0,{'type':'Text'},None,[0,0],[100,100],0,[0,0],0,'Name','left','top','left',1.5,4,'Lavender'],
+        'Balloon'       :[None,1.0,{'type':'Text'},[None],[0,0],[100,100],0,[[0,0]],[0],['Name'],'left','top',['left'],1.5,4,'Lavender'],
+        'DynamicBubble' :[None,1.0,{'type':'Text'},None,[0,0],[100,100],[200,200],[0,0],'Name','stretch','free',1.5,'Lavender'],
+        'ChatWindow'    :[None,1.0,['Key1'],[{'type':'Bubble'}],[None],['left'],[0,0],[100,100],[200,200],50,250,0,'Lavender'],
         'Background'    :['black',1.0,[0,0],'Lavender'],
-        'Animation'     :['./assets/heart_shape.png',1.0,[0,0],1,True,'Lavender'], # TODO:这个默认的filepath应该修改！
-        'Audio'         :['./assets/SE_dice.wav','Caribbean'], # TODO:这个默认的filepath应该修改！
+        'Animation'     :['./assets/heart_shape.png',1.0,[100,100],1,True,'Lavender'], # TODO:这个默认的filepath应该修改！
+        'Audio'         :['./assets/SE_duck.wav','Caribbean'], # TODO:这个默认的filepath应该修改！
         'BGM'           :['./toy/media/BGM.ogg',100,True,'Caribbean'] # TODO:这个默认的filepath应该修改！
         }
     # 初始化
