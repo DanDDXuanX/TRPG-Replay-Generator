@@ -469,7 +469,7 @@ class MediaDef(Script):
     def rename(self,to_rename:str,new_name:str)->dict:
         self.struct[new_name] = self.struct.pop(to_rename)
         return self.struct[new_name]
-    def new_element(self,name:str,element_type:str)->str:
+    def new_element(self,name:str,element_type:str,**kw_args)->str:
         while name in self.struct:
             name += '_new'
         else:
@@ -477,7 +477,10 @@ class MediaDef(Script):
                 'type' : element_type,
             }
             for key,args in zip(self.type_keyword_position[element_type],self.type_keyword_default[element_type]):
-                new_struct[key] = args
+                if key in kw_args: # 如果通过参数指定了
+                    new_struct[key] = kw_args[key]
+                else:
+                    new_struct[key] = args
             # 应用变更
             self.struct[name] = new_struct
         # 返回关键字

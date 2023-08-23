@@ -15,10 +15,13 @@ from ttkbootstrap.toast import ToastNotification
 from PIL import Image, ImageTk
 from .GUI_Container import Container
 from .GUI_TableStruct import NewElement
+from .GUI_DialogWindow import browse_multi_file
 from .OutputType import PreviewDisplay, ExportVideo, ExportXML
 from .SpeechSynth import SpeechSynthesizer
 from .Medias import MediaObj
+from .Utils import extract_valid_variable_name
 from .ScriptParser import Script
+from .FilePaths import Filepath
 from .GUI_Link import Link
 from .GUI_Util import FreeToolTip
 
@@ -398,6 +401,7 @@ class NewElementCommand(ttk.Frame):
             button_this = self.section_struct[keyword]
             # 新建按钮绑定的命令
             new_element = self.create_command(button_this=button_this,keyword=keyword)
+            batch_new_element = self.create_media_inbatch_command(keyword=keyword)
             # 按钮
             self.image[keyword] = ImageTk.PhotoImage(image=Image.open(button_this['icon']).resize(icon_size))
             self.buttons[keyword] = ttk.Button(
@@ -410,6 +414,7 @@ class NewElementCommand(ttk.Frame):
                 width=5,
                 command=new_element
             )
+            self.buttons[keyword].bind('<Button-3>', batch_new_element)
             self.buttons_tooltip[keyword] = FreeToolTip(
                 widget=self.buttons[keyword],
                 text=button_this['tooltip'],
@@ -426,9 +431,37 @@ class NewElementCommand(ttk.Frame):
             elif self.pagetype in Script.Media_type:
                 element_name = self.page.content.new_element(name='新建'+button_this['text'],element_type=keyword)
             else:
-                pass
+                return
             # 新建原件
             self.container.new_section(key=element_name)
+        return command
+    # 从文件批量新建媒体的闭包
+    def create_media_inbatch_command(self,keyword):
+        def command(event):
+            if self.pagetype == 'charactor':
+                return
+            if self.pagetype == 'Pos':
+                return
+            elif self.pagetype == 'Text':
+                filetype = 'fontfile'
+            elif self.pagetype == 'Audio':
+                if event.widget.cget('text') in ['背景音乐','BGM']:
+                    filetype = 'BGM'
+                else:
+                    filetype = 'soundeff'                    
+            else:
+                filetype = 'picture'
+            # 开始建立
+            list_of_file = browse_multi_file(master=self.page,filetype=filetype,related=True)
+            for filepath in list_of_file:
+                name = extract_valid_variable_name(Filepath(filepath,check_exist=False).prefix())
+                # 后端：新建对象
+                if filetype == 'fontfile':
+                    element_name = self.page.content.new_element(name=name, element_type=keyword, fontfile=filepath)
+                else:
+                    element_name = self.page.content.new_element(name=name, element_type=keyword, filepath=filepath, convert=True)
+                # 前端：新建原件
+                self.container.new_section(key=element_name)
         return command
     def update_item(self):
         for key in self.buttons:

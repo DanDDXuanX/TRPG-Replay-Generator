@@ -403,7 +403,7 @@ class MediaEdit(EditWindow):
         # 检查是否更名
         if new_keyword != self.section_index:
             # 检查新名字是否可用
-            if new_keyword in self.page.content.struct:
+            if new_keyword in self.page.content.struct or new_keyword in ['black','white']:
                 Messagebox().show_warning(message='这个媒体名已经被使用了！',title='重名',parent=self)
                 self.reset_name()
                 return self.section

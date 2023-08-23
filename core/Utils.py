@@ -158,6 +158,19 @@ def mod62_timestamp():
             outstring = outstring + chr(97+residual-36)
         timestamp = mod
     return outstring[::-1]
+# 从字符串提取合法文件名
+def extract_valid_variable_name(string):
+    # 将非字母数字字符替换为下划线
+    valid_string = re.sub(r'\W+', '_', string)
+    # 如果字符串以数字开头，则在开头添加下划线
+    if valid_string[0].isdigit():
+        valid_string = '_' + valid_string
+    # 如果字符串是不可以使用的变量名，则在末尾添加下划线
+    keywords = ['black','white']
+    if valid_string in keywords:
+        valid_string += '_'
+    # 返回提取的合法变量名
+    return valid_string
 
 # 文件格式
 def convert_audio(target_type:str,ifile:str,ofile:str):
