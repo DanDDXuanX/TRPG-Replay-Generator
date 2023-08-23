@@ -68,12 +68,15 @@ class SelectionQurey(Dialog):
         frame.pack(side='bottom', fill='x', anchor='s')
     def on_submit(self, *_):
         self._result = self.varible.get()
-        self._toplevel.destroy()
+        if self._result == '':
+            return
+        else:
+            self._toplevel.destroy()
     def on_cancel(self, *_):
         self._toplevel.destroy()
         return
-def selection_query(master,screenzoom,prompt,choice:dict):
-    dialog_window = SelectionQurey(parent=master,screenzoom=screenzoom,prompt=prompt,choice=choice)
+def selection_query(master,screenzoom,prompt,choice:dict,title:str="选择"):
+    dialog_window = SelectionQurey(parent=master,screenzoom=screenzoom,title=title,prompt=prompt,choice=choice)
     dialog_window.show()
     # 获取结果
     result_args = dialog_window.result

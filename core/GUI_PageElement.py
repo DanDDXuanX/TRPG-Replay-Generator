@@ -16,6 +16,7 @@ from PIL import Image, ImageTk
 from .GUI_Container import Container
 from .GUI_TableStruct import NewElement
 from .GUI_DialogWindow import browse_multi_file
+from .GUI_CustomDialog import selection_query
 from .OutputType import PreviewDisplay, ExportVideo, ExportXML
 from .SpeechSynth import SpeechSynthesizer
 from .Medias import MediaObj
@@ -307,9 +308,12 @@ class VerticalOutputCommand(OutPutCommand):
         SZ_5 = int(self.sz * 5)
         # 额外的按钮
         icon_size = [int(30*self.sz),int(30*self.sz)]
-        self.image['asterisk_add'] = ImageTk.PhotoImage(name='asterisk_add',image=Image.open('./assets/icon/asterisk.png').resize(icon_size)),
+        # 图片
+        self.image['asterisk_add'] = ImageTk.PhotoImage(image=Image.open('./assets/icon/asterisk.png').resize(icon_size)),
+        self.image['asterisk_del'] = ImageTk.PhotoImage(image=Image.open('./assets/icon/asterisk.png').resize(icon_size)),
         self.side_button = {
-            'asterisk_add'   : ttk.Button(master=self,image='asterisk_add',bootstyle='secondary',command=self.add_asterisk_marks,padding=SZ_5),
+            'asterisk_add'   : ttk.Button(master=self,image=self.image['asterisk_add'],bootstyle='secondary',command=self.add_asterisk_marks,padding=SZ_5),
+            'asterisk_del'   : ttk.Button(master=self,image=self.image['asterisk_del'],bootstyle='danger',command=self.del_asterisk_marks,padding=SZ_5)
         }
         # 小贴士
         self.tooltip = {
@@ -375,7 +379,25 @@ class VerticalOutputCommand(OutPutCommand):
     # 对整个文件操作，添加语音合成标记
     def add_asterisk_marks(self):
         self.codeview.add_asterisk_marks()
-
+    def del_asterisk_marks(self):
+        # 获取名字
+        all_names = self.master.ref_chartab.get_names()
+        name_dict = {value:value for value in ['（全部）']+all_names}
+        name_choice = selection_query(master=self.master,screenzoom=self.sz,prompt='目标角色（Name）是？',title='删除星标',choice=name_dict)
+        if name_choice == '（全部）':
+            self.codeview.remove_asterisk_marks()
+        elif name_choice == None:
+            return
+        else:
+            all_subtype = self.master.ref_chartab.get_subtype(name=name_choice)
+            subtype_dict = {value:value for value in ['（全部）']+all_subtype}
+            subtype_choice = selection_query(master=self.master,screenzoom=self.sz,prompt='目标差分（Subtype）是？',title='删除星标',choice=subtype_dict)
+            if subtype_choice == '（全部）':
+                self.codeview.remove_asterisk_marks(name=name_choice)
+            elif subtype_choice == None:
+                return
+            else:
+                self.codeview.remove_asterisk_marks(name=name_choice,subtype=subtype_choice)
 # 新建指令
 class NewElementCommand(ttk.Frame):
     struct = NewElement

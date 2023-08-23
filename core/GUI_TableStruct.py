@@ -2515,7 +2515,7 @@ PreferenceTableStruct = {
         "Content":{
             "Preview.progress_bar_style":{
                 "ktext": "进度条风格：",
-                "tooltip":"选择进度条是彩色风格、黑白风格，还是不显示进度条。",
+                "tooltip":"预览播放器中，进度条是彩色风格、黑白风格，还是不显示进度条。",
                 "dtext": "（选择）",
                 "ditem": "label",
                 "valuekey": "Preview.progress_bar_style",
@@ -2525,7 +2525,7 @@ PreferenceTableStruct = {
             },
             "Preview.framerate_counter":{
                 "ktext": "帧率显示器开启：",
-                "tooltip":"选择是否常驻开启帧率显示器。",
+                "tooltip":"预览播放器中，是否常驻开启帧率显示器。",
                 "dtext": "（选择）",
                 "ditem": "label",
                 "valuekey": "Preview.framerate_counter",

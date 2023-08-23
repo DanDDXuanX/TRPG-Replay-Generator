@@ -444,12 +444,16 @@ class RGLCodeViewFrame(ttk.Frame):
         return "break"
     # 刷新：从log对象重新加载所有文字
     def update_codeview(self,event):
+        # 撤回
+        self.codeview.edit_separator()
+        self.codeview.configure(autoseparators=False)
         # 移除全部文本
         self.codeview.delete("0.0",'end')
         # 插入脚本文本
         self.codeview.insert("end",self.content.export())
         # 清除变更标记
         # self.clear_modified()
+        self.codeview.configure(autoseparators=True)
         # 刷新高亮
         self.codeview.highlight_all()
     # 将当前文本更新到RplGenLog
@@ -540,11 +544,9 @@ class RGLCodeViewFrame(ttk.Frame):
         # 添加星标
         add_count = 0
         missing_line = []
-        self.codeview.edit_separator()
-        self.codeview.configure(autoseparators=False)
         for idx in self.content.struct:
             this_section = self.content.struct[idx]
-            # 是否的对话行
+            # 是否是对话行
             if this_section['type'] == 'dialog':
                 # 是否已经包含星标
                 if '{*}' not in this_section['sound_set'] and '*' not in this_section['sound_set']:
@@ -556,7 +558,6 @@ class RGLCodeViewFrame(ttk.Frame):
                     elif self.chartab.struct[main_name]['Voice'] != 'NA':
                         this_section['sound_set']['{*}'] = {"sound": None,"time": None}
                         add_count += 1
-        self.codeview.configure(autoseparators=True)
         # 更新变更
         self.update_codeview(None)
         # 高亮异常
@@ -564,9 +565,54 @@ class RGLCodeViewFrame(ttk.Frame):
             self.hightlight_error(line=line)
         # 消息框
         if add_count == 0:
-            Messagebox.show_info(message='没有添加语音合成标记！\n不会给没有指定音源的角色添加语音合成标记。',title='{*}',parent=self)
+            Messagebox().show_info(message='没有添加语音合成标记！\n不会给没有指定音源的角色添加语音合成标记。',title='添加星标',parent=self)
         else:
             if len(missing_line)==0:
-                Messagebox().show_info(message=f'添加语音合成标记{add_count}个',title='{*}',parent=self)
+                Messagebox().show_info(message=f'添加语音合成标记{add_count}个',title='添加星标',parent=self)
             else:
-                Messagebox().show_warning(message=f'添加语音合成标记{add_count}个\n检查到共{len(missing_line)}行出现未定义角色！',title='{*}',parent=self)
+                Messagebox().show_warning(message=f'添加语音合成标记{add_count}个\n检查到共{len(missing_line)}行出现未定义角色！',title='添加星标',parent=self)
+    # 移除所有星标
+    def remove_asterisk_marks(self,name=None,subtype=None):
+        # 解析文字
+        try:
+            self.update_rplgenlog()
+        except Exception as E:
+            Messagebox().show_error(message=re.sub('\x1B\[\d+m','',str(E)),title='错误',parent=self)
+            return
+        # 目标角色
+        df_chartab = self.chartab.export()
+        if name:
+            if subtype:
+                target_charactors = list(df_chartab.query("Name==@name and Subtype==@subtype").index)
+            else:
+                target_charactors = list(df_chartab.query("Name==@name").index)
+        else:
+            target_charactors = list(df_chartab.index)
+        # 如果目标是空，就可以结束了
+        if len(target_charactors) == 0:
+            Messagebox().show_warning(message='指定的角色尚未定义！',title='移除星标',parent=self)
+            return
+        # 移除星标
+        remove_asterisk = 0
+        remove_voice = 0
+        for idx in self.content.struct:
+            this_section = self.content.struct[idx]
+            # 是否是对话行
+            if this_section['type'] == 'dialog':
+                main_charactor = this_section['charactor_set']['0']
+                main_name = main_charactor['name']+'.'+main_charactor['subtype']
+                # 是否是目标角色
+                if main_name in target_charactors:
+                    if "{*}" in this_section['sound_set']:
+                        this_section['sound_set'].pop('{*}')
+                        remove_asterisk += 1
+                    if '*' in this_section['sound_set']:
+                        this_section['sound_set'].pop('*')
+                        remove_voice += 1
+        # 更新变更
+        self.update_codeview(None)
+        # 消息框
+        if (remove_asterisk+remove_voice) == 0:
+            Messagebox().show_info(message='没有找到需要移除的星标音频或待合成标记！',title='移除星标',parent=self)
+        else:
+            Messagebox().show_info(message=f'移除星标语音{remove_voice}个，\n待合成标记{remove_asterisk}个。',title='移除星标',parent=self)
