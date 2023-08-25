@@ -67,10 +67,11 @@ class SelectionQurey(Dialog):
         ttk.Separator(self._toplevel).pack(fill='x')
         frame.pack(side='bottom', fill='x', anchor='s')
     def on_submit(self, *_):
-        self._result = self.varible.get()
-        if self._result == '':
+        result = self.varible.get()
+        if result == '':
             return
         else:
+            self._result = result
             self._toplevel.destroy()
     def on_cancel(self, *_):
         self._toplevel.destroy()

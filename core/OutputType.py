@@ -574,8 +574,6 @@ class PreviewDisplay(OutputMediaType):
                 'button'        : '#158cba',
                 'button_press'  : '#0e5f80',
             }
-            sprit = pygame.image.load('./assets/welcome/sprit_light.png')
-            rect['sprit'] = (-670,150,0,0)
         else:
             color = {
                 'text_mg'       : '#a0a0a0',
@@ -584,8 +582,6 @@ class PreviewDisplay(OutputMediaType):
                 'button'        : '#8352a4',
                 'button_press'  : '#ad6cd9',
             }
-            sprit = pygame.image.load('./assets/welcome/sprit_dark.png')
-            rect['sprit'] = (-670,120,0,0)
             # 反相
             main_array = pygame.surfarray.array3d(main_canvas)
             main_canvas = pygame.surfarray.make_surface(270-main_array)
@@ -628,7 +624,9 @@ class PreviewDisplay(OutputMediaType):
             space[key].blit(press_space_text,(36,10))
             space[key] = pygame.transform.smoothscale(space[key],(w*zoom,h*zoom))
         button_area = pygame.Rect(self.config.Width+x*zoom,self.config.Height+y*zoom,w*zoom,h*zoom)
-        # 伊可
+        # 伊可            
+        rect['sprit'] = (-800,100,0,0)
+        sprit = pygame.image.load('./assets/welcome/sprite.png')
         sprit = zoom_surface(sprit,zoom)
         sprit_mask = pygame.mask.from_surface(sprit)
         begin = False

@@ -669,7 +669,7 @@ class RGLCodeViewFrame(ttk.Frame):
                     target = name
             else:
                 target = "（全部角色）"
-            message = '——批量导入语音报告——: \n'
+            message = '——批量导入语音报告——\n'
             message += f'目标角色：{target}\n选中的文件数量：{num_of_files}\n'
             message += f'目标星标数量：{filter_asterisk}\n填充的音标数量：{fill_asterisk}'
             Messagebox().show_info(message=message,title='批量导入语音',parent=self)
