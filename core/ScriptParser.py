@@ -655,6 +655,18 @@ class CharTable(Script):
         chartab = pd.DataFrame(self.struct).T.fillna('NA')
         customize_col = [col for col in chartab.columns if col not in self.table_col]
         return customize_col
+    def get_target(self,name:None,subtype:None)->list:
+        "根据name和subtype，以list形式返回符合筛选条件的index"
+        # 目标角色
+        df_chartab = self.export()
+        if name:
+            if subtype:
+                target_charactors = list(df_chartab.query("Name==@name and Subtype==@subtype").index)
+            else:
+                target_charactors = list(df_chartab.query("Name==@name").index)
+        else:
+            target_charactors = list(df_chartab.index)
+        return target_charactors
 # log文件
 class RplGenLog(Script):
     # RGL -> struct

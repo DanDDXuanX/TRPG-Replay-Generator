@@ -12,9 +12,11 @@ from .ProjConfig import preference
 from .ProjConfig import Config
 from .RplGenLogLexer import RplGenLogLexer
 from .ScriptParser import RplGenLog, CharTable, MediaDef
+from .Medias import Audio
 from .GUI_Link import Link
 from .GUI_Snippets import RGLSnippets, RGLRightClick
 from .GUI_PreviewCanvas import RGLPreviewCanvas
+from .GUI_DialogWindow import browse_multi_file
 
 # 查找且替换
 class SearchReplaceBar(ttk.Frame):
@@ -580,14 +582,7 @@ class RGLCodeViewFrame(ttk.Frame):
             Messagebox().show_error(message=re.sub('\x1B\[\d+m','',str(E)),title='错误',parent=self)
             return
         # 目标角色
-        df_chartab = self.chartab.export()
-        if name:
-            if subtype:
-                target_charactors = list(df_chartab.query("Name==@name and Subtype==@subtype").index)
-            else:
-                target_charactors = list(df_chartab.query("Name==@name").index)
-        else:
-            target_charactors = list(df_chartab.index)
+        target_charactors = self.chartab.get_target(name=name,subtype=subtype)
         # 如果目标是空，就可以结束了
         if len(target_charactors) == 0:
             Messagebox().show_warning(message='指定的角色尚未定义！',title='移除星标',parent=self)
@@ -613,6 +608,68 @@ class RGLCodeViewFrame(ttk.Frame):
         self.update_codeview(None)
         # 消息框
         if (remove_asterisk+remove_voice) == 0:
-            Messagebox().show_info(message='没有找到需要移除的星标音频或待合成标记！',title='移除星标',parent=self)
+            Messagebox().show_warning(message='没有找到需要移除的星标音频或待合成标记！',title='移除星标',parent=self)
         else:
             Messagebox().show_info(message=f'移除星标语音{remove_voice}个，\n待合成标记{remove_asterisk}个。',title='移除星标',parent=self)
+    # 批量导入音频文件
+    def fill_asterisk_from_files(self,name=None,subtype=None):
+        # 解析文字
+        try:
+            self.update_rplgenlog()
+        except Exception as E:
+            Messagebox().show_error(message=re.sub('\x1B\[\d+m','',str(E)),title='错误',parent=self)
+            return
+        # 浏览文件
+        list_of_files = browse_multi_file(master=self,filetype='soundeff',related=True,convert=True)
+        list_of_files.sort() # 升序
+        num_of_files = len(list_of_files)
+        # 目标角色
+        target_charactors = self.chartab.get_target(name=name,subtype=subtype)
+        # 如果目标是空，就可以结束了
+        if len(target_charactors) == 0:
+            Messagebox().show_warning(message='指定的角色尚未定义！',title='移除星标',parent=self)
+            return
+        # 移除星标
+        filter_asterisk = 0
+        fill_asterisk = 0
+        file_used = 0
+        for idx in self.content.struct:
+            this_section = self.content.struct[idx]
+            # 是否是对话行
+            if this_section['type'] == 'dialog':
+                main_charactor = this_section['charactor_set']['0']
+                main_name = main_charactor['name']+'.'+main_charactor['subtype']
+                # 是否是目标角色
+                if main_name in target_charactors:
+                    if "{*}" in this_section['sound_set']:
+                        filter_asterisk += 1
+                        try:
+                            # 取出文件
+                            this_file = list_of_files.pop(0)
+                            audio_length = round(Audio(this_file).media.get_length(),2)
+                            file_used += 1
+                        except IndexError:
+                            continue
+                        this_section['sound_set'].pop('{*}')
+                        this_section['sound_set']['*'] = {
+                            "sound" : this_file,
+                            "time"  : audio_length
+                        }
+                        fill_asterisk += 1
+        # 更新变更
+        self.update_codeview(None)
+        # 消息框
+        if filter_asterisk == 0:
+            Messagebox().show_warning(message='没有找到符合过滤条件的待合成标记！',title='批量导入语音',parent=self)
+        else:
+            if name:
+                if subtype:
+                    target = name+'.'+subtype
+                else:
+                    target = name
+            else:
+                target = "（全部角色）"
+            message = '——批量导入语音报告——: \n'
+            message += f'目标角色：{target}\n选中的文件数量：{num_of_files}\n'
+            message += f'目标星标数量：{filter_asterisk}\n填充的音标数量：{fill_asterisk}'
+            Messagebox().show_info(message=message,title='批量导入语音',parent=self)
