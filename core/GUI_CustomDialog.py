@@ -51,7 +51,7 @@ class SelectionQurey(Dialog):
         submit = ttk.Button(
             master=frame,
             bootstyle="primary",
-            text=MessageCatalog.translate("Submit"),
+            text='确定',
             command=self.on_submit,
         )
         submit.pack(padx=5, side='right')
@@ -60,7 +60,7 @@ class SelectionQurey(Dialog):
         cancel = ttk.Button(
             master=frame,
             bootstyle="secondary",
-            text=MessageCatalog.translate("Cancel"),
+            text='取消',
             command=self.on_cancel,
         )
         cancel.pack(padx=5, side='right')

@@ -73,19 +73,22 @@ default_name = {
 # 浏览多个文件，并把路径返回（不输出给stringvar）：
 def browse_multi_file(master, filetype=None ,related:bool=True,convert:bool=False)->list:
     if filetype is None:
-        getname:tuple = askopenfilenames(parent=master,)
+        get_names:tuple = askopenfilenames(parent=master,)
     else:
-        getname:tuple = askopenfilenames(parent=master,filetypes=filetype_dic[filetype])
+        get_names:tuple = askopenfilenames(parent=master,filetypes=filetype_dic[filetype])
     # 检查结果
+    getname = list(get_names)
     if getname == ['']:
         return None # 注意，如果没选择，返回None！
     else:
         # 是否需要转换格式
         if convert and filetype in ['soundeff','BGM']:
+            convertname = getname
             for idx,file in enumerate(getname):
                 newname = convert_audio_file(master=master,filetype=filetype,getname=file)
                 if newname:
-                    getname[idx] = newname
+                    convertname[idx] = newname
+            getname = convertname
         else:
             pass
         # 是否相对路径
@@ -94,7 +97,7 @@ def browse_multi_file(master, filetype=None ,related:bool=True,convert:bool=Fals
             for path in getname:
                 out_path.append(Filepath(path,check_exist=False).relative())
         else:
-            out_path = list(getname)
+            out_path = getname
         # 返回
         return out_path
 # 浏览文件，并把路径输出给 StringVar
