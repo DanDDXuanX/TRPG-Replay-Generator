@@ -19,19 +19,20 @@ from .ScriptParser import MediaDef
 
 # 包含一个选项的选择聊天框
 class SelectionQurey(Dialog):
-    def __init__(self, parent=None, screenzoom=1.0, title="选择", prompt="",choice={}, alert=False):
+    def __init__(self, parent=None, screenzoom=1.0, title="选择", prompt="",choice={}, alert=False,init=''):
         super().__init__(parent, title, alert)
         self.sz = screenzoom
         SZ_20 = int(self.sz * 20)
         self._prompt:str = prompt
         self._choice:dict = choice
+        self._init_choice:str = init
         self._padding = (SZ_20, SZ_20)
     def create_body(self, master):
         frame = ttk.Frame(master, padding=self._padding)
         if self._prompt:
             prompt_label = ttk.Label(frame, text=self._prompt)
             prompt_label.pack(pady=(0, 5), fill='x', anchor='n')
-        self.varible = StringVar()
+        self.varible = StringVar(value=self._init_choice)
         # 新建一个选框
         entry = self.add_a_query(frame=frame,varible=self.varible,choice=self._choice)
         entry.pack(pady=(0, 5), fill='x')
@@ -76,8 +77,8 @@ class SelectionQurey(Dialog):
     def on_cancel(self, *_):
         self._toplevel.destroy()
         return
-def selection_query(master,screenzoom,prompt,choice:dict,title:str="选择"):
-    dialog_window = SelectionQurey(parent=master,screenzoom=screenzoom,title=title,prompt=prompt,choice=choice)
+def selection_query(master,screenzoom,prompt,choice:dict,title:str="选择",init=''):
+    dialog_window = SelectionQurey(parent=master,screenzoom=screenzoom,title=title,prompt=prompt,choice=choice,init=init)
     dialog_window.show()
     # 获取结果
     result_args = dialog_window.result

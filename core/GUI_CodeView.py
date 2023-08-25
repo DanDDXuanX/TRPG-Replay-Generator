@@ -619,16 +619,16 @@ class RGLCodeViewFrame(ttk.Frame):
         except Exception as E:
             Messagebox().show_error(message=re.sub('\x1B\[\d+m','',str(E)),title='错误',parent=self)
             return
-        # 浏览文件
-        list_of_files = browse_multi_file(master=self,filetype='soundeff',related=True,convert=True)
-        list_of_files.sort() # 升序
-        num_of_files = len(list_of_files)
         # 目标角色
         target_charactors = self.chartab.get_target(name=name,subtype=subtype)
         # 如果目标是空，就可以结束了
         if len(target_charactors) == 0:
             Messagebox().show_warning(message='指定的角色尚未定义！',title='移除星标',parent=self)
             return
+        # 浏览文件
+        list_of_files = browse_multi_file(master=self,filetype='soundeff',related=True,convert=True)
+        list_of_files.sort() # 升序
+        num_of_files = len(list_of_files)
         # 移除星标
         filter_asterisk = 0
         fill_asterisk = 0
@@ -652,7 +652,7 @@ class RGLCodeViewFrame(ttk.Frame):
                             continue
                         this_section['sound_set'].pop('{*}')
                         this_section['sound_set']['*'] = {
-                            "sound" : this_file,
+                            "sound" : f"'{this_file}'",
                             "time"  : audio_length
                         }
                         fill_asterisk += 1

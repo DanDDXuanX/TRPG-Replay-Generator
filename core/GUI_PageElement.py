@@ -309,13 +309,13 @@ class VerticalOutputCommand(OutPutCommand):
         # 额外的按钮
         icon_size = [int(30*self.sz),int(30*self.sz)]
         # 图片
-        self.image['asterisk_add'] = ImageTk.PhotoImage(image=Image.open('./assets/icon/asterisk.png').resize(icon_size))
-        self.image['asterisk_del'] = ImageTk.PhotoImage(image=Image.open('./assets/icon/asterisk.png').resize(icon_size))
-        self.image['asterisk_import'] = ImageTk.PhotoImage(image=Image.open('./assets/icon/import.png').resize(icon_size))
+        self.image['asterisk_add'] = ImageTk.PhotoImage(image=Image.open('./assets/icon/asterisk_add.png').resize(icon_size))
+        self.image['asterisk_import'] = ImageTk.PhotoImage(image=Image.open('./assets/icon/asterisk_import.png').resize(icon_size))
+        self.image['asterisk_del'] = ImageTk.PhotoImage(image=Image.open('./assets/icon/asterisk_del.png').resize(icon_size))
         self.side_button = {
             'asterisk_add'   : ttk.Button(master=self,image=self.image['asterisk_add'],bootstyle='secondary',command=self.add_asterisk_marks,padding=SZ_5),
+            'asterisk_import': ttk.Button(master=self,image=self.image['asterisk_import'],bootstyle='secondary',command=self.fill_asterisk_from_files,padding=SZ_5),
             'asterisk_del'   : ttk.Button(master=self,image=self.image['asterisk_del'],bootstyle='danger',command=self.del_asterisk_marks,padding=SZ_5),
-            'asterisk_import': ttk.Button(master=self,image=self.image['asterisk_import'],bootstyle='warning',command=self.fill_asterisk_from_files,padding=SZ_5),
         }
         # 小贴士
         self.tooltip = {
@@ -324,8 +324,8 @@ class VerticalOutputCommand(OutPutCommand):
             'exportpr'       : FreeToolTip(widget=self.buttons['exportpr'],bootstyle='primary-inverse',text='导出PR项目',screenzoom=self.sz,side='left'),
             'recode'         : FreeToolTip(widget=self.buttons['recode'],bootstyle='primary-inverse',text='导出视频',screenzoom=self.sz,side='left'),
             'asterisk_add'   : FreeToolTip(widget=self.side_button['asterisk_add'],bootstyle='secondary-inverse',text='添加语音合成标记',screenzoom=self.sz,side='left'),
-            'asterisk_add'   : FreeToolTip(widget=self.side_button['asterisk_del'],bootstyle='danger-inverse',text='移除星标语音',screenzoom=self.sz,side='left'),
-            'asterisk_import': FreeToolTip(widget=self.side_button['asterisk_import'],bootstyle='warning-inverse',text='批量导入外部语音文件',screenzoom=self.sz,side='left'),
+            'asterisk_import': FreeToolTip(widget=self.side_button['asterisk_import'],bootstyle='secondary-inverse',text='批量导入外部语音文件',screenzoom=self.sz,side='left'),
+            'asterisk_del'   : FreeToolTip(widget=self.side_button['asterisk_del'],bootstyle='danger-inverse',text='移除星标语音',screenzoom=self.sz,side='left'),
         }
         self.update_side_button()
         self.configure(borderwidth=SZ_5,bootstyle='light')
@@ -389,7 +389,14 @@ class VerticalOutputCommand(OutPutCommand):
         # 获取名字
         all_names = self.master.ref_chartab.get_names()
         name_dict = {value:value for value in ['（全部）']+all_names}
-        name_choice = selection_query(master=self.master,screenzoom=self.sz,prompt='目标角色（Name）是？',title=title,choice=name_dict)
+        name_choice = selection_query(
+            master  = self.master,
+            screenzoom  = self.sz,
+            prompt  = '目标角色（Name）是？',
+            title   = title,
+            choice  = name_dict,
+            init    = '（全部）'
+        )
         if name_choice == '（全部）':
             return None,None
         elif name_choice == None:
@@ -397,13 +404,20 @@ class VerticalOutputCommand(OutPutCommand):
         else:
             all_subtype = self.master.ref_chartab.get_subtype(name=name_choice)
             subtype_dict = {value:value for value in ['（全部）']+all_subtype}
-            subtype_choice = selection_query(master=self.master,screenzoom=self.sz,prompt='目标差分（Subtype）是？',title=title,choice=subtype_dict)
+            subtype_choice = selection_query(
+                master  = self.master,
+                screenzoom  = self.sz,
+                prompt  = '目标差分（Subtype）是？',
+                title   = title,
+                choice  = subtype_dict,
+                init    = '（全部）'
+            )
             if subtype_choice == '（全部）':
-                name_choice,None
+                return name_choice,None
             elif subtype_choice == None:
                 return
             else:
-                name_choice,subtype_choice
+                return name_choice,subtype_choice
     def del_asterisk_marks(self):
         # 获取名字
         try:

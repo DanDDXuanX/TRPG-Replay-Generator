@@ -10,6 +10,7 @@ import ttkbootstrap as ttk
 from ttkbootstrap.dialogs import Messagebox, Dialog
 from tkinter.filedialog import askdirectory
 from .GUI_Link import Link
+from .FilePaths import Filepath
 
 # 框
 class RelocateFile(ttk.Frame):
@@ -95,7 +96,7 @@ class RelocateFile(ttk.Frame):
                     if file in self.get_file_to_search('file_name'):
                         # 在所有文件名等于当前文件名的行，执行替换
                         for key in self.data[self.data['file_name'] == file].index:
-                            new_path = os.path.join(root, file).replace('\\','/')
+                            new_path = Filepath(os.path.join(root, file)).relative()
                             self.update_relocate_path(key,new_path)
             self.update_title()
         else:
