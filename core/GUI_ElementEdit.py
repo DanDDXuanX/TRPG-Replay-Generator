@@ -535,7 +535,6 @@ class MediaEdit(EditWindow):
         try:
             return self.medef_tool.value_parser(str(value))
         except SyntaxsError:
-            # TODO: 面对非法值的异常处理！
             Messagebox().show_error(message='无效的值：{}'.format(value),title='错误',parent=self)
             return value
     def update_preview(self, keywords: list):

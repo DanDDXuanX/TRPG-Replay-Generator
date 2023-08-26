@@ -160,6 +160,7 @@ class KeyValueDescribe(ttk.Frame):
         padding = (0,SZ_5,0,SZ_5)
         # 当前
         # 数值类型
+        self.dtype = value['type']
         if value['type'] == 'int':
             self.value = tk.IntVar(master=self,value=value['value'])
         elif value['type'] == 'float':
@@ -170,6 +171,7 @@ class KeyValueDescribe(ttk.Frame):
             self.value = tk.StringVar(master=self,value=value['value'])
         else:
             self.value = tk.StringVar(master=self,value=value['value'])
+            self.dtype = 'str'
         # 数值受到更改
         # self.value.trace_variable("w", self.config_content) # 检查是否发生了变更，如果变更了则刷新text
         self.callback = callback
@@ -180,7 +182,8 @@ class KeyValueDescribe(ttk.Frame):
         # 容器
         if value['style'] == 'entry':
             self.input = ttk.Entry(master=self,textvariable=self.value,width=30)
-            self.input.bind("<FocusOut>",self.config_content,'+')
+            # self.enable_trace()
+            # self.input.bind("<FocusOut>",self.config_content,'+')
         elif value['style'] == 'spine':
             self.input = ttk.Spinbox(master=self,textvariable=self.value,width=30,command=self.config_content)
         elif value['style'] == 'combox':
@@ -219,7 +222,25 @@ class KeyValueDescribe(ttk.Frame):
             except:
                 pass
     def get(self):
-        return self.value.get()
+        try:
+            return self.value.get()
+        except Exception:
+            this_key = self.key.cget('text')
+            Messagebox().show_error(
+                message=f'【{this_key}】填写的内容数据类型不合法！\n类型要求：{self.dtype}',
+                title='数据类型错误',
+                )
+            if self.dtype == 'int':
+                self.value.set(0)
+            elif self.dtype == 'float':
+                self.value.set(0.0)
+            elif self.dtype == 'bool':
+                self.value.set(False)
+            elif self.dtype == 'str':
+                self.value.set('')
+            else:
+                self.value.set('')
+            return self.value.get()
     def set(self,value):
         return self.value.set(value)
     def bind_button(self,dtype='picture-file',quote=True,related=True,convert=False):
@@ -248,7 +269,7 @@ class KeyValueDescribe(ttk.Frame):
         self.describe.configure(state='normal')
     def enable_trace(self):
         if type(self.input) is ttk.Entry:
-            self.input.unbind("<FocusOut>")
+            # self.input.unbind("<FocusOut>")
             self.input.bind("<Return>",self.clear_trace,'+')
             self.value.trace(mode='w',callback=self.show_trace)
         else:
