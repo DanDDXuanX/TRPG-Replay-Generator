@@ -1836,6 +1836,7 @@ class RplGenLog(Script):
                     method_dur = am_method['method_dur']
                     # 如果是多个立绘
                     if type(this_section['object']) is dict:
+                        anime_name = []
                         anime_objs = []
                         anime_poses = []
                         # 检查是否是立绘对象
@@ -1846,14 +1847,25 @@ class RplGenLog(Script):
                             elif type(self.medias[am_name]) not in [Animation,Dice,HitPoint,GroupedAnimation]:
                                 raise ParserError('NotPAnime',am_name,str(i+1))
                             else:
+                                anime_name.append(am_name)
                                 anime_objs.append(self.medias[am_name])
                                 anime_poses.append(self.medias[am_name].pos)
-                        # 生成组合立绘
-                        Auto_media_name = 'BIA_'+str(i+1)
-                        self.medias[Auto_media_name] = GroupedAnimation(subanimation_list=anime_objs,subanimation_current_pos=anime_poses)
-                        # 标记为下一次
-                        this_placed_animation = (Auto_media_name,method,method_dur,'(0,0)') # 因为place的应用是落后于设置的，因此需要保留c参数！
-                        last_placed_animation_section = i
+                        # 执行
+                        if len(anime_objs) == 1:
+                            # 检查立绘数量，是不是单个立绘
+                            this_placed_animation = (anime_name[0],method,method_dur,str(anime_poses[0]))
+                            last_placed_animation_section = i
+                        else:
+                            # 生成组合立绘
+                            Auto_media_name = 'BIA_'+str(i+1)
+                            self.medias[Auto_media_name] = GroupedAnimation(
+                                subanimation_list = anime_objs,
+                                subanimation_current_pos = anime_poses,
+                                subanimation_name = anime_name
+                                )
+                            # 标记为下一次
+                            this_placed_animation = (Auto_media_name,method,method_dur,'(0,0)') # 因为place的应用是落后于设置的，因此需要保留c参数！
+                            last_placed_animation_section = i
                     # 如果是单个立绘
                     elif this_section['object'] in self.medias.keys():
                         am_name = this_section['object']

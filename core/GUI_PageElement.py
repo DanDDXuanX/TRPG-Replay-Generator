@@ -504,7 +504,9 @@ class NewElementCommand(ttk.Frame):
                 if event.widget.cget('text') in ['背景音乐','BGM']:
                     filetype = 'BGM'
                 else:
-                    filetype = 'soundeff'                    
+                    filetype = 'soundeff'
+            elif self.pagetype == 'Animation':
+                filetype = 'animate'
             else:
                 filetype = 'picture'
             # 开始建立

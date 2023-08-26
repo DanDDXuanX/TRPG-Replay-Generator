@@ -19,7 +19,7 @@ KP立绘位置 = FreePos(0,480)
 伊可头像 = Animation(filepath='@/media/E.png',pos=(12,12),tick=1,loop=True,label_color='Magenta')
 KP头像 = Animation(filepath='@/media/K.png',pos=KP立绘位置,tick=1,loop=True,label_color='Forest')
 面露难色 = Animation(filepath='@/media/am2.png',pos=张安翔立绘位置,tick=1,loop=True,label_color='Purple')
-回放标记 = Animation(filepath='@/media/回放标记/回放标记_*.png',scale=2,pos=(700,100),tick=1,loop=True,label_color='Lavender')
+回放标记 = Animation(filepath='@/media/回放标记.apng',scale=2,pos=(700,100),tick=1,loop=True,label_color='Lavender')
 
 # Bubble
 全屏大字 = Bubble(filepath='None',Main_Text=大文本,Header_Text=None,pos=(0,0),mt_pos=(230,400),ht_pos=(0,0),ht_target='Name',align='center',line_distance=1.2,label_color='Lavender')

@@ -14,8 +14,8 @@ from .FreePos import Pos,FreePos
 from .Exceptions import MediaError, WarningPrint
 from .Formulas import sigmoid
 from .Utils import hex_2_rgba, rotate_surface, rotate_vector
+from .UtilityImage import UtilityImage
 from .Regexs import RE_rich
-
 # 主程序 replay_generator
 
 # 媒体对象，所有媒体类的基类
@@ -1670,9 +1670,15 @@ class Animation(MediaObj):
         self.tick:int = tick
         self.this:int = 0
     def load_image(self, scale: float):
-        # 立绘图像
-        self.length:int = len(self.filepath.list())
-        self.media:np.ndarray = np.frompyfunc(lambda x:self.zoom(pygame.image.load(x),scale=scale),1,1)(self.filepath.list())
+        # 是否是动态立绘
+        if self.filepath.type() in ['apng','gif']:
+            list_of_surf = UtilityImage(file_path=self.filepath).load_file()
+            self.length:int = len(list_of_surf)
+            self.media = np.frompyfunc(lambda x:self.zoom(x,scale=scale),1,1)(list_of_surf)
+        else:
+            # 立绘图像
+            self.length:int = len(self.filepath.list())
+            self.media:np.ndarray = np.frompyfunc(lambda x:self.zoom(pygame.image.load(x),scale=scale),1,1)(self.filepath.list())
         # 尺寸是第一张图的尺寸
         self.size:tuple = self.media[0].get_size()
         self.origin_size:tuple = pygame.image.load(self.filepath.list()[0]).get_size()
@@ -1802,6 +1808,7 @@ class GroupedAnimation(BuiltInAnimation):
             self,
             subanimation_list:list,
             subanimation_current_pos=None,
+            subanimation_name=None,
             label_color='Mango'
             ):
         # 新建空白画板，尺寸为全屏
@@ -1817,16 +1824,16 @@ class GroupedAnimation(BuiltInAnimation):
         else:
             # 越后面的位于越上层的图层
             # [zhang,drink_left] [(0,0),(0,0)] # list of Animation/str | list of tuple/str
-            for am_name,am_pos in zip(subanimation_list,subanimation_current_pos):
+            for idx,am_name,am_pos in zip(range(len(subanimation_list)),subanimation_list,subanimation_current_pos):
                 # 对象类型检查
                 if type(am_name) in [Animation,BuiltInAnimation,GroupedAnimation]:
                     subanimation:Animation = am_name
                 else:
-                    raise MediaError('Undef2GA',am_name)
+                    raise MediaError('Undef2GA',subanimation_name[idx])
                 # 检查立绘可用性
                 if subanimation.length > 1:
                     # 动态立绘是不可用的！
-                    raise MediaError('DA2GA',am_name)
+                    raise MediaError('DA2GA',subanimation_name[idx])
                 else:
                     if am_pos is None:
                         subanimation.display(canvas_surface)
