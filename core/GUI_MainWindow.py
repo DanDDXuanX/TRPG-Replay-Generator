@@ -311,20 +311,26 @@ class NavigateBar(ttk.Frame):
             'project'   : ImageTk.PhotoImage(name='project',image=Image.open('./assets/icon/project.png').resize(icon_size)),
             'script'    : ImageTk.PhotoImage(name='script', image=Image.open('./assets/icon/script.png').resize(icon_size)),
             'console'   : ImageTk.PhotoImage(name='console',image=Image.open('./assets/icon/console.png').resize(icon_size)),
+            'teleport'  : ImageTk.PhotoImage(name='teleport',image=Image.open('./assets/icon/teleport.png').resize(icon_size)),
         }
         # 顶部
-        self.titles = {
-            'logo'      : ttk.Button(master=self,image='logo',bootstyle='success',padding=(SZ_3,0,0,0)),
-            'set'       : ttk.Button(master=self,image ='setting',text=' 首选项',command=lambda :self.press_button('setting'),bootstyle='success',compound='left',padding=(SZ_3,0,0,0))
-        } 
-        # 分割线
-        self.separator = ttk.Separator(master=self,orient='horizontal',bootstyle='light')
-        # 按钮
         self.buttons = {
+            'logo'      : ttk.Button(master=self,image='logo',bootstyle='success',padding=(SZ_3,0,0,0)),
+            'setting'   : ttk.Button(master=self,image ='setting',text=' 首选项',command=lambda :self.press_button('setting'),bootstyle='success',compound='left',padding=(SZ_3,0,0,0)),
             'project'   : ttk.Button(master=self,image='project',text=' 项目',command=lambda :self.press_button('project'),bootstyle='success',compound='left',padding=(SZ_3,0,0,0)),
             'script'    : ttk.Button(master=self,image='script',text=' 脚本',command=lambda :self.press_button('script'),bootstyle='success',compound='left',padding=(SZ_3,0,0,0)),
             'console'   : ttk.Button(master=self,image='console',text=' 控制台',command=lambda :self.press_button('console'),bootstyle='success',compound='left',padding=(SZ_3,0,0,0)),
         }
+        # 分割线
+        self.separator = {
+            'sep1'      : ttk.Separator(master=self,orient='horizontal',bootstyle='light')
+        }
+        # 底部
+        self.lowerbuttons = {
+            'teleport'  : ttk.Button(master=self,image='teleport',text=' 传送门',command=lambda :self.press_button('teleport'),bootstyle='success',compound='left',padding=(SZ_3,0,0,0)),
+        }
+        # ypos
+        self.ypos = {'logo':0,'setting':70,'sep1':140,'project':150,'script':220,'console':290,'teleport':-60}
         # 高亮的线
         self.choice = ttk.Frame(master=self,bootstyle='primary')
         # 禁用
@@ -341,28 +347,32 @@ class NavigateBar(ttk.Frame):
             width = 160
         else:
             width = 60
-        width = int(width*self.sz)
-        distance = int(70 * self.sz)
-        # self.titles
-        for idx,key in enumerate(self.titles.keys()):
-            button = self.titles[key]
-            if len(button.place_info())==0:
-                button.place(width=width,height=width,x=0,y=idx*distance)
-            else:
-                button.place_configure(width=width)
-        # ----------
-        if len(self.separator.place_info()) == 0:
-            self.separator.place(width=width,x=0,y= (idx+1)*distance)
-        else:
-            self.separator.place_configure(width=width)
-        y_this = idx*distance + int(80 * self.sz)
+        height = int(60 * self.sz)
+        width = int(width *self.sz)
         # self.buttons
         for idx,key in enumerate(self.buttons.keys()):
             button = self.buttons[key]
+            position = int(self.ypos[key]*self.sz)
             if len(button.place_info())==0:
-                button.place(width=width,height=width,x=0, y= y_this + idx*distance)
+                button.place(width=width,height=height,x=0,y=position)
             else:
                 button.place_configure(width=width)
+        # 底部
+        for idx,key in enumerate(self.lowerbuttons.keys()):
+            button = self.lowerbuttons[key]
+            position = int(self.ypos[key]*self.sz)
+            if len(button.place_info())==0:
+                button.place(width=width,height=height,x=0, y=position, rely=1)
+            else:
+                button.place_configure(width=width)
+        # ----------
+        for idx,key in enumerate(self.separator.keys()):
+            separator = self.separator[key]
+            position = int(self.ypos[key]*self.sz)
+            if len(separator.place_info()) == 0:
+                separator.place(width=width,x=0,y=position)
+            else:
+                separator.place_configure(width=width)
         # 高亮的线
         self.press_button(self.master.show)
     # 点击按键的绑定事件：标注
@@ -371,13 +381,18 @@ class NavigateBar(ttk.Frame):
         if self.disabled and force==False:
             ToastNotification(title='禁用图形界面',message='核心程序正在运行中！在核心程序终止前，图形界面已被暂时的禁用。').show_toast()
             return
-        position = {'setting':70,'project':150,'script':220,'console':290}[button]*self.sz
+        position = int(self.ypos[button]*self.sz)
+        if position < 0:
+            anchor = 1
+        else:
+            anchor = 0
         SZ_5 = int(self.sz * 5)
         SZ_60 = int(self.sz * 60)
         if len(self.choice.place_info()) == 0:
-            self.choice.place(width=SZ_5,height=SZ_60,x=-SZ_5,y= position)
+            if position > 0:
+                self.choice.place(width=SZ_5,height=SZ_60,x=-SZ_5,y= position, rely=anchor)
         else:
-            self.choice.place_configure(y=position)
+            self.choice.place_configure(y=position, rely=anchor)
             self.master.view_show(button)
     # 禁用
     def disable_navigate(self):
