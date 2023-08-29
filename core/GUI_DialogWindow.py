@@ -31,9 +31,9 @@ class ColorChooserDialogZH(colorchooser.ColorChooserDialog):
 def color_chooser(master,text_obj:StringVar,quote:bool=False)->str:
     initcolor = rgba_str_2_hex(text_obj.get())
     if initcolor:
-        dialog_window = ColorChooserDialogZH(parent=master,title='选择颜色',initialcolor=initcolor)
+        dialog_window = ColorChooserDialogZH(parent=master, initialcolor=initcolor)
     else:
-        dialog_window = ColorChooserDialogZH(parent=master,title='选择颜色')
+        dialog_window = ColorChooserDialogZH(parent=master)
     # dialog_window = colorchooser.ColorChooserDialog(parent=master,title='选择颜色')
     dialog_window.show()
     color = dialog_window.result

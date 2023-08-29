@@ -9,10 +9,11 @@ import tkinter as tk
 import ttkbootstrap as ttk
 from pathlib import Path
 from ttkbootstrap.toast import ToastNotification
-from ttkbootstrap.dialogs import Messagebox, MessageCatalog
+from ttkbootstrap.dialogs import Messagebox
 from PIL import Image, ImageTk
 
-from .ProjConfig import Preference, preference
+from .ProjConfig import preference
+from .GUI_Language import Translate
 from .GUI_Link import Link
 from .Utils import EDITION
 # 项目视图
@@ -33,6 +34,8 @@ class RplGenStudioMainWindow(ttk.Window):
         # home
         self.home_dir = Path(os.path.expanduser("~"))
         self.load_recent_project()
+        # 语言项目
+        Translate.set_language(preference.lang)
         # 关闭
         self.protocol('WM_DELETE_WINDOW',self.on_close)
         # 主题配置
@@ -316,7 +319,7 @@ class NavigateBar(ttk.Frame):
         # 顶部
         self.buttons = {
             'logo'      : ttk.Button(master=self,image='logo',bootstyle='success',padding=(SZ_3,0,0,0)),
-            'setting'   : ttk.Button(master=self,image ='setting',text=' 首选项',command=lambda :self.press_button('setting'),bootstyle='success',compound='left',padding=(SZ_3,0,0,0)),
+            'setting'   : ttk.Button(master=self,image='setting',text=' 首选项',command=lambda :self.press_button('setting'),bootstyle='success',compound='left',padding=(SZ_3,0,0,0)),
             'project'   : ttk.Button(master=self,image='project',text=' 项目',command=lambda :self.press_button('project'),bootstyle='success',compound='left',padding=(SZ_3,0,0,0)),
             'script'    : ttk.Button(master=self,image='script',text=' 脚本',command=lambda :self.press_button('script'),bootstyle='success',compound='left',padding=(SZ_3,0,0,0)),
             'console'   : ttk.Button(master=self,image='console',text=' 控制台',command=lambda :self.press_button('console'),bootstyle='success',compound='left',padding=(SZ_3,0,0,0)),
