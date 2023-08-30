@@ -24,8 +24,13 @@ class Translate:
             ('Advanced','高级'),
             ('Themed','主题'),
             ('Standard','标准'),
-            ('Color Chooser','选择颜色')
+            ('Color Chooser','选择颜色'),
+            ('Warning','警告'),
+            ('Error','错误'),
         ]
+    }
+    dictionary = {
+        
     }
     lang = 'zh'
     @staticmethod
@@ -44,10 +49,13 @@ class Translate:
             try:
                 return Translate.dictionary[Translate.lang][src]
             except KeyError:
-                return src
+                return MessageCatalog.translate(src)
         else:
             return src
     @staticmethod
     def init_lang(locale:str):
         for pair in Translate.locale_dictionary[locale]:
             MessageCatalog.set_many(locale, *pair)
+
+def tr(src):
+    return Translate.translate(src)
