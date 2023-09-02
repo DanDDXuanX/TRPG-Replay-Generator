@@ -6,9 +6,10 @@
 
 import re
 import numpy as np
-from .GUI_Util import FluentFrame
+from pinyin import pinyin
 from ttkbootstrap.dialogs import Messagebox
 
+from .GUI_Util import FluentFrame
 from .GUI_SectionElement import MDFSectionElement, CTBSectionElement, RGLSectionElement
 from .ScriptParser import MediaDef, CharTable, RplGenLog
 
@@ -262,7 +263,10 @@ class Container(FluentFrame):
     def sort_element(self,by='name'):
         # 执行排序
         if by == 'name':
-            self.element_keys.sort()
+            try:
+                self.element_keys = sorted(self.element_keys, key=lambda x: pinyin.get(x))
+            except Exception:
+                self.element_keys.sort()
         else:
             key_value = {}
             for key,value in self.element.items():
