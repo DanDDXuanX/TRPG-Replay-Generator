@@ -412,7 +412,7 @@ class TextSeparator(ttk.Frame):
         self.buttons.clear()
 # 纹理背景
 class Texture(tk.Frame):
-    def __init__(self,master,screenzoom,file='./assets/icon/texture4.png'):
+    def __init__(self,master,screenzoom,file='./assets/texture/texture4.png'):
         super().__init__(master=master,borderwidth=0)
         # Label对象
         self.canvas = ttk.Label(master=self,padding=0)

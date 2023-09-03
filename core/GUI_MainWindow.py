@@ -17,7 +17,7 @@ from .GUI_Language import Translate
 from .GUI_Link import Link
 from .Utils import EDITION
 # 项目视图
-from .GUI_View import EmptyView, ProjectView, ConsoleView, ScriptView, PreferenceView
+from .GUI_View import EmptyView, ProjectView, ConsoleView, ScriptView, PreferenceView, PortalView
 
 class RplGenStudioMainWindow(ttk.Window):
     def __init__(
@@ -54,7 +54,8 @@ class RplGenStudioMainWindow(ttk.Window):
             'project': EmptyView(master=self,screenzoom=self.sz),
             'console': ConsoleView(master=self,screenzoom=self.sz),
             'script' : ScriptView( master=self,screenzoom=self.sz),
-            'setting': PreferenceView(master=self,screenzoom=self.sz)
+            'setting': PreferenceView(master=self,screenzoom=self.sz),
+            'portal' : PortalView(master=self,screenzoom=self.sz)
         }
         self.view_show('project')
     # 初始化字体
@@ -314,7 +315,7 @@ class NavigateBar(ttk.Frame):
             'project'   : ImageTk.PhotoImage(name='project',image=Image.open('./assets/icon/project.png').resize(icon_size)),
             'script'    : ImageTk.PhotoImage(name='script', image=Image.open('./assets/icon/script.png').resize(icon_size)),
             'console'   : ImageTk.PhotoImage(name='console',image=Image.open('./assets/icon/console.png').resize(icon_size)),
-            'teleport'  : ImageTk.PhotoImage(name='teleport',image=Image.open('./assets/icon/teleport.png').resize(icon_size)),
+            'portal'  : ImageTk.PhotoImage(name='portal',image=Image.open('./assets/icon/portal.png').resize(icon_size)),
         }
         # 顶部
         self.buttons = {
@@ -330,10 +331,10 @@ class NavigateBar(ttk.Frame):
         }
         # 底部
         self.lowerbuttons = {
-            'teleport'  : ttk.Button(master=self,image='teleport',text=' 传送门',command=lambda :self.press_button('teleport'),bootstyle='success',compound='left',padding=(SZ_3,0,0,0)),
+            'portal'  : ttk.Button(master=self,image='portal',text=' 传送门',command=lambda :self.press_button('portal'),bootstyle='success',compound='left',padding=(SZ_3,0,0,0)),
         }
         # ypos
-        self.ypos = {'logo':0,'setting':70,'sep1':140,'project':150,'script':220,'console':290,'teleport':-60}
+        self.ypos = {'logo':0,'setting':70,'sep1':140,'project':150,'script':220,'console':290,'portal':-60}
         # 高亮的线
         self.choice = ttk.Frame(master=self,bootstyle='primary')
         # 禁用

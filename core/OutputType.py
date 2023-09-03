@@ -559,7 +559,7 @@ class PreviewDisplay(OutputMediaType):
         # 主要形状
         main_canvas = pygame.Surface((self.config.Width,self.config.Height))
         # 纹理
-        texture = pygame.image.load('./assets/icon/texture2.png')
+        texture = pygame.image.load('./assets/texture/texture2.png')
         for x in range(0, self.config.Width, texture.get_width()):
             for y in range(0, self.config.Height, texture.get_width()):
                 main_canvas.blit(texture, (x, y))

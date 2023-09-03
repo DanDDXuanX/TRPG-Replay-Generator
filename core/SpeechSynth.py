@@ -154,7 +154,7 @@ class SpeechSynthesizer:
                     if tx_method['method_dur'] == 'default':
                         tx_method['method_dur'] = tx_dur_default
                     # 如果是非法的
-                    if tx_method['method'] not in ['all','w2w','s2s','l2l','run']:
+                    if tx_method['method'] not in ['all','w2w','l2l','run']:
                         raise ParserError('UnrecPBbTxM',tx_method['method'],str(i+1))
                     # 更新单位小节时长
                     this_TTS_engine.tx_method_specify(tx_method)

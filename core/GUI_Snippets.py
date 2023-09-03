@@ -97,7 +97,6 @@ class RGLSnippets(CodeSnippet):
         "tx_met":{
             "all"   : ["全部","<all=>",5],
             "w2w"   : ["逐字","<w2w=>",5],
-            "s2s"   : ["逐句","<s2s=>",5],
             "l2l"   : ["逐行","<l2l=>",5],
             "run"   : ["滚动","<run=>",5],
         },
@@ -239,7 +238,7 @@ class RGLSnippets(CodeSnippet):
             self.init_snippets_options('ab_met')
         elif re.fullmatch("(.+)<(\w+)=",text_upstream) and text_downstream[0]=='>':
             method = re.fullmatch("(.+)<(\w+)=",text_upstream).group(2)
-            if method in ['w2w','l2l','s2s','all']:
+            if method in ['w2w','l2l','all']:
                 self.init_snippets_options('tx_dur')
             else:
                 self.init_snippets_options('am_dur')

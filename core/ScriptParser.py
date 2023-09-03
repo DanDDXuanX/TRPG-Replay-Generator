@@ -1245,10 +1245,8 @@ class RplGenLog(Script):
                 return idx_uf(UF_limit_content_length(word_count_timeline).astype(int))
             else:
                 return idx_uf(UF_limit_content_length((np.arange(0,this_duration,1)//(tx_method['method_dur']*line_limit)+1)*line_limit))
-        # 逐句显示
-        elif tx_method['method'] == 's2s':
-            # TODO
-            pass
+        # 逐句显示 s2s
+        # 放弃了
         # 聊天窗滚动
         elif tx_method['method'] == 'run':
             # return [-1 ~ -0<因为不能是0，所以用-1e-10替代>]，仅在ChatWindows中是有效的，其余等价于 <all=0>
@@ -1936,7 +1934,7 @@ class RplGenLog(Script):
                         if tx_method['method_dur'] == 'default':
                             tx_method['method_dur'] = self.dynamic['tx_dur_default']
                         # 如果是非法的
-                        if tx_method['method'] not in ['all','w2w','s2s','l2l','run']:
+                        if tx_method['method'] not in ['all','w2w','l2l','run']:
                             raise ParserError('UnrecPBbTxM',tx_method['method'],str(i+1))
                         else:
                             # 如果类型是聊天窗
