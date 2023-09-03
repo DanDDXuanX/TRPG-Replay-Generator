@@ -3065,7 +3065,8 @@ ABMethod = {
         "静止"          :'static',
         "通过"          :'pass',
         "跳起"          :'leap',
-        "环形"          :'circular'
+        "环形"          :'circular',
+        "震动"          :'shake',
     },
     "方向":{
         "上"            :'up',

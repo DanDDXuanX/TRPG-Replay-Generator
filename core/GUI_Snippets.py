@@ -115,7 +115,8 @@ class RGLSnippets(CodeSnippet):
             "cross"     : ["交叉溶解","<cross=>",7],
             "black"     : ["淡入淡出","<black=>",7],
             "pass"      : ["左进右出","<black_pass_left_minor=>",23],
-            "leap"      : ["上进上出","<black_leap_down_minor=>",23]
+            "leap"      : ["上进上出","<black_leap_down_minor=>",23],
+            "shake"     : ["震动*"   , "<shake_in_minor=45>",19],
         },
     }
     def __init__(self, master, mediadef:MediaDef, chartab:CharTable):

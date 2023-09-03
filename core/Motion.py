@@ -47,6 +47,8 @@ class MotionMethod:
                 self.method_args['alpha'] = key
             elif key in ['pass','leap','static','circular']:
                 self.method_args['motion'] = key
+            elif key.startswith('shake'):
+                self.method_args['motion'] = key
             elif key in ['up','down','left','right']:
                 self.method_args['direction'] = self.direction_dic[key]
             elif key in ['major','minor','entire']:
@@ -120,10 +122,33 @@ class MotionMethod:
                 .transpose().ravel())[0:this_duration]
             D1 = np.sin(theta_timeline)*scale_value
             D2 = -np.cos(theta_timeline)*scale_value
+        # 震动
+        elif self.method_args['motion'].startswith('shake'):
+            circle_digit = self.method_args['motion'][5:]
+            D1 = np.hstack([self.shake_eff(scale_value*np.sin(theta),method_dur,circle_digit,cutin),
+                            np.zeros(this_duration-2*method_dur),
+                            self.shake_eff(scale_value*np.sin(theta),method_dur,circle_digit,cutout)])
+            D2 = np.hstack([self.shake_eff(scale_value*np.cos(theta),method_dur,circle_digit,cutin),
+                            np.zeros(this_duration-2*method_dur),
+                            self.shake_eff(scale_value*np.cos(theta),method_dur,circle_digit,cutout)])
         else:
             return np.repeat('NA',this_duration)
         pos_timeline = concat_xy(D1,D2)
         return pos_timeline
+    # 震动的函数
+    def shake_eff(self,scale:int,duration:int,circle:str,enable:bool):
+        if circle == '':
+            f = 1
+        else:
+            try:
+                f = int(circle)/10
+            except ValueError:
+                f = 1
+        if enable:
+            X = np.linspace(0,10,duration)
+            return scale * np.exp(-0.5*X) * np.sin(f * 2*np.pi*X)
+        else:
+            return np.zeros(duration)
     # 动态(尺度,持续事件,平衡位置,切入切出,启用)
     def dynamic(self,scale:int,duration:int,balance:int,cut:int,enable:bool)->np.ndarray:
         if enable == True:
