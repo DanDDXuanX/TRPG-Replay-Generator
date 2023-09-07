@@ -312,10 +312,13 @@ class VerticalOutputCommand(OutPutCommand):
         self.image['asterisk_add'] = ImageTk.PhotoImage(image=Image.open('./assets/icon/asterisk_add.png').resize(icon_size))
         self.image['asterisk_import'] = ImageTk.PhotoImage(image=Image.open('./assets/icon/asterisk_import.png').resize(icon_size))
         self.image['asterisk_del'] = ImageTk.PhotoImage(image=Image.open('./assets/icon/asterisk_del.png').resize(icon_size))
+        self.image['intel_import'] = ImageTk.PhotoImage(image=Image.open('./assets/icon/intel_import.png').resize(icon_size))
         self.side_button = {
             'asterisk_add'   : ttk.Button(master=self,image=self.image['asterisk_add'],bootstyle='secondary',command=self.add_asterisk_marks,padding=SZ_5),
             'asterisk_import': ttk.Button(master=self,image=self.image['asterisk_import'],bootstyle='secondary',command=self.fill_asterisk_from_files,padding=SZ_5),
             'asterisk_del'   : ttk.Button(master=self,image=self.image['asterisk_del'],bootstyle='danger',command=self.del_asterisk_marks,padding=SZ_5),
+            'sep1'           : ttk.Separator(master=self), # --------------------------
+            'intel_import'   : ttk.Button(master=self,image=self.image['intel_import'],bootstyle='secondary',command=self.rgl_intel_import,padding=SZ_5),
         }
         # 小贴士
         self.tooltip = {
@@ -326,6 +329,7 @@ class VerticalOutputCommand(OutPutCommand):
             'asterisk_add'   : FreeToolTip(widget=self.side_button['asterisk_add'],bootstyle='secondary-inverse',text='添加语音合成标记',screenzoom=self.sz,side='left'),
             'asterisk_import': FreeToolTip(widget=self.side_button['asterisk_import'],bootstyle='secondary-inverse',text='批量导入外部语音文件',screenzoom=self.sz,side='left'),
             'asterisk_del'   : FreeToolTip(widget=self.side_button['asterisk_del'],bootstyle='danger-inverse',text='移除星标语音',screenzoom=self.sz,side='left'),
+            'intel_import'   : FreeToolTip(widget=self.side_button['intel_import'],bootstyle='secondary-inverse',text='智能导入剧本',screenzoom=self.sz,side='left'),
         }
         self.update_side_button()
         self.configure(borderwidth=SZ_5,bootstyle='light')
@@ -432,6 +436,9 @@ class VerticalOutputCommand(OutPutCommand):
             self.codeview.fill_asterisk_from_files(name=name_choice,subtype=subtype_choice)
         except TypeError: # cannot unpack non-iterable NoneType object
             return
+    # 智能导入
+    def rgl_intel_import(self):
+        self.codeview.rgl_intel_import()
 # 新建指令
 class NewElementCommand(ttk.Frame):
     struct = NewElement

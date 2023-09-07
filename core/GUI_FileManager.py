@@ -548,7 +548,7 @@ class FileCollapsing(ttk.Frame):
     def delete_item(self,keyword)->bool:
         # 确定真的要这么做吗？
         choice = Messagebox().show_question(
-            message='确定要删除这个项目？\n这项删除将无法复原！',
+            message='确定要删除这个条目？\n这项删除将无法复原！',
             title='警告！',
             buttons=["取消:primary","确定:danger"]
             )

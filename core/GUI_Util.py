@@ -479,3 +479,16 @@ def ask_rename_boardcast(master, old_name, new_name, otype):
         return True
     else:
         return False
+# 清理发言文本
+def clear_speech(text):
+    if text == '':
+        return ' '
+    if text[-1] == '\n':
+        text = text[:-1]
+    if '\n' in text:
+        text = text.replace('\n','#')
+    if '"' in text:
+        text = text.replace('"','')
+    if '\\' in text:
+        text = text.replace('\\','')
+    return text

@@ -131,7 +131,12 @@ class StoryImporter:
         # 如果指定了解析正则结构，则重载类变量
         if regex_specify:
             self.parse_struct = regex_specify
-    def load(self,text:str):
+    def load(self,text:str,max_=0):
+        # 行数上限
+        if max_:
+            self.max_line = max_
+        else:
+            self.max_line = np.inf
         # 进度条
         self.terminate = False
         self.progress = 0.0
@@ -146,6 +151,9 @@ class StoryImporter:
             # 解析，或者pass
             self.parse(line=line)
             self.progress = idx/total
+            # 判断是否该提前终止了
+            if self.is_exceed():
+                break
         # 结束遍历之后，最后记录一次
         self.recode()
         self.progress = 1.0
@@ -199,6 +207,11 @@ class StoryImporter:
         }
         # 序号+1
         self.line_index += 1
+    def is_exceed(self):
+        if self.line_index > self.max_line:
+            return True
+        else:
+            return False
     # 以list形式返回所有的ID
     def get_charactor_ID(self)->list:
         if len(self.results) == 0:

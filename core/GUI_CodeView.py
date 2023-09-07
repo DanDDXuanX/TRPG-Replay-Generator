@@ -9,14 +9,15 @@ import ttkbootstrap as ttk
 from ttkbootstrap.dialogs import Messagebox
 from chlorophyll import CodeView
 from .ProjConfig import preference
-from .ProjConfig import Config
 from .RplGenLogLexer import RplGenLogLexer
 from .ScriptParser import RplGenLog, CharTable, MediaDef
+from .StoryImporter import StoryImporter
 from .Medias import Audio
 from .GUI_Link import Link
 from .GUI_Snippets import RGLSnippets, RGLRightClick
 from .GUI_PreviewCanvas import RGLPreviewCanvas
-from .GUI_DialogWindow import browse_multi_file
+from .GUI_DialogWindow import browse_multi_file, browse_file
+from .GUI_Util import clear_speech
 
 # 查找且替换
 class SearchReplaceBar(ttk.Frame):
@@ -673,3 +674,58 @@ class RGLCodeViewFrame(ttk.Frame):
             message += f'目标角色：{target}\n选中的文件数量：{num_of_files}\n'
             message += f'目标星标数量：{filter_asterisk}\n填充的音标数量：{fill_asterisk}'
             Messagebox().show_info(message=message,title='批量导入语音',parent=self)
+    # 智能导入
+    def rgl_intel_import(self):
+        target_file = browse_file(master=self, text_obj=tk.StringVar(),method='file',filetype='text')
+        # 1. 载入导入的文本
+        try:
+            load_text = open(target_file,'r',encoding='utf-8').read()
+        except UnicodeEncodeError:
+            try:
+                load_text = open(target_file,'r',encoding='gbk').read()
+            except Exception as E:
+                Messagebox().show_error('无法解读导入文件的编码！\n请确定导入的是文本文件？',title='格式错误',parent=self)
+                return False
+        except FileNotFoundError:
+            Messagebox().show_error('找不到导入的剧本文件，请检查文件名！',title='找不到文件',parent=self)
+            return False
+        # 2. 开始解析
+        story = StoryImporter()
+        story.load(text=load_text,max_=300) # 限制，在单个log文件中最多导入300句
+        # 3. 检查是否解析成功
+        if story.log_mode is None:
+            Messagebox().show_error('当前着色器无法解析导入文本的结构！',title='格式错误',parent=self)
+            return False
+        # 4. 获取角色
+        charinfo = story.get_charinfo()
+        # 5. 去除非法的角色
+        charinfo = charinfo[-(charinfo['name'].duplicated() + (charinfo['name'] == '') + (charinfo['name'] == '_dup') + (charinfo.index==''))].copy()
+        # 6. 注入log
+        log_results = story.results
+        log_results = log_results[log_results['ID'].map(lambda x:x in charinfo.index)].copy()
+        line_index = len(self.content.struct)
+        for key,value in log_results.iterrows():
+            self.content.struct[str(line_index)] = {
+                "type": "dialog",
+                "charactor_set": {
+                    "0": {
+                        "name": charinfo['name'][value['ID']],
+                        "subtype": "default",
+                        "alpha": None
+                    }
+                },
+                "ab_method": {
+                    "method": "default",
+                    "method_dur": "default"
+                },
+                "content": clear_speech(value['speech']),
+                "tx_method": {
+                    "method": "default",
+                    "method_dur": "default"
+                },
+                "sound_set": {}
+            }
+            print(self.content.struct[str(line_index)])
+            line_index += 1
+        self.update_codeview(None)
+        # 7. 添加角色 # TODO

@@ -16,7 +16,7 @@ from PIL import Image, ImageTk
 from .Exceptions import ParserError
 from .StoryImporter import StoryImporter
 from .ScriptParser import CharTable, RplGenLog
-from .GUI_Util import KeyValueDescribe
+from .GUI_Util import KeyValueDescribe, clear_speech
 from .GUI_TableStruct import ProjectTableStruct
 
 class CreateProject(ttk.Frame):
@@ -198,7 +198,7 @@ class CreateIntelProject(CreateProject):
         # 绑定功能
         self.elements['proj_cover'].bind_button(dtype='picture-file',quote=False,related=False)
         self.elements['save_pos'].bind_button(dtype='dir',quote=False,related=False)
-        self.elements['textfile'].bind_button(dtype='logfile-file',quote=False,related=False)
+        self.elements['textfile'].bind_button(dtype='text-file',quote=False,related=False)
         self.elements['section_break'].input.configure(values=[0,100,300,1000,3000],state='readonly')
         self.elements['template'].input.bind('<<ComboboxSelected>>', self.template_selected,'+')
         # 从预设文件夹获取
@@ -354,7 +354,7 @@ class CreateIntelProject(CreateProject):
         log_results.index = np.arange(len(log_results)) # 重设序号
         log_results['rgl'] = bulid_rgl(
             log_results['ID'].map(charinfo['name']),
-            log_results['speech'].map(self.clear_speeches)
+            log_results['speech'].map(clear_speech)
             )
         # 10. 生成角色表
         chartable = pd.DataFrame(index=charinfo.index,columns=CharTable.table_col)
@@ -423,18 +423,6 @@ class CreateIntelProject(CreateProject):
         except:
             Messagebox().show_error(title='错误',message=f'无法保存文件到：\n{save_path}')
             return False
-    def clear_speeches(self,text):
-        if text == '':
-            return ' '
-        if text[-1] == '\n':
-            text = text[:-1]
-        if '\n' in text:
-            text = text.replace('\n','#')
-        if '"' in text:
-            text = text.replace('"','')
-        if '\\' in text:
-            text = text.replace('\\','')
-        return text
     def update_progress(self):
         # 如果子进程还活着
         if self.thread.is_alive():
