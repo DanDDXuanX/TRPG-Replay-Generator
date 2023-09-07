@@ -725,7 +725,6 @@ class RGLCodeViewFrame(ttk.Frame):
                 },
                 "sound_set": {}
             }
-            print(self.content.struct[str(line_index)])
             line_index += 1
         self.update_codeview(None)
         # 7. 添加角色 # TODO

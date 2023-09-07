@@ -165,7 +165,6 @@ class StoryImporter:
             regex = self.parse_struct[mode]['new']['regex']
             if re.match(regex,line):
                 self.log_mode = mode
-                print(self.log_mode)
                 return mode
         return None
     def parse(self,line:str):
