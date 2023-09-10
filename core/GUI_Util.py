@@ -317,7 +317,13 @@ class DetailedKeyValueDescribe(KeyValueDescribe):
         self.describe.pack(fill='none',side='left',padx=SZ_5)
         # 边缘线
         self.sideshow.place(x=0,y=0,width=SZ_2,relheight=1)
-
+# 小标签，用于传送门的最小单位
+class StickyLabel(ttk.Frame):
+    def __init__(self,master,screenzoom:float,title:str='',icon:str='',describe:str='',url:str=''):
+        self.sz = screenzoom
+        super().__init__(master=master, style='Sticky.TFrame')
+        SZ_5 = int(self.sz * 5)
+        padding = (0,SZ_5,0,SZ_5)
 # 文本分割线，包含若干个KVD，可以折叠
 class TextSeparator(ttk.Frame):
     def __init__(self,master,screenzoom:float,describe:dict,pady:int=5):
@@ -409,7 +415,33 @@ class TextSeparator(ttk.Frame):
     def remove_button(self):
         for button in self.buttons:
             button.destroy()
-        self.buttons.clear()
+        self.buttons.clear()   
+# 小标签分割线，包含若干个StickyLabel
+class StickyLabelSeperator(TextSeparator):
+    def add_element(self, key: str) -> StickyLabel:
+        this_slabel = StickyLabel(master=self.content_frame,screenzoom=self.sz)
+        self.content_index.append(key)
+        self.content[key] = this_slabel
+        return this_slabel
+    def update_elements(self):
+        SZ_80 = int(self.sz * 80)
+        SZ_5 = int(self.sz * 5)
+        SZ_10 = 2 * SZ_5
+        SZ_90 = SZ_80 + SZ_10
+        # 总列数
+        ncol = 3
+        for idx,key in enumerate(self.content):
+            col = idx%ncol
+            row = idx//ncol
+            element_this:StickyLabel = self.content[key]
+            element_this.place(
+                x=(SZ_5*col),relx=(1/ncol*col),
+                width=-SZ_5,relwidth=(1/ncol),
+                y=SZ_90*row+SZ_10,
+                height=SZ_80
+                )
+        # 刷新高度
+        self.content_frame.configure(height=SZ_90*(row+1))
 # 纹理背景
 class Texture(tk.Frame):
     def __init__(self,master,screenzoom,file='./assets/texture/texture4.png'):

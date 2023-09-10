@@ -11,7 +11,7 @@ from ttkbootstrap.dialogs import Messagebox
 from .GUI_FileManager import FileManager
 from .GUI_TabPage import PageFrame
 from .GUI_Terminal import Terminal
-from .GUI_TableEdit import ScriptExecuter, PreferenceTable, ResetConfirm
+from .GUI_TableEdit import ScriptExecuter, PreferenceTable, ResetConfirm, PortalTable
 from .GUI_Util import Texture
 from .GUI_DialogWindow import browse_file
 from .GUI_CustomDialog import new_project
@@ -172,7 +172,7 @@ class PortalView(ttk.Frame):
         # 子原件
         self.texture = Texture(master=self, screenzoom=self.sz, file='./assets/texture/texture6.png')
         # self.content = PreferenceTable(master=self,screenzoom=self.sz)
-        self.content = ttk.Frame(master=self)
+        self.content = PortalTable(master=self, screenzoom=self.sz)
         # 更新
         self.update_item()
     def update_item(self):

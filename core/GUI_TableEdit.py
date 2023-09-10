@@ -6,9 +6,9 @@ from ttkbootstrap.toast import ToastNotification
 from PIL import Image, ImageTk
 from .ProjConfig import preference, Preference
 from .GUI_PageElement import OutPutCommand
-from .GUI_Util import TextSeparator, FluentFrame
+from .GUI_Util import TextSeparator, FluentFrame, StickyLabelSeperator
 from .GUI_Link import Link
-from .GUI_TableStruct import PreferenceTableStruct, ExecuteTableStruct
+from .GUI_TableStruct import PreferenceTableStruct, ExecuteTableStruct, TestPortalStruct
 from .GUI_TableStruct import language, True_False, theme, progressbar, import_mode, dice_mode, askyesno, colorschemes
 
 class OutPutCommandAtScriptExecuter(OutPutCommand):
@@ -195,3 +195,43 @@ class PreferenceTable(TableEdit):
         toast = ToastNotification(title=title,message=message,duration=3000)
         toast.show_toast()
         toast.toplevel.lift()
+
+# 传送门
+class PortalTable(TableEdit):
+    TableStruct = TestPortalStruct
+    def __init__(self,master,screenzoom)->None:
+        # 继承
+        super().__init__(master=master,screenzoom=screenzoom,title='传送门',pady=10)
+        # 初始化
+        self.update_from_tablestruct()
+        self.update_item()
+    def update_item(self):
+        SZ_5 = int(self.sz * self.pady)
+        SZ_10 = 2 * SZ_5
+        self.title.pack(fill='x',side='top')
+        self.options.pack(fill='both',expand=True,side='top')
+        self.outputs.pack(fill='x',side='top')
+        # 滚动窗项目下
+        for key in self.seperator:
+            item:TextSeparator = self.seperator[key]
+            item.pack(side='top',anchor='n',fill='x',pady=(0,SZ_5),padx=(0,SZ_5))
+    def update_from_tablestruct(self):
+        # 从EditWindow.update_from_section方法中简化而来的
+        self.table_struct:dict = self.TableStruct
+        for sep in self.table_struct:
+            this_sep:dict = self.table_struct[sep]
+            if this_sep['Command'] is None:
+                self.seperator[sep] = StickyLabelSeperator(
+                    master=self.options,
+                    screenzoom=self.sz,
+                    describe=this_sep['Text'],
+                    pady=self.pady
+                )
+                for key in this_sep['Content']:
+                    this_slabel:dict = this_sep['Content'][key]
+                    # 新建kvd
+                    self.elements[key] = self.seperator[sep].add_element(key=key)
+                # 更新显示
+                self.seperator[sep].update_elements()
+        # 绑定功能
+        self.update_element_prop()

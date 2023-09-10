@@ -512,7 +512,7 @@ EditTableStruct = {
                         "valuekey": "edge_width",
                         "vitem": "spine",
                         "vtype": "int",
-                        "default": "1"
+                        "default": 1
                     },
                     "projection": {
                         "ktext": "投影方向：",
@@ -522,7 +522,7 @@ EditTableStruct = {
                         "valuekey": "projection",
                         "vitem": "combox",
                         "vtype": "str",
-                        "default": "C"
+                        "default": "'C'"
                     }
                 }
             },
@@ -2851,6 +2851,68 @@ ProjectTableStruct = {
     }
 }
 
+TestPortalStruct = {
+    "TestSep":{
+        "Text": "测试",
+        "Command":None,
+        "Content":{
+            "1": {
+                "title": "测试标题",
+                "icon":"测试图标",
+                "describe": "测试简介",
+                "url": "测试链接",
+            },
+            "2": {
+                "title": "测试标题",
+                "icon":"测试图标",
+                "describe": "测试简介",
+                "url": "测试链接",
+            },
+            "3": {
+                "title": "测试标题",
+                "icon":"测试图标",
+                "describe": "测试简介",
+                "url": "测试链接",
+            },
+            "4": {
+                "title": "测试标题",
+                "icon":"测试图标",
+                "describe": "测试简介",
+                "url": "测试链接",
+            },
+        }
+    },
+    "TestSep2":{
+        "Text": "测试2",
+        "Command":None,
+        "Content":{
+            "1": {
+                "title": "测试标题",
+                "icon":"测试图标",
+                "describe": "测试简介",
+                "url": "测试链接",
+            },
+            "2": {
+                "title": "测试标题",
+                "icon":"测试图标",
+                "describe": "测试简介",
+                "url": "测试链接",
+            },
+            "3": {
+                "title": "测试标题",
+                "icon":"测试图标",
+                "describe": "测试简介",
+                "url": "测试链接",
+            },
+            "4": {
+                "title": "测试标题",
+                "icon":"测试图标",
+                "describe": "测试简介",
+                "url": "测试链接",
+            },
+        }
+    },
+}
 # 给Combobox使用的key，value映射关系
 label_colors = {
     "紫罗兰紫"  :"'Violet'",

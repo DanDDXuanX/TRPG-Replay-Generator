@@ -591,7 +591,7 @@ class RGLPreviewCanvas(PreviewCanvas):
         super().__init__(master, screenzoom, mediadef)
     def get_background(self, line_index:str)->Background:
         index_this = int(line_index)
-        while index_this > 0:
+        while index_this >= 0:
             section_this = self.rplgenlog.struct[str(index_this)]
             if section_this['type'] == 'background':
                 return self.get_media(section_this['object'])
