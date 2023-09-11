@@ -230,7 +230,13 @@ class PortalTable(TableEdit):
                 for key in this_sep['Content']:
                     this_slabel:dict = this_sep['Content'][key]
                     # 新建kvd
-                    self.elements[key] = self.seperator[sep].add_element(key=key)
+                    self.elements[key] = self.seperator[sep].add_element(
+                        key=key,
+                        icon=this_slabel['icon'],
+                        title=this_slabel['title'],
+                        describe=this_slabel['describe'],
+                        url=this_slabel['url']
+                        )
                 # 更新显示
                 self.seperator[sep].update_elements()
         # 绑定功能

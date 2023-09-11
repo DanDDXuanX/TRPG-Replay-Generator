@@ -154,11 +154,11 @@ class RplGenStudioMainWindow(ttk.Window):
             # 预览窗体
             self.style.configure('preview.TLabel',anchor='center',background='#333333',borderwidth=0)
             # 传送门小标签
-            self.style.configure('Sticky.TFrame', background='#dddddd', borderwidth=5)
+            self.style.configure('Sticky.TFrame', background='#eaeaea', borderwidth=5)
             self.style.configure('SLIcon.TLabel',anchor='center',background='#ffffff',borderwidth=0)
-            self.style.configure('SLHeader.TLabel',anchor='w',background='#dddddd',font=(self.system_font_family, 12, "bold"),padding=text_label_pad,foreground='#000000')
-            self.style.configure('SLDescribe.TLabel',anchor='w',background='#dddddd',font=(self.system_font_family, 10),padding=text_label_pad,foreground='#000000')
-            self.style.configure('SLURL.TLabel',anchor='w',background='#dddddd',font=(self.system_font_family, 10),padding=text_label_pad,foreground='#3333aa',underline=True)
+            self.style.configure('SLHeader.TLabel',anchor='w',background='#eaeaea',font=(self.system_font_family, 12, "bold"),padding=text_label_pad,foreground='#000000')
+            self.style.configure('SLDescribe.TLabel',anchor='w',background='#eaeaea',font=(self.system_font_family, 10),padding=text_label_pad,foreground='#000000')
+            self.style.configure('SLURL.TLabel',anchor='w',background='#eaeaea',font=(self.system_font_family, 10),padding=text_label_pad,foreground='#3333aa',underline=True)
 
         elif theme == 'rplgendark':
             # self.dark_title_bar() # 有bug，在win10不正常显示
@@ -205,7 +205,7 @@ class RplGenStudioMainWindow(ttk.Window):
             self.style.configure('preview.TLabel',anchor='center',background='#333333',borderwidth=0)
             # 传送门小标签
             self.style.configure('Sticky.TFrame', background='#282828', borderwidth=5)
-            self.style.configure('SLIcon.TLabel',anchor='center',background='#333333',borderwidth=0)
+            self.style.configure('SLIcon.TLabel',anchor='center',background='#3a3a3a',borderwidth=0)
             self.style.configure('SLHeader.TLabel',anchor='w',background='#282828',font=(self.system_font_family, 12, "bold"),padding=text_label_pad,foreground='#ffffff')
             self.style.configure('SLDescribe.TLabel',anchor='w',background='#282828',font=(self.system_font_family, 10),padding=text_label_pad,foreground='#ffffff')
             self.style.configure('SLURL.TLabel',anchor='w',background='#282828',font=(self.system_font_family, 10),padding=text_label_pad,foreground='#aaaaff',underline=True)

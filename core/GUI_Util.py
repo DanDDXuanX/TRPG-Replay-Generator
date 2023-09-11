@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+import os
+import requests
 import ttkbootstrap as ttk
+from io import BytesIO
 from ttkbootstrap.tooltip import ToolTip
 from ttkbootstrap.scrolled import ScrolledFrame
 from ttkbootstrap.dialogs import Messagebox
@@ -319,11 +322,51 @@ class DetailedKeyValueDescribe(KeyValueDescribe):
         self.sideshow.place(x=0,y=0,width=SZ_2,relheight=1)
 # 小标签，用于传送门的最小单位
 class StickyLabel(ttk.Frame):
+    bulitin_icon = {}
     def __init__(self,master,screenzoom:float,title:str='',icon:str='',describe:str='',url:str=''):
         self.sz = screenzoom
         super().__init__(master=master, style='Sticky.TFrame')
+        SZ_70 = int(self.sz * 70)
+        # 图标
+        icon_size = (SZ_70,SZ_70)
+        if icon in self.bulitin_icon:
+            self.image = ImageTk.PhotoImage(Image.open(icon).resize(icon_size))
+        elif os.path.isfile(icon):
+            self.image = ImageTk.PhotoImage(Image.open(icon).resize(icon_size))
+        else:
+            self.image = self.request_url_image(icon,icon_size)
+        self.icon = ttk.Label(master=self,style='SLIcon.TLabel',image=self.image)
+        # 文字
+        self.text_frame = ttk.Frame(master=self,style='Sticky.TFrame')
+        self.text_label = {
+            'title' : ttk.Label(master=self.text_frame,text=title,style='SLHeader.TLabel'),
+            'describe' : ttk.Label(master=self.text_frame,text=describe,style='SLDescribe.TLabel'),
+            'url' : ttk.Label(master=self.text_frame,text=url,style='SLURL.TLabel'),
+        }
+        # 显示
+        self.update_items()
+    def update_items(self):
         SZ_5 = int(self.sz * 5)
-        padding = (0,SZ_5,0,SZ_5)
+        for key in self.text_label:
+            label:ttk.Label = self.text_label[key]
+            label.pack(side='top',fill='both',expand=True)
+        self.icon.pack(side='left',fill='y',padx=(SZ_5,SZ_5),pady=(SZ_5,SZ_5))
+        self.text_frame.pack(side='left',fill='both',expand=True,padx=(SZ_5,SZ_5),pady=(SZ_5,SZ_5))
+    def request_url_image(self,url,size:tuple)->ImageTk.PhotoImage:
+        # 发送GET请求获取图像数据
+        response = requests.get(url)
+        # 检查响应状态码
+        if response.status_code == 200:
+            # 从响应中获取图像数据
+            image_data = response.content
+            # 使用BytesIO将图像数据转换为内存中的文件对象
+            image_file = BytesIO(image_data)
+            # 使用PIL库打开图像文件
+            image = Image.open(image_file).resize(size)
+            return ImageTk.PhotoImage(image)
+        else:
+            return None # TODO: 修改为X
+            
 # 文本分割线，包含若干个KVD，可以折叠
 class TextSeparator(ttk.Frame):
     def __init__(self,master,screenzoom:float,describe:dict,pady:int=5):
@@ -418,8 +461,8 @@ class TextSeparator(ttk.Frame):
         self.buttons.clear()   
 # 小标签分割线，包含若干个StickyLabel
 class StickyLabelSeperator(TextSeparator):
-    def add_element(self, key: str) -> StickyLabel:
-        this_slabel = StickyLabel(master=self.content_frame,screenzoom=self.sz)
+    def add_element(self, key: str, icon, title, describe, url) -> StickyLabel:
+        this_slabel = StickyLabel(master=self.content_frame,screenzoom=self.sz,icon=icon,title=title,describe=describe,url=url)
         self.content_index.append(key)
         self.content[key] = this_slabel
         return this_slabel

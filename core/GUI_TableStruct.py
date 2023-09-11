@@ -2858,27 +2858,27 @@ TestPortalStruct = {
         "Content":{
             "1": {
                 "title": "测试标题",
-                "icon":"测试图标",
+                "icon":"./assets/icon/NA.png",
                 "describe": "测试简介",
-                "url": "测试链接",
+                "url": "./assets/icon/NA.png",
             },
             "2": {
                 "title": "测试标题",
-                "icon":"测试图标",
+                "icon":"./assets/icon/NA.png",
                 "describe": "测试简介",
-                "url": "测试链接",
+                "url": "./assets/icon/NA.png",
             },
             "3": {
                 "title": "测试标题",
-                "icon":"测试图标",
+                "icon":"./assets/icon/NA.png",
                 "describe": "测试简介",
-                "url": "测试链接",
+                "url": "./assets/icon/NA.png",
             },
             "4": {
                 "title": "测试标题",
-                "icon":"测试图标",
+                "icon":"./assets/icon/NA.png",
                 "describe": "测试简介",
-                "url": "测试链接",
+                "url": "./assets/icon/NA.png",
             },
         }
     },
@@ -2888,27 +2888,27 @@ TestPortalStruct = {
         "Content":{
             "1": {
                 "title": "测试标题",
-                "icon":"测试图标",
+                "icon":"./assets/icon/NA.png",
                 "describe": "测试简介",
-                "url": "测试链接",
+                "url": "./assets/icon/NA.png",
             },
             "2": {
                 "title": "测试标题",
-                "icon":"测试图标",
+                "icon":"./assets/icon/NA.png",
                 "describe": "测试简介",
-                "url": "测试链接",
+                "url": "./assets/icon/NA.png",
             },
             "3": {
                 "title": "测试标题",
-                "icon":"测试图标",
+                "icon":"./assets/icon/NA.png",
                 "describe": "测试简介",
-                "url": "测试链接",
+                "url": "./assets/icon/NA.png",
             },
             "4": {
                 "title": "测试标题",
-                "icon":"测试图标",
+                "icon":"./assets/icon/NA.png",
                 "describe": "测试简介",
-                "url": "测试链接",
+                "url": "./assets/icon/NA.png",
             },
         }
     },
