@@ -23,7 +23,8 @@ class RecentProject(ttk.Button):
             padding=(SZ_20,SZ_3,SZ_20,SZ_3),
             bootstyle='light',
             text=self.text,
-            command=lambda:callback(self.path)
+            command=lambda:callback(self.path),
+            cursor='hand2'
             )
         self.tooltip = FreeToolTip(
             widget=self,
@@ -70,9 +71,9 @@ class HomePageElements(ttk.Frame):
             'intel_p': ImageTk.PhotoImage(name='intel_p', image=Image.open('./assets/icon/intel.png').resize(icon_size)),
         }
         self.open_project_buttons = {
-            'open_p' : ttk.Button(master=self.buttons, text='打开项目',     compound='top', image='open_p' ,bootstyle='info',command=self.master.open_project),
-            'new_p'  : ttk.Button(master=self.buttons, text='新建空白项目', compound='top', image='new_p'  ,bootstyle='info',command=self.master.empty_project),
-            'intel_p': ttk.Button(master=self.buttons, text='新建智能项目', compound='top', image='intel_p',bootstyle='info',command=self.master.intel_project),
+            'open_p' : ttk.Button(master=self.buttons, text='打开项目',     compound='top', image='open_p' ,bootstyle='info',command=self.master.open_project, cursor='hand2'),
+            'new_p'  : ttk.Button(master=self.buttons, text='新建空白项目', compound='top', image='new_p'  ,bootstyle='info',command=self.master.empty_project, cursor='hand2'),
+            'intel_p': ttk.Button(master=self.buttons, text='新建智能项目', compound='top', image='intel_p',bootstyle='info',command=self.master.intel_project, cursor='hand2'),
         }
         self.tooltips = {
             'open_p' : FreeToolTip(widget=self.open_project_buttons['open_p'], text='从文件夹中打开一个现有的项目。',bootstyle='light-inverse'),
@@ -92,7 +93,8 @@ class HomePageElements(ttk.Frame):
             text='清除记录',
             bootstyle='secondary-link',
             command=self.clear_recent,
-            padding=0
+            padding=0,
+            cursor='hand2'
         )
         self.empty = ttk.Label(
             master=self.recent_project,

@@ -203,7 +203,7 @@ class KeyValueDescribe(ttk.Frame):
         if describe['type'] == 'label':
             self.describe = ttk.Label(master=self,text=describe['text'],width=8,anchor='center',padding=padding)
         elif describe['type'] == 'button':
-            self.describe = ttk.Button(master=self,text=describe['text'],width=8,padding=padding)
+            self.describe = ttk.Button(master=self,text=describe['text'],width=8,padding=padding,cursor='hand2')
         else:
             self.describe = ttk.Label(master=self,text=describe['text'],width=8,anchor='center',padding=padding)
         # 显示
@@ -327,7 +327,7 @@ class StickyLabel(ttk.Frame):
     icon_photoimage = {}
     def __init__(self,master,screenzoom:float,title:str='',icon:str='',describe:str='',url:str=''):
         self.sz = screenzoom
-        super().__init__(master=master, style='Sticky.TFrame')
+        super().__init__(master=master, style='Sticky.TFrame', cursor='hand2')
         # 图标
         self.load_icon(icon=icon)
         self.icon = ttk.Label(master=self,style='SLIcon.TLabel',image=self.image)

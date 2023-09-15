@@ -158,7 +158,7 @@ class RplGenStudioMainWindow(ttk.Window):
             self.style.configure('SLIcon.TLabel',anchor='center',background='#ffffff',borderwidth=0)
             self.style.configure('SLHeader.TLabel',anchor='w',background='#eaeaea',font=(self.system_font_family, 12, "bold"),padding=text_label_pad,foreground='#000000')
             self.style.configure('SLDescribe.TLabel',anchor='w',background='#eaeaea',font=(self.system_font_family, 10),padding=text_label_pad,foreground='#000000')
-            self.style.configure('SLURL.TLabel',anchor='w',background='#eaeaea',font=(self.system_font_family, 10),padding=text_label_pad,foreground='#3333aa',underline=True)
+            self.style.configure('SLURL.TLabel',anchor='w',background='#eaeaea',font=(self.system_font_family, 10),padding=text_label_pad,foreground='#3333aa')
 
         elif theme == 'rplgendark':
             # self.dark_title_bar() # 有bug，在win10不正常显示
@@ -208,7 +208,7 @@ class RplGenStudioMainWindow(ttk.Window):
             self.style.configure('SLIcon.TLabel',anchor='center',background='#3a3a3a',borderwidth=0)
             self.style.configure('SLHeader.TLabel',anchor='w',background='#282828',font=(self.system_font_family, 12, "bold"),padding=text_label_pad,foreground='#ffffff')
             self.style.configure('SLDescribe.TLabel',anchor='w',background='#282828',font=(self.system_font_family, 10),padding=text_label_pad,foreground='#ffffff')
-            self.style.configure('SLURL.TLabel',anchor='w',background='#282828',font=(self.system_font_family, 10),padding=text_label_pad,foreground='#aaaaff',underline=True)
+            self.style.configure('SLURL.TLabel',anchor='w',background='#282828',font=(self.system_font_family, 10),padding=text_label_pad,foreground='#aaaaff')
     # 当关闭窗口时
     def on_close(self):
         if type(self.view['project']) is EmptyView:
@@ -332,11 +332,11 @@ class NavigateBar(ttk.Frame):
         }
         # 顶部
         self.buttons = {
-            'logo'      : ttk.Button(master=self,image='logo',bootstyle='success',padding=(SZ_3,0,0,0)),
-            'setting'   : ttk.Button(master=self,image='setting',text=' 首选项',command=lambda :self.press_button('setting'),bootstyle='success',compound='left',padding=(SZ_3,0,0,0)),
-            'project'   : ttk.Button(master=self,image='project',text=' 项目',command=lambda :self.press_button('project'),bootstyle='success',compound='left',padding=(SZ_3,0,0,0)),
-            'script'    : ttk.Button(master=self,image='script',text=' 脚本',command=lambda :self.press_button('script'),bootstyle='success',compound='left',padding=(SZ_3,0,0,0)),
-            'console'   : ttk.Button(master=self,image='console',text=' 控制台',command=lambda :self.press_button('console'),bootstyle='success',compound='left',padding=(SZ_3,0,0,0)),
+            'logo'      : ttk.Button(master=self,image='logo',bootstyle='success',padding=(SZ_3,0,0,0),cursor='hand2'),
+            'setting'   : ttk.Button(master=self,image='setting',text=' 首选项',command=lambda :self.press_button('setting'),bootstyle='success',compound='left',padding=(SZ_3,0,0,0),cursor='hand2'),
+            'project'   : ttk.Button(master=self,image='project',text=' 项目',command=lambda :self.press_button('project'),bootstyle='success',compound='left',padding=(SZ_3,0,0,0),cursor='hand2'),
+            'script'    : ttk.Button(master=self,image='script',text=' 脚本',command=lambda :self.press_button('script'),bootstyle='success',compound='left',padding=(SZ_3,0,0,0),cursor='hand2'),
+            'console'   : ttk.Button(master=self,image='console',text=' 控制台',command=lambda :self.press_button('console'),bootstyle='success',compound='left',padding=(SZ_3,0,0,0),cursor='hand2'),
         }
         # 分割线
         self.separator = {
@@ -344,7 +344,7 @@ class NavigateBar(ttk.Frame):
         }
         # 底部
         self.lowerbuttons = {
-            'portal'  : ttk.Button(master=self,image='portal',text=' 传送门',command=lambda :self.press_button('portal'),bootstyle='success',compound='left',padding=(SZ_3,0,0,0)),
+            'portal'  : ttk.Button(master=self,image='portal',text=' 传送门',command=lambda :self.press_button('portal'),bootstyle='success',compound='left',padding=(SZ_3,0,0,0),cursor='hand2'),
         }
         # ypos
         self.ypos = {'logo':0,'setting':70,'sep1':140,'project':150,'script':220,'console':290,'portal':-60}
