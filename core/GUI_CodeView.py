@@ -678,6 +678,8 @@ class RGLCodeViewFrame(ttk.Frame):
     def rgl_intel_import(self):
         target_file = browse_file(master=self, text_obj=tk.StringVar(),method='file',filetype='text')
         # 1. 载入导入的文本
+        if target_file == '':
+            return False
         try:
             load_text = open(target_file,'r',encoding='utf-8').read()
         except UnicodeEncodeError:
