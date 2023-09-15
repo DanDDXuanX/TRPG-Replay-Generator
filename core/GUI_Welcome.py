@@ -5,7 +5,6 @@
 
 
 import sys
-import tkinter as tk
 import ttkbootstrap as ttk
 from PIL import Image, ImageTk
 
@@ -71,7 +70,8 @@ class RplGenStudioWelcome(ttk.Window):
             self.attributes('-alpha', alpha)
             self.after(20, self.fade_in)
         else:
-            self.check_pipe()
+            # 开始页面停留不少于2秒
+            self.after(2000, self.check_pipe)
     # 检查信号
     def check_pipe(self):
         # 如果接收到了信号

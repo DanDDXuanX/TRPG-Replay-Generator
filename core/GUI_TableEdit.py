@@ -9,6 +9,7 @@ from .ProjConfig import preference, Preference
 from .GUI_PageElement import OutPutCommand
 from .GUI_Util import TextSeparator, FluentFrame, StickyLabelSeperator
 from .GUI_Link import Link
+from .GUI_Language import tr
 from .GUI_TableStruct import PreferenceTableStruct, ExecuteTableStruct, TestPortalStruct
 from .GUI_TableStruct import language, True_False, theme, progressbar, import_mode, dice_mode, askyesno, colorschemes
 
@@ -80,7 +81,7 @@ class ScriptExecuter(TableEdit):
     TableStruct = ExecuteTableStruct
     def __init__(self,master,screenzoom)->None:
         # 继承
-        super().__init__(master=master,screenzoom=screenzoom,title='运行脚本')
+        super().__init__(master=master,screenzoom=screenzoom,title=tr('运行脚本'))
         # 重写：改为不可滚动的
         self.options = ttk.Frame(master=self)
         # 输出选项
@@ -120,8 +121,8 @@ class ResetConfirm(ttk.Frame):
         }
         # 输出选项
         self.buttons = {
-            'reset'     : ttk.Button(master=self, text='重置',compound='left',image=self.image['reset'],command=self.preferencetable.reset, style='output.TButton',padding=0,cursor='hand2'),
-            'confirm'   : ttk.Button(master=self, text='确定',compound='left',image=self.image['confirm'],command=self.preferencetable.confirm, style='output.TButton',padding=0,cursor='hand2')
+            'reset'     : ttk.Button(master=self, text=tr('重置'),compound='left',image=self.image['reset'],command=self.preferencetable.reset, style='output.TButton',padding=0,cursor='hand2'),
+            'confirm'   : ttk.Button(master=self, text=tr('确定'),compound='left',image=self.image['confirm'],command=self.preferencetable.confirm, style='output.TButton',padding=0,cursor='hand2')
         }
         for key in self.buttons:
             item:ttk.Button = self.buttons[key]
@@ -130,7 +131,7 @@ class PreferenceTable(TableEdit):
     TableStruct = PreferenceTableStruct
     def __init__(self,master,screenzoom)->None:
         # 继承
-        super().__init__(master=master,screenzoom=screenzoom,title='首选项',pady=10)
+        super().__init__(master=master,screenzoom=screenzoom,title=tr('首选项'),pady=10)
         # 首选项
         self.struct = preference.get_struct()
         # self.outputs = OutPutCommand(master=self,screenzoom=self.sz)
@@ -203,7 +204,7 @@ class PortalTable(TableEdit):
     # TableStruct = json.load(open('./assets/GUI_portal.json'))
     def __init__(self,master,screenzoom)->None:
         # 继承
-        super().__init__(master=master,screenzoom=screenzoom,title='传送门',pady=10)
+        super().__init__(master=master,screenzoom=screenzoom,title=tr('传送门'),pady=10)
         # 初始化
         self.update_from_tablestruct()
         self.update_item()

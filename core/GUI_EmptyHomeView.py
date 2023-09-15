@@ -6,6 +6,7 @@ from PIL import Image, ImageTk
 from .GUI_Util import FreeToolTip
 from .GUI_Link import Link
 from .ProjConfig import preference
+from .GUI_Language import tr
 
 # 空白的首页
 
@@ -51,14 +52,14 @@ class HomePageElements(ttk.Frame):
         self.labels = {
             'welcome' : ttk.Label(
                 master=self.slogan,
-                text='回声工坊',
+                text=tr('回声工坊'),
                 font=(Link['system_font_family'],30,'bold'),
                 foreground=self.font_color
                 ),
             # "Embrace your imagination, weave tales untold."
             'poetry'  : ttk.Label(
                 master=self.slogan,
-                text='点亮创意火花',
+                text=tr('点亮创意火花'),
                 font=(Link['system_font_family'],15),
                 foreground=self.font_color
                 )
@@ -71,9 +72,9 @@ class HomePageElements(ttk.Frame):
             'intel_p': ImageTk.PhotoImage(name='intel_p', image=Image.open('./assets/icon/intel.png').resize(icon_size)),
         }
         self.open_project_buttons = {
-            'open_p' : ttk.Button(master=self.buttons, text='打开项目',     compound='top', image='open_p' ,bootstyle='info',command=self.master.open_project, cursor='hand2'),
-            'new_p'  : ttk.Button(master=self.buttons, text='新建空白项目', compound='top', image='new_p'  ,bootstyle='info',command=self.master.empty_project, cursor='hand2'),
-            'intel_p': ttk.Button(master=self.buttons, text='新建智能项目', compound='top', image='intel_p',bootstyle='info',command=self.master.intel_project, cursor='hand2'),
+            'open_p' : ttk.Button(master=self.buttons, text=tr('打开项目'),     compound='top', image='open_p' ,bootstyle='info',command=self.master.open_project, cursor='hand2'),
+            'new_p'  : ttk.Button(master=self.buttons, text=tr('新建空白项目'), compound='top', image='new_p'  ,bootstyle='info',command=self.master.empty_project, cursor='hand2'),
+            'intel_p': ttk.Button(master=self.buttons, text=tr('新建智能项目'), compound='top', image='intel_p',bootstyle='info',command=self.master.intel_project, cursor='hand2'),
         }
         self.tooltips = {
             'open_p' : FreeToolTip(widget=self.open_project_buttons['open_p'], text='从文件夹中打开一个现有的项目。',bootstyle='light-inverse'),
@@ -84,13 +85,13 @@ class HomePageElements(ttk.Frame):
         self.recent_project = ttk.Frame(master=self,padding=(SZ_10,0,SZ_10,SZ_10*2))
         self.title = ttk.Label(
             master=self.recent_project,
-            text='最近项目：',
+            text=tr('最近项目：'),
             font=(Link['system_font_family'],15,'bold'),
             foreground=self.font_color
         )
         self.clear = ttk.Button(
             master=self.title,
-            text='清除记录',
+            text=tr('清除记录'),
             bootstyle='secondary-link',
             command=self.clear_recent,
             padding=0,

@@ -30,7 +30,40 @@ class Translate:
         ]
     }
     dictionary = {
-        
+        'en':{
+            '首选项': "Preference",
+            '项目'  : "Projects",
+            '脚本'  : "Scripts",
+            '控制台': "Terminal",
+            '传送门': "Portal",
+            '回声工坊'  : 'RplGen Studio',
+            '点亮创意火花': 'Kindle the flame of imaginative brilliance',
+            '打开项目'  : 'Open Project',
+            '新建空白项目'  : 'New Empty Project',
+            '新建智能项目'  : 'New Intel Project',
+            '最近项目：'    : 'Recent:',
+            '清除记录'      : 'clear',
+            '运行脚本'      : 'Run Scripts',
+            '重置'  : 'Reset',
+            '确定'  : 'Confirm',
+            '终止'  : 'Interrupt',
+            '固定点'    : 'Pos',
+            '自由点'    : 'FreePos',
+            '点网格'    : 'PosGrid',
+            '字体'      : 'Text',
+            '描边字体'  : 'StrokeText',
+            '富文本'    : 'RichText',
+            '血条标签'  : 'HPLabel',
+            '气泡'      : 'Bubble',
+            '气球'      : 'Balloon',
+            '动态气泡'  : 'DynamicBubble',
+            '聊天窗'    : 'ChatWindow',
+            '立绘'      : 'Animation',
+            '背景'      : 'Background',
+            '音效'      : 'Audio',
+            '背景音乐'  : 'BGM',
+            '角色差分'  : 'Subtype',
+        }
     }
     lang = 'zh'
     @staticmethod

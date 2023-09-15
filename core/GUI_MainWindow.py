@@ -12,6 +12,8 @@ from ttkbootstrap.toast import ToastNotification
 from ttkbootstrap.dialogs import Messagebox
 from PIL import Image, ImageTk
 
+from .GUI_Language import tr
+
 from .ProjConfig import preference
 from .GUI_Language import Translate
 from .GUI_Link import Link
@@ -26,22 +28,22 @@ class RplGenStudioMainWindow(ttk.Window):
         # 系统缩放比例
         self.sz = self.get_screenzoom()
         super().__init__(
-            title       = f'回声工坊 {EDITION}',
             iconphoto   = './assets/icon.png',
             size        = (int(1500*self.sz),int(800*self.sz)),
             resizable   = (True,True),
         )
+        # 语言项目
+        Translate.set_language(preference.lang)
+        # 标题
+        self.window_title = f"{tr('回声工坊')} {EDITION}"
+        self.title(self.window_title)
         # home
         self.home_dir = Path(os.path.expanduser("~"))
         self.load_recent_project()
-        # 语言项目
-        Translate.set_language(preference.lang)
         # 关闭
         self.protocol('WM_DELETE_WINDOW',self.on_close)
         # 主题配置
         self.theme_config(preference.theme)
-        # 标题
-        self.window_title = f'回声工坊 {EDITION}'
         # 导航栏
         self.show = 'project'
         self.navigate_bar = NavigateBar(master=self,screenzoom=self.sz)
@@ -109,13 +111,17 @@ class RplGenStudioMainWindow(ttk.Window):
         text_label_pad = (SZ_5,0,SZ_5,0)
         # 载入主题
         self.style.theme_use(theme)
-        # self
+        # 导航栏字体的大小
+        if preference.lang == 'zh':
+            success_font_size = 18
+        else:
+            success_font_size = 12
         # 使用主题
         if theme == 'rplgenlight':
             self.style.configure('terminal.TButton',compound='left',font=(self.system_font_family, 14, "bold"))
             self.style.configure('output.TButton',compound='left',font=(self.system_font_family, 14, "bold"))
             # bootstyle
-            self.style.configure('success.TButton',font=(self.system_font_family, 18, "bold"),anchor='w') # dark
+            self.style.configure('success.TButton',font=(self.system_font_family, success_font_size, "bold"),anchor='w') # dark
             self.style.configure('info.TButton',font=(self.system_font_family, 16, "bold"),anchor='center',foreground="#555555") # lightgrey
             self.style.configure('light.TButton',anchor='w') # light
             # 媒体定义的颜色标签
@@ -165,7 +171,7 @@ class RplGenStudioMainWindow(ttk.Window):
             self.style.configure('terminal.TButton',compound='left',font=(self.system_font_family, 14, "bold"))
             self.style.configure('output.TButton',compound='left',font=(self.system_font_family, 14, "bold"))
             # bootstyle
-            self.style.configure('success.TButton',font=(self.system_font_family, 18, "bold"),anchor='w') # dark
+            self.style.configure('success.TButton',font=(self.system_font_family, success_font_size, "bold"),anchor='w') # dark
             self.style.configure('info.TButton',font=(self.system_font_family, 16, "bold"),anchor='center',foreground="#aaaaaa") # lightgrey
             self.style.configure('light.TButton',anchor='w') # light
             # 媒体定义的颜色标签
@@ -333,10 +339,10 @@ class NavigateBar(ttk.Frame):
         # 顶部
         self.buttons = {
             'logo'      : ttk.Button(master=self,image='logo',bootstyle='success',padding=(SZ_3,0,0,0),cursor='hand2'),
-            'setting'   : ttk.Button(master=self,image='setting',text=' 首选项',command=lambda :self.press_button('setting'),bootstyle='success',compound='left',padding=(SZ_3,0,0,0),cursor='hand2'),
-            'project'   : ttk.Button(master=self,image='project',text=' 项目',command=lambda :self.press_button('project'),bootstyle='success',compound='left',padding=(SZ_3,0,0,0),cursor='hand2'),
-            'script'    : ttk.Button(master=self,image='script',text=' 脚本',command=lambda :self.press_button('script'),bootstyle='success',compound='left',padding=(SZ_3,0,0,0),cursor='hand2'),
-            'console'   : ttk.Button(master=self,image='console',text=' 控制台',command=lambda :self.press_button('console'),bootstyle='success',compound='left',padding=(SZ_3,0,0,0),cursor='hand2'),
+            'setting'   : ttk.Button(master=self,image='setting',text=' '+tr('首选项'),command=lambda :self.press_button('setting'),bootstyle='success',compound='left',padding=(SZ_3,0,0,0),cursor='hand2'),
+            'project'   : ttk.Button(master=self,image='project',text=' '+tr('项目'),command=lambda :self.press_button('project'),bootstyle='success',compound='left',padding=(SZ_3,0,0,0),cursor='hand2'),
+            'script'    : ttk.Button(master=self,image='script',text=' '+tr('脚本'),command=lambda :self.press_button('script'),bootstyle='success',compound='left',padding=(SZ_3,0,0,0),cursor='hand2'),
+            'console'   : ttk.Button(master=self,image='console',text=' '+tr('控制台'),command=lambda :self.press_button('console'),bootstyle='success',compound='left',padding=(SZ_3,0,0,0),cursor='hand2'),
         }
         # 分割线
         self.separator = {
@@ -344,7 +350,7 @@ class NavigateBar(ttk.Frame):
         }
         # 底部
         self.lowerbuttons = {
-            'portal'  : ttk.Button(master=self,image='portal',text=' 传送门',command=lambda :self.press_button('portal'),bootstyle='success',compound='left',padding=(SZ_3,0,0,0),cursor='hand2'),
+            'portal'  : ttk.Button(master=self,image='portal',text=' '+tr('传送门'),command=lambda :self.press_button('portal'),bootstyle='success',compound='left',padding=(SZ_3,0,0,0),cursor='hand2'),
         }
         # ypos
         self.ypos = {'logo':0,'setting':70,'sep1':140,'project':150,'script':220,'console':290,'portal':-60}

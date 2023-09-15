@@ -15,6 +15,7 @@ from ttkbootstrap.toast import ToastNotification
 from PIL import Image, ImageTk
 from .GUI_Container import Container
 from .GUI_TableStruct import NewElement
+from .GUI_Language import tr
 from .GUI_DialogWindow import browse_multi_file
 from .GUI_CustomDialog import selection_query
 from .OutputType import PreviewDisplay, ExportVideo, ExportXML
@@ -470,7 +471,7 @@ class NewElementCommand(ttk.Frame):
             self.buttons[keyword] = ttk.Button(
                 master=self,
                 # image='display',
-                text=button_this['text'],
+                text=tr(button_this['text']),
                 image=self.image[keyword],
                 compound='left',
                 style='output.TButton',

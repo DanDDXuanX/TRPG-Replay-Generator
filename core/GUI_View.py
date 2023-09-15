@@ -8,6 +8,7 @@
 import tkinter as tk
 import ttkbootstrap as ttk
 from ttkbootstrap.dialogs import Messagebox
+from .GUI_Language import tr
 from .GUI_FileManager import FileManager
 from .GUI_TabPage import PageFrame
 from .GUI_Terminal import Terminal

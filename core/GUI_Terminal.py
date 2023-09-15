@@ -10,6 +10,7 @@ from .ProjConfig import preference
 from .Utils import EDITION
 from .Exceptions import MainPrint
 from .GUI_Link import Link
+from .GUI_Language import tr
 import tkinter as tk
 import sys
 import re
@@ -126,7 +127,7 @@ class Terminal(ttk.Frame):
             autohide=True
             )
         self.terminal._text.configure(padx=2*SZ_10)
-        self.control = ttk.Button(master=self,style='terminal.TButton',text='终止',command=self.send_terminate,state='disable')
+        self.control = ttk.Button(master=self,style='terminal.TButton',text=tr('终止'),command=self.send_terminate,state='disable')
         self.progressbar = ExportVideoProgressBar(master=self,screenzoom=self.sz)
         self.show_bar = False
         # Link
