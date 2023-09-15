@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+import json
 import ttkbootstrap as ttk
 from ttkbootstrap.toast import ToastNotification
 from PIL import Image, ImageTk
@@ -199,6 +200,7 @@ class PreferenceTable(TableEdit):
 # 传送门
 class PortalTable(TableEdit):
     TableStruct = TestPortalStruct
+    # TableStruct = json.load(open('./assets/GUI_portal.json'))
     def __init__(self,master,screenzoom)->None:
         # 继承
         super().__init__(master=master,screenzoom=screenzoom,title='传送门',pady=10)

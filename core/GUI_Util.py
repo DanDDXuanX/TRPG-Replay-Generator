@@ -3,6 +3,7 @@
 
 import os
 import requests
+import webbrowser
 import ttkbootstrap as ttk
 from io import BytesIO
 from ttkbootstrap.tooltip import ToolTip
@@ -323,18 +324,12 @@ class DetailedKeyValueDescribe(KeyValueDescribe):
 # 小标签，用于传送门的最小单位
 class StickyLabel(ttk.Frame):
     bulitin_icon = {}
+    icon_photoimage = {}
     def __init__(self,master,screenzoom:float,title:str='',icon:str='',describe:str='',url:str=''):
         self.sz = screenzoom
         super().__init__(master=master, style='Sticky.TFrame')
-        SZ_70 = int(self.sz * 70)
         # 图标
-        icon_size = (SZ_70,SZ_70)
-        if icon in self.bulitin_icon:
-            self.image = ImageTk.PhotoImage(Image.open(icon).resize(icon_size))
-        elif os.path.isfile(icon):
-            self.image = ImageTk.PhotoImage(Image.open(icon).resize(icon_size))
-        else:
-            self.image = self.request_url_image(icon,icon_size)
+        self.load_icon(icon=icon)
         self.icon = ttk.Label(master=self,style='SLIcon.TLabel',image=self.image)
         # 文字
         self.text_frame = ttk.Frame(master=self,style='Sticky.TFrame')
@@ -343,7 +338,9 @@ class StickyLabel(ttk.Frame):
             'describe' : ttk.Label(master=self.text_frame,text=describe,style='SLDescribe.TLabel'),
             'url' : ttk.Label(master=self.text_frame,text=url,style='SLURL.TLabel'),
         }
+        self.url = url
         # 显示
+        self.bind_event(self)
         self.update_items()
     def update_items(self):
         SZ_5 = int(self.sz * 5)
@@ -352,6 +349,20 @@ class StickyLabel(ttk.Frame):
             label.pack(side='top',fill='both',expand=True)
         self.icon.pack(side='left',fill='y',padx=(SZ_5,SZ_5),pady=(SZ_5,SZ_5))
         self.text_frame.pack(side='left',fill='both',expand=True,padx=(SZ_5,SZ_5),pady=(SZ_5,SZ_5))
+    def load_icon(self,icon):
+        SZ_70 = int(self.sz * 70)
+        icon_size = (SZ_70,SZ_70)
+        if icon in self.icon_photoimage:
+            self.image = self.icon_photoimage[icon]
+        elif icon in self.bulitin_icon:
+            self.image = ImageTk.PhotoImage(Image.open(icon).resize(icon_size))
+            self.icon_photoimage[icon] = self.image
+        elif os.path.isfile(icon):
+            self.image = ImageTk.PhotoImage(Image.open(icon).resize(icon_size))
+            self.icon_photoimage[icon] = self.image
+        else:
+            self.image = self.request_url_image(icon,icon_size)
+            self.icon_photoimage[icon] = self.image
     def request_url_image(self,url,size:tuple)->ImageTk.PhotoImage:
         # 发送GET请求获取图像数据
         response = requests.get(url)
@@ -366,7 +377,12 @@ class StickyLabel(ttk.Frame):
             return ImageTk.PhotoImage(image)
         else:
             return None # TODO: 修改为X
-            
+    def bind_event(self,widget):
+        widget.bind("<Button-1>", self.get_click)
+        for child in widget.winfo_children():
+            self.bind_event(child)
+    def get_click(self,event):
+        webbrowser.open(self.url)
 # 文本分割线，包含若干个KVD，可以折叠
 class TextSeparator(ttk.Frame):
     def __init__(self,master,screenzoom:float,describe:dict,pady:int=5):
