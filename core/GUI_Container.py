@@ -219,7 +219,7 @@ class Container(FluentFrame):
         self.update_item()
         self.reset_container_height()
     # 搜索筛选
-    def search(self,to_search,regex=False):
+    def search(self,to_search,regex=False)->tuple:
         # 执行搜索
         if to_search == '':
             is_match = self.element_keys.copy()

@@ -392,7 +392,7 @@ class TextSeparator(ttk.Frame):
         # 标题栏
         self.title = ttk.Frame(master=self)
         ## 文字：
-        self.label = ttk.Label(master=self.title,text=describe,style='dialog.TLabel')
+        self.label = ttk.Label(master=self.title,text=describe,style='dialog.TLabel',cursor='hand2')
         self.label.bind("<Button-1>",self.update_toggle)
         ## 分割线
         self.sep = ttk.Separator(

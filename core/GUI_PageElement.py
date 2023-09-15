@@ -39,11 +39,11 @@ class SearchBar(ttk.Frame):
         self.is_regex = tk.BooleanVar(master=self,value=False)
         self.left = {
             'entry' : ttk.Entry(master=self,width=30,textvariable=self.search_text),
-            'regex' : ttk.Checkbutton(master=self, text='正则', bootstyle='round-toggle', variable=self.is_regex),
-            'search' : ttk.Button(master=self,text='搜索',command=self.click_search,bootstyle='primary')
+            'regex' : ttk.Checkbutton(master=self, text='正则', bootstyle='round-toggle', variable=self.is_regex,cursor='hand2'),
+            'search' : ttk.Button(master=self,text='搜索',command=self.click_search,bootstyle='primary',cursor='hand2')
         }
         self.right = {
-            'clear' : ttk.Button(master=self,text='清除',command=self.click_clear),
+            'clear' : ttk.Button(master=self,text='清除',command=self.click_clear,cursor='hand2'),
             'info'  : ttk.Label(master=self,text='(无)'),
         }
         self.update_item()
@@ -81,10 +81,10 @@ class OutPutCommand(ttk.Frame):
             'recode'    : ImageTk.PhotoImage(name='recode',image=Image.open('./assets/icon/ffmpeg.png').resize(icon_size)),
         }
         self.buttons = {
-            'display'   : ttk.Button(master=self,image='display',text='播放预览',compound='left',style='output.TButton',command=lambda:self.open_new_thread('display')),
-            'synth'     : ttk.Button(master=self,image='synth',text='语音合成',compound='left',style='output.TButton',command=lambda:self.open_new_thread('synth')),
-            'exportpr'    : ttk.Button(master=self,image='exportpr',text='导出PR工程',compound='left',style='output.TButton',command=lambda:self.open_new_thread('exportpr')),
-            'recode'    : ttk.Button(master=self,image='recode',text='导出视频',compound='left',style='output.TButton',command=lambda:self.open_new_thread('recode')),
+            'display'   : ttk.Button(master=self,image='display',text='播放预览',compound='left',style='output.TButton',command=lambda:self.open_new_thread('display'),cursor='hand2'),
+            'synth'     : ttk.Button(master=self,image='synth',text='语音合成',compound='left',style='output.TButton',command=lambda:self.open_new_thread('synth'),cursor='hand2'),
+            'exportpr'    : ttk.Button(master=self,image='exportpr',text='导出PR工程',compound='left',style='output.TButton',command=lambda:self.open_new_thread('exportpr'),cursor='hand2'),
+            'recode'    : ttk.Button(master=self,image='recode',text='导出视频',compound='left',style='output.TButton',command=lambda:self.open_new_thread('recode'),cursor='hand2'),
         }
         # 音效
         self.toastSE = pygame.mixer.Sound('./assets/SE_toast.wav')
@@ -314,11 +314,11 @@ class VerticalOutputCommand(OutPutCommand):
         self.image['asterisk_del'] = ImageTk.PhotoImage(image=Image.open('./assets/icon/asterisk_del.png').resize(icon_size))
         self.image['intel_import'] = ImageTk.PhotoImage(image=Image.open('./assets/icon/intel_import.png').resize(icon_size))
         self.side_button = {
-            'asterisk_add'   : ttk.Button(master=self,image=self.image['asterisk_add'],bootstyle='secondary',command=self.add_asterisk_marks,padding=SZ_5),
-            'asterisk_import': ttk.Button(master=self,image=self.image['asterisk_import'],bootstyle='secondary',command=self.fill_asterisk_from_files,padding=SZ_5),
-            'asterisk_del'   : ttk.Button(master=self,image=self.image['asterisk_del'],bootstyle='danger',command=self.del_asterisk_marks,padding=SZ_5),
+            'asterisk_add'   : ttk.Button(master=self,image=self.image['asterisk_add'],bootstyle='secondary',command=self.add_asterisk_marks,padding=SZ_5,cursor='hand2'),
+            'asterisk_import': ttk.Button(master=self,image=self.image['asterisk_import'],bootstyle='secondary',command=self.fill_asterisk_from_files,padding=SZ_5,cursor='hand2'),
+            'asterisk_del'   : ttk.Button(master=self,image=self.image['asterisk_del'],bootstyle='danger',command=self.del_asterisk_marks,padding=SZ_5,cursor='hand2'),
             'sep1'           : ttk.Separator(master=self), # --------------------------
-            'intel_import'   : ttk.Button(master=self,image=self.image['intel_import'],bootstyle='secondary',command=self.rgl_intel_import,padding=SZ_5),
+            'intel_import'   : ttk.Button(master=self,image=self.image['intel_import'],bootstyle='secondary',command=self.rgl_intel_import,padding=SZ_5,cursor='hand2'),
         }
         # 小贴士
         self.tooltip = {
@@ -475,7 +475,8 @@ class NewElementCommand(ttk.Frame):
                 compound='left',
                 style='output.TButton',
                 width=5,
-                command=new_element
+                command=new_element,
+                cursor='hand2'
             )
             self.buttons[keyword].bind('<ButtonRelease-3>', batch_new_element)
             self.buttons_tooltip[keyword] = FreeToolTip(

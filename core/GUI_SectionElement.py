@@ -374,7 +374,7 @@ class MDFSectionElement(ttk.Frame,SectionElement):
         self.line_type = section['type']
         self.name = text # 序号
         self.section = section
-        super().__init__(master=master,bootstyle=bootstyle,borderwidth=int(1*self.sz))
+        super().__init__(master=master,bootstyle=bootstyle,borderwidth=int(1*self.sz),cursor='hand2')
         # 从小节中获取缩略图
         self.items = {
             'head' : ttk.Label(master=self,anchor='center'),
@@ -421,7 +421,7 @@ class CTBSectionElement(ttk.Frame,SectionElement):
     def __init__(self,master,bootstyle,text,section:dict,screenzoom):
         self.sz = screenzoom
         self.name = text # 序号
-        super().__init__(master=master,bootstyle=bootstyle,borderwidth=int(1*self.sz))
+        super().__init__(master=master,bootstyle=bootstyle,borderwidth=int(1*self.sz),cursor='hand2')
         self.section = section
         # 搜索标志
         self.search_text = ''

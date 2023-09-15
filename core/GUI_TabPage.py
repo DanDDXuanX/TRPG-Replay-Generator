@@ -157,7 +157,8 @@ class TabNote(ttk.Button):
             image=self.imagename+'_LT',
             compound='left',
             padding=(SZ_5,SZ_5,SZ_30,SZ_5),
-            command=self.get_pressed
+            command=self.get_pressed,
+            cursor='hand2'
         )
         self.name = text
         self.bootstyle = bootstyle

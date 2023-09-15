@@ -290,6 +290,8 @@ class MDFPreviewCanvas(PreviewCanvas):
         self.canvas_label.bind('<Control-Key-s>',self.save_command)
         # 可以联动编辑区
         self.edit_frame = self.master.edit
+        # 初始的鼠标
+        self.configure(cursor='hand2')
         # 刷新点
         self.object_this = None
         self.recode = None
@@ -414,10 +416,10 @@ class MDFPreviewCanvas(PreviewCanvas):
                         )
                 self.dots[dot].draw(self.canvas,self.canvas_zoom.get())
     def get_focus(self,event):
-        self.configure(bootstyle='primary')
+        self.configure(bootstyle='primary',cursor='crosshair')
     def lost_focus(self,event):
         self.update_preview()
-        self.configure(bootstyle='secondary')
+        self.configure(bootstyle='secondary',cursor='hand2')
     def get_coordinates(self,event):
         zoom = self.canvas_zoom.get()
         Rx = int(event.x / zoom)

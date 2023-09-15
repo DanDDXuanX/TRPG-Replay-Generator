@@ -109,11 +109,11 @@ class FileManager(ttk.Frame):
         self.load_cover()
         # 按钮
         self.buttons = {
-            'save'      : ttk.Button(master=self.project_title,image='save'  ,command=self.save_file),
-            'config'    : ttk.Button(master=self.project_title,image='config',command=self.proj_config),
-            'import'    : ttk.Button(master=self.project_title,image='import',command=self.import_file),
-            'export'    : ttk.Button(master=self.project_title,image='export',command=self.export_file),
-            'close'     : ttk.Button(master=self.project_title,image='close',command=self.close_proj),
+            'save'      : ttk.Button(master=self.project_title,image='save'  ,command=self.save_file, cursor='hand2'),
+            'config'    : ttk.Button(master=self.project_title,image='config',command=self.proj_config, cursor='hand2'),
+            'import'    : ttk.Button(master=self.project_title,image='import',command=self.import_file, cursor='hand2'),
+            'export'    : ttk.Button(master=self.project_title,image='export',command=self.export_file, cursor='hand2'),
+            'close'     : ttk.Button(master=self.project_title,image='close',command=self.close_proj, cursor='hand2'),
         }
         self.buttons_tooltip = {
             'save'      : ToolTip(widget=self.buttons['save']  ,text='保存项目',bootstyle='secondary-inverse'),
@@ -444,7 +444,7 @@ class FileCollapsing(ttk.Frame):
         SZ_2 = int(self.sz * 2)
         super().__init__(master=master,borderwidth=0)
         self.class_text = {'mediadef':'媒体库','chartab':'角色配置','rplgenlog':'剧本文件'}[fileclass]
-        self.collapbutton = ttk.Button(master=self,text=self.class_text,command=self.update_toggle,style='warning')
+        self.collapbutton = ttk.Button(master=self,text=self.class_text,command=self.update_toggle,style='warning',cursor='hand2')
         self.content_frame = ttk.Frame(master=self)
         self.button_padding = (SZ_5,SZ_2,SZ_5,SZ_2)
         # 内容，正常来说，self.items的key应该正好等于Button的text
@@ -687,6 +687,7 @@ class MDFCollapsing(FileCollapsing):
                 bootstyle   = 'light',
                 padding     = self.button_padding,
                 compound    = 'left',
+                cursor      = 'hand2'
                 )
             self.items[mediatype].bind("<Button-1>",self.open_item_as_page)
         self.update_item()
@@ -708,9 +709,6 @@ class CTBCollapsing(FileCollapsing):
         super().__init__(master, screenzoom, 'chartab', content, page_frame)
         SZ_15 = int(self.sz * 15)
         SZ_10 = int(self.sz * 10)
-        SZ_5  = int(self.sz * 5 )
-        SZ_3  = int(self.sz * 3 )
-        SZ_1  = int(self.sz * 1 )
         icon_size = [SZ_15,SZ_15]
         image = Image.open('./assets/icon/FM_charactor.png').resize(icon_size)
         if preference.theme == 'rplgendark':
@@ -725,7 +723,7 @@ class CTBCollapsing(FileCollapsing):
                 ]
         self.img_name = 'FM_charactor'
         # 新建按钮
-        self.add_button = ttk.Button(master=self.collapbutton,text='新增+',bootstyle='warning',padding=0,command=self.add_item)
+        self.add_button = ttk.Button(master=self.collapbutton,text='新增+',bootstyle='warning',padding=0,command=self.add_item,cursor='hand2')
         self.add_button.place(relx=0.8,relwidth=0.2, x=-SZ_10,rely=0.1,relheight=0.8)
         # self.add_button.pack(side='right',padx=SZ_10,pady=SZ_5,ipady=SZ_1,ipadx=SZ_3)
         self.table = self.content.export()
@@ -738,6 +736,7 @@ class CTBCollapsing(FileCollapsing):
                 bootstyle   = 'light',
                 padding     = self.button_padding,
                 compound    = 'left',
+                cursor      = 'hand2'
                 )
             self.items[name].bind("<Button-1>",self.open_item_as_page)
             self.items[name].bind("<Button-3>",self.right_click_menu)
@@ -804,7 +803,7 @@ class RGLCollapsing(FileCollapsing):
                 ]
         self.img_name = 'FM_logfile'
         # 新建按钮
-        self.add_button = ttk.Button(master=self.collapbutton,text='新增+',bootstyle='warning',padding=0,command=self.add_item)
+        self.add_button = ttk.Button(master=self.collapbutton,text='新增+',bootstyle='warning',padding=0,command=self.add_item,cursor='hand2')
         self.add_button.place(relx=0.8,relwidth=0.2, x=-SZ_10,rely=0.1,relheight=0.8)
         # self.add_button.pack(side='right',padx=SZ_10,pady=SZ_5,ipady=SZ_1,ipadx=SZ_3)
         # 内容
@@ -816,6 +815,7 @@ class RGLCollapsing(FileCollapsing):
                 bootstyle   = 'light',
                 padding     = self.button_padding,
                 compound    = 'left',
+                cursor      = 'hand2'
                 )
             self.items[key].bind("<Button-1>",self.open_item_as_page)
             self.items[key].bind("<Button-3>",self.right_click_menu)

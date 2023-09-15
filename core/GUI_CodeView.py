@@ -37,15 +37,15 @@ class SearchReplaceBar(ttk.Frame):
         self.line1 = {
             'label': ttk.Label(master=self,anchor='e',text='查找：',bootstyle='light-inverse',width=8),
             'entry': ttk.Entry(master=self,font=(Link['terminal_font_family'],10),bootstyle='secondary',textvariable=self.to_find),
-            'button1': ttk.Checkbutton(master=self,text='正则',bootstyle='secondary-toolbutton',width=7,variable=self.is_regex,takefocus=False),
-            'button2': ttk.Button(master=self,text='查找',bootstyle='secondary-outline',width=7,command=self.search,takefocus=False),
+            'button1': ttk.Checkbutton(master=self,text='正则',bootstyle='secondary-toolbutton',width=7,variable=self.is_regex,takefocus=False,cursor='hand2'),
+            'button2': ttk.Button(master=self,text='查找',bootstyle='secondary-outline',width=7,command=self.search,takefocus=False,cursor='hand2'),
         }
         self.bind_key(self.line1['entry'])
         self.line2 = {
             'label': ttk.Label(master=self,anchor='e',text='替换：',bootstyle='light-inverse',width=8),
             'entry': ttk.Entry(master=self,font=(Link['terminal_font_family'],10),bootstyle='secondary',textvariable=self.to_replace),
-            'button1': ttk.Button(master=self,text='替换',bootstyle='secondary-outline',width=7,command=self.replace,takefocus=False),
-            'button2': ttk.Button(master=self,text='全部替换',bootstyle='secondary-outline',width=7,command=self.replace_all,takefocus=False),
+            'button1': ttk.Button(master=self,text='替换',bootstyle='secondary-outline',width=7,command=self.replace,takefocus=False,cursor='hand2'),
+            'button2': ttk.Button(master=self,text='全部替换',bootstyle='secondary-outline',width=7,command=self.replace_all,takefocus=False,cursor='hand2'),
         }
         self.bind_key(self.line2['entry'])
         self.update_item()
