@@ -91,7 +91,7 @@ class HomePageElements(ttk.Frame):
         )
         self.clear = ttk.Button(
             master=self.title,
-            text=tr('清除记录'),
+            text=tr('清除'),
             bootstyle='secondary-link',
             command=self.clear_recent,
             padding=0,
@@ -99,7 +99,7 @@ class HomePageElements(ttk.Frame):
         )
         self.empty = ttk.Label(
             master=self.recent_project,
-            text='无记录',
+            text=tr('无记录'),
             font=(Link['system_font_family'],12),
             foreground=self.font_color,
             anchor='center'

@@ -40,12 +40,12 @@ class SearchBar(ttk.Frame):
         self.is_regex = tk.BooleanVar(master=self,value=False)
         self.left = {
             'entry' : ttk.Entry(master=self,width=30,textvariable=self.search_text),
-            'regex' : ttk.Checkbutton(master=self, text='正则', bootstyle='round-toggle', variable=self.is_regex,cursor='hand2'),
-            'search' : ttk.Button(master=self,text='搜索',command=self.click_search,bootstyle='primary',cursor='hand2')
+            'regex' : ttk.Checkbutton(master=self, text=tr('正则'), bootstyle='round-toggle', variable=self.is_regex,cursor='hand2'),
+            'search' : ttk.Button(master=self,text=tr('搜索'),command=self.click_search,bootstyle='primary',cursor='hand2')
         }
         self.right = {
-            'clear' : ttk.Button(master=self,text='清除',command=self.click_clear,cursor='hand2'),
-            'info'  : ttk.Label(master=self,text='(无)'),
+            'clear' : ttk.Button(master=self,text=tr('清除'),command=self.click_clear,cursor='hand2'),
+            'info'  : ttk.Label(master=self,text=tr('(无)')),
         }
         self.update_item()
     def update_item(self):
@@ -58,13 +58,13 @@ class SearchBar(ttk.Frame):
             item.pack(padx=[0,SZ_5], fill='y',side='right')
     def click_search(self):
         if self.is_regex.get():
-            self.right['info'].config(text = '正则搜索：'+self.search_text.get())
+            self.right['info'].config(text = tr('正则','搜索','：') +self.search_text.get())
         else:
-            self.right['info'].config(text = '搜索：'+self.search_text.get())
+            self.right['info'].config(text = tr('搜索','：')+self.search_text.get())
         # 搜索与显示过滤
         self.container.search(to_search=self.search_text.get(),regex=self.is_regex.get())
     def click_clear(self):
-        self.right['info'].config(text = '(无)')
+        self.right['info'].config(text = tr('(无)'))
         self.container.search(to_search='')
 # 输出指令
 class OutPutCommand(ttk.Frame):

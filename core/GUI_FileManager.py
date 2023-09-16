@@ -24,6 +24,7 @@ from .GUI_TabPage import PageFrame, RGLPage, CTBPage, MDFPage
 from .GUI_DialogWindow import browse_file, save_file, browse_multi_file
 from .GUI_CustomDialog import relocate_file, configure_project
 from .GUI_Util import FluentFrame, ask_rename_boardcast
+from .GUI_Language import tr
 from .GUI_Link import Link
 # 项目视图-文件管理器-RGPJ
 class RplGenProJect(Script):
@@ -443,7 +444,7 @@ class FileCollapsing(ttk.Frame):
         SZ_5 = int(self.sz * 10)
         SZ_2 = int(self.sz * 2)
         super().__init__(master=master,borderwidth=0)
-        self.class_text = {'mediadef':'媒体库','chartab':'角色配置','rplgenlog':'剧本文件'}[fileclass]
+        self.class_text = {'mediadef':tr('媒体库'),'chartab':tr('角色配置'),'rplgenlog':tr('剧本文件')}[fileclass]
         self.collapbutton = ttk.Button(master=self,text=self.class_text,command=self.update_toggle,style='warning',cursor='hand2')
         self.content_frame = ttk.Frame(master=self)
         self.button_padding = (SZ_5,SZ_2,SZ_5,SZ_2)
@@ -723,7 +724,7 @@ class CTBCollapsing(FileCollapsing):
                 ]
         self.img_name = 'FM_charactor'
         # 新建按钮
-        self.add_button = ttk.Button(master=self.collapbutton,text='新增+',bootstyle='warning',padding=0,command=self.add_item,cursor='hand2')
+        self.add_button = ttk.Button(master=self.collapbutton,text=tr('新增+'),bootstyle='warning',padding=0,command=self.add_item,cursor='hand2')
         self.add_button.place(relx=0.8,relwidth=0.2, x=-SZ_10,rely=0.1,relheight=0.8)
         # self.add_button.pack(side='right',padx=SZ_10,pady=SZ_5,ipady=SZ_1,ipadx=SZ_3)
         self.table = self.content.export()
@@ -803,7 +804,7 @@ class RGLCollapsing(FileCollapsing):
                 ]
         self.img_name = 'FM_logfile'
         # 新建按钮
-        self.add_button = ttk.Button(master=self.collapbutton,text='新增+',bootstyle='warning',padding=0,command=self.add_item,cursor='hand2')
+        self.add_button = ttk.Button(master=self.collapbutton,text=tr('新增+'),bootstyle='warning',padding=0,command=self.add_item,cursor='hand2')
         self.add_button.place(relx=0.8,relwidth=0.2, x=-SZ_10,rely=0.1,relheight=0.8)
         # self.add_button.pack(side='right',padx=SZ_10,pady=SZ_5,ipady=SZ_1,ipadx=SZ_3)
         # 内容

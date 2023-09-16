@@ -31,6 +31,7 @@ class Translate:
     }
     dictionary = {
         'en':{
+            '：':':',
             '首选项': "Preference",
             '项目'  : "Projects",
             '脚本'  : "Scripts",
@@ -42,7 +43,8 @@ class Translate:
             '新建空白项目'  : 'New Empty Project',
             '新建智能项目'  : 'New Intel Project',
             '最近项目：'    : 'Recent:',
-            '清除记录'      : 'clear',
+            '清除'      : 'clear',
+            '无记录'        : 'No recode',
             '运行脚本'      : 'Run Scripts',
             '重置'  : 'Reset',
             '确定'  : 'Confirm',
@@ -63,6 +65,15 @@ class Translate:
             '音效'      : 'Audio',
             '背景音乐'  : 'BGM',
             '角色差分'  : 'Subtype',
+            '正则'      : 'regex',
+            '搜索'      : 'search',
+            '替换'      : 'replace',
+            '全部替换'  : 'replace all',
+            '(无)'      : '(none)',
+            '媒体库'    : 'Media library',
+            '角色配置'  : 'Character Config',
+            '剧本文件'  : 'RplGenLog Files',
+            '新增+'      : 'add+',
         }
     }
     lang = 'zh'
@@ -90,5 +101,13 @@ class Translate:
         for pair in Translate.locale_dictionary[locale]:
             MessageCatalog.set_many(locale, *pair)
 
-def tr(src):
-    return Translate.translate(src)
+def tr(src, *srcs):
+    trans = Translate.translate(src)
+    if srcs:
+        if Translate.lang == 'en':
+            sep = ' '
+        else:
+            sep = ''
+        for s in srcs:
+            trans += sep+Translate.translate(s)
+    return trans
