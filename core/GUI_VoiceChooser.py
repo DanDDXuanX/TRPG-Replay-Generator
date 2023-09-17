@@ -287,10 +287,13 @@ class SystemVoiceArgs(VoiceArgs):
         # 如果已经有了，就什么都不做
         if 'System' in voice_lib['service'].values:
             return
+        # 获取系统语音
         list_of_voice = System_TTS_engine().get_available().keys()
         L = len(list_of_voice)
-        df_of_voice = pd.DataFrame(columns=voice_lib.columns,index = range(L))
+        if L == 0:
+            return
         # 设置值
+        df_of_voice = pd.DataFrame(columns=voice_lib.columns,index = range(L))
         df_of_voice['service'] = 'System'
         df_of_voice['Voice'] = list_of_voice
         df_of_voice['description'] = list_of_voice

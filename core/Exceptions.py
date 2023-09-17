@@ -229,6 +229,8 @@ class SynthesisError(RplGenError):
                         "Azure错误：{}"],
         'SysInvArg'   :["SysTTSError: Unknown Voice argument: '{}'",
                         "系统语音错误：未知的音源名：“{}”"],
+        'SysUnaval'   :["SysTTSError: System Voice is not available.",
+                        "系统语音错误：系统语音不可用。"],
         'SysFailed'   :["SysTTSError: : Synthesis failed, due to: {}",
                         "系统语音错误：语音合成错误，由于：{}"],
         'TctInvArg'   :["TencentError: Invalid Voice argument: '{}'",

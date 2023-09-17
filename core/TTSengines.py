@@ -444,32 +444,38 @@ class System_TTS_engine(TTS_engine):
         self.voice = voice
         self.aformat = aformat
         self.speech_rate = speech_rate
-        # 合成器
-        self.voice_list = {}
-        self.synthesizer = pyttsx3.init()
-        # 应用参数
-        if not self.voice_list:
+        try:
+            # 合成器
+            self.synthesizer = pyttsx3.init()
+            # 获取可用音源名
             self.get_available()
-        else:
+            # 应用参数
             try:
                 if voice:
                     self.synthesizer.setProperty('voice', self.voice_list[self.voice])
                 self.synthesizer.setProperty('rate', int(self.linear_mapping(self.speech_rate)*200))
             except KeyError:
                 raise SynthesisError('SysInvArg',self.voice)
+        except ValueError:
+            self.synthesizer = None
     # 获取可用语音列表
     def get_available(self):
-        for voice in pyttsx3.init().getProperty('voices'):
-            self.voice_list[voice.name] = voice.id
+        self.voice_list = {}
+        if self.synthesizer:
+            for voice in self.synthesizer.getProperty('voices'):
+                self.voice_list[voice.name] = voice.id
         return self.voice_list
     # 开始
     def start(self, text, ofile):
-        self.synthesizer.save_to_file(text, ofile)
-        try:
-            self.synthesizer.runAndWait()
-        except Exception as E:
-            SynthesisError('SysFailed',E)
-        if not os.path.isfile(ofile):
-            SynthesisError('SysFailed','No file saved!')
-        # 输出显示
-        self.print_success(text=text,ofile=ofile)
+        if self.synthesizer:
+            self.synthesizer.save_to_file(text, ofile)
+            try:
+                self.synthesizer.runAndWait()
+            except Exception as E:
+                SynthesisError('SysFailed',E)
+            if not os.path.isfile(ofile):
+                SynthesisError('SysFailed','No file saved!')
+            # 输出显示
+            self.print_success(text=text,ofile=ofile)
+        else:
+            raise SynthesisError('SysUnaval')
