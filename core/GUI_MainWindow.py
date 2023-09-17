@@ -329,7 +329,7 @@ class NavigateBar(ttk.Frame):
         self.is_wide = False
         # 图形
         self.image = {
-            'logo'      : ImageTk.PhotoImage(name='logo',   image=Image.open('./assets/icon.png').resize(icon_size)),
+            'logo'      : ImageTk.PhotoImage(name='logo',   image=Image.open('./assets/icon/main_icon.png').resize(icon_size)),
             'setting'   : ImageTk.PhotoImage(name='setting',image=Image.open('./assets/icon/setting.png').resize(icon_size)),
             'project'   : ImageTk.PhotoImage(name='project',image=Image.open('./assets/icon/project.png').resize(icon_size)),
             'script'    : ImageTk.PhotoImage(name='script', image=Image.open('./assets/icon/script.png').resize(icon_size)),
