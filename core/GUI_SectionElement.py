@@ -29,6 +29,7 @@ class RightClickMenu(ttk.Menu):
         self.add_command(label='复制',accelerator='ctrl+C',command=lambda :self.container.copy_element(None))
         self.add_command(label='粘贴',accelerator='ctrl+V',command=lambda :self.container.paste_element(None,key=self.container.selected[0],ahead=False))
         self.add_command(label='粘贴（上方）',command=lambda :self.container.paste_element(None,key=self.container.selected[0],ahead=True))
+        self.add_command(label='粘贴属性',accelerator='alt+V', command=lambda :self.container.paste_attribute(None))
         # ------------------------
         self.add_separator()
         self.add_command(label='保存',accelerator='ctrl+S',command=lambda :self.container.save_command(None))

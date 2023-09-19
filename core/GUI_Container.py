@@ -12,6 +12,8 @@ from ttkbootstrap.dialogs import Messagebox
 from .GUI_Util import FluentFrame
 from .GUI_SectionElement import MDFSectionElement, CTBSectionElement, RGLSectionElement
 from .ScriptParser import MediaDef, CharTable, RplGenLog
+from .GUI_PasteAttributes import PasteAttributesDialog
+from .GUI_Language import tr
 
 # 容纳内容的滚动Frame
 class Container(FluentFrame):
@@ -30,6 +32,7 @@ class Container(FluentFrame):
         self.container.bind('<Control-Key-a>',lambda event:self.select_range(event,index=False),"+")
         self.container.bind('<Control-Key-c>',lambda event:self.copy_element(event),"+")
         self.container.bind('<Control-Key-v>',lambda event:self.paste_element(event,key=self.selected[0]),"+")
+        self.container.bind('<Alt-Key-v>',lambda event:self.paste_attribute(event),"+") # 
         self.container.bind('<Control-Key-s>',lambda event:self.save_command(event),'+')
         self.container.bind('<Up>',lambda event:self.select_up(event),"+")
         self.container.bind('<Down>',lambda event:self.select_down(event),"+")
@@ -259,6 +262,24 @@ class Container(FluentFrame):
         if self.display_filter != self.element_keys:
             self.reset_search()
         # 待重载
+    def paste_attribute(self, event):
+        # 从Container剪贴板中复制
+        if len(self.__class__.element_clipboard) > 1:
+            Messagebox().show_warning(message='复制了多个对象，无法粘贴属性。',title=tr('Warning'),parent=self.page)
+        else:
+            for name in self.__class__.element_clipboard:
+                paste_window = PasteAttributesDialog(
+                    screenzoom=self.sz,
+                    container=self,
+                    select_element=self.selected,
+                    parent=self,title=tr('粘贴','属性'),
+                    clipboard_element=self.__class__.element_clipboard[name],
+                    clipboard_name=name
+                    )
+                break
+            paste_window.show()
+            print(paste_window.result)
+            # TODO : 正式应用粘贴属性
     # 排序
     def sort_element(self,by='name'):
         # 执行排序

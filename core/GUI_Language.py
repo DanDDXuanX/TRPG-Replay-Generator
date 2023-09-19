@@ -31,6 +31,8 @@ class Translate:
     }
     dictionary = {
         'en':{
+            '确定': 'OK',
+            '取消': 'Cancel',
             '：':':',
             '首选项': "Preference",
             '项目'  : "Projects",
@@ -47,7 +49,6 @@ class Translate:
             '无记录'        : 'No recode',
             '运行脚本'      : 'Run Scripts',
             '重置'  : 'Reset',
-            '确定'  : 'Confirm',
             '终止'  : 'Interrupt',
             '固定点'    : 'Pos',
             '自由点'    : 'FreePos',
@@ -69,11 +70,16 @@ class Translate:
             '搜索'      : 'search',
             '替换'      : 'replace',
             '全部替换'  : 'replace all',
-            '(无)'      : '(none)',
+            '(无)'      : '(None)',
             '媒体库'    : 'Media library',
             '角色配置'  : 'Character Config',
             '剧本文件'  : 'RplGenLog Files',
             '新增+'      : 'add+',
+            '选择'  : 'select',
+            '粘贴'  : 'paste',
+            '属性'  : 'attributes',
+            '全选'  : 'select all',
+            '从[{}]粘贴' : 'Paste from [{}]'
         }
     }
     lang = 'zh'
