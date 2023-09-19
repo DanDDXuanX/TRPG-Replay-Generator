@@ -15,7 +15,7 @@ from .GUI_Language import tr
 
 class PasteAttributes(ttk.Frame):
     attribute_table = pd.read_csv('./assets/attribute_table.tsv', sep='\t', index_col='attr')
-    def __init__(self,master,screenzoom,close_func,title,container,clipboard_element:dict={},clipboard_name='',select_element:list=[]):
+    def __init__(self,master,screenzoom,close_func,container,clipboard_element:dict={},clipboard_name='',select_element:list=[]):
         # 缩放尺度
         self.sz = screenzoom
         super().__init__(master,borderwidth=0)
@@ -157,7 +157,6 @@ class PasteAttributesDialog(Dialog):
             master = master,
             screenzoom = self.sz,
             clipboard_element = self.clipboard_element,
-            title=self._title,
             close_func = self.close_dialog,
             container = self.container,
             select_element=self.select_element,
