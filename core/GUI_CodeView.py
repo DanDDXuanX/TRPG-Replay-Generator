@@ -676,8 +676,14 @@ class RGLCodeViewFrame(ttk.Frame):
             Messagebox().show_info(message=message,title='批量导入语音',parent=self)
     # 智能导入
     def rgl_intel_import(self):
-        target_file = browse_file(master=self, text_obj=tk.StringVar(),method='file',filetype='text')
+        # 0. 将尚未保存的编辑内容保存
+        try:
+            self.update_rplgenlog()
+        except Exception as E:
+            Messagebox().show_error(message=re.sub('\x1B\[\d+m','',str(E)),title='错误',parent=self)
+            return
         # 1. 载入导入的文本
+        target_file = browse_file(master=self, text_obj=tk.StringVar(),method='file',filetype='text',related=False)
         if target_file == '':
             return False
         try:
