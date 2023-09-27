@@ -99,9 +99,12 @@ class BoardcastHandler:
                     counter += 1
                 # 情况2：是subscript
                 elif type(this_section[effect_arg]) is dict:
-                    print(this_section[effect_arg])
                     subscript = this_section[effect_arg]
-                    if subscript['object'] == old_name_reference:
+                    # 是Text() 这种，而不是subscript
+                    if 'object' not in subscript:
+                        continue
+                    # 是subscript
+                    elif subscript['object'] == old_name_reference:
                         subscript['object'] = new_name_reference
                         counter += 1
                     else:
