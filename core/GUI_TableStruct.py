@@ -2375,6 +2375,16 @@ PreferenceTableStruct = {
                 "vtype": "int",
                 "default": 14
             },
+            "System.performance_mode":{
+                "ktext": "效能模式：",
+                "tooltip": "在媒体列表中不显示媒体缩略图，以避免在媒体数量大时发生卡顿。",
+                "dtext": "（选择）",
+                "ditem": "label",
+                "valuekey": "System.performance_mode",
+                "vitem": "combox",
+                "vtype": "bool",
+                "default": False
+            },
         }
     },       
     "MediaSep":{
@@ -2982,6 +2992,10 @@ fit_axis = {
 True_False = {
     "是": True,
     "否": False
+}
+is_enable = {
+    '启用': True,
+    '禁用': False
 }
 askyesno = {
     "每次询问"  : 'ask',

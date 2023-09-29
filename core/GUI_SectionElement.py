@@ -13,6 +13,7 @@ from .ScriptParser import MediaDef, CharTable, RplGenLog
 from .Medias import MediaObj
 from .FilePaths import Filepath
 from .Exceptions import MediaError
+from .ProjConfig import preference
 
 # 右键菜单
 class RightClickMenu(ttk.Menu):
@@ -61,10 +62,28 @@ class SectionElement:
     def drop_select(self):
         self.select_symbol.place_forget()
     def update_image_from_section(self,section,icon_size:int,thumbname='%d'):
-        # icon_size= int(160*self.sz)
         # 确认显示内容:image
-        if   section['type'] in ['Animation','Bubble','Balloon','DynamicBubble','ChatWindow','Background']:
-            if section['filepath'] in self.thumbnail_name.keys():
+        if section['type'] in ['Animation','Bubble','Balloon','DynamicBubble','ChatWindow','Background']:
+            # 是效能模式
+            if preference.performance_mode:
+                # 注意：这里是因为同时会在媒体和角色页里引用这个图标，因此image_name需要加上了icon_size，以免双方相互影响
+                if section['type'] not in self.thumbnail_name.keys():
+                    # 创建媒体默认图标
+                    self.__class__.thumbnail_image['Animation'] = ImageTk.PhotoImage(name='Animation_%d'%icon_size, image=Image.open('./assets/icon/medias/Animation.png').resize([icon_size,icon_size]))
+                    self.__class__.thumbnail_image['Bubble']   = ImageTk.PhotoImage(name='Bubble_%d'%icon_size,   image=Image.open('./assets/icon/medias/Bubble.png').resize([icon_size,icon_size]))
+                    self.__class__.thumbnail_image['Balloon'] = ImageTk.PhotoImage(name='Balloon_%d'%icon_size, image=Image.open('./assets/icon/medias/Balloon.png').resize([icon_size,icon_size]))
+                    self.__class__.thumbnail_image['DynamicBubble']   = ImageTk.PhotoImage(name='DynamicBubble_%d'%icon_size,   image=Image.open('./assets/icon/medias/DynamicBubble.png').resize([icon_size,icon_size]))
+                    self.__class__.thumbnail_image['ChatWindow'] = ImageTk.PhotoImage(name='ChatWindow_%d'%icon_size, image=Image.open('./assets/icon/medias/ChatWindow.png').resize([icon_size,icon_size]))
+                    self.__class__.thumbnail_image['Background']   = ImageTk.PhotoImage(name='Background_%d'%icon_size,   image=Image.open('./assets/icon/medias/Background.png').resize([icon_size,icon_size]))
+                    self.thumbnail_name['Animation'] = 'Animation_%d'%icon_size
+                    self.thumbnail_name['Bubble'] = 'Bubble_%d'%icon_size
+                    self.thumbnail_name['Balloon'] = 'Balloon_%d'%icon_size
+                    self.thumbnail_name['DynamicBubble'] = 'DynamicBubble_%d'%icon_size
+                    self.thumbnail_name['ChatWindow'] = 'ChatWindow_%d'%icon_size
+                    self.thumbnail_name['Background'] = 'Background_%d'%icon_size
+                self.thumb = self.thumbnail_name[section['type']]
+            # 是既有图片
+            elif section['filepath'] in self.thumbnail_name.keys():
                 self.thumb = self.thumbnail_name[section['filepath']]
             else:
                 # 新建一个缩略图
@@ -86,61 +105,73 @@ class SectionElement:
                 self.thumbnail_name[section['filepath']] = thumbnail_name_this
                 self.thumbnail_image[section['filepath']] = ImageTk.PhotoImage(name=thumbnail_name_this,image=thumbnail(image=image,icon_size=icon_size))
                 self.thumb = thumbnail_name_this
-        elif self.line_type in ['Text','StrokeText','RichText','HPLabel']:
-            # 新建一个缩略图
-            try:
-                text_obj = self.MDFscript.instance_execute(section)
-                temp_canvas = pygame.Surface(size=(icon_size,icon_size))
-                # 背景图的颜色
-                if self.line_type == 'StrokeText':
-                    if np.mean(text_obj.edge_color) > 230:
-                        temp_canvas.fill('black')
+        elif section['type'] in ['Text','StrokeText','RichText','HPLabel']:
+            if preference.performance_mode:
+                if section['type'] not in self.thumbnail_name.keys():
+                    self.__class__.thumbnail_image['Text'] = ImageTk.PhotoImage(name='Text', image=Image.open('./assets/icon/medias/Text.png').resize([icon_size,icon_size]))
+                    self.__class__.thumbnail_image['StrokeText']   = ImageTk.PhotoImage(name='StrokeText',   image=Image.open('./assets/icon/medias/StrokeText.png').resize([icon_size,icon_size]))
+                    self.__class__.thumbnail_image['RichText'] = ImageTk.PhotoImage(name='RichText', image=Image.open('./assets/icon/medias/RichText.png').resize([icon_size,icon_size]))
+                    self.__class__.thumbnail_image['HPLabel']   = ImageTk.PhotoImage(name='HPLabel',   image=Image.open('./assets/icon/medias/HPLabel.png').resize([icon_size,icon_size]))
+                    self.thumbnail_name['Text'] = 'Text'
+                    self.thumbnail_name['StrokeText'] = 'StrokeText'
+                    self.thumbnail_name['RichText'] = 'RichText'
+                    self.thumbnail_name['HPLabel'] = 'HPLabel'
+                self.thumb = section['type']
+            else:
+                # 新建一个缩略图
+                try:
+                    text_obj = self.MDFscript.instance_execute(section)
+                    temp_canvas = pygame.Surface(size=(icon_size,icon_size))
+                    # 背景图的颜色
+                    if section['type'] == 'StrokeText':
+                        if np.mean(text_obj.edge_color) > 230:
+                            temp_canvas.fill('black')
+                        else:
+                            temp_canvas.fill('white')
                     else:
-                        temp_canvas.fill('white')
-                else:
-                    if np.mean(text_obj.color) > 230:
-                        temp_canvas.fill('black')
-                    else:
-                        temp_canvas.fill('white')
-                # 渲染预览字体
-                test_text = {'Text':'字体#Text','StrokeText':'描边#Stroke','RichText':'[i]富文[#][/i][u]Rich','HPLabel':'血条#1/2'}[self.line_type]
-                for idx,text in enumerate(text_obj.draw(text=test_text)):
-                    text:pygame.Surface
-                    w,h = text.get_size()
-                    temp_canvas.blit(
-                        text,
-                        [
-                            int( icon_size/2 - w/2 ),
-                            int( icon_size/2 - (1 - idx) * text_obj.size )
-                        ]
-                    )
-                # 转为Image
-                image = Image.frombytes(mode='RGB',size=(icon_size,icon_size),data=pygame.image.tostring(temp_canvas,'RGB'))
-            except Exception as E:
-                image = Image.open('./assets/icon/Error.png')
-            # 缩略名
-            thumbnail_name_this = 'thumbnail%d'%self.thumbnail_idx
-            self.__class__.thumbnail_idx += 1
-            # 应用
-            self.thumbnail_name[thumbnail_name_this] = thumbnail_name_this
-            self.thumbnail_image[thumbnail_name_this] = ImageTk.PhotoImage(name=thumbnail_name_this,image=thumbnail(image=image,icon_size=icon_size))
-            self.thumb = thumbnail_name_this
-        elif self.line_type in ['Audio','BGM']:
-            if self.line_type not in self.thumbnail_name.keys():
-                self.__class__.thumbnail_image['Audio'] = ImageTk.PhotoImage(name='Audio', image=Image.open('./assets/icon/audio.png').resize([icon_size,icon_size]))
-                self.__class__.thumbnail_image['BGM']   = ImageTk.PhotoImage(name='BGM',   image=Image.open('./assets/icon/bgm.png').resize([icon_size,icon_size]))
+                        if np.mean(text_obj.color) > 230:
+                            temp_canvas.fill('black')
+                        else:
+                            temp_canvas.fill('white')
+                    # 渲染预览字体
+                    test_text = {'Text':'字体#Text','StrokeText':'描边#Stroke','RichText':'[i]富文[#][/i][u]Rich','HPLabel':'血条#1/2'}[section['type']]
+                    for idx,text in enumerate(text_obj.draw(text=test_text)):
+                        text:pygame.Surface
+                        w,h = text.get_size()
+                        temp_canvas.blit(
+                            text,
+                            [
+                                int( icon_size/2 - w/2 ),
+                                int( icon_size/2 - (1 - idx) * text_obj.size )
+                            ]
+                        )
+                    # 转为Image
+                    image = Image.frombytes(mode='RGB',size=(icon_size,icon_size),data=pygame.image.tostring(temp_canvas,'RGB'))
+                except Exception as E:
+                    image = Image.open('./assets/icon/Error.png')
+                # 缩略名
+                thumbnail_name_this = 'thumbnail%d'%self.thumbnail_idx
+                self.__class__.thumbnail_idx += 1
+                # 应用
+                self.thumbnail_name[thumbnail_name_this] = thumbnail_name_this
+                self.thumbnail_image[thumbnail_name_this] = ImageTk.PhotoImage(name=thumbnail_name_this,image=thumbnail(image=image,icon_size=icon_size))
+                self.thumb = thumbnail_name_this
+        elif section['type'] in ['Audio','BGM']:
+            if section['type'] not in self.thumbnail_name.keys():
+                self.__class__.thumbnail_image['Audio'] = ImageTk.PhotoImage(name='Audio', image=Image.open('./assets/icon/medias/Audio.png').resize([icon_size,icon_size]))
+                self.__class__.thumbnail_image['BGM']   = ImageTk.PhotoImage(name='BGM',   image=Image.open('./assets/icon/medias/BGM.png').resize([icon_size,icon_size]))
                 self.thumbnail_name['Audio'] = 'Audio'
                 self.thumbnail_name['BGM'] = 'BGM'
-            self.thumb = self.line_type
-        elif self.line_type in ['Pos','PosGrid','FreePos']:
-            if self.line_type not in self.thumbnail_name.keys():
-                self.__class__.thumbnail_image['Pos']        = ImageTk.PhotoImage(name='Pos',    image=Image.open('./assets/icon/Pos.png').resize([icon_size,icon_size]))
-                self.__class__.thumbnail_image['PosGrid']    = ImageTk.PhotoImage(name='PosGrid',image=Image.open('./assets/icon/PosGrid.png').resize([icon_size,icon_size]))
-                self.__class__.thumbnail_image['FreePos']    = ImageTk.PhotoImage(name='FreePos',image=Image.open('./assets/icon/FreePos.png').resize([icon_size,icon_size]))
+            self.thumb = section['type']
+        elif section['type'] in ['Pos','PosGrid','FreePos']:
+            if section['type'] not in self.thumbnail_name.keys():
+                self.__class__.thumbnail_image['Pos']        = ImageTk.PhotoImage(name='Pos',    image=Image.open('./assets/icon/medias/Pos.png').resize([icon_size,icon_size]))
+                self.__class__.thumbnail_image['PosGrid']    = ImageTk.PhotoImage(name='PosGrid',image=Image.open('./assets/icon/medias/PosGrid.png').resize([icon_size,icon_size]))
+                self.__class__.thumbnail_image['FreePos']    = ImageTk.PhotoImage(name='FreePos',image=Image.open('./assets/icon/medias/FreePos.png').resize([icon_size,icon_size]))
                 self.thumbnail_name['Pos'] = 'Pos'
                 self.thumbnail_name['PosGrid'] = 'PosGrid'
                 self.thumbnail_name['FreePos'] = 'FreePos'
-            self.thumb = self.line_type
+            self.thumb = section['type']
         return self.thumb
     def rearch_is_match(self,to_search,regex=False)->bool:
         if regex:

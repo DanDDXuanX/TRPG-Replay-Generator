@@ -11,7 +11,7 @@ from .GUI_Util import TextSeparator, FluentFrame, StickyLabelSeperator
 from .GUI_Link import Link
 from .GUI_Language import tr
 from .GUI_TableStruct import PreferenceTableStruct, ExecuteTableStruct, TestPortalStruct
-from .GUI_TableStruct import language, True_False, theme, progressbar, import_mode, dice_mode, askyesno, colorschemes
+from .GUI_TableStruct import language, True_False, theme, progressbar, import_mode, dice_mode, askyesno, colorschemes, is_enable
 
 class OutPutCommandAtScriptExecuter(OutPutCommand):
     # 重载
@@ -143,6 +143,7 @@ class PreferenceTable(TableEdit):
         self.elements['System.lang'].input.update_dict(language)
         self.elements['System.theme'].input.update_dict(theme)
         self.elements['System.editer_colorschemes'].input.update_dict(colorschemes)
+        self.elements['System.performance_mode'].input.update_dict(is_enable)
         self.elements['Preview.progress_bar_style'].input.update_dict(progressbar)
         self.elements['Preview.framerate_counter'].input.update_dict(True_False)
         self.elements['Export.force_split_clip'].input.update_dict(True_False)

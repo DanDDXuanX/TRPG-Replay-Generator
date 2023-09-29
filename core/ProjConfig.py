@@ -83,6 +83,84 @@ class Config:
 
 # 程序设置
 class Preference:
+    default = {
+        # 合成语音时：key
+        'accesskey' : 'Your_AccessKey',
+        'accesskey_secret' : 'Your_AccessKey_Secret',
+        'appkey' : 'Your_Appkey',
+        'azurekey' : 'Your_Azurekey',
+        'service_region' : 'eastasia',
+        'appid' : '0',
+        'secretid' : 'Your_SecretID',
+        'secretkey' : 'Your_SecretKey',
+        # 系统
+        'lang' : 'zh',
+        'theme' : 'rplgenlight',
+        'editer_fontsize' : 12,
+        'editer_colorschemes' : "monokai",
+        'terminal_fontsize' : 14,
+        'performance_mode'  : False,
+        # 内置动画
+        'BIA_font' : './assets/SourceHanSerifSC-Heavy.otf',
+        'BIA_font_size' : 0.0521,
+        'dice_mode' : 'COC',
+        'dice_threshold' : 0.05,
+        'heart_pic' : './assets/heart.png',
+        'heart_shape' : './assets/heart_shape.png',
+        'heart_distance' : 0.026,
+        # 编辑
+        'auto_periods' : False,
+        'import_mode' : 'add',
+        'auto_convert' : 'ask',
+        'rename_boardcast' : 'ask',
+        'asterisk_import' : True,
+        # 预览
+        'progress_bar_style' : 'color',
+        'framerate_counter' : True,
+        # 导出视频时：视频质量
+        'crf' : 24,
+        'hwaccels' : False,
+        'force_split_clip' : False,
+    }
+    keyword = {
+        # 语音key
+        'accesskey' : 'Aliyun.accesskey',
+        'accesskey_secret' : 'Aliyun.accesskey_secret',
+        'appkey' : 'Aliyun.appkey',
+        'azurekey' : 'Azure.azurekey',
+        'service_region' : 'Azure.service_region',
+        'appid' : 'Tencent.appid',
+        'secretid' : 'Tencent.secretid',
+        'secretkey' : 'Tencent.secretkey',
+        # 系统
+        'lang' : 'System.lang',
+        'theme' : 'System.theme',
+        'editer_fontsize' : 'System.editer_fontsize',
+        'editer_colorschemes' : 'System.editer_colorschemes',
+        'terminal_fontsize' : 'System.terminal_fontsize',
+        'performance_mode'  : 'System.performance_mode',
+        # 媒体
+        'BIA_font' : 'BIA.font',
+        'BIA_font_size' : 'BIA.font_size',
+        'dice_mode' : 'BIA.dice_mode',
+        'dice_threshold' : 'BIA.dice_threshold',
+        'heart_pic' : 'BIA.heart_pic',
+        'heart_shape' : 'BIA.heart_shape',
+        'heart_distance' : 'BIA.heart_distance',
+        # 编辑
+        'auto_periods' : 'Edit.auto_periods',
+        'import_mode' : 'Edit.import_mode',
+        'auto_convert' : 'Edit.auto_convert',
+        'asterisk_import' : 'Edit.asterisk_import',
+        'rename_boardcast' : 'Edit.rename_boardcast',
+        # 预览
+        'progress_bar_style' : 'Preview.progress_bar_style',
+        'framerate_counter' : 'Preview.framerate_counter',
+        # 导出
+        'force_split_clip' : 'Export.force_split_clip',
+        'crf' : 'Export.crf',
+        'hwaccels' : 'Export.hwaccels',
+    }
     def __init__(self,dict_input:dict=None,json_input:str=None) -> None:
         # 载入
         if json_input:
@@ -95,131 +173,20 @@ class Preference:
         self.execute()
     def set_struct(self,dict_input:dict=None) -> None:
         if dict_input:
-            # 合成
-            self.accesskey:str = dict_input['Aliyun.accesskey']
-            self.accesskey_secret:str = dict_input['Aliyun.accesskey_secret']
-            self.appkey:str = dict_input['Aliyun.appkey']
-            self.azurekey:str = dict_input['Azure.azurekey']
-            self.service_region:str = dict_input['Azure.service_region']
-            self.appid:str = dict_input['Tencent.appid']
-            self.secretid:str = dict_input['Tencent.secretid']
-            self.secretkey:str = dict_input['Tencent.secretkey']
-            # 系统
-            self.lang:str = dict_input['System.lang']
-            self.theme:str = dict_input['System.theme']
-            self.editer_fontsize:int = dict_input['System.editer_fontsize']
-            self.editer_colorschemes:str = dict_input['System.editer_colorschemes']
-            self.terminal_fontsize:int = dict_input['System.terminal_fontsize']
-            # 媒体
-            self.BIA_font:str = dict_input['BIA.font']
-            self.BIA_font_size:float =dict_input['BIA.font_size']
-            self.dice_mode:str = dict_input['BIA.dice_mode']
-            self.dice_threshold:float = dict_input['BIA.dice_threshold']
-            self.heart_pic:str = dict_input['BIA.heart_pic']
-            self.heart_shape:str = dict_input['BIA.heart_shape']
-            self.heart_distance:float = dict_input['BIA.heart_distance']
-            # 编辑
-            self.auto_periods:bool = dict_input['Edit.auto_periods']
-            self.import_mode:str = dict_input['Edit.import_mode']
-            self.auto_convert:str = dict_input['Edit.auto_convert']
-            self.asterisk_import:str = dict_input['Edit.asterisk_import']
-            self.rename_boardcast:str = dict_input['Edit.rename_boardcast']
-            # 预览
-            self.progress_bar_style:str = dict_input['Preview.progress_bar_style']
-            self.framerate_counter:bool = dict_input['Preview.framerate_counter']
-            # 导出
-            self.force_split_clip:bool = dict_input['Export.force_split_clip']
-            self.crf:int = dict_input['Export.crf']
-            self.hwaccels:bool = dict_input['Export.hwaccels']
+            # 如果缺省值，则采用默认值
+            for key,value in self.keyword.items():
+                try:
+                    self.__setattr__(key,dict_input[value])
+                except KeyError:
+                    self.__setattr__(key,self.default[key])
         else:
-            # 合成语音时：key
-            self.accesskey:str = 'Your_AccessKey'
-            self.accesskey_secret:str = 'Your_AccessKey_Secret'
-            self.appkey:str = 'Your_Appkey'
-            self.azurekey:str = 'Your_Azurekey'
-            self.service_region:str = 'eastasia'
-            self.appid:str = '0'
-            self.secretid:str = 'Your_SecretID'
-            self.secretkey:str = 'Your_SecretKey'
-            # 导出视频时：视频质量
-            self.crf:int = 24
-            self.hwaccels:bool = False
-            # 语言
-            self.lang:str = 'zh'
-            # 字体大小
-            self.editer_fontsize:int = 12
-            self.editer_colorschemes:str = "monokai"
-            self.terminal_fontsize:int = 14
-            # 编辑
-            self.auto_periods:bool = False
-            # 媒体
-            # 内建动画的字体文件
-            self.BIA_font:str = './assets/SourceHanSerifSC-Heavy.otf'
-            # 内建动画的字体大小
-            self.BIA_font_size:float = 0.0521 # W
-            # 骰子动画的模式
-            self.dice_mode:str = 'COC'
-            self.dice_threshold:float = 0.05 # 5%
-            # 生命动画的前景图
-            self.heart_pic:str = './assets/heart.png'
-            # 生命动画的背景图
-            self.heart_shape:str = './assets/heart_shape.png'
-            # 心与心的距离
-            self.heart_distance:float = 0.026 # W
-            # 预览
-            # theme # light, dark
-            self.theme:str = 'rplgenlight'
-            # 进度条样式 # color ,black ,disable
-            self.progress_bar_style:str = 'color'
-            # 帧率显示器开启
-            self.framerate_counter:bool = True
-            # 导出PR
-            # 是否强制在断点处拆分序列
-            self.force_split_clip:bool = False
-            # 导入模式
-            self.import_mode:str = 'add'
-            self.auto_convert:str = 'ask'
-            self.rename_boardcast:str = 'ask'
-            self.asterisk_import:bool = True
+            for key,value in self.keyword:
+                self.__setattr__(key,self.default[key])
     def get_struct(self)->dict:
-        return {
-            # 语音合成
-            'Aliyun.accesskey'          : self.accesskey,
-            'Aliyun.accesskey_secret'   : self.accesskey_secret,
-            'Aliyun.appkey'             : self.appkey,
-            'Azure.azurekey'            : self.azurekey,
-            'Azure.service_region'      : self.service_region,
-            'Tencent.appid'             : self.appid,
-            'Tencent.secretid'          : self.secretid,
-            'Tencent.secretkey'         : self.secretkey,
-            # 系统
-            'System.lang'               : self.lang,
-            'System.theme'              : self.theme,
-            'System.editer_fontsize'    : self.editer_fontsize,
-            'System.editer_colorschemes': self.editer_colorschemes,
-            'System.terminal_fontsize'  : self.terminal_fontsize,
-            # 媒体
-            'BIA.font'                  : self.BIA_font,
-            'BIA.font_size'             : self.BIA_font_size,
-            'BIA.dice_mode'             : self.dice_mode,
-            'BIA.dice_threshold'        : self.dice_threshold,
-            'BIA.heart_pic'             : self.heart_pic,
-            'BIA.heart_shape'           : self.heart_shape,
-            'BIA.heart_distance'        : self.heart_distance,
-            # 编辑
-            'Edit.auto_periods'         : self.auto_periods,
-            'Edit.import_mode'          : self.import_mode,
-            'Edit.auto_convert'         : self.auto_convert,
-            'Edit.asterisk_import'      : self.asterisk_import,
-            'Edit.rename_boardcast'     : self.rename_boardcast,
-            # 预览
-            'Preview.progress_bar_style': self.progress_bar_style,
-            'Preview.framerate_counter' : self.framerate_counter,
-            # 导出
-            'Export.crf'                : self.crf,
-            'Export.force_split_clip'   : self.force_split_clip,
-            'Export.hwaccels'           : self.hwaccels
-        }
+        struct = {}
+        for key, value in self.keyword.items():
+            struct[value] = self.__getattribute__(key)
+        return struct
     def execute(self):
         # 修改语言
         if self.lang == 'zh':
