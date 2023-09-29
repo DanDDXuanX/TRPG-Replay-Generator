@@ -25,12 +25,12 @@ class Translate:
             ('Themed','主题'),
             ('Standard','标准'),
             ('Color Chooser','选择颜色'),
-            ('Warning','警告'),
-            ('Error','错误'),
         ]
     }
     dictionary = {
         'en':{
+            '警告': 'Warning',
+            '错误': 'Error',
             '确定': 'OK',
             '取消': 'Cancel',
             '：':':',
@@ -99,7 +99,7 @@ class Translate:
             try:
                 return Translate.dictionary[Translate.lang][src]
             except KeyError:
-                return MessageCatalog.translate(src)
+                return src
         else:
             return src
     @staticmethod

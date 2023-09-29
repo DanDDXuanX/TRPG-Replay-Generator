@@ -265,21 +265,31 @@ class Container(FluentFrame):
     def paste_attribute(self, event):
         # 从Container剪贴板中复制
         if len(self.__class__.element_clipboard) > 1:
-            Messagebox().show_warning(message='复制了多个对象，无法粘贴属性。',title=tr('Warning'),parent=self.page)
+            Messagebox().show_warning(message='复制了多个对象，无法粘贴属性。',title=tr('警告'),parent=self.page)
+        elif len(self.__class__.element_clipboard) == 0:
+            Messagebox().show_warning(message='没有复制对象，无法粘贴属性。',title=tr('警告'),parent=self.page)
         else:
             for name in self.__class__.element_clipboard:
+                copyed_object = self.__class__.element_clipboard[name]
                 paste_window = PasteAttributesDialog(
                     screenzoom=self.sz,
                     container=self,
                     select_element=self.selected,
                     parent=self,title=tr('粘贴','属性'),
-                    clipboard_element=self.__class__.element_clipboard[name],
+                    clipboard_element=copyed_object,
                     clipboard_name=name
                     )
+                paste_window.show()
                 break
-            paste_window.show()
-            print(paste_window.result)
-            # TODO : 正式应用粘贴属性
+            # 正式应用粘贴属性
+            args_to_paste:list = paste_window.result
+            for name in self.selected:
+                section_object:dict = self.content.struct[name]
+                for arg in args_to_paste:
+                    section_object[arg] = copyed_object[arg]
+                self.refresh_element(keyword=name)
+            # 刷新预览和编辑区
+            self.preview_select()
     # 排序
     def sort_element(self,by='name'):
         # 执行排序
