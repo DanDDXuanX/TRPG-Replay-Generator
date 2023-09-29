@@ -445,7 +445,7 @@ class FileCollapsing(ttk.Frame):
         SZ_2 = int(self.sz * 2)
         super().__init__(master=master,borderwidth=0)
         self.class_text = {'mediadef':tr('媒体库'),'chartab':tr('角色配置'),'rplgenlog':tr('剧本文件')}[fileclass]
-        self.collapbutton = ttk.Button(master=self,text=self.class_text,command=self.update_toggle,style='warning',cursor='hand2')
+        self.collapbutton = ttk.Button(master=self,text='▼ '+self.class_text,command=self.update_toggle,style='warning',cursor='hand2')
         self.content_frame = ttk.Frame(master=self)
         self.button_padding = (SZ_5,SZ_2,SZ_5,SZ_2)
         # 内容，正常来说，self.items的key应该正好等于Button的text
@@ -465,9 +465,11 @@ class FileCollapsing(ttk.Frame):
     def update_toggle(self):
         if self.expand:
             self.content_frame.pack_forget()
+            self.collapbutton.configure(text='▲ '+self.class_text)
             self.expand:bool = False
         else:
             self.content_frame.pack(fill='x',side='top')
+            self.collapbutton.configure(text='▼ '+self.class_text)
             self.expand:bool = True
     def right_click_menu(self,event):
         # 获取关键字

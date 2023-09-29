@@ -385,14 +385,15 @@ class StickyLabel(ttk.Frame):
         webbrowser.open(self.url)
 # 文本分割线，包含若干个KVD，可以折叠
 class TextSeparator(ttk.Frame):
-    def __init__(self,master,screenzoom:float,describe:dict,pady:int=5):
+    def __init__(self,master,screenzoom:float,describe:str,pady:int=5):
         self.sz = screenzoom
         super().__init__(master=master)
         self.pady = int(self.sz * pady)
         # 标题栏
         self.title = ttk.Frame(master=self)
         ## 文字：
-        self.label = ttk.Label(master=self.title,text=describe,style='dialog.TLabel',cursor='hand2')
+        self.describe = describe
+        self.label = ttk.Label(master=self.title,text='▼ '+self.describe,style='dialog.TLabel',cursor='hand2')
         self.label.bind("<Button-1>",self.update_toggle)
         ## 分割线
         self.sep = ttk.Separator(
@@ -422,9 +423,11 @@ class TextSeparator(ttk.Frame):
     def update_toggle(self,event):
         if self.expand:
             self.content_frame.pack_forget()
+            self.label.configure(text='▲ '+self.describe)
             self.expand:bool = False
         else:
             self.content_frame.pack(fill='x',side='top')
+            self.label.configure(text='▼ '+self.describe)
             self.expand:bool = True
         self.master.update()
     # 添加KVD
