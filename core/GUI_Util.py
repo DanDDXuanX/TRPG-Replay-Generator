@@ -323,7 +323,12 @@ class DetailedKeyValueDescribe(KeyValueDescribe):
         self.sideshow.place(x=0,y=0,width=SZ_2,relheight=1)
 # 小标签，用于传送门的最小单位
 class StickyLabel(ttk.Frame):
-    bulitin_icon = {}
+    bulitin_icon = {
+        'website'   : './assets/portal/website.png',
+        'bilibili'  : './assets/portal/bilibili.png',
+        'github'    : './assets/portal/github.png',
+        'mihuashi'  : './assets/portal/mihuashi.png',
+    }
     icon_photoimage = {}
     def __init__(self,master,screenzoom:float,title:str='',icon:str='',describe:str='',url:str=''):
         self.sz = screenzoom
@@ -347,15 +352,15 @@ class StickyLabel(ttk.Frame):
         for key in self.text_label:
             label:ttk.Label = self.text_label[key]
             label.pack(side='top',fill='both',expand=True)
-        self.icon.pack(side='left',fill='y',padx=(SZ_5,SZ_5),pady=(SZ_5,SZ_5))
-        self.text_frame.pack(side='left',fill='both',expand=True,padx=(SZ_5,SZ_5),pady=(SZ_5,SZ_5))
+        self.icon.pack(side='left',fill='y',padx=(SZ_5,0),pady=(SZ_5,SZ_5))
+        self.text_frame.pack(side='left',fill='both',expand=True,padx=(0,SZ_5),pady=(SZ_5,SZ_5))
     def load_icon(self,icon):
         SZ_70 = int(self.sz * 70)
         icon_size = (SZ_70,SZ_70)
         if icon in self.icon_photoimage:
             self.image = self.icon_photoimage[icon]
         elif icon in self.bulitin_icon:
-            self.image = ImageTk.PhotoImage(Image.open(icon).resize(icon_size))
+            self.image = ImageTk.PhotoImage(Image.open(self.bulitin_icon[icon]).resize(icon_size))
             self.icon_photoimage[icon] = self.image
         elif os.path.isfile(icon):
             self.image = ImageTk.PhotoImage(Image.open(icon).resize(icon_size))
@@ -376,7 +381,11 @@ class StickyLabel(ttk.Frame):
             image = Image.open(image_file).resize(size)
             return ImageTk.PhotoImage(image)
         else:
-            return None # TODO: 修改为X
+            if 'website' not in self.icon_photoimage:
+                SZ_70 = int(self.sz * 70)
+                icon_size = (SZ_70,SZ_70)
+                self.icon_photoimage['website'] = ImageTk.PhotoImage(Image.open(self.bulitin_icon['website']).resize(icon_size))
+            return self.icon_photoimage['website']
     def bind_event(self,widget):
         widget.bind("<Button-1>", self.get_click)
         for child in widget.winfo_children():
