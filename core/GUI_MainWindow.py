@@ -55,7 +55,7 @@ class RplGenStudioMainWindow(ttk.Window):
         self.view = {
             'project': EmptyView(master=self,screenzoom=self.sz),
             'console': ConsoleView(master=self,screenzoom=self.sz),
-            'script' : ScriptView( master=self,screenzoom=self.sz),
+            # 'script' : ScriptView( master=self,screenzoom=self.sz),
             'setting': PreferenceView(master=self,screenzoom=self.sz),
             'portal' : PortalView(master=self,screenzoom=self.sz)
         }
@@ -332,7 +332,7 @@ class NavigateBar(ttk.Frame):
             'logo'      : ImageTk.PhotoImage(name='logo',   image=Image.open('./assets/icon/main_icon.png').resize(icon_size)),
             'setting'   : ImageTk.PhotoImage(name='setting',image=Image.open('./assets/icon/setting.png').resize(icon_size)),
             'project'   : ImageTk.PhotoImage(name='project',image=Image.open('./assets/icon/project.png').resize(icon_size)),
-            'script'    : ImageTk.PhotoImage(name='script', image=Image.open('./assets/icon/script.png').resize(icon_size)),
+            # 'script'    : ImageTk.PhotoImage(name='script', image=Image.open('./assets/icon/script.png').resize(icon_size)),
             'console'   : ImageTk.PhotoImage(name='console',image=Image.open('./assets/icon/console.png').resize(icon_size)),
             'portal'  : ImageTk.PhotoImage(name='portal',image=Image.open('./assets/icon/portal.png').resize(icon_size)),
         }
@@ -341,7 +341,7 @@ class NavigateBar(ttk.Frame):
             'logo'      : ttk.Button(master=self,image='logo',bootstyle='success',padding=(SZ_3,0,0,0),cursor='hand2'),
             'setting'   : ttk.Button(master=self,image='setting',text=' '+tr('首选项'),command=lambda :self.press_button('setting'),bootstyle='success',compound='left',padding=(SZ_3,0,0,0),cursor='hand2'),
             'project'   : ttk.Button(master=self,image='project',text=' '+tr('项目'),command=lambda :self.press_button('project'),bootstyle='success',compound='left',padding=(SZ_3,0,0,0),cursor='hand2'),
-            'script'    : ttk.Button(master=self,image='script',text=' '+tr('脚本'),command=lambda :self.press_button('script'),bootstyle='success',compound='left',padding=(SZ_3,0,0,0),cursor='hand2'),
+            # 'script'    : ttk.Button(master=self,image='script',text=' '+tr('脚本'),command=lambda :self.press_button('script'),bootstyle='success',compound='left',padding=(SZ_3,0,0,0),cursor='hand2'),
             'console'   : ttk.Button(master=self,image='console',text=' '+tr('控制台'),command=lambda :self.press_button('console'),bootstyle='success',compound='left',padding=(SZ_3,0,0,0),cursor='hand2'),
         }
         # 分割线
@@ -353,7 +353,8 @@ class NavigateBar(ttk.Frame):
             'portal'  : ttk.Button(master=self,image='portal',text=' '+tr('传送门'),command=lambda :self.press_button('portal'),bootstyle='success',compound='left',padding=(SZ_3,0,0,0),cursor='hand2'),
         }
         # ypos
-        self.ypos = {'logo':0,'setting':70,'sep1':140,'project':150,'script':220,'console':290,'portal':-60}
+        # self.ypos = {'logo':0,'setting':70,'sep1':140,'project':150,'script':220,'console':290,'portal':-60}
+        self.ypos = {'logo':0,'setting':70,'sep1':140,'project':150,'console':220,'portal':-60}
         # 高亮的线
         self.choice = ttk.Frame(master=self,bootstyle='primary')
         # 禁用

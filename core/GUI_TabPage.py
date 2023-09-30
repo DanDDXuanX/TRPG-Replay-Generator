@@ -192,7 +192,7 @@ class TabNote(ttk.Button):
 class EmptyPage(ttk.Frame):
     def __init__(self,master,screenzoom):
         super().__init__(master,borderwidth=0)
-        self.image = ImageTk.PhotoImage(image=Image.open('./assets/icon2.png'))
+        self.image = ImageTk.PhotoImage(image=Image.open('./assets/shade.png'))
         if preference.theme == 'rplgenlight':
             color = '#fafafa'
         else:

@@ -93,7 +93,8 @@ class ProjectView(ttk.Frame):
         self.winfo_toplevel().title(self.winfo_toplevel().window_title)
         self.destroy()
 
-# 脚本视图
+# 脚本视图 
+# TODO：首个上线版本不采用这个视图。
 class ScriptView(ttk.Frame):
     """
     各个元件的尺寸：以100%缩放为准
