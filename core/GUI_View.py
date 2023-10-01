@@ -179,4 +179,4 @@ class PortalView(ttk.Frame):
         self.update_item()
     def update_item(self):
         self.texture.place(relx=0,rely=0,relwidth=1,relheight=1)
-        self.content.place(relx=0.2,y=0,relwidth=0.6,relheight=1)
+        self.content.place(relx=0.15,y=0,relwidth=0.7,relheight=1)
