@@ -4,7 +4,7 @@
 import re
 import ttkbootstrap as ttk
 from .GUI_Util import KeyValueDescribe, TextSeparator, FluentFrame, ask_rename_boardcast
-from .GUI_TableStruct import EditTableStruct, label_colors, projection, alignments, vertical_alignments, chatalign, charactor_columns, fill_mode, fit_axis, True_False, left_right
+from .GUI_TableStruct import EditTableStruct, label_colors, projection, alignments, vertical_alignments, chatalign, charactor_columns, fill_mode, fit_axis, True_False, left_right, media_help_url
 from .ScriptParser import MediaDef, RplGenLog, CharTable
 from .GUI_CustomDialog import voice_chooser, selection_query
 from .Exceptions import SyntaxsError
@@ -380,6 +380,7 @@ class MediaEdit(EditWindow):
     def update_from_section(self,index:str,section: dict, line_type):
         super().update_from_section(index, section, line_type)
         # 更新
+        self.bind_media_class_help()
         self.update_media_element_prop()
         self.update_item()
     def update_section_from(self) -> dict:
@@ -433,6 +434,9 @@ class MediaEdit(EditWindow):
         # 刷新预览的显示
         self.update_preview(keywords=changed_key)
         return self.section
+    def bind_media_class_help(self):
+        url = media_help_url[self.line_type]
+        self.elements['type'].bind_button(dtype='url:'+url)
     def update_media_element_prop(self):
         # 媒体名：禁用focus out
         self.elements['Name'].enable_trace()

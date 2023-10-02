@@ -7,6 +7,7 @@ import os
 import sys
 import tkinter as tk
 import ttkbootstrap as ttk
+import webbrowser
 from pathlib import Path
 from ttkbootstrap.toast import ToastNotification
 from ttkbootstrap.dialogs import Messagebox
@@ -338,7 +339,7 @@ class NavigateBar(ttk.Frame):
         }
         # 顶部
         self.buttons = {
-            'logo'      : ttk.Button(master=self,image='logo',bootstyle='success',padding=(SZ_3,0,0,0),cursor='hand2'),
+            'logo'      : ttk.Button(master=self,image='logo',bootstyle='success',padding=(SZ_3,0,0,0),cursor='hand2',command=self.show_rplgen_website),
             'setting'   : ttk.Button(master=self,image='setting',text=' '+tr('首选项'),command=lambda :self.press_button('setting'),bootstyle='success',compound='left',padding=(SZ_3,0,0,0),cursor='hand2'),
             'project'   : ttk.Button(master=self,image='project',text=' '+tr('项目'),command=lambda :self.press_button('project'),bootstyle='success',compound='left',padding=(SZ_3,0,0,0),cursor='hand2'),
             # 'script'    : ttk.Button(master=self,image='script',text=' '+tr('脚本'),command=lambda :self.press_button('script'),bootstyle='success',compound='left',padding=(SZ_3,0,0,0),cursor='hand2'),
@@ -418,6 +419,9 @@ class NavigateBar(ttk.Frame):
         else:
             self.choice.place_configure(y=position, rely=anchor)
             self.master.view_show(button)
+    # 展示文档
+    def show_rplgen_website(self):
+        webbrowser.open('https://www.wolai.com/mJpcu5LUk3cECUjNXfHaqT')
     # 禁用
     def disable_navigate(self):
         self.disabled = True

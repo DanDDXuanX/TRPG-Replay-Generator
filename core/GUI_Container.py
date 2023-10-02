@@ -281,8 +281,12 @@ class Container(FluentFrame):
                     )
                 paste_window.show()
                 break
+            # 必须要有选择，否则终止
+            if paste_window.result:
+                args_to_paste:list = paste_window.result
+            else:
+                return
             # 正式应用粘贴属性
-            args_to_paste:list = paste_window.result
             for name in self.selected:
                 section_object:dict = self.content.struct[name]
                 for arg in args_to_paste:

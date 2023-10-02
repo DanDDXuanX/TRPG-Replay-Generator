@@ -3271,3 +3271,21 @@ ABMethod = {
         "仅切出": 'out'
     }
 }
+# 媒体类的帮助链接
+media_help_url = {
+    'Pos':      'https://www.wolai.com/6YScpfA5QJaMCtpE999stS#jMX2TuS5Zm7CGFKdsGBRgB',
+    'FreePos':  'https://www.wolai.com/6YScpfA5QJaMCtpE999stS#kj6xMgRS4reR21sCNeSHwh',
+    'PosGrid':  'https://www.wolai.com/6YScpfA5QJaMCtpE999stS#gVfe7mSzoemiQvCobL5jJG',
+    'Text':     'https://www.wolai.com/vjbVNex55KGPn2oEVjoZyK#3xCZVi8hQLQUh8w8W7BJzx',
+    'StrokeText':   'https://www.wolai.com/vjbVNex55KGPn2oEVjoZyK#aEUx1knDvNnfppNEVzEK8e',
+    'RichText': 'https://www.wolai.com/vjbVNex55KGPn2oEVjoZyK#pdRe5EN6iyieLSfGKGPQ9x',
+    'HPLabel':  'https://www.wolai.com/vjbVNex55KGPn2oEVjoZyK#rLA9yENWLZ5fB5jQZicwCM',
+    'Bubble':   'https://www.wolai.com/pJg4oRzqPtkkNVCURr7eGD#kymwfSgrXyzcRZayH2t7Ng',
+    'Balloon':  'https://www.wolai.com/pJg4oRzqPtkkNVCURr7eGD#mSH7QJX3HuNbGkr4R88jtP',
+    'DynamicBubble':    'https://www.wolai.com/pJg4oRzqPtkkNVCURr7eGD#8UKMX9fqLi58AtmNBkV3uz',
+    'ChatWindow':   'https://www.wolai.com/pJg4oRzqPtkkNVCURr7eGD#6CZ7pE2bB5uN7zn1hJy2qD',
+    'Animation':    'https://www.wolai.com/uVEVypkLFRuzKqiDpE5yXv#tjqF7AATGsoVgbJ2Q3Qhgn',
+    'Background':   'https://www.wolai.com/7r3xgHhH1Grm5Smuwrw54C#bvheC9phxeYi7zkcwUWUDv',
+    'Audio':    'https://www.wolai.com/vg19WbT72VHjBGnbQ4UmgW#eaN2UDJyU3d5dj34sozhzk',
+    'BGM':  'https://www.wolai.com/vg19WbT72VHjBGnbQ4UmgW#63Go1D2Nef7LoBS6J9D1zo',
+}

@@ -259,6 +259,8 @@ class KeyValueDescribe(ttk.Frame):
                 browse_file(master=self.winfo_toplevel(), text_obj=self.value, method='file', filetype=filetype, quote=quote, related=related, convert=convert)
             elif 'color' in dtype:
                 color_chooser(master=self.winfo_toplevel(), text_obj=self.value)
+            elif dtype.startswith('url:'):
+                webbrowser.open(dtype[4:])
             # 更新
             self.config_content()
         self.describe.configure(command=command)
