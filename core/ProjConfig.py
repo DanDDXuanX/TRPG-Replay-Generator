@@ -180,7 +180,7 @@ class Preference:
                 except KeyError:
                     self.__setattr__(key,self.default[key])
         else:
-            for key,value in self.keyword:
+            for key,value in self.keyword.items():
                 self.__setattr__(key,self.default[key])
     def get_struct(self)->dict:
         struct = {}

@@ -2917,7 +2917,7 @@ TestPortalStruct = {
         }
     },
     "OpenSources":{
-        "Text": "开源贡献",
+        "Text": "开源依赖",
         "Command":None,
         "Content":{
             "1": {

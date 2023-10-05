@@ -316,7 +316,7 @@ class CreateIntelProject(CreateProject):
         # 4. 载入导入的文本
         try:
             self.load_text = open(logfile_path,'r',encoding='utf-8').read()
-        except UnicodeEncodeError:
+        except UnicodeDecodeError:
             try:
                 self.load_text = open(logfile_path,'r',encoding='gbk').read()
             except Exception as E:

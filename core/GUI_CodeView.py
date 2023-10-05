@@ -688,7 +688,7 @@ class RGLCodeViewFrame(ttk.Frame):
             return False
         try:
             load_text = open(target_file,'r',encoding='utf-8').read()
-        except UnicodeEncodeError:
+        except UnicodeDecodeError:
             try:
                 load_text = open(target_file,'r',encoding='gbk').read()
             except Exception as E:
