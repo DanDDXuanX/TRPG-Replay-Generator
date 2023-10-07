@@ -2,7 +2,7 @@
     "meta":{
         "cover":"@/cover.jpg",
         "describe":"回声工坊2.0的基本预设模板",
-        "author":"Betelgeuse Industries",
+        "author":"Betelgeuse Industry",
         "licence":"可以用于任何用途"
     },
     "config": {
