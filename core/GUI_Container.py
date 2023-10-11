@@ -252,10 +252,10 @@ class Container(FluentFrame):
             pass
     # 复制项目
     def copy_element(self,event):
-        self.__class__.element_clipboard.clear()
-        self.__class__.element_clipboard_source = self
+        Container.element_clipboard.clear()
+        Container.element_clipboard_source = self
         for sele in self.selected:
-            self.__class__.element_clipboard[sele] = self.content.struct[sele].copy()
+            Container.element_clipboard[sele] = self.content.struct[sele].copy()
     # 黏贴项目
     def paste_element(self,event,key:str,ahead=False):
         # 是否是筛选状态？重置筛选！
@@ -264,13 +264,13 @@ class Container(FluentFrame):
         # 待重载
     def paste_attribute(self, event):
         # 从Container剪贴板中复制
-        if len(self.__class__.element_clipboard) > 1:
+        if len(Container.element_clipboard) > 1:
             Messagebox().show_warning(message='复制了多个对象，无法粘贴属性。',title=tr('警告'),parent=self.page)
-        elif len(self.__class__.element_clipboard) == 0:
+        elif len(Container.element_clipboard) == 0:
             Messagebox().show_warning(message='没有复制对象，无法粘贴属性。',title=tr('警告'),parent=self.page)
         else:
-            for name in self.__class__.element_clipboard:
-                copyed_object = self.__class__.element_clipboard[name]
+            for name in Container.element_clipboard:
+                copyed_object = Container.element_clipboard[name]
                 paste_window = PasteAttributesDialog(
                     screenzoom=self.sz,
                     container=self,
@@ -418,11 +418,11 @@ class RGLContainer(Container):
         super().copy_element(event)
         # 写入剪贴板
         self.clipboard_clear()
-        self.clipboard_append(RplGenLog(dict_input=RGLContainer.element_clipboard).export())
+        self.clipboard_append(RplGenLog(dict_input=Container.element_clipboard).export())
     def paste_element(self, event, key: str, ahead=True):
         super().paste_element(event, key, ahead)
         insert_index = self.element_keys.index(key)
-        insert_length = len(RGLContainer.element_clipboard.keys())
+        insert_length = len(Container.element_clipboard.keys())
         # 要在插入之前预留好空间
         if ahead:
             # |0|1|2|3|
@@ -437,14 +437,14 @@ class RGLContainer(Container):
             # content
             self.content.add(key=str(idx+insert_length), section=self.content.struct[str(idx)])
         # 插入
-        for idx,ele in enumerate(RGLContainer.element_clipboard.keys()):
+        for idx,ele in enumerate(Container.element_clipboard.keys()):
             # insert_pos
             if ahead:
                 ele_key = str(insert_index + idx)
             else:
                 ele_key = str(insert_index + 1 + idx)
             # section
-            section = RGLContainer.element_clipboard[ele].copy()
+            section = Container.element_clipboard[ele].copy()
             # content
             self.content.add(ele_key, section)
             # element
@@ -525,33 +525,33 @@ class MDFContainer(Container):
         super().copy_element(event)
         # 写入剪贴板
         self.clipboard_clear()
-        self.clipboard_append(MediaDef(dict_input=MDFContainer.element_clipboard).export())
+        self.clipboard_append(MediaDef(dict_input=Container.element_clipboard).export())
     def paste_element(self, event, key: str, ahead=False):
         super().paste_element(event, key, ahead)
         idx = self.element_keys.index(key)
-        # TODO：检查剪贴板文件
-        # 从Container剪贴板中复制
-        if MDFContainer.element_clipboard_source != self:
+        # 检查剪贴板内容，
+        if Container.element_clipboard_source != self:
             Messagebox().show_warning(message='复制的内容无法黏贴到这个页面！',title='类型不正确',parent=self.page)
-        else:
-            for ele in MDFContainer.element_clipboard.keys():
-                # 不可以使用重名
-                ele_key = ele
-                while ele_key in self.element_keys:
-                    ele_key = ele_key+'_cp'
-                # section
-                section = MDFContainer.element_clipboard[ele].copy()
-                # content
-                self.content.add(ele_key, section)
-                # element
-                self.element[ele_key] = self.new_element(key=ele_key,section=self.content.struct[ele_key])
-                # elementkey
-                if ahead:
-                    self.element_keys.insert(idx, ele_key)
-                else:
-                    self.element_keys.insert(idx+1, ele_key)
-                # display
-                self.display_filter = self.element_keys.copy()
+            return
+        # 从Container剪贴板中复制
+        for ele in Container.element_clipboard.keys():
+            # 不可以使用重名
+            ele_key = ele
+            while ele_key in self.element_keys:
+                ele_key = ele_key+'_cp'
+            # section
+            section = Container.element_clipboard[ele].copy()
+            # content
+            self.content.add(ele_key, section)
+            # element
+            self.element[ele_key] = self.new_element(key=ele_key,section=self.content.struct[ele_key])
+            # elementkey
+            if ahead:
+                self.element_keys.insert(idx, ele_key)
+            else:
+                self.element_keys.insert(idx+1, ele_key)
+            # display
+            self.display_filter = self.element_keys.copy()
         # 更新显示
         self.update_item()
         self.reset_container_height()
@@ -600,11 +600,16 @@ class CTBContainer(Container):
         super().copy_element(event)
         # 写入剪贴板
         self.clipboard_clear()
-        self.clipboard_append(CharTable(dict_input=CTBContainer.element_clipboard).export().to_csv(sep='\t',index=False,encoding='utf-8').replace('\r',''))
+        self.clipboard_append(CharTable(dict_input=Container.element_clipboard).export().to_csv(sep='\t',index=False,encoding='utf-8').replace('\r',''))
     def paste_element(self, event, key: str, ahead=False):
         super().paste_element(event, key, ahead)
         idx = self.element_keys.index(key)
-        for ele in CTBContainer.element_clipboard.keys():
+        # 检查剪贴板内容
+        if type(Container.element_clipboard_source) is not CTBContainer:
+            Messagebox().show_warning(message='复制的内容无法黏贴到这个页面！',title='类型不正确',parent=self.page)
+            return
+        # 执行粘贴
+        for ele in Container.element_clipboard.keys():
             # 不可以使用重名
             name,subtype = ele.split('.')
             if name!=self.name:
@@ -612,7 +617,7 @@ class CTBContainer(Container):
             else:
                 ele_key = ele
             # section
-            section = CTBContainer.element_clipboard[ele].copy()
+            section = Container.element_clipboard[ele].copy()
             section['Name'] = self.name
             # key: name.subtype, 重名则加个_cp
             while ele_key in self.element_keys:
