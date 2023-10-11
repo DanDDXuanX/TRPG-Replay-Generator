@@ -354,11 +354,11 @@ class StickyLabel(ttk.Frame):
         for key in self.text_label:
             label:ttk.Label = self.text_label[key]
             label.pack(side='top',fill='both',expand=True)
-        self.icon.pack(side='left',fill='y',padx=(SZ_5,0),pady=(SZ_5,SZ_5))
-        self.text_frame.pack(side='left',fill='both',expand=True,padx=(0,SZ_5),pady=(SZ_5,SZ_5))
+        self.icon.pack(side='left',fill='y',padx=0,pady=0)
+        self.text_frame.pack(side='left',fill='both',expand=True,padx=SZ_5,pady=SZ_5)
     def load_icon(self,icon):
-        SZ_70 = int(self.sz * 70)
-        icon_size = (SZ_70,SZ_70)
+        SZ_80 = int(self.sz * 80)
+        icon_size = (SZ_80,SZ_80)
         if icon in self.icon_photoimage:
             self.image = self.icon_photoimage[icon]
         elif icon in self.bulitin_icon:

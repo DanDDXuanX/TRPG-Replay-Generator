@@ -161,11 +161,11 @@ class RplGenStudioMainWindow(ttk.Window):
             # 预览窗体
             self.style.configure('preview.TLabel',anchor='center',background='#333333',borderwidth=0)
             # 传送门小标签
-            self.style.configure('Sticky.TFrame', background='#f2f3f6', borderwidth=5)
-            self.style.configure('SLIcon.TLabel',anchor='center',background='#f9fafc',borderwidth=0)
-            self.style.configure('SLHeader.TLabel',anchor='w',background='#f2f3f6',font=(self.system_font_family, 12, "bold"),padding=text_label_pad,foreground='#444444')
-            self.style.configure('SLDescribe.TLabel',anchor='w',background='#f2f3f6',font=(self.system_font_family, 10),padding=text_label_pad,foreground='#444444')
-            self.style.configure('SLURL.TLabel',anchor='w',background='#f2f3f6',font=(self.system_font_family, 8),padding=text_label_pad,foreground='#5555cc')
+            self.style.configure('Sticky.TFrame', background='#f2f3f5', borderwidth=0)
+            self.style.configure('SLIcon.TLabel',anchor='center',background='#e9eaec',borderwidth=0)
+            self.style.configure('SLHeader.TLabel',anchor='w',background='#f2f3f5',font=(self.system_font_family, 12, "bold"),padding=text_label_pad,foreground='#444444')
+            self.style.configure('SLDescribe.TLabel',anchor='w',background='#f2f3f5',font=(self.system_font_family, 10),padding=text_label_pad,foreground='#444444')
+            self.style.configure('SLURL.TLabel',anchor='w',background='#f2f3f5',font=(self.system_font_family, 8),padding=text_label_pad,foreground='#5555cc')
 
         elif theme == 'rplgendark':
             # self.dark_title_bar() # 有bug，在win10不正常显示
@@ -211,11 +211,11 @@ class RplGenStudioMainWindow(ttk.Window):
             # 预览窗体
             self.style.configure('preview.TLabel',anchor='center',background='#333333',borderwidth=0)
             # 传送门小标签
-            self.style.configure('Sticky.TFrame', background='#2d2b2d', borderwidth=5)
-            self.style.configure('SLIcon.TLabel',anchor='center',background='#333333',borderwidth=0)
-            self.style.configure('SLHeader.TLabel',anchor='w',background='#2d2b2d',font=(self.system_font_family, 12, "bold"),padding=text_label_pad,foreground='#cccccc')
-            self.style.configure('SLDescribe.TLabel',anchor='w',background='#2d2b2d',font=(self.system_font_family, 10),padding=text_label_pad,foreground='#cccccc')
-            self.style.configure('SLURL.TLabel',anchor='w',background='#2d2b2d',font=(self.system_font_family, 8),padding=text_label_pad,foreground='#aaaaff')
+            self.style.configure('Sticky.TFrame', background='#2a2a2a', borderwidth=0)
+            self.style.configure('SLIcon.TLabel',anchor='center',background='#202020',borderwidth=0)
+            self.style.configure('SLHeader.TLabel',anchor='w',background='#2a2a2a',font=(self.system_font_family, 12, "bold"),padding=text_label_pad,foreground='#cccccc')
+            self.style.configure('SLDescribe.TLabel',anchor='w',background='#2a2a2a',font=(self.system_font_family, 10),padding=text_label_pad,foreground='#cccccc')
+            self.style.configure('SLURL.TLabel',anchor='w',background='#2a2a2a',font=(self.system_font_family, 8),padding=text_label_pad,foreground='#aaaaff')
     # 当关闭窗口时
     def on_close(self):
         if type(self.view['project']) is EmptyView:
