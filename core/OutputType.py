@@ -1158,11 +1158,12 @@ class ExportXML(OutputMediaType):
                     try:
                         if item[0] in self.medias.keys():
                             clip_list.append(self.medias[item[0]].export(begin=item[1]))
-                        elif os.path.isfile(item[0][1:-1]) == True: # 注意这个位置的item[0]首尾应该有个引号
-                            temp = Audio(item[0][1:-1])
-                            clip_list.append(temp.export(begin=item[1]))
                         else:
-                            print(WarningPrint('BadAuFile',item[0]))
+                            try:
+                                temp = Audio(item[0][1:-1])
+                                clip_list.append(temp.export(begin=item[1]))
+                            except MediaError as E:
+                                print(WarningPrint('BadAuFile',item[0]))
                     except Exception as E:
                         print(E)
                         return 1
