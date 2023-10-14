@@ -77,9 +77,9 @@ class HomePageElements(ttk.Frame):
             'intel_p': ttk.Button(master=self.buttons, text=tr('新建智能项目'), compound='top', image='intel_p',bootstyle='info',command=self.master.intel_project, cursor='hand2'),
         }
         self.tooltips = {
-            'open_p' : FreeToolTip(widget=self.open_project_buttons['open_p'], text='从文件夹中打开一个现有的项目。',bootstyle='light-inverse'),
-            'new_p'  : FreeToolTip(widget=self.open_project_buttons['new_p'], text='创建一个空白的项目，导入回声工坊1.0版本的工程文件，或者从头开始创建你的项目。',bootstyle='light-inverse',screenzoom=self.sz),
-            'intel_p': FreeToolTip(widget=self.open_project_buttons['intel_p'], text='选择样式模板，智能解析导入聊天记录或者染色器log文件，直接创建一个半成品项目。',bootstyle='light-inverse',screenzoom=self.sz),
+            'open_p' : FreeToolTip(widget=self.open_project_buttons['open_p'], text=tr('从文件夹中打开一个现有的项目。'),bootstyle='light-inverse'),
+            'new_p'  : FreeToolTip(widget=self.open_project_buttons['new_p'], text=tr('创建一个空白的项目，导入回声工坊1.0版本的工程文件，或者从头开始创建你的项目。'),bootstyle='light-inverse',screenzoom=self.sz),
+            'intel_p': FreeToolTip(widget=self.open_project_buttons['intel_p'], text=tr('选择样式模板，智能解析导入聊天记录或者染色器log文件，直接创建一个半成品项目。'),bootstyle='light-inverse',screenzoom=self.sz),
         }
         # 最近的项目
         self.recent_project = ttk.Frame(master=self,padding=(SZ_10,0,SZ_10,SZ_10*2))

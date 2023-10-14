@@ -10,7 +10,7 @@ from .GUI_PageElement import OutPutCommand
 from .GUI_Util import TextSeparator, FluentFrame, StickyLabelSeperator
 from .GUI_Link import Link
 from .GUI_Language import tr
-from .GUI_TableStruct import PreferenceTableStruct, ExecuteTableStruct, TestPortalStruct
+from .GUI_TableStruct import PreferenceTableStruct, ExecuteTableStruct, PortalStruct
 from .GUI_TableStruct import language, True_False, theme, progressbar, import_mode, dice_mode, askyesno, colorschemes, is_enable
 
 class OutPutCommandAtScriptExecuter(OutPutCommand):
@@ -201,7 +201,7 @@ class PreferenceTable(TableEdit):
 
 # 传送门
 class PortalTable(TableEdit):
-    TableStruct = TestPortalStruct
+    TableStruct = PortalStruct
     # TableStruct = json.load(open('./assets/GUI_portal.json'))
     def __init__(self,master,screenzoom)->None:
         # 继承

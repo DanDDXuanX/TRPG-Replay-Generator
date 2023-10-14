@@ -79,7 +79,10 @@ class Translate:
             '粘贴'  : 'paste',
             '属性'  : 'attributes',
             '全选'  : 'select all',
-            '从[{}]粘贴' : 'Paste from [{}]'
+            '从[{}]粘贴' : 'Paste from [{}]',
+            '从文件夹中打开一个现有的项目。':'Open a project from local files.',
+            '创建一个空白的项目，导入回声工坊1.0版本的工程文件，或者从头开始创建你的项目。':'Create an empty project and start from scratch, or load existing scripts.',
+            '选择样式模板，智能解析导入聊天记录或者染色器log文件，直接创建一个半成品项目。':'Select a template, import raw chat logs, and create a semi-finished project.'
         }
     }
     lang = 'zh'
