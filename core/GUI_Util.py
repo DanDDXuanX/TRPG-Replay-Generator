@@ -180,7 +180,8 @@ class KeyValueDescribe(ttk.Frame):
         # self.value.trace_variable("w", self.config_content) # 检查是否发生了变更，如果变更了则刷新text
         self.callback = callback
         # 关键字
-        self.key = ttk.Label(master=self,text=key,width=8,anchor='e',padding=padding)
+        keywid = {'zh':8, 'en':10}[preference.lang]
+        self.key = ttk.Label(master=self,text=key,width=keywid,anchor='e',padding=padding)
         if tooltip is not None:
             self.tooltip = ToolTip(widget=self.key,text=tooltip,bootstyle='light-inverse')
         # 容器

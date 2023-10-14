@@ -471,7 +471,7 @@ class NewElementCommand(ttk.Frame):
             self.buttons[keyword] = ttk.Button(
                 master=self,
                 # image='display',
-                text=tr(button_this['text']),
+                text=button_this['text'],
                 image=self.image[keyword],
                 compound='left',
                 style='output.TButton',

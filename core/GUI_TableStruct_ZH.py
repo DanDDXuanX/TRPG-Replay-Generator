@@ -235,7 +235,7 @@ EditTableStruct = {
                         "valuekey": "type",
                         "vitem": "label",
                         "vtype": "str",
-                        "default": "FreePos"
+                        "default": "PosGrid"
                     },
                     "Name": {
                         "ktext": "媒体名：",
@@ -245,7 +245,7 @@ EditTableStruct = {
                         "valuekey": "$key",
                         "vitem": "entry",
                         "vtype": "str",
-                        "default": "新建自由位置"
+                        "default": "新建位置网格"
                     },
                 }
             },
@@ -659,7 +659,7 @@ EditTableStruct = {
                         "valuekey": "$key",
                         "vitem": "entry",
                         "vtype": "str",
-                        "default": "新建文字"
+                        "default": "新建血条标签"
                     },
                     "label_color": {
                         "ktext": "标签色：",
@@ -700,8 +700,8 @@ EditTableStruct = {
                     "align": {
                         "ktext": "血条位置：",
                         "tooltip":None,
-                        "dtext": "浏览",
-                        "ditem": "button",
+                        "dtext": "（选择）",
+                        "ditem": "label",
                         "valuekey": "align",
                         "vitem": "combox",
                         "vtype": "str",
@@ -1267,7 +1267,7 @@ EditTableStruct = {
                         "valuekey": "type",
                         "vitem": "label",
                         "vtype": "str",
-                        "default": "Balloon"
+                        "default": "DynamicBubble"
                     },
                     "Name": {
                         "ktext": "媒体名：",
@@ -2947,7 +2947,7 @@ PortalStruct = {
             "5": {
                 "title": "pydub",
                 "icon":"github",
-                "describe": "Python实用的语音处理库",
+                "describe": "Python实用的音频处理库",
                 "url": "https://github.com/jiaaro/pydub",
             },
             "6": {

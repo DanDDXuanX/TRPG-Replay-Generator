@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# 表结构：英文
+# TableStruct: EN
 
 EditTableStruct = {
-    # 角色表
+    # CharTable
     'CharTable' :{
         'charactor':{
             "NameSep":{
@@ -76,7 +76,7 @@ EditTableStruct = {
                     "SpeechRate": {
                         "ktext": "SpeechRate:",
                         "tooltip":"The speech rate for voice, range from -500 to 500. -500 and 500 represents 0.5 and 2 time the normal speed, respectively",
-                        "dtext": "选择",
+                        "dtext": "select",
                         "ditem": "button",
                         "valuekey": "SpeechRate",
                         "vitem": "entry",
@@ -86,7 +86,7 @@ EditTableStruct = {
                     "PitchRate": {
                         "ktext": "PitchRate:",
                         "tooltip":"The pitch for voice, range from -500 to 500. -500 and 500 represents a low octave and a high octave, respectively",
-                        "dtext": "选择",
+                        "dtext": "select",
                         "ditem": "button",
                         "valuekey": "PitchRate",
                         "vitem": "entry",
@@ -124,17 +124,17 @@ EditTableStruct = {
             "PitchRate" :"PitchRate"
         }
     },
-    # 媒体定义
+    # MediaDef
     'MediaDef':{
         "Pos":{
             "InfoSep":{
-                "Text": "基本信息",
+                "Text": "Basic Information",
                 "Command":None,
                 "Content":{
                     "type": {
-                        "ktext": "类型：",
+                        "ktext": "Type:",
                         "tooltip":None,
-                        "dtext": "帮助",
+                        "dtext": "help",
                         "ditem": "button",
                         "valuekey": "type",
                         "vitem": "label",
@@ -142,25 +142,25 @@ EditTableStruct = {
                         "default": "Pos"
                     },
                     "Name": {
-                        "ktext": "媒体名：",
+                        "ktext": "Name:",
                         "tooltip":None,
-                        "dtext": "（输入）",
+                        "dtext": "(input)",
                         "ditem": "label",
                         "valuekey": "$key",
                         "vitem": "entry",
                         "vtype": "str",
-                        "default": "新建位置"
+                        "default": "Pos_new"
                     },
                 }
             },
             "ArgsSep":{
-                "Text": "参数",
+                "Text": "Argument",
                 "Command":None,
                 "Content":{
                     "pos":{
-                        "ktext": "位置：",
+                        "ktext": "pos:",
                         "tooltip":None,
-                        "dtext": "选择",
+                        "dtext": "select",
                         "ditem": "button",
                         "valuekey": "pos",
                         "vitem": "label",
@@ -176,13 +176,13 @@ EditTableStruct = {
         },
         "FreePos":{
             "InfoSep":{
-                "Text": "基本信息",
+                "Text": "Basic Information",
                 "Command":None,
                 "Content":{
                     "type": {
-                        "ktext": "类型：",
+                        "ktext": "Type:",
                         "tooltip":None,
-                        "dtext": "帮助",
+                        "dtext": "help",
                         "ditem": "button",
                         "valuekey": "type",
                         "vitem": "label",
@@ -190,25 +190,25 @@ EditTableStruct = {
                         "default": "FreePos"
                     },
                     "Name": {
-                        "ktext": "媒体名：",
+                        "ktext": "Name:",
                         "tooltip":None,
-                        "dtext": "（输入）",
+                        "dtext": "(input)",
                         "ditem": "label",
                         "valuekey": "$key",
                         "vitem": "entry",
                         "vtype": "str",
-                        "default": "新建自由位置"
+                        "default": "FreePos_new"
                     },
                 },
             },
             "ArgsSep":{
-                "Text": "参数",
+                "Text": "Argument",
                 "Command":None,
                 "Content":{
                     "pos": {
-                        "ktext": "位置：",
+                        "ktext": "pos:",
                         "tooltip":None,
-                        "dtext": "选择",
+                        "dtext": "select",
                         "ditem": "button",
                         "valuekey": "pos",
                         "vitem": "label",
@@ -224,39 +224,39 @@ EditTableStruct = {
         },
         "PosGrid":{
             "InfoSep":{
-                "Text": "基本信息",
+                "Text": "Basic Information",
                 "Command":None,
                 "Content":{
                     "type": {
-                        "ktext": "类型：",
+                        "ktext": "Type:",
                         "tooltip":None,
-                        "dtext": "帮助",
+                        "dtext": "help",
                         "ditem": "button",
                         "valuekey": "type",
                         "vitem": "label",
                         "vtype": "str",
-                        "default": "FreePos"
+                        "default": "PosGrid"
                     },
                     "Name": {
-                        "ktext": "媒体名：",
+                        "ktext": "Name:",
                         "tooltip":None,
-                        "dtext": "（输入）",
+                        "dtext": "(input)",
                         "ditem": "label",
                         "valuekey": "$key",
                         "vitem": "entry",
                         "vtype": "str",
-                        "default": "新建自由位置"
+                        "default": "PosGrid_new"
                     },
                 }
             },
             "ArgsSep":{
-                "Text": "参数",
+                "Text": "Argument",
                 "Command":None,
                 "Content":{
                     "pos": {
-                        "ktext": "起点：",
+                        "ktext": "start:",
                         "tooltip":None,
-                        "dtext": "选择",
+                        "dtext": "select",
                         "ditem": "button",
                         "valuekey": "pos",
                         "vitem": "entry",
@@ -264,9 +264,9 @@ EditTableStruct = {
                         "default": "(0,0)"
                     },
                     "end": {
-                        "ktext": "终点：",
+                        "ktext": "end:",
                         "tooltip":None,
-                        "dtext": "选择",
+                        "dtext": "select",
                         "ditem": "button",
                         "valuekey": "end",
                         "vitem": "entry",
@@ -274,9 +274,9 @@ EditTableStruct = {
                         "default": "(1,1)"
                     },
                     "x_step": {
-                        "ktext": "水平点数：",
+                        "ktext": "x_steps:",
                         "tooltip":None,
-                        "dtext": "（数值）",
+                        "dtext": "(digit)",
                         "ditem": "label",
                         "valuekey": "x_step",
                         "vitem": "spine",
@@ -284,9 +284,9 @@ EditTableStruct = {
                         "default": 0
                     },
                     "y_step": {
-                        "ktext": "垂直点数：",
+                        "ktext": "y_steps:",
                         "tooltip":None,
-                        "dtext": "（数值）",
+                        "dtext": "(digit)",
                         "ditem": "label",
                         "valuekey": "y_step",
                         "vitem": "spine",
@@ -305,13 +305,13 @@ EditTableStruct = {
         },
         "Text":{
             "InfoSep":{
-                "Text": "基本信息",
+                "Text": "Basic Information",
                 "Command":None,
                 "Content":{
                     "type": {
-                        "ktext": "类型：",
+                        "ktext": "Type:",
                         "tooltip":None,
-                        "dtext": "帮助",
+                        "dtext": "help",
                         "ditem": "button",
                         "valuekey": "type",
                         "vitem": "label",
@@ -319,19 +319,19 @@ EditTableStruct = {
                         "default": "Text"
                     },
                     "Name": {
-                        "ktext": "媒体名：",
+                        "ktext": "Name:",
                         "tooltip":None,
-                        "dtext": "（输入）",
+                        "dtext": "(input)",
                         "ditem": "label",
                         "valuekey": "$key",
                         "vitem": "entry",
                         "vtype": "str",
-                        "default": "新建文字"
+                        "default": "Text_new"
                     },
                     "label_color": {
-                        "ktext": "标签色：",
+                        "ktext": "label_color:",
                         "tooltip":None,
-                        "dtext": "（选择）",
+                        "dtext": "(select)",
                         "ditem": "label",
                         "valuekey": "label_color",
                         "vitem": "combox",
@@ -341,13 +341,13 @@ EditTableStruct = {
                 }
             },
             "FontSep":{
-                "Text": "字体",
+                "Text": "Font",
                 "Command":None,
                 "Content":{
                     "fontfile": {
-                        "ktext": "字体路径：",
+                        "ktext": "fontpath:",
                         "tooltip":None,
-                        "dtext": "浏览",
+                        "dtext": "browse",
                         "ditem": "button",
                         "valuekey": "fontfile",
                         "vitem": "entry",
@@ -355,9 +355,9 @@ EditTableStruct = {
                         "default": "'./assets/SourceHanSansCN-Regular.otf'"
                     },
                     "line_limit": {
-                        "ktext": "单行字数：",
+                        "ktext": "line_limit:",
                         "tooltip":None,
-                        "dtext": "（数值）",
+                        "dtext": "(digit)",
                         "ditem": "label",
                         "valuekey": "line_limit",
                         "vitem": "spine",
@@ -367,13 +367,13 @@ EditTableStruct = {
                 }
             },
             "StyleSep":{
-                "Text": "样式",
+                "Text": "Style",
                 "Command":None,
                 "Content":{
                     "fontsize": {
-                        "ktext": "大小：",
+                        "ktext": "size:",
                         "tooltip":None,
-                        "dtext": "（数值）",
+                        "dtext": "(digit)",
                         "ditem": "label",
                         "valuekey": "fontsize",
                         "vitem": "spine",
@@ -381,9 +381,9 @@ EditTableStruct = {
                         "default": 40
                     },
                     "color": {
-                        "ktext": "颜色：",
+                        "ktext": "color:",
                         "tooltip":None,
-                        "dtext": "选择",
+                        "dtext": "select",
                         "ditem": "button",
                         "valuekey": "color",
                         "vitem": "entry",
@@ -403,13 +403,13 @@ EditTableStruct = {
         },
         "StrokeText":{
             "InfoSep":{
-                "Text": "基本信息",
+                "Text": "Basic Information",
                 "Command":None,
                 "Content":{
                     "type": {
-                        "ktext": "类型：",
+                        "ktext": "Type:",
                         "tooltip":None,
-                        "dtext": "帮助",
+                        "dtext": "help",
                         "ditem": "button",
                         "valuekey": "type",
                         "vitem": "label",
@@ -417,19 +417,19 @@ EditTableStruct = {
                         "default": "StrokeText"
                     },
                     "Name": {
-                        "ktext": "媒体名：",
+                        "ktext": "Name:",
                         "tooltip":None,
-                        "dtext": "（输入）",
+                        "dtext": "(input)",
                         "ditem": "label",
                         "valuekey": "$key",
                         "vitem": "entry",
                         "vtype": "str",
-                        "default": "新建描边字"
+                        "default": "StrokeText_new"
                     },
                     "label_color": {
-                        "ktext": "标签色：",
+                        "ktext": "label_color:",
                         "tooltip":None,
-                        "dtext": "（选择）",
+                        "dtext": "(select)",
                         "ditem": "label",
                         "valuekey": "label_color",
                         "vitem": "combox",
@@ -439,13 +439,13 @@ EditTableStruct = {
                 }
             },
             "FontSep":{
-                "Text": "字体",
+                "Text": "Font",
                 "Command":None,
                 "Content":{
                     "fontfile": {
-                        "ktext": "字体路径：",
+                        "ktext": "fontpath:",
                         "tooltip":None,
-                        "dtext": "浏览",
+                        "dtext": "browse",
                         "ditem": "button",
                         "valuekey": "fontfile",
                         "vitem": "entry",
@@ -453,9 +453,9 @@ EditTableStruct = {
                         "default": "'./assets/SourceHanSansCN-Regular.otf'"
                     },
                     "line_limit": {
-                        "ktext": "单行字数：",
+                        "ktext": "line_limit:",
                         "tooltip":None,
-                        "dtext": "（数值）",
+                        "dtext": "(digit)",
                         "ditem": "label",
                         "valuekey": "line_limit",
                         "vitem": "spine",
@@ -465,13 +465,13 @@ EditTableStruct = {
                 }
             },
             "StyleSep":{
-                "Text": "字体样式",
+                "Text": "Font Style",
                 "Command":None,
                 "Content":{
                     "fontsize": {
-                        "ktext": "大小：",
+                        "ktext": "size:",
                         "tooltip":None,
-                        "dtext": "（数值）",
+                        "dtext": "(digit)",
                         "ditem": "label",
                         "valuekey": "fontsize",
                         "vitem": "spine",
@@ -479,9 +479,9 @@ EditTableStruct = {
                         "default": 40
                     },
                     "color": {
-                        "ktext": "颜色：",
+                        "ktext": "color:",
                         "tooltip":None,
-                        "dtext": "选择",
+                        "dtext": "select",
                         "ditem": "button",
                         "valuekey": "color",
                         "vitem": "entry",
@@ -491,13 +491,13 @@ EditTableStruct = {
                 }
             },
             "StrokeSep":{
-                "Text": "描边样式",
+                "Text": "Stroke Style",
                 "Command":None,
                 "Content":{
                     "edge_color": {
-                        "ktext": "颜色：",
+                        "ktext": "color:",
                         "tooltip":None,
-                        "dtext": "选择",
+                        "dtext": "select",
                         "ditem": "button",
                         "valuekey": "edge_color",
                         "vitem": "entry",
@@ -505,9 +505,9 @@ EditTableStruct = {
                         "default": "(255,255,255,255)"
                     },
                     "edge_width": {
-                        "ktext": "宽度：",
+                        "ktext": "width:",
                         "tooltip":None,
-                        "dtext": "（数值）",
+                        "dtext": "(digit)",
                         "ditem": "label",
                         "valuekey": "edge_width",
                         "vitem": "spine",
@@ -515,9 +515,9 @@ EditTableStruct = {
                         "default": 1
                     },
                     "projection": {
-                        "ktext": "投影方向：",
+                        "ktext": "projection:",
                         "tooltip":None,
-                        "dtext": "（选择）",
+                        "dtext": "(select)",
                         "ditem": "label",
                         "valuekey": "projection",
                         "vitem": "combox",
@@ -540,13 +540,13 @@ EditTableStruct = {
         },
         "RichText":{
             "InfoSep":{
-                "Text": "基本信息",
+                "Text": "Basic Information",
                 "Command":None,
                 "Content":{
                     "type": {
-                        "ktext": "类型：",
+                        "ktext": "Type:",
                         "tooltip":None,
-                        "dtext": "帮助",
+                        "dtext": "help",
                         "ditem": "button",
                         "valuekey": "type",
                         "vitem": "label",
@@ -554,19 +554,19 @@ EditTableStruct = {
                         "default": "RichText"
                     },
                     "Name": {
-                        "ktext": "媒体名：",
+                        "ktext": "Name:",
                         "tooltip":None,
-                        "dtext": "（输入）",
+                        "dtext": "(input)",
                         "ditem": "label",
                         "valuekey": "$key",
                         "vitem": "entry",
                         "vtype": "str",
-                        "default": "新建富文本"
+                        "default": "RichText_new"
                     },
                     "label_color": {
-                        "ktext": "标签色：",
+                        "ktext": "label_color:",
                         "tooltip":None,
-                        "dtext": "（选择）",
+                        "dtext": "(select)",
                         "ditem": "label",
                         "valuekey": "label_color",
                         "vitem": "combox",
@@ -576,13 +576,13 @@ EditTableStruct = {
                 }
             },
             "FontSep":{
-                "Text": "字体",
+                "Text": "Font",
                 "Command":None,
                 "Content":{
                     "fontfile": {
-                        "ktext": "字体路径：",
+                        "ktext": "fontpath:",
                         "tooltip":None,
-                        "dtext": "浏览",
+                        "dtext": "browse",
                         "ditem": "button",
                         "valuekey": "fontfile",
                         "vitem": "entry",
@@ -590,9 +590,9 @@ EditTableStruct = {
                         "default": "'./assets/SourceHanSansCN-Regular.otf'"
                     },
                     "line_limit": {
-                        "ktext": "单行字数：",
+                        "ktext": "line_limit:",
                         "tooltip":None,
-                        "dtext": "（数值）",
+                        "dtext": "(digit)",
                         "ditem": "label",
                         "valuekey": "line_limit",
                         "vitem": "spine",
@@ -602,13 +602,13 @@ EditTableStruct = {
                 }
             },
             "StyleSep":{
-                "Text": "样式",
+                "Text": "Style",
                 "Command":None,
                 "Content":{
                     "fontsize": {
-                        "ktext": "大小：",
+                        "ktext": "size:",
                         "tooltip":None,
-                        "dtext": "（数值）",
+                        "dtext": "(digit)",
                         "ditem": "label",
                         "valuekey": "fontsize",
                         "vitem": "spine",
@@ -616,9 +616,9 @@ EditTableStruct = {
                         "default": 40
                     },
                     "color": {
-                        "ktext": "颜色：",
+                        "ktext": "color:",
                         "tooltip":None,
-                        "dtext": "选择",
+                        "dtext": "select",
                         "ditem": "button",
                         "valuekey": "color",
                         "vitem": "entry",
@@ -638,13 +638,13 @@ EditTableStruct = {
         },
         "HPLabel":{
             "InfoSep":{
-                "Text": "基本信息",
+                "Text": "Basic Information",
                 "Command":None,
                 "Content":{
                     "type": {
-                        "ktext": "类型：",
+                        "ktext": "Type:",
                         "tooltip":None,
-                        "dtext": "帮助",
+                        "dtext": "help",
                         "ditem": "button",
                         "valuekey": "type",
                         "vitem": "label",
@@ -652,19 +652,19 @@ EditTableStruct = {
                         "default": "HPLabel"
                     },
                     "Name": {
-                        "ktext": "媒体名：",
+                        "ktext": "Name:",
                         "tooltip":None,
-                        "dtext": "（输入）",
+                        "dtext": "(input)",
                         "ditem": "label",
                         "valuekey": "$key",
                         "vitem": "entry",
                         "vtype": "str",
-                        "default": "新建文字"
+                        "default": "HPLabel_new"
                     },
                     "label_color": {
-                        "ktext": "标签色：",
+                        "ktext": "label_color:",
                         "tooltip":None,
-                        "dtext": "（选择）",
+                        "dtext": "(select)",
                         "ditem": "label",
                         "valuekey": "label_color",
                         "vitem": "combox",
@@ -674,13 +674,13 @@ EditTableStruct = {
                 }
             },
             "FontSep":{
-                "Text": "字体",
+                "Text": "Font",
                 "Command":None,
                 "Content":{
                     "fontfile": {
-                        "ktext": "字体路径：",
+                        "ktext": "fontpath:",
                         "tooltip":None,
-                        "dtext": "浏览",
+                        "dtext": "browse",
                         "ditem": "button",
                         "valuekey": "fontfile",
                         "vitem": "entry",
@@ -688,9 +688,9 @@ EditTableStruct = {
                         "default": "'./assets/SourceHanSansCN-Regular.otf'"
                     },
                     "marker": {
-                        "ktext": "文字标签：",
+                        "ktext": "marker:",
                         "tooltip":None,
-                        "dtext": "（输入）",
+                        "dtext": "(input)",
                         "ditem": "label",
                         "valuekey": "marker",
                         "vitem": "entry",
@@ -698,10 +698,10 @@ EditTableStruct = {
                         "default": "'A/B'"
                     },
                     "align": {
-                        "ktext": "血条位置：",
+                        "ktext": "align:",
                         "tooltip":None,
-                        "dtext": "浏览",
-                        "ditem": "button",
+                        "dtext": "(select)",
+                        "ditem": "label",
                         "valuekey": "align",
                         "vitem": "combox",
                         "vtype": "str",
@@ -710,13 +710,13 @@ EditTableStruct = {
                 }
             },
             "StyleSep":{
-                "Text": "样式",
+                "Text": "Font Style",
                 "Command":None,
                 "Content":{
                     "fontsize": {
-                        "ktext": "大小：",
+                        "ktext": "size:",
                         "tooltip":None,
-                        "dtext": "（数值）",
+                        "dtext": "(digit)",
                         "ditem": "label",
                         "valuekey": "fontsize",
                         "vitem": "spine",
@@ -724,9 +724,9 @@ EditTableStruct = {
                         "default": 40
                     },
                     "color": {
-                        "ktext": "颜色：",
+                        "ktext": "color:",
                         "tooltip":None,
-                        "dtext": "选择",
+                        "dtext": "select",
                         "ditem": "button",
                         "valuekey": "color",
                         "vitem": "entry",
@@ -736,13 +736,13 @@ EditTableStruct = {
                 }
             },
             "ImageSep":{
-                "Text": "图形",
+                "Text": "Hitpoint Image",
                 "Command":None,
                 "Content":{
                     "fg_path": {
-                        "ktext": "前景路径：",
+                        "ktext": "fg_path:",
                         "tooltip":None,
-                        "dtext": "浏览",
+                        "dtext": "browse",
                         "ditem": "button",
                         "valuekey": "fg_path",
                         "vitem": "entry",
@@ -750,9 +750,9 @@ EditTableStruct = {
                         "default": "'./assets/heart.png'"
                     },
                     "bg_path": {
-                        "ktext": "背景路径：",
+                        "ktext": "bg_path:",
                         "tooltip":None,
-                        "dtext": "浏览",
+                        "dtext": "browse",
                         "ditem": "button",
                         "valuekey": "bg_path",
                         "vitem": "entry",
@@ -762,13 +762,13 @@ EditTableStruct = {
                 }
             },
             "BarSep":{
-                "Text": "血条",
+                "Text": "Hitpoint Style",
                 "Command":None,
                 "Content":{
                     "width": {
-                        "ktext": "宽度：",
+                        "ktext": "width:",
                         "tooltip":None,
-                        "dtext": "（数值）",
+                        "dtext": "(digit)",
                         "ditem": "label",
                         "valuekey": "width",
                         "vitem": "spine",
@@ -776,9 +776,9 @@ EditTableStruct = {
                         "default": 0
                     },
                     "repeat": {
-                        "ktext": "单位：",
+                        "ktext": "unit:",
                         "tooltip":None,
-                        "dtext": "（数值）",
+                        "dtext": "(digit)",
                         "ditem": "label",
                         "valuekey": "repeat",
                         "vitem": "spine",
@@ -803,13 +803,13 @@ EditTableStruct = {
         },
         "Bubble":{
             "InfoSep":{
-                "Text": "基本信息",
+                "Text": "Basic Information",
                 "Command":None,
                 "Content":{
                     "type": {
-                        "ktext": "类型：",
+                        "ktext": "Type:",
                         "tooltip":None,
-                        "dtext": "帮助",
+                        "dtext": "help",
                         "ditem": "button",
                         "valuekey": "type",
                         "vitem": "label",
@@ -817,19 +817,19 @@ EditTableStruct = {
                         "default": "Bubble"
                     },
                     "Name": {
-                        "ktext": "媒体名：",
+                        "ktext": "Name:",
                         "tooltip":None,
-                        "dtext": "（输入）",
+                        "dtext": "(input)",
                         "ditem": "label",
                         "valuekey": "$key",
                         "vitem": "entry",
                         "vtype": "str",
-                        "default": "新建气泡"
+                        "default": "Bubble_new"
                     },
                     "label_color": {
-                        "ktext": "标签色：",
+                        "ktext": "label_color:",
                         "tooltip":None,
-                        "dtext": "（选择）",
+                        "dtext": "(select)",
                         "ditem": "label",
                         "valuekey": "label_color",
                         "vitem": "combox",
@@ -839,13 +839,13 @@ EditTableStruct = {
                 }
             },
             "ImageSep":{
-                "Text": "图像",
+                "Text": "Image",
                 "Command":None,
                 "Content":{
                     "filepath": {
-                        "ktext": "图片路径：",
+                        "ktext": "filepath:",
                         "tooltip":None,
-                        "dtext": "浏览",
+                        "dtext": "browse",
                         "ditem": "button",
                         "valuekey": "filepath",
                         "vitem": "entry",
@@ -853,9 +853,9 @@ EditTableStruct = {
                         "default": "None"
                     },
                     "pos": {
-                        "ktext": "位置：",
+                        "ktext": "pos:",
                         "tooltip":None,
-                        "dtext": "选择",
+                        "dtext": "select",
                         "ditem": "button",
                         "valuekey": "pos",
                         "vitem": "combox",
@@ -863,9 +863,9 @@ EditTableStruct = {
                         "default": "(0,0)"
                     },
                     "scale": {
-                        "ktext": "缩放：",
+                        "ktext": "scale:",
                         "tooltip":None,
-                        "dtext": "（数值）",
+                        "dtext": "(digit)",
                         "ditem": "label",
                         "valuekey": "scale",
                         "vitem": "spine",
@@ -875,13 +875,13 @@ EditTableStruct = {
                 }
             },
             "MainSep":{
-                "Text": "主文本",
+                "Text": "Main Text",
                 "Command":None,
                 "Content":{
                     "Main_Text": {
-                        "ktext": "字体：",
+                        "ktext": "text:",
                         "tooltip":None,
-                        "dtext": "（选择）",
+                        "dtext": "(select)",
                         "ditem": "label",
                         "valuekey": "Main_Text",
                         "vitem": "combox",
@@ -889,9 +889,9 @@ EditTableStruct = {
                         "default": "Text()"
                     },
                     "mt_pos": {
-                        "ktext": "位置：",
+                        "ktext": "pos:",
                         "tooltip":None,
-                        "dtext": "选择",
+                        "dtext": "select",
                         "ditem": "button",
                         "valuekey": "mt_pos",
                         "vitem": "entry",
@@ -899,9 +899,9 @@ EditTableStruct = {
                         "default": "(0,0)"
                     },
                     "mt_rotate": {
-                        "ktext": "旋转：",
+                        "ktext": "rotate:",
                         "tooltip":None,
-                        "dtext": "（数值）",
+                        "dtext": "(digit)",
                         "ditem": "label",
                         "valuekey": "mt_rotate",
                         "vitem": "spine",
@@ -909,9 +909,9 @@ EditTableStruct = {
                         "default": 0
                     },
                     "align": {
-                        "ktext": "水平对齐：",
+                        "ktext": "horz_align:",
                         "tooltip":None,
-                        "dtext": "（选择）",
+                        "dtext": "(select)",
                         "ditem": "label",
                         "valuekey": "align",
                         "vitem": "combox",
@@ -919,9 +919,9 @@ EditTableStruct = {
                         "default": "'left'"
                     },
                     "vertical_align": {
-                        "ktext": "垂直对齐：",
+                        "ktext": "vert_align:",
                         "tooltip":None,
-                        "dtext": "（选择）",
+                        "dtext": "(select)",
                         "ditem": "label",
                         "valuekey": "vertical_align",
                         "vitem": "combox",
@@ -929,9 +929,9 @@ EditTableStruct = {
                         "default": "'top'"
                     },
                     "line_distance": {
-                        "ktext": "行距：",
+                        "ktext": "line_distance:",
                         "tooltip":None,
-                        "dtext": "（数值）",
+                        "dtext": "(digit)",
                         "ditem": "label",
                         "valuekey": "line_distance",
                         "vitem": "spine",
@@ -939,9 +939,9 @@ EditTableStruct = {
                         "default": 1.5
                     },
                     "line_num_est": {
-                        "ktext": "行数：",
+                        "ktext": "line_num:",
                         "tooltip":None,
-                        "dtext": "（数值）",
+                        "dtext": "(digit)",
                         "ditem": "label",
                         "valuekey": "line_num_est",
                         "vitem": "spine",
@@ -951,13 +951,13 @@ EditTableStruct = {
                 }
             },
             "HeadSep":{
-                "Text": "头文本",
+                "Text": "Header Text",
                 "Command":None,
                 "Content":{
                     "Header_Text": {
-                        "ktext": "字体：",
+                        "ktext": "text:",
                         "tooltip":None,
-                        "dtext": "（选择）",
+                        "dtext": "(select)",
                         "ditem": "label",
                         "valuekey": "Header_Text",
                         "vitem": "combox",
@@ -965,9 +965,9 @@ EditTableStruct = {
                         "default": "None"
                     },
                     "ht_pos": {
-                        "ktext": "位置：",
+                        "ktext": "pos:",
                         "tooltip":None,
-                        "dtext": "选择",
+                        "dtext": "select",
                         "ditem": "button",
                         "valuekey": "ht_pos",
                         "vitem": "entry",
@@ -975,9 +975,9 @@ EditTableStruct = {
                         "default": "(0,0)"
                     },
                     "ht_rotate": {
-                        "ktext": "旋转：",
+                        "ktext": "rotate:",
                         "tooltip":None,
-                        "dtext": "（数值）",
+                        "dtext": "(digit)",
                         "ditem": "label",
                         "valuekey": "ht_rotate",
                         "vitem": "spine",
@@ -985,9 +985,9 @@ EditTableStruct = {
                         "default": "0"
                     },
                     "head_align": {
-                        "ktext": "对齐：",
+                        "ktext": "align:",
                         "tooltip":None,
-                        "dtext": "（选择）",
+                        "dtext": "(select)",
                         "ditem": "label",
                         "valuekey": "head_align",
                         "vitem": "combox",
@@ -995,9 +995,9 @@ EditTableStruct = {
                         "default": "'left'"
                     },
                     "ht_target": {
-                        "ktext": "目标：",
+                        "ktext": "target:",
                         "tooltip":None,
-                        "dtext": "（选择）",
+                        "dtext": "(select)",
                         "ditem": "label",
                         "valuekey": "ht_target",
                         "vitem": "combox",
@@ -1028,13 +1028,13 @@ EditTableStruct = {
         },
         "Balloon":{
             "InfoSep":{
-                "Text": "基本信息",
+                "Text": "Basic Information",
                 "Command":None,
                 "Content":{
                     "type": {
-                        "ktext": "类型：",
+                        "ktext": "Type:",
                         "tooltip":None,
-                        "dtext": "帮助",
+                        "dtext": "help",
                         "ditem": "button",
                         "valuekey": "type",
                         "vitem": "label",
@@ -1042,19 +1042,19 @@ EditTableStruct = {
                         "default": "Balloon"
                     },
                         "Name": {
-                        "ktext": "媒体名：",
+                        "ktext": "Name:",
                         "tooltip":None,
-                        "dtext": "（输入）",
+                        "dtext": "(input)",
                         "ditem": "label",
                         "valuekey": "$key",
                         "vitem": "entry",
                         "vtype": "str",
-                        "default": "新建气球"
+                        "default": "Balloon_new"
                     },
                     "label_color": {
-                        "ktext": "标签色：",
+                        "ktext": "label_color:",
                         "tooltip":None,
-                        "dtext": "（选择）",
+                        "dtext": "(select)",
                         "ditem": "label",
                         "valuekey": "label_color",
                         "vitem": "combox",
@@ -1064,13 +1064,13 @@ EditTableStruct = {
                 }
             },
             "ImageSep":{
-                "Text": "图像",
+                "Text": "Image",
                 "Command":None,
                 "Content":{
                     "filepath": {
-                        "ktext": "图片路径：",
+                        "ktext": "filepath:",
                         "tooltip":None,
-                        "dtext": "浏览",
+                        "dtext": "browse",
                         "ditem": "button",
                         "valuekey": "filepath",
                         "vitem": "entry",
@@ -1078,9 +1078,9 @@ EditTableStruct = {
                         "default": "None"
                     },
                     "pos": {
-                        "ktext": "位置：",
+                        "ktext": "pos:",
                         "tooltip":None,
-                        "dtext": "选择",
+                        "dtext": "select",
                         "ditem": "button",
                         "valuekey": "pos",
                         "vitem": "combox",
@@ -1088,9 +1088,9 @@ EditTableStruct = {
                         "default": "(0,0)"
                     },
                     "scale": {
-                        "ktext": "缩放：",
+                        "ktext": "scale:",
                         "tooltip":None,
-                        "dtext": "（数值）",
+                        "dtext": "(digit)",
                         "ditem": "label",
                         "valuekey": "scale",
                         "vitem": "spine",
@@ -1100,13 +1100,13 @@ EditTableStruct = {
                 }
             },
             "MainSep":{
-                "Text": "主文本",
+                "Text": "Main Text",
                 "Command":None,
                 "Content":{
                     "Main_Text": {
-                        "ktext": "字体：",
+                        "ktext": "text:",
                         "tooltip":None,
-                        "dtext": "（选择）",
+                        "dtext": "(select)",
                         "ditem": "label",
                         "valuekey": "Main_Text",
                         "vitem": "combox",
@@ -1114,9 +1114,9 @@ EditTableStruct = {
                         "default": "Text()"
                     },
                     "mt_pos": {
-                        "ktext": "位置：",
+                        "ktext": "pos:",
                         "tooltip":None,
-                        "dtext": "选择",
+                        "dtext": "select",
                         "ditem": "button",
                         "valuekey": "mt_pos",
                         "vitem": "entry",
@@ -1124,9 +1124,9 @@ EditTableStruct = {
                         "default": "(0,0)"
                     },
                     "mt_rotate": {
-                        "ktext": "旋转：",
+                        "ktext": "rotate:",
                         "tooltip":None,
-                        "dtext": "（数值）",
+                        "dtext": "(digit)",
                         "ditem": "label",
                         "valuekey": "mt_rotate",
                         "vitem": "spine",
@@ -1134,9 +1134,9 @@ EditTableStruct = {
                         "default": 0
                     },
                     "align": {
-                        "ktext": "水平对齐：",
+                        "ktext": "horz_align:",
                         "tooltip":None,
-                        "dtext": "（选择）",
+                        "dtext": "(select)",
                         "ditem": "label",
                         "valuekey": "align",
                         "vitem": "combox",
@@ -1144,9 +1144,9 @@ EditTableStruct = {
                         "default": "'left'"
                     },
                     "vertical_align": {
-                        "ktext": "垂直对齐：",
+                        "ktext": "vert_align:",
                         "tooltip":None,
-                        "dtext": "（选择）",
+                        "dtext": "(select)",
                         "ditem": "label",
                         "valuekey": "vertical_align",
                         "vitem": "combox",
@@ -1154,9 +1154,9 @@ EditTableStruct = {
                         "default": "'top'"
                     },
                     "line_distance": {
-                        "ktext": "行距：",
+                        "ktext": "line_distance:",
                         "tooltip":None,
-                        "dtext": "（数值）",
+                        "dtext": "(digit)",
                         "ditem": "label",
                         "valuekey": "line_distance",
                         "vitem": "spine",
@@ -1164,9 +1164,9 @@ EditTableStruct = {
                         "default": 1.5
                     },
                     "line_num_est": {
-                        "ktext": "行数：",
+                        "ktext": "line_num:",
                         "tooltip":None,
-                        "dtext": "（数值）",
+                        "dtext": "(digit)",
                         "ditem": "label",
                         "valuekey": "line_num_est",
                         "vitem": "spine",
@@ -1176,16 +1176,16 @@ EditTableStruct = {
                 }
             },
             "HeadSep-%d":{
-                "Text": "头文本-%d",
+                "Text": "HeaderText-%d",
                 "Command":{
                     "type":'add_sep',
                     "key":"Header_Text_%d"
                 },
                 "Content":{
                     "Header_Text_%d": {
-                        "ktext": "字体：",
+                        "ktext": "text:",
                         "tooltip":None,
-                        "dtext": "（选择）",
+                        "dtext": "(select)",
                         "ditem": "label",
                         "valuekey": "Header_Text",
                         "vitem": "combox",
@@ -1193,9 +1193,9 @@ EditTableStruct = {
                         "default": "Text()"
                     },
                     "ht_pos_%d": {
-                        "ktext": "位置：",
+                        "ktext": "pos:",
                         "tooltip":None,
-                        "dtext": "选择",
+                        "dtext": "select",
                         "ditem": "button",
                         "valuekey": "ht_pos",
                         "vitem": "entry",
@@ -1203,9 +1203,9 @@ EditTableStruct = {
                         "default": "(0,0)"
                     },
                     "ht_rotate_%d": {
-                        "ktext": "旋转：",
+                        "ktext": "rotate:",
                         "tooltip":None,
-                        "dtext": "（数值）",
+                        "dtext": "(digit)",
                         "ditem": "label",
                         "valuekey": "ht_rotate",
                         "vitem": "spine",
@@ -1213,9 +1213,9 @@ EditTableStruct = {
                         "default": "0"
                     },
                     "head_align_%d": {
-                        "ktext": "对齐：",
+                        "ktext": "align:",
                         "tooltip":None,
-                        "dtext": "（选择）",
+                        "dtext": "(select)",
                         "ditem": "label",
                         "valuekey": "head_align",
                         "vitem": "combox",
@@ -1223,9 +1223,9 @@ EditTableStruct = {
                         "default": "'left'"
                     },
                     "ht_target_%d": {
-                        "ktext": "目标：",
+                        "ktext": "target:",
                         "tooltip":None,
-                        "dtext": "（选择）",
+                        "dtext": "(select)",
                         "ditem": "label",
                         "valuekey": "ht_target",
                         "vitem": "combox",
@@ -1256,33 +1256,33 @@ EditTableStruct = {
         },
         "DynamicBubble":{
             "InfoSep":{
-                "Text": "基本信息",
+                "Text": "Basic Information",
                 "Command":None,
                 "Content":{
                     "type": {
-                        "ktext": "类型：",
+                        "ktext": "Type:",
                         "tooltip":None,
-                        "dtext": "帮助",
+                        "dtext": "help",
                         "ditem": "button",
                         "valuekey": "type",
                         "vitem": "label",
                         "vtype": "str",
-                        "default": "Balloon"
+                        "default": "DynamicBubble"
                     },
                     "Name": {
-                        "ktext": "媒体名：",
+                        "ktext": "Name:",
                         "tooltip":None,
-                        "dtext": "（输入）",
+                        "dtext": "(input)",
                         "ditem": "label",
                         "valuekey": "$key",
                         "vitem": "entry",
                         "vtype": "str",
-                        "default": "新建自适应气泡"
+                        "default": "DynamicBubble_new"
                     },
                     "label_color": {
-                        "ktext": "标签色：",
+                        "ktext": "label_color:",
                         "tooltip":None,
-                        "dtext": "（选择）",
+                        "dtext": "(select)",
                         "ditem": "label",
                         "valuekey": "label_color",
                         "vitem": "combox",
@@ -1292,13 +1292,13 @@ EditTableStruct = {
                 }
             },
             "ImageSep":{
-                "Text": "图像",
+                "Text": "Image",
                 "Command":None,
                 "Content":{
                     "filepath": {
-                        "ktext": "图片路径：",
+                        "ktext": "filepath:",
                         "tooltip":None,
-                        "dtext": "浏览",
+                        "dtext": "browse",
                         "ditem": "button",
                         "valuekey": "filepath",
                         "vitem": "entry",
@@ -1306,9 +1306,9 @@ EditTableStruct = {
                         "default": "None"
                     },
                     "pos": {
-                        "ktext": "位置：",
+                        "ktext": "pos:",
                         "tooltip":None,
-                        "dtext": "选择",
+                        "dtext": "select",
                         "ditem": "button",
                         "valuekey": "pos",
                         "vitem": "combox",
@@ -1316,9 +1316,9 @@ EditTableStruct = {
                         "default": "(0,0)"
                     },
                     "scale": {
-                        "ktext": "缩放：",
+                        "ktext": "scale:",
                         "tooltip":None,
-                        "dtext": "（数值）",
+                        "dtext": "(digit)",
                         "ditem": "label",
                         "valuekey": "scale",
                         "vitem": "spine",
@@ -1328,13 +1328,13 @@ EditTableStruct = {
                 }
             },
             "DynamicSep":{
-                "Text": "自适应参数",
+                "Text": "Adaption",
                 "Command":None,
                 "Content":{
                     "fill_mode": {
-                        "ktext": "填充模式：",
+                        "ktext": "fill_mode:",
                         "tooltip":None,
-                        "dtext": "（选择）",
+                        "dtext": "(select)",
                         "ditem": "label",
                         "valuekey": "fill_mode",
                         "vitem": "combox",
@@ -1342,9 +1342,9 @@ EditTableStruct = {
                         "default": "'stretch'"
                     },
                     "fit_axis": {
-                        "ktext": "适应方向：",
+                        "ktext": "fit_axis:",
                         "tooltip":None,
-                        "dtext": "（选择）",
+                        "dtext": "(select)",
                         "ditem": "label",
                         "valuekey": "fit_axis",
                         "vitem": "combox",
@@ -1354,13 +1354,13 @@ EditTableStruct = {
                 }
             },
             "MainSep":{
-                "Text": "主文本",
+                "Text": "Main Text",
                 "Command":None,
                 "Content":{
                     "Main_Text": {
-                        "ktext": "字体：",
+                        "ktext": "text:",
                         "tooltip":None,
-                        "dtext": "（选择）",
+                        "dtext": "(select)",
                         "ditem": "label",
                         "valuekey": "Main_Text",
                         "vitem": "combox",
@@ -1368,9 +1368,9 @@ EditTableStruct = {
                         "default": "Text()"
                     },
                     "mt_pos": {
-                        "ktext": "起点：",
+                        "ktext": "start:",
                         "tooltip":None,
-                        "dtext": "选择",
+                        "dtext": "select",
                         "ditem": "button",
                         "valuekey": "mt_pos",
                         "vitem": "entry",
@@ -1378,9 +1378,9 @@ EditTableStruct = {
                         "default": "(0,0)"
                     },
                     "mt_end": {
-                        "ktext": "终点：",
+                        "ktext": "end:",
                         "tooltip":None,
-                        "dtext": "选择",
+                        "dtext": "select",
                         "ditem": "button",
                         "valuekey": "mt_end",
                         "vitem": "entry",
@@ -1388,9 +1388,9 @@ EditTableStruct = {
                         "default": "(0,0)"
                     },
                     "line_distance": {
-                        "ktext": "行距：",
+                        "ktext": "line_distance:",
                         "tooltip":None,
-                        "dtext": "（数值）",
+                        "dtext": "(digit)",
                         "ditem": "label",
                         "valuekey": "line_distance",
                         "vitem": "spine",
@@ -1400,13 +1400,13 @@ EditTableStruct = {
                 }
             },
             "HeadSep":{
-                "Text": "头文本",
+                "Text": "Header Text",
                 "Command":None,
                 "Content":{
                     "Header_Text": {
-                        "ktext": "字体：",
+                        "ktext": "text:",
                         "tooltip":None,
-                        "dtext": "（选择）",
+                        "dtext": "(select)",
                         "ditem": "label",
                         "valuekey": "Header_Text",
                         "vitem": "combox",
@@ -1414,9 +1414,9 @@ EditTableStruct = {
                         "default": "None"
                     },
                     "ht_pos": {
-                        "ktext": "位置：",
+                        "ktext": "pos:",
                         "tooltip":None,
-                        "dtext": "选择",
+                        "dtext": "select",
                         "ditem": "button",
                         "valuekey": "ht_pos",
                         "vitem": "entry",
@@ -1424,9 +1424,9 @@ EditTableStruct = {
                         "default": "(0,0)"
                     },
                     "ht_target": {
-                        "ktext": "目标：",
+                        "ktext": "target:",
                         "tooltip":None,
-                        "dtext": "（选择）",
+                        "dtext": "(select)",
                         "ditem": "label",
                         "valuekey": "ht_target",
                         "vitem": "combox",
@@ -1454,13 +1454,13 @@ EditTableStruct = {
         },
         "ChatWindow":{
             "InfoSep":{
-                "Text": "基本信息",
+                "Text": "Basic Information",
                 "Command":None,
                 "Content":{
                     "type": {
-                        "ktext": "类型：",
+                        "ktext": "Type:",
                         "tooltip":None,
-                        "dtext": "帮助",
+                        "dtext": "help",
                         "ditem": "button",
                         "valuekey": "type",
                         "vitem": "label",
@@ -1468,19 +1468,19 @@ EditTableStruct = {
                         "default": "ChatWindow"
                     },
                     "Name": {
-                        "ktext": "媒体名：",
+                        "ktext": "Name:",
                         "tooltip":None,
-                        "dtext": "（输入）",
+                        "dtext": "(input)",
                         "ditem": "label",
                         "valuekey": "$key",
                         "vitem": "entry",
                         "vtype": "str",
-                        "default": "新建聊天窗"
+                        "default": "ChatWindow_new"
                     },
                     "label_color": {
-                        "ktext": "标签色：",
+                        "ktext": "label_color:",
                         "tooltip":None,
-                        "dtext": "（选择）",
+                        "dtext": "(select)",
                         "ditem": "label",
                         "valuekey": "label_color",
                         "vitem": "combox",
@@ -1490,13 +1490,13 @@ EditTableStruct = {
                 }
             },
             "ImageSep":{
-                "Text": "图像",
+                "Text": "Image",
                 "Command":None,
                 "Content":{
                     "filepath": {
-                        "ktext": "图片路径：",
+                        "ktext": "filepath:",
                         "tooltip":None,
-                        "dtext": "浏览",
+                        "dtext": "browse",
                         "ditem": "button",
                         "valuekey": "filepath",
                         "vitem": "entry",
@@ -1504,9 +1504,9 @@ EditTableStruct = {
                         "default": "None"
                     },
                     "pos": {
-                        "ktext": "位置：",
+                        "ktext": "pos:",
                         "tooltip":None,
-                        "dtext": "选择",
+                        "dtext": "select",
                         "ditem": "button",
                         "valuekey": "pos",
                         "vitem": "combox",
@@ -1514,9 +1514,9 @@ EditTableStruct = {
                         "default": "(0,0)"
                     },
                     "scale": {
-                        "ktext": "缩放：",
+                        "ktext": "scale:",
                         "tooltip":None,
-                        "dtext": "（数值）",
+                        "dtext": "(digit)",
                         "ditem": "label",
                         "valuekey": "scale",
                         "vitem": "spine",
@@ -1526,13 +1526,13 @@ EditTableStruct = {
                 }
             },
             "AreaSep":{
-                "Text": "滚动区域",
+                "Text": "Scroll Area",
                 "Command":None,
                 "Content":{
                     "sub_pos": {
-                        "ktext": "起点：",
+                        "ktext": "start:",
                         "tooltip":None,
-                        "dtext": "选择",
+                        "dtext": "select",
                         "ditem": "button",
                         "valuekey": "sub_pos",
                         "vitem": "entry",
@@ -1540,9 +1540,9 @@ EditTableStruct = {
                         "default": "Text()"
                     },
                     "sub_end": {
-                        "ktext": "终点：",
+                        "ktext": "end:",
                         "tooltip":None,
-                        "dtext": "选择",
+                        "dtext": "select",
                         "ditem": "button",
                         "valuekey": "sub_end",
                         "vitem": "entry",
@@ -1550,9 +1550,9 @@ EditTableStruct = {
                         "default": "(0,0)"
                     },
                     "sub_distance": {
-                        "ktext": "间距：",
+                        "ktext": "distance:",
                         "tooltip":None,
-                        "dtext": "（选择）",
+                        "dtext": "(select)",
                         "ditem": "label",
                         "valuekey": "sub_distance",
                         "vitem": "spine",
@@ -1562,13 +1562,13 @@ EditTableStruct = {
                 }
             },
             "HeadSep":{
-                "Text": "头像位置",
+                "Text": "Avatar Position",
                 "Command":None,
                 "Content":{
                     "am_left": {
-                        "ktext": "左边界：",
+                        "ktext": "left_border:",
                         "tooltip":None,
-                        "dtext": "选择",
+                        "dtext": "select",
                         "ditem": "button",
                         "valuekey": "am_left",
                         "vitem": "entry",
@@ -1576,9 +1576,9 @@ EditTableStruct = {
                         "default": 0
                     },
                     "am_right": {
-                        "ktext": "右边界：",
+                        "ktext": "right_border:",
                         "tooltip":None,
-                        "dtext": "选择",
+                        "dtext": "select",
                         "ditem": "button",
                         "valuekey": "am_right",
                         "vitem": "entry",
@@ -1588,16 +1588,16 @@ EditTableStruct = {
                 }
             },
             "SubSep-%d":{
-                "Text": "子气泡-%d",
+                "Text": "SubBubble-%d",
                 "Command":{
                     "type":'add_sep',
                     "key":"sub_key_%d"
                 },
                 "Content":{
                     "sub_key_%d": {
-                        "ktext": "关键字：",
+                        "ktext": "keyword:",
                         "tooltip":None,
-                        "dtext": "（输入）",
+                        "dtext": "(input)",
                         "ditem": "label",
                         "valuekey": "sub_key",
                         "vitem": "entry",
@@ -1605,9 +1605,9 @@ EditTableStruct = {
                         "default": "'Key%d'"
                     },
                     "sub_Bubble_%d": {
-                        "ktext": "气泡：",
+                        "ktext": "bubble:",
                         "tooltip":None,
-                        "dtext": "（选择）",
+                        "dtext": "(select)",
                         "ditem": "label",
                         "valuekey": "sub_Bubble",
                         "vitem": "combox",
@@ -1615,9 +1615,9 @@ EditTableStruct = {
                         "default": "Bubble()"
                     },
                     "sub_Anime_%d": {
-                        "ktext": "头像：",
+                        "ktext": "avatar:",
                         "tooltip":None,
-                        "dtext": "（选择）",
+                        "dtext": "(select)",
                         "ditem": "label",
                         "valuekey": "sub_Anime",
                         "vitem": "combox",
@@ -1625,9 +1625,9 @@ EditTableStruct = {
                         "default": "None"
                     },
                     "sub_align_%d": {
-                        "ktext": "对齐：",
+                        "ktext": "align:",
                         "tooltip":None,
-                        "dtext": "（选择）",
+                        "dtext": "(select)",
                         "ditem": "label",
                         "valuekey": "sub_align",
                         "vitem": "combox",
@@ -1655,13 +1655,13 @@ EditTableStruct = {
         },
         "Animation":{
             "InfoSep":{
-                "Text": "基本信息",
+                "Text": "Basic Information",
                 "Command":None,
                 "Content":{
                     "type": {
-                        "ktext": "类型：",
+                        "ktext": "Type:",
                         "tooltip":None,
-                        "dtext": "帮助",
+                        "dtext": "help",
                         "ditem": "button",
                         "valuekey": "type",
                         "vitem": "label",
@@ -1669,19 +1669,19 @@ EditTableStruct = {
                         "default": "Animation"
                     },
                     "Name": {
-                        "ktext": "媒体名：",
+                        "ktext": "Name:",
                         "tooltip":None,
-                        "dtext": "（输入）",
+                        "dtext": "(input)",
                         "ditem": "label",
                         "valuekey": "$key",
                         "vitem": "entry",
                         "vtype": "str",
-                        "default": "新建立绘"
+                        "default": "Animation_new"
                     },
                     "label_color": {
-                        "ktext": "标签色：",
+                        "ktext": "label_color:",
                         "tooltip":None,
-                        "dtext": "（选择）",
+                        "dtext": "(select)",
                         "ditem": "label",
                         "valuekey": "label_color",
                         "vitem": "combox",
@@ -1691,13 +1691,13 @@ EditTableStruct = {
                 }
             },
             "ImageSep":{
-                "Text": "图像",
+                "Text": "Image",
                 "Command":None,
                 "Content":{
                     "filepath": {
-                        "ktext": "图片路径：",
+                        "ktext": "filepath:",
                         "tooltip":None,
-                        "dtext": "浏览",
+                        "dtext": "browse",
                         "ditem": "button",
                         "valuekey": "filepath",
                         "vitem": "entry",
@@ -1705,9 +1705,9 @@ EditTableStruct = {
                         "default": ""
                     },
                     "pos": {
-                        "ktext": "位置：",
+                        "ktext": "pos:",
                         "tooltip":None,
-                        "dtext": "选择",
+                        "dtext": "select",
                         "ditem": "button",
                         "valuekey": "pos",
                         "vitem": "combox",
@@ -1715,9 +1715,9 @@ EditTableStruct = {
                         "default": "(0,0)"
                     },
                     "scale": {
-                        "ktext": "缩放：",
+                        "ktext": "scale:",
                         "tooltip":None,
-                        "dtext": "（数值）",
+                        "dtext": "(digit)",
                         "ditem": "label",
                         "valuekey": "scale",
                         "vitem": "spine",
@@ -1727,13 +1727,13 @@ EditTableStruct = {
                 }
             },
             "AnimeSep":{
-                "Text": "动画",
+                "Text": "Anime",
                 "Command":None,
                 "Content":{
                     "tick": {
-                        "ktext": "拍率：",
+                        "ktext": "tick_rate:",
                         "tooltip":None,
-                        "dtext": "（数值）",
+                        "dtext": "(digit)",
                         "ditem": "label",
                         "valuekey": "tick",
                         "vitem": "spine",
@@ -1741,9 +1741,9 @@ EditTableStruct = {
                         "default": 1
                     },
                     "loop": {
-                        "ktext": "循环播放：",
+                        "ktext": "loop:",
                         "tooltip":None,
-                        "dtext": "（选择）",
+                        "dtext": "(select)",
                         "ditem": "label",
                         "valuekey": "loop",
                         "vitem": "combox",
@@ -1764,13 +1764,13 @@ EditTableStruct = {
         },
         "Background":{
             "InfoSep":{
-                "Text": "基本信息",
+                "Text": "Basic Information",
                 "Command":None,
                 "Content":{
                     "type": {
-                        "ktext": "类型：",
+                        "ktext": "Type:",
                         "tooltip":None,
-                        "dtext": "帮助",
+                        "dtext": "help",
                         "ditem": "button",
                         "valuekey": "type",
                         "vitem": "label",
@@ -1778,19 +1778,19 @@ EditTableStruct = {
                         "default": "Background"
                     },
                     "Name": {
-                        "ktext": "媒体名：",
+                        "ktext": "Name:",
                         "tooltip":None,
-                        "dtext": "（输入）",
+                        "dtext": "(input)",
                         "ditem": "label",
                         "valuekey": "$key",
                         "vitem": "entry",
                         "vtype": "str",
-                        "default": "新建背景"
+                        "default": "Background_new"
                     },
                     "label_color": {
-                        "ktext": "标签色：",
+                        "ktext": "label_color:",
                         "tooltip":None,
-                        "dtext": "（选择）",
+                        "dtext": "(select)",
                         "ditem": "label",
                         "valuekey": "label_color",
                         "vitem": "combox",
@@ -1800,13 +1800,13 @@ EditTableStruct = {
                 }
             },
             "ImageSep":{
-                "Text": "图像",
+                "Text": "Image",
                 "Command":None,
                 "Content":{
                     "filepath": {
-                        "ktext": "图片路径：",
+                        "ktext": "filepath:",
                         "tooltip":None,
-                        "dtext": "浏览",
+                        "dtext": "browse",
                         "ditem": "button",
                         "valuekey": "filepath",
                         "vitem": "entry",
@@ -1814,9 +1814,9 @@ EditTableStruct = {
                         "default": "'black'"
                     },
                     "pos": {
-                        "ktext": "位置：",
+                        "ktext": "pos:",
                         "tooltip":None,
-                        "dtext": "选择",
+                        "dtext": "select",
                         "ditem": "button",
                         "valuekey": "pos",
                         "vitem": "combox",
@@ -1824,9 +1824,9 @@ EditTableStruct = {
                         "default": "(0,0)"
                     },
                     "scale": {
-                        "ktext": "缩放：",
+                        "ktext": "scale:",
                         "tooltip":None,
-                        "dtext": "（数值）",
+                        "dtext": "(digit)",
                         "ditem": "label",
                         "valuekey": "scale",
                         "vitem": "spine",
@@ -1845,13 +1845,13 @@ EditTableStruct = {
         },
         "Audio":{
             "InfoSep":{
-                "Text": "基本信息",
+                "Text": "Basic Information",
                 "Command":None,
                 "Content":{
                     "type": {
-                        "ktext": "类型：",
+                        "ktext": "Type:",
                         "tooltip":None,
-                        "dtext": "帮助",
+                        "dtext": "help",
                         "ditem": "button",
                         "valuekey": "type",
                         "vitem": "label",
@@ -1859,19 +1859,19 @@ EditTableStruct = {
                         "default": "Audio"
                     },
                     "Name": {
-                        "ktext": "媒体名：",
+                        "ktext": "Name:",
                         "tooltip":None,
-                        "dtext": "（输入）",
+                        "dtext": "(input)",
                         "ditem": "label",
                         "valuekey": "$key",
                         "vitem": "entry",
                         "vtype": "str",
-                        "default": "新建音效"
+                        "default": "Audio_new"
                     },
                     "label_color": {
-                        "ktext": "标签色：",
+                        "ktext": "label_color:",
                         "tooltip":None,
-                        "dtext": "（选择）",
+                        "dtext": "(select)",
                         "ditem": "label",
                         "valuekey": "label_color",
                         "vitem": "combox",
@@ -1881,13 +1881,13 @@ EditTableStruct = {
                 }
             },
             "AudioSep":{
-                "Text":"音频",
+                "Text":"Audio",
                 "Command":None,
                 "Content":{
                     "filepath": {
-                        "ktext": "音频路径：",
+                        "ktext": "filepath:",
                         "tooltip":None,
-                        "dtext": "浏览",
+                        "dtext": "browse",
                         "ditem": "button",
                         "valuekey": "filepath",
                         "vitem": "entry",
@@ -1904,13 +1904,13 @@ EditTableStruct = {
         },
         "BGM":{
             "InfoSep":{
-                "Text": "基本信息",
+                "Text": "Basic Information",
                 "Command":None,
                 "Content":{
                     "type": {
-                        "ktext": "类型：",
+                        "ktext": "Type:",
                         "tooltip":None,
-                        "dtext": "帮助",
+                        "dtext": "help",
                         "ditem": "button",
                         "valuekey": "type",
                         "vitem": "label",
@@ -1918,19 +1918,19 @@ EditTableStruct = {
                         "default": "BGM"
                     },
                     "Name": {
-                        "ktext": "媒体名：",
+                        "ktext": "Name:",
                         "tooltip":None,
-                        "dtext": "（输入）",
+                        "dtext": "(input)",
                         "ditem": "label",
                         "valuekey": "$key",
                         "vitem": "entry",
                         "vtype": "str",
-                        "default": "新建背景音乐"
+                        "default": "BGM_new"
                     },
                     "label_color": {
-                        "ktext": "标签色：",
+                        "ktext": "label_color:",
                         "tooltip":None,
-                        "dtext": "（选择）",
+                        "dtext": "(select)",
                         "ditem": "label",
                         "valuekey": "label_color",
                         "vitem": "combox",
@@ -1940,13 +1940,13 @@ EditTableStruct = {
                 }
             },
             "AudioSep":{
-                "Text": "音频",
+                "Text": "Audio",
                 "Command":None,
                 "Content":{
                     "filepath": {
-                        "ktext": "音频路径：",
+                        "ktext": "filepath:",
                         "tooltip":None,
-                        "dtext": "浏览",
+                        "dtext": "browse",
                         "ditem": "button",
                         "valuekey": "filepath",
                         "vitem": "entry",
@@ -1954,9 +1954,9 @@ EditTableStruct = {
                         "default": ""
                     },
                     "volume": {
-                        "ktext": "音量：",
+                        "ktext": "volume:",
                         "tooltip":None,
-                        "dtext": "（数值）",
+                        "dtext": "(digit)",
                         "ditem": "label",
                         "valuekey": "volume",
                         "vitem": "spine",
@@ -1964,9 +1964,9 @@ EditTableStruct = {
                         "default": 100
                     },
                     "loop": {
-                        "ktext": "循环播放：",
+                        "ktext": "loop:",
                         "tooltip":None,
-                        "dtext": "（选择）",
+                        "dtext": "(select)",
                         "ditem": "label",
                         "valuekey": "loop",
                         "vitem": "combox",
@@ -1984,7 +1984,7 @@ EditTableStruct = {
             "label_color"   : "label_color"
         },
     },
-    # 剧本
+    # RplGenLog: Abandoned
     'RplGenLog':{
         "blank":{
             "BlankSep":{
@@ -2020,7 +2020,7 @@ EditTableStruct = {
                     "object":{
                         "ktext": "对象：",
                         "tooltip":None,
-                        "dtext": "（选择）",
+                        "dtext": "(select)",
                         "ditem": "label",
                         "valuekey": "object",
                         "vitem": "combox",
@@ -2082,7 +2082,7 @@ EditTableStruct = {
                     "name":{
                         "ktext": "角色：",
                         "tooltip":None,
-                        "dtext": "（选择）",
+                        "dtext": "(select)",
                         "ditem": "label",
                         "valuekey": "target.name",
                         "vitem": "combox",
@@ -2092,7 +2092,7 @@ EditTableStruct = {
                     "subtype":{
                         "ktext": "差分：",
                         "tooltip":None,
-                        "dtext": "（选择）",
+                        "dtext": "(select)",
                         "ditem": "label",
                         "valuekey": "target.subtype",
                         "vitem": "combox",
@@ -2102,7 +2102,7 @@ EditTableStruct = {
                     "column":{
                         "ktext": "角色表列：",
                         "tooltip":None,
-                        "dtext": "（选择）",
+                        "dtext": "(select)",
                         "ditem": "label",
                         "valuekey": "target.column",
                         "vitem": "combox",
@@ -2118,7 +2118,7 @@ EditTableStruct = {
                     'value':{
                         "ktext": "修改为：",
                         "tooltip":None,
-                        "dtext": "（输入）",
+                        "dtext": "(input)",
                         "ditem": "label",
                         "valuekey": "value",
                         "vitem": "entry",
@@ -2136,7 +2136,7 @@ EditTableStruct = {
                     "value":{
                         "ktext": "音频：",
                         "tooltip":None,
-                        "dtext": "浏览",
+                        "dtext": "browse",
                         "ditem": "button",
                         "valuekey": "value",
                         "vitem": "combox",
@@ -2154,7 +2154,7 @@ EditTableStruct = {
                     "object":{
                         "ktext": "聊天窗：",
                         "tooltip":None,
-                        "dtext": "（选择）",
+                        "dtext": "(select)",
                         "ditem": "label",
                         "valuekey": "object",
                         "vitem": "combox",
@@ -2172,7 +2172,7 @@ EditTableStruct = {
                     "content":{
                         "ktext": "描述：",
                         "tooltip":None,
-                        "dtext": "（输入）",
+                        "dtext": "(input)",
                         "ditem": "label",
                         "valuekey": "content",
                         "vitem": "entry",
@@ -2182,7 +2182,7 @@ EditTableStruct = {
                     "hp_max":{
                         "ktext": "HP上限：",
                         "tooltip":None,
-                        "dtext": "（数值）",
+                        "dtext": "(digit)",
                         "ditem": "label",
                         "valuekey": "hp_max",
                         "vitem": "spine",
@@ -2192,7 +2192,7 @@ EditTableStruct = {
                     "hp_begin":{
                         "ktext": "初始HP：",
                         "tooltip":None,
-                        "dtext": "（数值）",
+                        "dtext": "(digit)",
                         "ditem": "label",
                         "valuekey": "hp_begin",
                         "vitem": "spine",
@@ -2202,7 +2202,7 @@ EditTableStruct = {
                     "hp_end":{
                         "ktext": "结束HP：",
                         "tooltip":None,
-                        "dtext": "（数值）",
+                        "dtext": "(digit)",
                         "ditem": "label",
                         "valuekey": "hp_end",
                         "vitem": "spine",
@@ -2236,53 +2236,53 @@ EditTableStruct = {
 
 PreferenceTableStruct = {
     "KeySep":{
-        "Text": "语音合成Key",
+        "Text": "Speech Synthesis Key",
         "Command":None,
         "Content":{
             "Aliyun.accesskey": {
-                "ktext": "阿里云-AccessKey",
-                "tooltip":"在AccessKey管理中获取，是一段长度为24的乱码。",
-                "dtext": "（输入）",
+                "ktext": "Aliyun-AccessKey",
+                "tooltip":"A string length 24, obtainable in AccessKey Management page.",
+                "dtext": "(input)",
                 "ditem": "label",
                 "valuekey": "Aliyun.accesskey",
                 "vitem": "entry",
                 "vtype": "str",
-                "default": "请输入你的AccessKey！"
+                "default": "Your_AccessKey！"
             },
             "Aliyun.accesskey_secret": {
-                "ktext": "阿里云-AccessKeySecret",
-                "tooltip":"在AccessKey管理中获取，是一段长度为30的乱码。",
-                "dtext": "（输入）",
+                "ktext": "Aliyun-AccessKeySecret",
+                "tooltip":"A string length 30, obtainable in AccessKey Management page.",
+                "dtext": "(input)",
                 "ditem": "label",
                 "valuekey": "Aliyun.accesskey_secret",
                 "vitem": "entry",
                 "vtype": "str",
-                "default": "请输入你的AccessKeySecret！"
+                "default": "Your_AccessKeySecret！"
             },
             "Aliyun.appkey": {
-                "ktext": "阿里云-AppKey",
-                "tooltip":"在智能语音服务的项目管理页面中，新建项目后获取，是一段长度为16的乱码。",
-                "dtext": "（输入）",
+                "ktext": "Aliyun-AppKey",
+                "tooltip":"A string length 16, Obtainable in Application Management page, need to new a app.",
+                "dtext": "(input)",
                 "ditem": "label",
                 "valuekey": "Aliyun.appkey",
                 "vitem": "entry",
                 "vtype": "str",
-                "default": "请输入你的AppKey！"
+                "default": "Your_AppKey！"
             },
             "Azure.azurekey": {
-                "ktext": "微软Azure-密钥",
-                "tooltip":"在语音服务中，点击管理密钥后获取，是一段长度为32的乱码。",
-                "dtext": "（输入）",
+                "ktext": "Azure-Key",
+                "tooltip": "A string length 32, obtain in [Key and Endpoint] page.",
+                "dtext": "(input)",
                 "ditem": "label",
                 "valuekey": "Azure.azurekey",
                 "vitem": "entry",
                 "vtype": "str",
-                "default": "请输入你的密钥！"
+                "default": "Your_AzureKey"
             },
             "Azure.service_region": {
-                "ktext": "微软Azure-位置/区域",
-                "tooltip":"开通语音服务时选择的服务区域。",
-                "dtext": "（输入）",
+                "ktext": "Azure-ServiceRegion",
+                "tooltip":"The service region selected when creating the speech service.",
+                "dtext": "(input)",
                 "ditem": "label",
                 "valuekey": "Azure.service_region",
                 "vitem": "entry",
@@ -2290,45 +2290,45 @@ PreferenceTableStruct = {
                 "default": "eastasia"
             },
             "Tencent.appid": {
-                "ktext": "腾讯云-AppId",
-                "tooltip":"在腾讯云权限管理中获取，是一段长度为10的数字。",
-                "dtext": "（输入）",
+                "ktext": "Tencent-AppId",
+                "tooltip":"A digit string length 10, obtained from Tencent Cloud Permission Management.",
+                "dtext": "(input)",
                 "ditem": "label",
                 "valuekey": "Tencent.appid",
                 "vitem": "entry",
                 "vtype": "str",
-                "default": "请输入你的AppId！"
+                "default": "Your_AppId！"
             },
             "Tencent.secretid": {
-                "ktext": "腾讯云-SecretId",
-                "tooltip":"在腾讯云权限管理中获取，是一段长度为36的乱码。",
-                "dtext": "（输入）",
+                "ktext": "Tencent-SecretId",
+                "tooltip":"A string length 36, obtained from Tencent Cloud Permission Management.",
+                "dtext": "(input)",
                 "ditem": "label",
                 "valuekey": "Tencent.secretid",
                 "vitem": "entry",
                 "vtype": "str",
-                "default": "请输入你的SecretId！"
+                "default": "Your_SecretId！"
             },
             "Tencent.secretkey": {
-                "ktext": "腾讯云-SecretKey",
-                "tooltip":"在腾讯云权限管理中获取，是一段长度为32的乱码。",
-                "dtext": "（输入）",
+                "ktext": "Tencent-SecretKey",
+                "tooltip":"A string length 32, obtained from Tencent Cloud Permission Management.",
+                "dtext": "(input)",
                 "ditem": "label",
                 "valuekey": "Tencent.secretkey",
                 "vitem": "entry",
                 "vtype": "str",
-                "default": "请输入你的AppKey！"
+                "default": "Your_AppKey！"
             },
         }
     },
     "AppearanceSep":{
-        "Text": "界面外观",
+        "Text": "Appearance",
         "Command":None,
         "Content":{
             "System.lang":{
-                "ktext": "语言：",
-                "tooltip":"在控制台终端显示的语言。",
-                "dtext": "（选择）",
+                "ktext": "language",
+                "tooltip":"Language of UI.",
+                "dtext": "(select)",
                 "ditem": "label",
                 "valuekey": "System.lang",
                 "vitem": "combox",
@@ -2336,9 +2336,9 @@ PreferenceTableStruct = {
                 "default": 'en'
             },
             "System.theme":{
-                "ktext": "主题：",
-                "tooltip": "主界面的配色方案，有深色和浅色两个选择。变更后需要重启软件才会生效！",
-                "dtext": "（选择）",
+                "ktext": "Theme",
+                "tooltip": "Color theme of UI, two options: dark, light. Need restarted for take effect.",
+                "dtext": "(select)",
                 "ditem": "label",
                 "valuekey": "System.theme",
                 "vitem": "combox",
@@ -2346,9 +2346,9 @@ PreferenceTableStruct = {
                 "default": 'rplgenlight'
             },
             "System.editer_fontsize":{
-                "ktext": "编辑器字体大小：",
-                "tooltip": "剧本编辑器中字体的大小。变更后需要重新打开剧本编辑页才会生效！",
-                "dtext": "（数值）",
+                "ktext": "Editor Fontsize",
+                "tooltip": "Font size in RGL Editor, need to restart rgl page for take effect.",
+                "dtext": "(digit)",
                 "ditem": "label",
                 "valuekey": "System.editer_fontsize",
                 "vitem": "spine",
@@ -2356,9 +2356,9 @@ PreferenceTableStruct = {
                 "default": 12
             },
             "System.editer_colorschemes":{
-                "ktext": "编辑器颜色主题：",
-                "tooltip": "剧本编辑器的配色主题。变更后需要重新打开剧本编辑页才会生效！",
-                "dtext": "（选择）",
+                "ktext": "Editor Colorschemes",
+                "tooltip": "Color scheme for the RGL Editor, need to restart rgl page for take effect.",
+                "dtext": "(select)",
                 "ditem": "label",
                 "valuekey": "System.editer_colorschemes",
                 "vitem": "combox",
@@ -2366,9 +2366,9 @@ PreferenceTableStruct = {
                 "default": "monokai"
             },
             "System.terminal_fontsize":{
-                "ktext": "控制台字体大小：",
-                "tooltip": "控制台输出页中中字体的大小。变更后需要重启软件才会生效！",
-                "dtext": "（数值）",
+                "ktext": "Terminal Fontsize",
+                "tooltip": "Font size in terminal view. Need restarted for take effect.",
+                "dtext": "(digit)",
                 "ditem": "label",
                 "valuekey": "System.terminal_fontsize",
                 "vitem": "spine",
@@ -2376,9 +2376,9 @@ PreferenceTableStruct = {
                 "default": 14
             },
             "System.performance_mode":{
-                "ktext": "效能模式：",
-                "tooltip": "在媒体列表中不显示媒体缩略图，以避免在媒体数量大时发生卡顿。",
-                "dtext": "（选择）",
+                "ktext": "Performance Mode",
+                "tooltip": "Omit the thumbnails of medias to avoid lagging when there is large number of medias.",
+                "dtext": "(select)",
                 "ditem": "label",
                 "valuekey": "System.performance_mode",
                 "vitem": "combox",
@@ -2388,13 +2388,13 @@ PreferenceTableStruct = {
         }
     },       
     "MediaSep":{
-        "Text": "内建动画",
+        "Text": "Bulitin-Anime",
         "Command":None,
         "Content":{
             "BIA.font":{
-                "ktext": "内建动画字体：",
-                "tooltip":"骰子和血条动画中的文字部分的字体。",
-                "dtext": "浏览",
+                "ktext": "BIA Font",
+                "tooltip":"Font used in Dice and Hitpoint Anine.",
+                "dtext": "browse",
                 "ditem": "button",
                 "valuekey": "BIA.font",
                 "vitem": "entry",
@@ -2402,9 +2402,9 @@ PreferenceTableStruct = {
                 "default": './assets/SourceHanSerifSC-Heavy.otf'
             },
             "BIA.font_size":{
-                "ktext": "内建动画字号：",
-                "tooltip":"骰子和血条动画中文字的大小的乘数，实际字号等于这个数值乘以项目的宽分辨率。",
-                "dtext": "（数值）",
+                "ktext": "BIA Fontsize",
+                "tooltip":"The multiplier for font size in BIA, The actual size is equal to this_value X screenwidth.",
+                "dtext": "(digit)",
                 "ditem": "label",
                 "valuekey": "BIA.font_size",
                 "vitem": "entry",
@@ -2412,9 +2412,9 @@ PreferenceTableStruct = {
                 "default": 0.0521
             },
             "BIA.dice_mode":{
-                "ktext": "骰子模式：",
-                "tooltip":"在骰子动画中，类COC规则是出目小于检定值为成功，而类DND规则是相反的，无规则即不做任何判断。",
-                "dtext": "（选择）",
+                "ktext": "Dice Mode",
+                "tooltip":"In Dice anime, COC success: roll<=target; DND success: roll>=target; ruleless: no judgment.",
+                "dtext": "(select)",
                 "ditem": "label",
                 "valuekey": "BIA.dice_mode",
                 "vitem": "combox",
@@ -2422,9 +2422,9 @@ PreferenceTableStruct = {
                 "default": 'COC'
             },
             "BIA.dice_threshold":{
-                "ktext": "骰子阈值：",
-                "tooltip":"在骰子动画中，最极端的出目值被规定为大成功/大失败，指定大成功的阈值（比例）。",
-                "dtext": "（输入）",
+                "ktext": "Dice Threshold",
+                "tooltip":"In Dice anime，extreme outcomes is designated as critical. Specified a ratio for critical.",
+                "dtext": "(input)",
                 "ditem": "label",
                 "valuekey": "BIA.dice_threshold",
                 "vitem": "entry",
@@ -2432,9 +2432,9 @@ PreferenceTableStruct = {
                 "default": 0.05
             },
             "BIA.heart_pic":{
-                "ktext": "HP动画前景：",
-                "tooltip":"在血条动画中，代表剩余生命值的符号的图片。",
-                "dtext": "浏览",
+                "ktext": "Hitpoint Foreground",
+                "tooltip":"In HP anime, this image represents remaining HP.",
+                "dtext": "browse",
                 "ditem": "button",
                 "valuekey": "BIA.heart_pic",
                 "vitem": "entry",
@@ -2442,9 +2442,9 @@ PreferenceTableStruct = {
                 "default": './assets/heart.png'
             },
             "BIA.heart_shape":{
-                "ktext": "HP动画背景：",
-                "tooltip":"在血条动画中，代表生命值总量的符号的图片。",
-                "dtext": "浏览",
+                "ktext": "Hitpoint Background",
+                "tooltip":"In HP anime, this image represents the max of HP.",
+                "dtext": "browse",
                 "ditem": "button",
                 "valuekey": "BIA.heart_shape",
                 "vitem": "entry",
@@ -2452,9 +2452,9 @@ PreferenceTableStruct = {
                 "default": './assets/heart_shape.png'
             },
             "BIA.heart_distance":{
-                "ktext": "HP动画心心距离：",
-                "tooltip":"在血条动画中，邻近的两个心心的间距的乘数，实际间距等于这个数值乘以项目的宽分辨率。",
-                "dtext": "（数值）",
+                "ktext": "Heart Distance",
+                "tooltip":"In HP anime, the multiplier for the distance between hearts.",
+                "dtext": "(digit)",
                 "ditem": "label",
                 "valuekey": "BIA.heart_distance",
                 "vitem": "entry",
@@ -2464,13 +2464,13 @@ PreferenceTableStruct = {
         }
     },
     "EditSep":{
-        "Text": "编辑设置",
+        "Text": "Editing",
         "Command":None,
         "Content":{
             "Edit.auto_periods":{
-                "ktext": "自动句号：",
-                "tooltip":"当拆分对话行时，是否自动纠正句尾的标点符号？",
-                "dtext": "（选择）",
+                "ktext": "Auto Punctuation",
+                "tooltip":"When splitting dialogue lines, automatically correct punctuation at the end of sentences?",
+                "dtext": "(select)",
                 "ditem": "label",
                 "valuekey": "Edit.auto_periods",
                 "vitem": "combox",
@@ -2478,9 +2478,9 @@ PreferenceTableStruct = {
                 "default": False
             },
             "Edit.import_mode":{
-                "ktext": "导入模式：",
-                "tooltip":"向项目导入脚本时，如果脚本中包含了项目中已有的名称，采用何种模式来处理？",
-                "dtext": "（选择）",
+                "ktext": "Import Mode",
+                "tooltip":"How to handle duplicate name when importing scripts?",
+                "dtext": "(select)",
                 "ditem": "label",
                 "valuekey": "Edit.import_mode",
                 "vitem": "combox",
@@ -2488,9 +2488,9 @@ PreferenceTableStruct = {
                 "default": 'add'
             },
             'Edit.auto_convert':{
-                "ktext": "音频转格式：",
-                "tooltip":"选择音频文件时，如果是不支持的格式，是否自动生成一个推荐的格式的副本？",
-                "dtext": "（选择）",
+                "ktext": "Convert Audio",
+                "tooltip":"Whether convert unsupported audio format to appropriate format when importing?",
+                "dtext": "(select)",
                 "ditem": "label",
                 "valuekey": "Edit.auto_convert",
                 "vitem": "combox",
@@ -2498,9 +2498,9 @@ PreferenceTableStruct = {
                 "default": 'ask'
             },
             'Edit.asterisk_import':{
-                "ktext": "自动星标语音：",
-                "tooltip":"在剧本页，使用tab菜单浏览文件导入音频时，是否自动将音频处理为星标语音？",
-                "dtext": "（选择）",
+                "ktext": "Asterisk Import",
+                "tooltip":"In RGL page, if import a audio by tab menu, should the audio be processed as asterisk?",
+                "dtext": "(select)",
                 "ditem": "label",
                 "valuekey": "Edit.asterisk_import",
                 "vitem": "combox",
@@ -2508,9 +2508,9 @@ PreferenceTableStruct = {
                 "default": True
             },
             'Edit.rename_boardcast':{
-                "ktext": "更名广播：",
-                "tooltip":"当修改一个角色或媒体对象的名称时，是否将变更同步到所有引用这个对象的位置？",
-                "dtext": "（选择）",
+                "ktext": "Rename Boardcast",
+                "tooltip":"When renameing a object, should the the changes be synchronized to all references?",
+                "dtext": "(select)",
                 "ditem": "label",
                 "valuekey": "Edit.rename_boardcast",
                 "vitem": "combox",
@@ -2520,13 +2520,13 @@ PreferenceTableStruct = {
         }
     },
     "PreviewSep":{
-        "Text": "预览设置",
+        "Text": "Preview",
         "Command":None,
         "Content":{
             "Preview.progress_bar_style":{
-                "ktext": "进度条风格：",
-                "tooltip":"预览播放器中，进度条是彩色风格、黑白风格，还是不显示进度条。",
-                "dtext": "（选择）",
+                "ktext": "Progress Bar Style",
+                "tooltip":"Choose color style of progress bar in preview player.",
+                "dtext": "(select)",
                 "ditem": "label",
                 "valuekey": "Preview.progress_bar_style",
                 "vitem": "combox",
@@ -2534,9 +2534,9 @@ PreferenceTableStruct = {
                 "default": 'color'
             },
             "Preview.framerate_counter":{
-                "ktext": "帧率显示器开启：",
-                "tooltip":"预览播放器中，是否常驻开启帧率显示器。",
-                "dtext": "（选择）",
+                "ktext": "Framerate Counter",
+                "tooltip":"Whether display fps counter at top left in preview player.",
+                "dtext": "(select)",
                 "ditem": "label",
                 "valuekey": "Preview.framerate_counter",
                 "vitem": "combox",
@@ -2546,13 +2546,13 @@ PreferenceTableStruct = {
         }
     },
     "ExportSep":{
-        "Text": "导出设置",
+        "Text": "Export",
         "Command":None,
         "Content":{
             "Export.force_split_clip":{
-                "ktext": "强制拆分剪辑：",
-                "tooltip":"导出PR项目时，如果选择是，在所有小节断点，都会强制拆分所有剪辑，即使这个断点前后是同一个媒体。",
-                "dtext": "（选择）",
+                "ktext": "Force Split Clips",
+                "tooltip":"When exporting as PR project, should the clips be split at every breakpoint?",
+                "dtext": "(select)",
                 "ditem": "label",
                 "valuekey": "Export.force_split_clip",
                 "vitem": "combox",
@@ -2560,9 +2560,9 @@ PreferenceTableStruct = {
                 "default": False
             },
             "Export.crf":{
-                "ktext": "视频质量：",
-                "tooltip":"导出为mp4视频时的质量，即ffmpeg的crf值；取值范围为0-51，越小对应越高的视频质量，通常合理范围为18-28。",
-                "dtext": "（选择）",
+                "ktext": "Vidio Quality CRF",
+                "tooltip":"The quality of the exported MP4 video, can range from 0 to 51, smaller value means to higher quality",
+                "dtext": "(select)",
                 "ditem": "label",
                 "valuekey": "Export.crf",
                 "vitem": "spine",
@@ -2570,9 +2570,9 @@ PreferenceTableStruct = {
                 "default": 24
             },
             "Export.hwaccels":{
-                "ktext": "硬件加速：",
-                "tooltip":"导出为mp4视频时，是否使用GPU硬件加速导出？注意，仅适用于支持CUDA的NVIDIA GPU，如果硬件不支持会发生错误！",
-                "dtext": "（选择）",
+                "ktext": "Hardware Accelerate",
+                "tooltip":"Use GPU to accelerate exporting? Note: NVIDIA GPU with CUDA support only.",
+                "dtext": "(select)",
                 "ditem": "label",
                 "valuekey": "Export.hwaccels",
                 "vitem": "combox",
@@ -2591,7 +2591,7 @@ ExecuteTableStruct = {
             "mediadef": {
                 "ktext": "媒体定义：",
                 "tooltip":"媒体库的定义文件，是一个txt文本文件",
-                "dtext": "浏览",
+                "dtext": "browse",
                 "ditem": "button",
                 "valuekey": None,
                 "vitem": "entry",
@@ -2601,7 +2601,7 @@ ExecuteTableStruct = {
             "chartab": {
                 "ktext": "角色配置：",
                 "tooltip":"角色配置表，是一个tsv表格或者xlsx表格",
-                "dtext": "浏览",
+                "dtext": "browse",
                 "ditem": "button",
                 "valuekey": None,
                 "vitem": "entry",
@@ -2611,7 +2611,7 @@ ExecuteTableStruct = {
             "logfile": {
                 "ktext": "剧本文件：",
                 "tooltip":"也称log文件，是一个rgl文本文件",
-                "dtext": "浏览",
+                "dtext": "browse",
                 "ditem": "button",
                 "valuekey": None,
                 "vitem": "entry",
@@ -2647,7 +2647,7 @@ ExecuteTableStruct = {
             "framerate":{
                 "ktext": "帧率：",
                 "tooltip":None,
-                "dtext": "（数值）",
+                "dtext": "(digit)",
                 "ditem": "label",
                 "valuekey": None,
                 "vitem": "entry",
@@ -2657,7 +2657,7 @@ ExecuteTableStruct = {
             "zorder":{
                 "ktext": "图层顺序：",
                 "tooltip":None,
-                "dtext": "（输入）",
+                "dtext": "(input)",
                 "ditem": "label",
                 "valuekey": "pos",
                 "vitem": "entry",
@@ -2671,33 +2671,33 @@ ExecuteTableStruct = {
 ProjectTableStruct = {
     "EmptyProject":{
         "BasicSep":{
-            "Text": "基本",
+            "Text": "Project Info",
             "Command":None,
             "Content":{
                 "proj_name":{
-                    "ktext": "项目名称：",
-                    "tooltip":"项目的名称，需要同时是一个合法的文件名！",
+                    "ktext": "Name:",
+                    "tooltip":"Name of project, need to be a valid file name.",
                     "dtext": "",
                     "ditem": "label",
                     "valuekey": None,
                     "vitem": "entry",
                     "vtype": "str",
-                    "default": "新建空白项目"
+                    "default": "new_empty_project"
                 },
                 "proj_cover":{
-                    "ktext": "项目封面：",
-                    "tooltip":"可以选择一张图片作为项目封面。",
-                    "dtext": "浏览",
+                    "ktext": "Cover:",
+                    "tooltip":"Select an image for project over.",
+                    "dtext": "browse",
                     "ditem": "button",
                     "valuekey": None,
                     "vitem": "entry",
                     "vtype": "str",
-                    "default": "无"
+                    "default": "None"
                 },
                 "save_pos":{
-                    "ktext": "保存位置：",
-                    "tooltip":"保存项目文件的文件夹。",
-                    "dtext": "浏览",
+                    "ktext": "Path:",
+                    "tooltip":"Path to save project files.",
+                    "dtext": "browse",
                     "ditem": "button",
                     "valuekey": None,
                     "vitem": "entry",
@@ -2707,11 +2707,11 @@ ProjectTableStruct = {
             }
         },
         "VideoSep":{
-            "Text": "视频",
+            "Text": "Video Options",
             "Command":None,
             "Content":{
                 "preset_video":{
-                    "ktext": "预设：",
+                    "ktext": "Preset:",
                     "tooltip":None,
                     "dtext": "",
                     "ditem": "label",
@@ -2721,9 +2721,9 @@ ProjectTableStruct = {
                     "default": "横屏-高清 (1920x1080, 30fps)"
                 },
                 "video_width":{
-                    "ktext": "分辨率宽：",
-                    "tooltip":"视频画布的宽度，单位是像素。",
-                    "dtext": "（偶数）",
+                    "ktext": "Width:",
+                    "tooltip":"The width of the video canvas, measured in pixels.",
+                    "dtext": "(even)",
                     "ditem": "label",
                     "valuekey": None,
                     "vitem": "entry",
@@ -2731,9 +2731,9 @@ ProjectTableStruct = {
                     "default": 1920
                 },
                 "video_height":{
-                    "ktext": "分辨率高：",
-                    "tooltip":"视频画布的高度，单位是像素。",
-                    "dtext": "（偶数）",
+                    "ktext": "Height",
+                    "tooltip":"The height of the video canvas, measured in pixels.",
+                    "dtext": "(even)",
                     "ditem": "label",
                     "valuekey": None,
                     "vitem": "entry",
@@ -2741,9 +2741,9 @@ ProjectTableStruct = {
                     "default": 1080
                 },
                 "frame_rate":{
-                    "ktext": "帧率：",
-                    "tooltip":"视频每秒的帧数。",
-                    "dtext": "（整数）",
+                    "ktext": "FrameRate:",
+                    "tooltip":"The frame rate of the video, measured in frames per second (fps).",
+                    "dtext": "(int)",
                     "ditem": "label",
                     "valuekey": None,
                     "vitem": "entry",
@@ -2753,11 +2753,11 @@ ProjectTableStruct = {
             }
         },
         "LayerSep":{
-            "Text": "图层",
+            "Text": "Layer Option",
             "Command":None,
             "Content":{
                 "preset_layer":{
-                    "ktext": "预设：",
+                    "ktext": "Preset:",
                     "tooltip":None,
                     "dtext": "",
                     "ditem": "label",
@@ -2767,8 +2767,8 @@ ProjectTableStruct = {
                     "default": "背景->立绘->气泡"
                 },
                 "layer_zorder":{
-                    "ktext": "图层顺序：",
-                    "tooltip":"警告：这是一个敏感的参数，指定错误的值可能导致程序崩溃，请谨慎修改！",
+                    "ktext": "Order",
+                    "tooltip":"Warning: This is a sensitive parameter, an incorrect value may cause program crashes. Please be cautious when modifying!",
                     "dtext": "",
                     "ditem": "label",
                     "valuekey": None,
@@ -2781,23 +2781,23 @@ ProjectTableStruct = {
     },
     "IntelProject":{
         "BasicSep":{
-            "Text": "基本",
+            "Text": "Project Info",
             "Command":None,
             "Content":{
                 "proj_name":{
-                    "ktext": "项目名称：",
-                    "tooltip":"项目的名称，需要同时是一个合法的文件名！",
+                    "ktext": "Name:",
+                    "tooltip":"Name of project, need to be a valid file name.",
                     "dtext": "",
                     "ditem": "label",
                     "valuekey": None,
                     "vitem": "entry",
                     "vtype": "str",
-                    "default": "新建智能项目"
+                    "default": "new_intel_project"
                 },
                 "proj_cover":{
-                    "ktext": "项目封面：",
-                    "tooltip":"可以选择一张图片作为项目封面。",
-                    "dtext": "浏览",
+                    "ktext": "Cover:",
+                    "tooltip":"Select an image for project over.",
+                    "dtext": "browse",
                     "ditem": "button",
                     "valuekey": None,
                     "vitem": "entry",
@@ -2805,9 +2805,9 @@ ProjectTableStruct = {
                     "default": "无"
                 },
                 "save_pos":{
-                    "ktext": "保存位置：",
-                    "tooltip":"保存项目文件的文件夹。",
-                    "dtext": "浏览",
+                    "ktext": "Path:",
+                    "tooltip":"Path to save project files.",
+                    "dtext": "browse",
                     "ditem": "button",
                     "valuekey": None,
                     "vitem": "entry",
@@ -2817,13 +2817,13 @@ ProjectTableStruct = {
             }
         },
         "TpltSep":{
-            "Text": "选择模板",
+            "Text": "Style Template",
             "Command":None,
             "Content":{
                 "template":{
-                    "ktext": "模板：",
-                    "tooltip":"智能项目的预设模板。", # ，访问创意工坊获取更多预设样式模板
-                    "dtext": "（选择）",
+                    "ktext": "Template:",
+                    "tooltip":"Select a style template for intel project.", # ，访问创意工坊获取更多预设样式模板
+                    "dtext": "(select)",
                     "ditem": "label",
                     "valuekey": None,
                     "vitem": "combox",
@@ -2833,13 +2833,13 @@ ProjectTableStruct = {
             }
         },
         "LogSep":{
-            "Text": "导入剧本",
+            "Text": "Import Logs",
             "Command":None,
             "Content":{
                 "textfile":{
-                    "ktext": "文件：",
-                    "tooltip":"导入智能项目的剧本或者跑团日志文件。\n注意：请导入原始的文本文件，而不是染色后的Word文档！",
-                    "dtext": "浏览",
+                    "ktext": "file:",
+                    "tooltip":"Script or TRPG log file for import.\nNote: Only support original text file, NO Word docs!",
+                    "dtext": "browse",
                     "ditem": "button",
                     "valuekey": None,
                     "vitem": "entry",
@@ -2847,9 +2847,9 @@ ProjectTableStruct = {
                     "default": ""
                 },
                 "section_break":{
-                    "ktext": "自动分段：",
-                    "tooltip":"过长的文本会被自动分段为多个剧本。\n注意：选择0则为不分段，但单个剧本过长会导致严重卡顿！",
-                    "dtext": "（选择）",
+                    "ktext": "auto_split:",
+                    "tooltip":"Long texts will be split into multiple RGL page.\nNote: 0 means disable splitting, but may cause lagging when text is long.",
+                    "dtext": "(select)",
                     "ditem": "label",
                     "valuekey": None,
                     "vitem": "combox",
@@ -2863,169 +2863,169 @@ ProjectTableStruct = {
 
 PortalStruct = {
     "Contributors":{
-        "Text": "贡献者",
+        "Text": "Contributors",
         "Command":None,
         "Content":{
             "1": {
                 "title": "淡淡的宣喧",
                 "icon":"./assets/portal/dddxx.png",
-                "describe": "回声工坊的作者",
+                "describe": "The author of RplGen Studio.",
                 "url": "https://space.bilibili.com/12108288",
             },
             "2": {
                 "title": "憧憬少",
                 "icon":"github",
-                "describe": "回声vscode插件的作者",
+                "describe": "The author of vscode extension for RplGen.",
                 "url": "https://github.com/ChangingSelf",
             },
             "3": {
                 "title": "谢安之",
                 "icon":"./assets/portal/xaz.png",
-                "describe": "2.0版本宣传片的作者",
+                "describe": "The author of promotional video.",
                 "url": "https://space.bilibili.com/1902789",
             },
             "4": {
                 "title": "地球研究分部",
                 "icon":"./assets/portal/dqyjy.jpg",
-                "describe": "软件开屏插画的作者",
+                "describe": "The author of the splash screen illustration.",
                 "url": "https://space.bilibili.com/7963594",
             },
             "5": {
                 "title": "需要思考",
                 "icon":"./assets/portal/xysk.jpg",
-                "describe": "可爱的小助理伊可2.0形象的作者",
+                "describe": "The designer of Exception's portraits.",
                 "url": "https://www.mihuashi.com/profiles/1127638",
             },
             "6": {
                 "title": "Wee阿其曼",
                 "icon":"bilibili",
-                "describe": "图标设计参与者",
+                "describe": "A participant of icon design.",
                 "url": "https://space.bilibili.com/15358072",
             },
             "7": {
                 "title": "ScaqhCat",
                 "icon":"./assets/portal/sqcat.jpg",
-                "describe": "图标、界面平面设计参与者",
+                "describe": "A participant of icon and UI design.",
                 "url": "https://space.bilibili.com/13661674",
             },
             "8": {
                 "title": "病原体桌",
                 "icon":"./assets/portal/bytz.jpg",
-                "describe": "海报平面设计参与者",
+                "describe": "A participant of poster graphic design.",
                 "url": "https://space.bilibili.com/2005143149",
             },
         }
     },
     "OpenSources":{
-        "Text": "开源依赖",
+        "Text": "OpenSources Dependency",
         "Command":None,
         "Content":{
             "1": {
                 "title": "TRPG-Replay-Generator",
                 "icon":"./assets/icon.png",
-                "describe": "回声工坊",
+                "describe": "RplGen Studio opensource repository.",
                 "url": "https://github.com/DanDDXuanX/TRPG-Replay-Generator",
             },
             "2": {
                 "title": "pygame",
                 "icon":"./assets/portal/pygame.png",
-                "describe": "Python的游戏开发库",
+                "describe": "Game dev in python.",
                 "url": "https://www.pygame.org/",
             },
             "3": {
                 "title": "numpy",
                 "icon":"./assets/portal/numpy.png",
-                "describe": "Python的科学计算库",
+                "describe": "Python scientific computing library.",
                 "url": "https://numpy.org/",
             },
             "4": {
                 "title": "pandas",
                 "icon":"./assets/portal/pandas.png",
-                "describe": "Python的数据表和数据分析库",
+                "describe": "Python data table and analysis library.",
                 "url": "https://pandas.pydata.org/",
             },
             "5": {
                 "title": "pydub",
                 "icon":"github",
-                "describe": "Python实用的语音处理库",
+                "describe": "Practical audio processing library.",
                 "url": "https://github.com/jiaaro/pydub",
             },
             "6": {
                 "title": "ttkbootstrap",
                 "icon":"./assets/portal/ttkbootstrap.png",
-                "describe": "现代的tkinter的主题扩展",
+                "describe": "A modern tkinter theme extension.",
                 "url": "https://ttkbootstrap.readthedocs.io/",
             },
             "7": {
                 "title": "ffmpeg",
                 "icon":"./assets/portal/ffmpeg.png",
-                "describe": "跨平台音视频处理工具集",
+                "describe": "Cross-platform multimedia processing toolset.",
                 "url": "https://ffmpeg.org/",
             },
             "8": {
                 "title": "ffmpeg-python",
                 "icon":"./assets/portal/ffmpeg-python.png",
-                "describe": "在Python中调用ffmpeg",
+                "describe": "Using ffmpeg in python.",
                 "url": "https://github.com/kkroening/ffmpeg-python",
             },
             "9": {
                 "title": "tkextrafont",
                 "icon":"github",
-                "describe": "tkinter的字体拓展库",
+                "describe": "Font extension in tkinter.",
                 "url": "https://github.com/TkinterEP/python-tkextrafont",
             },
             "10": {
                 "title": "chlorophyll",
                 "icon":"github",
-                "describe": "基于tkinter的文本编辑器控件",
+                "describe": "Text editor widget based on tkinter.",
                 "url": "https://github.com/rdbende/chlorophyll",
             },
             "11": {
                 "title": "pinyin",
                 "icon":"github",
-                "describe": "将汉语翻译为拼音",
+                "describe": "Translate Chinese into pinyin.",
                 "url": "https://github.com/lxyu/pinyin",
             },
             "12": {
                 "title": "pyttsx3",
                 "icon":"github",
-                "describe": "离线的语音合成库",
+                "describe": "Offline speech synthesis library.",
                 "url": "https://github.com/nateshmbhat/pyttsx3",
             },
             "13": {
                 "title": "思源宋体",
                 "icon":"./assets/portal/source-han-serif.png",
-                "describe": "Adobe和Google共同开发的开源宋体字体",
+                "describe": "An open source serif Chinese font developed by Adobe and Google.",
                 "url": "https://github.com/adobe-fonts/source-han-serif",
             },
             "14": {
                 "title": "更纱黑体",
                 "icon":"./assets/portal/Sarasa-Gothic.png",
-                "describe": "更适配于文本编辑器的字体",
+                "describe": "More suitable fonts for text editors.",
                 "url": "https://github.com/be5invis/Sarasa-Gothic",
             },
         },
     },
     "TTSService":{
-        "Text": "语音服务",
+        "Text": "TTS Services",
         "Command":None,
         "Content":{
             "1": {
-                "title": "阿里云",
+                "title": "Alibaba Cloud",
                 "icon":"./assets/portal/aliyun.png",
-                "describe": "智能语音交互",
+                "describe": "NLS",
                 "url": "https://ai.aliyun.com/nls/tts",
             },
             "2": {
                 "title": "Microsoft-Azure",
                 "icon":"./assets/portal/azure.png",
-                "describe": "认知语音服务",
+                "describe": "Cognitive Speech service",
                 "url": "https://azure.microsoft.com/zh-cn/products/ai-services/text-to-speech/",
             },
             "3": {
-                "title": "腾讯云",
+                "title": "Tencent Cloud",
                 "icon":"./assets/portal/tencentcloud.png",
-                "describe": "文本转语音服务",
+                "describe": "Text To Speech",
                 "url": "https://cloud.tencent.com/product/tts",
             },
         },
@@ -3033,104 +3033,104 @@ PortalStruct = {
 }
 # 给Combobox使用的key，value映射关系
 label_colors = {
-    "紫罗兰紫"  :"'Violet'",
-    "鸢尾花色蓝":"'Iris'",
-    "加勒比海蓝":"'Caribbean'",
-    "薰衣草粉"  :"'Lavender'",
-    "天蓝色"   :"'Cerulean'",
-    "森林绿"   :"'Forest'",
-    "玫瑰红"   :"'Rose'",
-    "芒果橙"   :"'Mango'",
-    "紫色"    :"'Purple'",
-    "蓝色"    :"'Blue'",
-    "深青色"    :"'Teal'",
-    "洋红色"   :"'Magenta'",
-    "棕黄色"   :"'Tan'",
-    "绿色"    :"'Green'",
-    "棕色"    :"'Brown'",
-    "黄色"    :"'Yellow'"
+    "Violet"    : "'Violet'",
+    "Iris"      : "'Iris'",
+    "Caribbean" : "'Caribbean'",
+    "Lavender"  : "'Lavender'",
+    "Cerulean"  : "'Cerulean'",
+    "Forest"    : "'Forest'",
+    "Rose"      : "'Rose'",
+    "Mango"     : "'Mango'",
+    "Purple"    : "'Purple'",
+    "Blue"      : "'Blue'",
+    "Teal"      : "'Teal'",
+    "Magenta"   : "'Magenta'",
+    "Tan"       : "'Tan'",
+    "Green"     : "'Green'",
+    "Brown"     : "'Brown'",
+    "Yellow"    : "'Yellow'"
 }
 projection = {
-    "中心"  :"'C'",
-    "上"    :"'N'",
-    "下"    :"'S'",
-    "左"    :"'W'",
-    "右"    :"'E'",
-    "左上"  :"'NW'",
-    "左下"  :"'SW'",
-    "右上"  :"'NE'",
-    "右下"  :"'SE'",
+    "center"  :"'C'",
+    "N"    :"'N'",
+    "S"    :"'S'",
+    "W"    :"'W'",
+    "E"    :"'E'",
+    "NW"  :"'NW'",
+    "SW"  :"'SW'",
+    "NE"  :"'NE'",
+    "SE"  :"'SE'",
 }
 left_right = {
-    '左侧' : "'left'",
-    '右侧' : "'right'"
+    'left' : "'left'",
+    'right' : "'right'"
 }
 alignments = {
-    "左对齐" : "'left'",
-    "居中对齐": "'center'",
-    "右对齐" : "'right'",
+    "left" : "'left'",
+    "left": "'left'",
+    "right" : "'right'",
 }
 vertical_alignments = {
-    "顶部对齐" : "'top'",
-    "居中对齐": "'center'",
-    "底部对齐" : "'bottom'",
+    "top" : "'top'",
+    "center": "'center'",
+    "bottom" : "'bottom'",
 }
 chatalign = {
-    "靠左" : "'left'",
-    "靠右" : "'right'"
+    "left" : "'left'",
+    "right" : "'right'"
 }
 charactor_columns={
-    "Name（角色名）":"'Name'",
-    "Subtype（差分名）":"'Subtype'",
-    "Animation（立绘）":"'Animation'",
-    "Bubble（气泡）":"'Bubble'",
-    "Voice（音源）":"'Voice'",
-    "SpeechRate（语速）":"'SpeechRate'",
-    "PitchRate（语调）":"'PitchRate'",
+    "Name"      :"'Name'",
+    "Subtype"   :"'Subtype'",
+    "Animation" :"'Animation'",
+    "Bubble"    :"'Bubble'",
+    "Voice"     :"'Voice'",
+    "SpeechRate":"'SpeechRate'",
+    "PitchRate" :"'PitchRate'",
 }
 fill_mode = {
-    "拉伸" : "'stretch'",
-    "拼贴" : "'collage'",
+    "stretch" : "'stretch'",
+    "collage" : "'collage'",
 }
 fit_axis = {
-    "自由" : "'free'",
-    "垂直" : "'vertical'",
-    "水平" : "'horizontal'"
+    "free"          : "'free'",
+    "vertical"      : "'vertical'",
+    "horizontal"    : "'horizontal'"
 }
 True_False = {
-    "是": True,
-    "否": False
+    "yes": True,
+    "no" : False
 }
 is_enable = {
-    '启用': True,
-    '禁用': False
+    'enable' : True,
+    'disable': False
 }
 askyesno = {
-    "每次询问"  : 'ask',
-    "始终是"    : 'yes',
-    "始终否"    : 'no'
+    "ask everytime"  : 'ask',
+    "always yes"    : 'yes',
+    "always no"    : 'no'
 }
 language = {
     '中文' : 'zh',
     'English' : 'en'
 }
 theme = {
-    '浅色' : 'rplgenlight',
-    '深色' : 'rplgendark'
+    'light' : 'rplgenlight',
+    'dark'  : 'rplgendark'
 }
 progressbar = {
-    '彩色' : 'color',
-    '黑白' : 'black',
-    '隐藏' : 'hide',
+    'color' : 'color',
+    'black' : 'black',
+    'hide'  : 'hide',
 }
 import_mode = {
-    '新增' : 'add',
-    '覆盖' : 'replace'
+    'add' : 'add',
+    'replace' : 'replace'
 }
 dice_mode = {
-    '类COC' : 'COC',
-    '类DND' : 'DND',
-    '无规则' : 'ruleless'
+    'COC' : 'COC',
+    'DND' : 'DND',
+    'ruleless' : 'ruleless'
 }
 colorschemes = {
     "monokai"   : "monokai",
@@ -3143,95 +3143,95 @@ colorschemes = {
 NewElement = {
     "charactor":{
         "charactor":{
-            "text":"角色差分",
-            "tooltip":"【角色差分】是一个角色的不同状态，每个差分可以独立地设置不同的立绘、气泡和语音。",
+            "text":"Subtype",
+            "tooltip":"[Subtype] means the different states of a character. Each Subtype have independent settings for Animation, Bubble, and Voice.",
             "icon":'./assets/icon/new/charactor.png'
         }
     },
     "Pos":{
         "Pos":{
-            "text":"固定点",
-            "tooltip":"【固定点】是画布上的一个不可以移动的点，可以用作图片媒体的位置参数。",
+            "text":"Pos",
+            "tooltip":"[Pos] is a fix point on canvas, which can be refered by other medias.",
             "icon":'./assets/icon/new/Pos.png'
         },
         "FreePos":{
-            "text":"自由点",
-            "tooltip":"【自由点】是一个可以通过<move>命令移动的点；所有使用自由点作为位置的媒体，当自由点移动后都会同步移动。",
+            "text":"FreePos",
+            "tooltip":"[FreePos] is point which can be move by <move> command.",
             "icon":'./assets/icon/new/FreePos.png'
         },
         "PosGrid":{
-            "text":"点网格",
-            "tooltip":"【点网格】是一组棋盘网格状的点；点网格的每一个成员都是一个固定点。",
+            "text":"PosGrid",
+            "tooltip":"[PosGrid] is a set of grid-like dots. each member of the PosGrid is a Pos.",
             "icon":'./assets/icon/new/PosGrid.png'
         }
     },
     "Text":{
         "Text":{
-            "text":"字体",
-            "tooltip":"【字体】是最基本的文本字体，通过指定一个字体文件来建立一个字体媒体。",
+            "text":"Text",
+            "tooltip":"[Text] is the basic Text Font. Create a Text media by specifying a font file.",
             "icon":'./assets/icon/new/Text.png'
         },
         "StrokeText":{
-            "text":"描边字体",
-            "tooltip":"和基本字体相比，【描边字体】多了一个可以指定颜色和宽度的描边。",
+            "text":"StrokeText",
+            "tooltip":"Compared to the basic Text, [StrokeText] has an additional stroke that can specify the color and width.",
             "icon":'./assets/icon/new/StrokeText.png'
         },
         "RichText":{
-            "text":"富文本",
-            "tooltip":"使用【富文本】的气泡，可以灵活调整文本的斜体、粗体、字号和颜色。",
+            "text":"RichText",
+            "tooltip":"Using [RichText], you can flexibly adjust the text's italic, bold, font size, and color in RGL page.",
             "icon":'./assets/icon/new/RichText.png'
         },
         "HPLabel":{
-            "text":"血条标签",
-            "tooltip":"使用【血条标签】，可以把特定的文本显示为血条样式。",
+            "text":"HPLabel",
+            "tooltip":"Using [HPLabel], specific text can be displayed as a health bar style.",
             "icon":'./assets/icon/new/HPLabel.png'
         },
     },
     "Bubble":{
         "Bubble":{
-            "text":"气泡",
-            "tooltip":"【气泡】是最基本的发言文本框，包含一张底图、一个主文本和一个头文本。",
+            "text":"Bubble",
+            "tooltip":"[Bubble] is the basic speech text box, consisting of a image, a main text, and a header text.",
             "icon":'./assets/icon/new/Bubble.png'
         },
         "Balloon":{
-            "text":"气球",
-            "tooltip":"和气泡相比，【气球】允许设置多个头文本，用于显示不同的角色自定义文本。",
+            "text":"Balloon",
+            "tooltip":"Compared to bubbles, [Balloon] allows for multiple header texts to display different character-specific texts.",
             "icon":'./assets/icon/new/Balloon.png'
         },
         "DynamicBubble":{
-            "text":"动态气泡",
-            "tooltip":"和气泡相比，【动态气泡】的底图尺寸将跟随主文本的长度而变化，常用于聊天窗。",
+            "text":"DynamicBubble",
+            "tooltip":"Compared to bubbles, the size of the of [DynamicBubble] will adjust with the main text, commonly used in chat windows.",
             "icon":'./assets/icon/new/DynamicBubble.png'
         },
         "ChatWindow":{
-            "text":"聊天窗",
-            "tooltip":"【聊天窗】是即时社交软件风格的文本框，可以滚动显示多条发言内容。",
+            "text":"ChatWindow",
+            "tooltip":"[ChatWindow] is a text box styled like an instant messaging app, capable of scrolling to display multiple speech contents.",
             "icon":'./assets/icon/new/ChatWindow.png'
         },
     },
     "Animation":{
         "Animation":{
-            "text":"立绘",
-            "tooltip":"【立绘】是最通用的图像媒体，可以展示角色形象或者道具的图片，也可以播放动画。",
+            "text":"Animation",
+            "tooltip":"[Animation] is the common image media used to display character or prop images. It can also play animations.",
             "icon":'./assets/icon/new/Animation.png'
         }
     },
     "Background":{
         "Background":{
-            "text":"背景",
-            "tooltip":"【背景】是整个画面的背景层。注意，背景必须能完整地覆盖整个画幅，否则会出现异常的显示效果！",
+            "text":"Background",
+            "tooltip":"[Background] is used as the background layer of canvas. Note: Background must fully cover the canvas to avoid any abnormal effect.",
             "icon":'./assets/icon/new/Background.png'
         }
     },
     "Audio":{
         "Audio":{
-            "text":"音效",
-            "tooltip":"【音效】是常用的音频媒体，在对话行中可以播放音效，每次音效仅播放一次！",
+            "text":"Audio",
+            "tooltip":"[Audio] are commonly used audio media that can be played in dialogue lines. Each Audio can only be played once! ",
             "icon":'./assets/icon/new/Audio.png'
         },
         "BGM":{
-            "text":"背景音乐",
-            "tooltip":"【背景音乐】是可以循环播放的音频媒体，使用<bgm>命令控制播放和停止，不会影响音效。",
+            "text":"BGM",
+            "tooltip":"[BGM] is audio media that can be played in a loop. BGM will not affect sound effects.",
             "icon":'./assets/icon/new/BGM.png'
         }
     }
@@ -3239,36 +3239,36 @@ NewElement = {
 
 # 动态切换效果的结构
 ABMethod = {
-    "透明度":{
-        "直接替换"      : "replace",
-        "淡入淡出"      : "black",
-        "交叉溶解"      : "cross",
-        "延后替换"      : "delay",
+    "alpha":{
+        "replace"      : "replace",
+        "black"      : "black",
+        "cross"      : "cross",
+        "delay"      : "delay",
     },
-    "运动":{
-        "静止"          :'static',
-        "通过"          :'pass',
-        "跳起"          :'leap',
-        "环形"          :'circular',
-        "震动"          :'shake',
+    "motion":{
+        "static"          :'static',
+        "pass"          :'pass',
+        "leap"          :'leap',
+        "circular"          :'circular',
+        "shake"          :'shake',
     },
-    "方向":{
-        "上"            :'up',
-        "下"            :'down',
-        "左"            :'left',
-        "右"            :'right',
-        "指定角度（45度）":'DG45',
+    "dirction":{
+        "up"            :'up',
+        "down"            :'down',
+        "left"            :'left',
+        "right"            :'right',
+        "DG45"           :'DG45',
     },
-    "尺度":{
-        "长距离"            : "major",
-        "短距离"            : "minor",
-        "全屏尺度"          : "entire",
-        "指定长度（100像素）": '100'
+    "scale":{
+        "major"            : "major",
+        "minor"            : "minor",
+        "entire"          : "entire",
+        "100 pixel"             : '100'
     },
-    '进出':{
-        "双端"  : 'both',
-        "仅切入": 'in',
-        "仅切出": 'out'
+    'in&out':{
+        "both"  : 'both',
+        "in": 'in',
+        "out": 'out'
     }
 }
 # 媒体类的帮助链接
