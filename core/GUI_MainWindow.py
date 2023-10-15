@@ -115,15 +115,19 @@ class RplGenStudioMainWindow(ttk.Window):
         # 导航栏字体的大小
         if preference.lang == 'zh':
             success_font_size = 18
+            info_font_size = 16
+            out_font_size = 14
         else:
             success_font_size = 12
+            info_font_size = 13
+            out_font_size = 12
         # 使用主题
         if theme == 'rplgenlight':
             self.style.configure('terminal.TButton',compound='left',font=(self.system_font_family, 14, "bold"))
-            self.style.configure('output.TButton',compound='left',font=(self.system_font_family, 14, "bold"))
+            self.style.configure('output.TButton',compound='left',font=(self.system_font_family, out_font_size, "bold"))
             # bootstyle
             self.style.configure('success.TButton',font=(self.system_font_family, success_font_size, "bold"),anchor='w') # dark
-            self.style.configure('info.TButton',font=(self.system_font_family, 16, "bold"),anchor='center',foreground="#555555") # lightgrey
+            self.style.configure('info.TButton',font=(self.system_font_family, info_font_size, "bold"),anchor='center',foreground="#555555") # lightgrey
             self.style.configure('light.TButton',anchor='w') # light
             # 媒体定义的颜色标签
             self.style.configure('Violet.TLabel',anchor='center',font=(self.system_font_family, 12, "bold"),padding=text_label_pad,foreground='#ffffff',background='#a690e0')
@@ -170,10 +174,10 @@ class RplGenStudioMainWindow(ttk.Window):
         elif theme == 'rplgendark':
             # self.dark_title_bar() # 有bug，在win10不正常显示
             self.style.configure('terminal.TButton',compound='left',font=(self.system_font_family, 14, "bold"))
-            self.style.configure('output.TButton',compound='left',font=(self.system_font_family, 14, "bold"))
+            self.style.configure('output.TButton',compound='left',font=(self.system_font_family, out_font_size, "bold"))
             # bootstyle
             self.style.configure('success.TButton',font=(self.system_font_family, success_font_size, "bold"),anchor='w') # dark
-            self.style.configure('info.TButton',font=(self.system_font_family, 16, "bold"),anchor='center',foreground="#aaaaaa") # lightgrey
+            self.style.configure('info.TButton',font=(self.system_font_family, info_font_size, "bold"),anchor='center',foreground="#aaaaaa") # lightgrey
             self.style.configure('light.TButton',anchor='w') # light
             # 媒体定义的颜色标签
             self.style.configure('Violet.TLabel',anchor='center',font=(self.system_font_family, 12, "bold"),padding=text_label_pad,background='#1d1d1d',foreground='#a690e0')

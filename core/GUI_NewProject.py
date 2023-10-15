@@ -18,6 +18,8 @@ from .StoryImporter import StoryImporter
 from .ScriptParser import CharTable, RplGenLog
 from .GUI_Util import KeyValueDescribe, clear_speech
 from .GUI_TableStruct import ProjectTableStruct
+from .GUI_Language import tr
+from .ProjConfig import preference
 
 class CreateProject(ttk.Frame):
     table_struct = {}
@@ -31,7 +33,7 @@ class CreateProject(ttk.Frame):
         # 结构
         self.seperator = {}
         self.elements = {}
-        self.comfirm_button = ttk.Button(master=self,text='确定',bootstyle='primary',command=self.confirm,width=10)
+        self.comfirm_button = ttk.Button(master=self,text=tr('确定'),bootstyle='primary',command=self.confirm,width=10)
         self.build_struct()
         self.update_item()
     def build_struct(self):
@@ -86,19 +88,37 @@ class CreateEmptyProject(CreateProject):
     # 3. 图层（图层顺序）
     table_struct = ProjectTableStruct['EmptyProject']
     video_preset = {
-        '自定义':   None,
-        '横屏-高清 (1920x1080, 30fps)'  : [1920, 1080, 30],
-        '横屏-标清（1280x720, 30fps)'   : [1280, 720, 30],
-        '竖屏-高清 (1080x1920, 30fps)'  : [1080, 1920, 30],
-        '竖屏-标清（720x1280, 30fps）'   : [720, 1280, 30],
-        '横屏-高清 (1920x1080, 25fps)'  : [1920, 1080, 25],
-        '横屏-标清 (1280x720, 25fps)'   : [1280, 720, 25],
-    }
+        'zh':{
+            '自定义':   None,
+            '横屏-高清 (1920x1080, 30fps)'  : [1920, 1080, 30],
+            '横屏-标清（1280x720, 30fps)'   : [1280, 720, 30],
+            '竖屏-高清 (1080x1920, 30fps)'  : [1080, 1920, 30],
+            '竖屏-标清（720x1280, 30fps）'   : [720, 1280, 30],
+            '横屏-高清 (1920x1080, 25fps)'  : [1920, 1080, 25],
+            '横屏-标清 (1280x720, 25fps)'   : [1280, 720, 25],
+        },
+        'en':{
+            'Custom':   None,
+            'FHD-H (1920x1080, 30fps)'  : [1920, 1080, 30],
+            'HD-H（1280x720, 30fps)'   : [1280, 720, 30],
+            'FHD-V (1080x1920, 30fps)'  : [1080, 1920, 30],
+            'HD-V（720x1280, 30fps）'   : [720, 1280, 30],
+            'FHD-H (1920x1080, 25fps)'  : [1920, 1080, 25],
+            'HD-H (1280x720, 25fps)'   : [1280, 720, 25],
+        }
+    }[preference.lang]
     zorder_preset = {
-        '自定义'    :None,
-        '背景->立绘->气泡'  : "BG2,BG1,Am3,Am2,Am1,AmS,Bb,BbS",
-        '背景->气泡->立绘'  : "BG2,BG1,Bb,BbS,Am3,Am2,Am1,AmS"
-    }
+        'zh':{
+            '自定义'    :None,
+            '背景->立绘->气泡'  : "BG2,BG1,Am3,Am2,Am1,AmS,Bb,BbS",
+            '背景->气泡->立绘'  : "BG2,BG1,Bb,BbS,Am3,Am2,Am1,AmS"
+        },
+        'en':{
+            'Custom'    :None,
+            'Background->Animation->Bubble'  : "BG2,BG1,Am3,Am2,Am1,AmS,Bb,BbS",
+            'Background->Bubble->Animation'  : "BG2,BG1,Bb,BbS,Am3,Am2,Am1,AmS"
+        }
+    }[preference.lang]
     def build_struct(self):
         super().build_struct()
         # 绑定功能
@@ -142,19 +162,19 @@ class CreateEmptyProject(CreateProject):
         file_name = self.elements['proj_name'].get()
         save_path = f"{save_dir}/{file_name}/{file_name}.rgpj"
         if save_dir == '':
-            Messagebox().show_error(title='错误',message='必须要选择一个文件夹用于保存项目文件！',parent=self)
+            Messagebox().show_error(title=tr('错误'),message=tr('必须要选择一个文件夹用于保存项目文件！'),parent=self)
             return False
         # 检查合法性
         if W<0 or H<0 or F<0:
-            Messagebox().show_error(title='错误',message='分辨率或帧率是非法的数值！',parent=self)
+            Messagebox().show_error(title=tr('错误'),message=tr('分辨率或帧率是非法的数值！'),parent=self)
             return False
         for symbol in ['/','\\',':','*','?','"','<','>','|']:
             if symbol in file_name:
-                Messagebox().show_error(title='错误',message=f'文件名中不能包含符号 {symbol} ！',parent=self)
+                Messagebox().show_error(title=tr('错误'),message=tr('项目名中不能包含符号 {} ！').format(symbol),parent=self)
                 return False
         # 如果文件已经存在
         if os.path.isfile(save_path):
-            choice = Messagebox().okcancel(title='文件已存在',message='目录下已经存在重名的项目文件，要覆盖吗？',parent=self)
+            choice = Messagebox().okcancel(title=tr('文件已存在'),message=tr('目录下已经存在重名的项目文件，要覆盖吗？'),parent=self)
             if choice != MessageCatalog.translate('OK'):
                 return False
         # 新建项目结构
@@ -184,7 +204,7 @@ class CreateEmptyProject(CreateProject):
             # 退出
             self.close_func(save_path)
         except:
-            Messagebox().show_error(title='错误',message=f'无法保存文件到：\n{save_path}')
+            Messagebox().show_error(title=tr('错误'),message=tr('无法保存文件到：\n{}').format(save_path))
             return False
 # 新建智能项目
 class CreateIntelProject(CreateProject):
@@ -216,7 +236,7 @@ class CreateIntelProject(CreateProject):
         try:
             self.template:dict = json.load(open(self.tplt_path,'r',encoding='utf-8'))
         except:
-            Messagebox().show_error('该预设模板可能已经损坏！',title='错误',parent=self)
+            Messagebox().show_error(tr('该预设模板可能已经损坏！'),title=tr('错误'),parent=self)
             self.elements['template'].set('')
             return
         # 显示
@@ -258,14 +278,14 @@ class CreateIntelProject(CreateProject):
         # 将进度条归零
         self.progress.configure(value=0.0)
         # 恢复按键
-        self.comfirm_button.configure(text='确定',bootstyle='primary',command=self.confirm)
+        self.comfirm_button.configure(text=tr('确定'),bootstyle='primary',command=self.confirm)
     def on_press_comfirm(self):
         # 禁用
         for key in self.elements:
             # 不操作progress！
             if key != 'progress':
                 self.elements[key].disable()
-        self.comfirm_button.configure(text='取消',bootstyle='danger',command=self.terminate_load)
+        self.comfirm_button.configure(text=tr('取消'),bootstyle='danger',command=self.terminate_load)
     def confirm(self):
         # 检查合法性
         save_dir = self.elements['save_pos'].get()
@@ -275,27 +295,27 @@ class CreateIntelProject(CreateProject):
         tplt_name = self.elements['template'].get()
         logfile_path = self.elements['textfile'].get()
         if save_dir == '':
-            Messagebox().show_error(title='错误',message='必须要选择一个文件夹用于保存项目文件！',parent=self)
+            Messagebox().show_error(title=tr('错误'),message=tr('必须要选择一个文件夹用于保存项目文件！'),parent=self)
             return False
         if tplt_name == '':
-            Messagebox().show_error(title='错误',message='必须要选择样式模板！',parent=self)
+            Messagebox().show_error(title=tr('错误'),message=tr('必须要选择样式模板！'),parent=self)
             return False
         for symbol in ['/','\\',':','*','?','"','<','>','|']:
             if symbol in file_name:
-                Messagebox().show_error(title='错误',message=f'文件名中不能包含符号 {symbol} ！',parent=self)
+                Messagebox().show_error(title=tr('错误'),message=tr('项目名中不能包含符号 {} ！').format(symbol),parent=self)
                 return False
         if os.path.isfile(save_path):
-            choice = Messagebox().okcancel(title='文件已存在',message='目录下已经存在重名的项目文件，要覆盖吗？',parent=self)
+            choice = Messagebox().okcancel(title=tr('文件已存在'),message=tr('目录下已经存在重名的项目文件，要覆盖吗？'),parent=self)
             if choice != MessageCatalog.translate('OK'):
                 return False
         if logfile_path.split('.')[-1] in ['rgl','RGL']:
             choice = Messagebox().show_question(
                 title='RplGenLog',
-                message='你正在尝试向智能项目中导入一个RGL文件！\n但是，智能项目并非设计用于导入RGL，可能出现异常。\n如果你已经拥有RGL文件，请新建空白项目，再导入文件！',
+                message=tr('你正在尝试向智能项目中导入一个RGL文件！\n但是，智能项目并非设计用于导入RGL，可能出现异常。\n如果你已经拥有RGL文件，请新建空白项目，再导入文件！'),
                 parent=self,
-                buttons=['放弃导入:primary','继续导入:danger']
+                buttons=[tr('放弃导入')+':primary',tr('继续导入')+':danger']
                 )
-            if choice != '继续导入':
+            if choice != tr('继续导入'):
                 return False
         # 0. 禁用元件，更新按钮
         self.on_press_comfirm()
@@ -320,11 +340,11 @@ class CreateIntelProject(CreateProject):
             try:
                 self.load_text = open(logfile_path,'r',encoding='gbk').read()
             except Exception as E:
-                Messagebox().show_error('无法解读导入文件的编码！\n请确定导入的是文本文件？',title='格式错误',parent=self)
+                Messagebox().show_error(tr('无法解读导入文件的编码！\n请确定导入的是文本文件？'),title=tr('格式错误'),parent=self)
                 self.reset_comfirm()
                 return False
         except FileNotFoundError:
-            Messagebox().show_error('找不到导入的剧本文件，请检查文件名！',title='找不到文件',parent=self)
+            Messagebox().show_error(tr('找不到导入的剧本文件，请检查文件名！'),title=tr('找不到文件'),parent=self)
             self.reset_comfirm()
             return False
         # 5. 开始解析
@@ -339,7 +359,7 @@ class CreateIntelProject(CreateProject):
         tplt_chars = self.template['charactor']
         # 做在最前：检查是否解析成功
         if self.story.log_mode is None:
-            Messagebox().show_error('当前着色器无法解析导入文本的结构！',title='格式错误',parent=self)
+            Messagebox().show_error(tr('当前着色器无法解析导入文本的结构！'),title=tr('格式错误'),parent=self)
             self.reset_comfirm()
             return False
         # 7. 从解析结果中获取角色
@@ -421,7 +441,7 @@ class CreateIntelProject(CreateProject):
             # 退出
             self.close_func(save_path)
         except:
-            Messagebox().show_error(title='错误',message=f'无法保存文件到：\n{save_path}')
+            Messagebox().show_error(title=tr('错误'),message=tr('无法保存文件到：\n{}').format(save_path))
             return False
     def update_progress(self):
         # 如果子进程还活着
@@ -438,7 +458,7 @@ class CreateIntelProject(CreateProject):
                     self.progress.configure(value=self.story.progress)
                     self.after_loading()
                 else:
-                    Messagebox().show_error(message='在导入文本时发生了异常！',title='错误',parent=self)
+                    Messagebox().show_error(message=tr('在导入文本时发生了异常！'),title=tr('错误'),parent=self)
                     self.reset_comfirm()
                     return
     # 当正在导入时，终止导入
@@ -513,11 +533,11 @@ class ConfigureProject(CreateEmptyProject):
         cover_path = self.elements['proj_cover'].get()
         # 检查合法性
         if W<0 or H<0 or F<0:
-            Messagebox().show_warning(title='警告',message='分辨率或帧率是非法的数值！')
+            Messagebox().show_warning(title=tr('警告'),message=tr('分辨率或帧率是非法的数值！'))
             return False
         for symbol in ['/','\\',':','*','?','"','<','>','|']:
             if symbol in file_name:
-                Messagebox().show_warning(title='警告',message=f'项目名中不能包含符号 {symbol} ！')
+                Messagebox().show_warning(title=tr('警告'),message=tr('项目名中不能包含符号 {} ！').format(symbol),parent=self)
                 return False
         # 新建项目结构
         new_config_struct = {
@@ -534,13 +554,13 @@ class ConfigureProject(CreateEmptyProject):
 class CreateProjectDialog(Dialog):
     def __init__(self, screenzoom, parent=None, ptype='Empty', **kw_args):
         if ptype == 'Intel':
-            super().__init__(parent, '新建智能项目', alert=False)
+            super().__init__(parent, tr('新建智能项目'), alert=False)
         elif ptype == 'Config':
-            super().__init__(parent, '项目设置', alert=False)
+            super().__init__(parent, tr('项目设置'), alert=False)
             self.proj_configure = kw_args['config']
             self.file_path = kw_args['file_path']
         else:
-            super().__init__(parent, '新建空白项目', alert=False)
+            super().__init__(parent, tr('新建空白项目'), alert=False)
         self.sz = screenzoom
         self.ptype = ptype
     def close_dialog(self,result=None):

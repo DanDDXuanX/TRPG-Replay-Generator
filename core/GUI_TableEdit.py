@@ -170,7 +170,7 @@ class PreferenceTable(TableEdit):
         # 重设prefernce对象
         preference.set_struct(reset_struct)
         # 消息
-        self.show_toast(message='首选项已经重置为默认值！',title='重置首选项')
+        self.show_toast(message=tr('首选项已经重置为默认值！'),title=tr('重置','首选项'))
     def confirm(self):
         new_struct = {}
         for keyword in self.elements:
@@ -186,13 +186,13 @@ class PreferenceTable(TableEdit):
             preference.execute() # 执行变更
             preference.dump_json() # 保存配置文件
             # 消息
-            self.show_toast(message='已经成功设置首选项！\n主题变更需要重启程序后才会生效',title='修改首选项')
+            self.show_toast(message=tr('已经成功设置首选项！\n主题变更需要重启程序后才会生效'),title=tr('修改','首选项'))
         except Exception as E:
             error_message = f"[{E.__class__.__name__}]: {E.__str__()}"
             # 错误
             self.show_toast(
-                message='设置首选项时发生了如下错误！\n'+error_message,
-                title='错误'
+                message=tr('设置首选项时发生了如下错误！\n')+error_message,
+                title=tr('错误')
                 )
     def show_toast(self,message,title='test'):
         toast = ToastNotification(title=title,message=message,duration=3000)

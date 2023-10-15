@@ -28,10 +28,10 @@
                 "type": "dark",
                 "colors": {
                     "primary": "#8352a4",
-                    "secondary": "#8593c8",
+                    "secondary": "#737980",
                     "success": "#252426",
                     "info": "#262626",
-                    "warning": "#46579a",
+                    "warning": "#5171b0",
                     "danger": "#c02828",
                     "light": "#3e3d40",
                     "dark": "#eeeeee",

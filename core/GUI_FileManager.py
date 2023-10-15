@@ -117,11 +117,11 @@ class FileManager(ttk.Frame):
             'close'     : ttk.Button(master=self.project_title,image='close',command=self.close_proj, cursor='hand2'),
         }
         self.buttons_tooltip = {
-            'save'      : ToolTip(widget=self.buttons['save']  ,text='保存项目',bootstyle='secondary-inverse'),
-            'config'    : ToolTip(widget=self.buttons['config'],text='项目设置',bootstyle='secondary-inverse'),
-            'import'    : ToolTip(widget=self.buttons['import'],text='导入工程文件',bootstyle='secondary-inverse'),
-            'export'    : ToolTip(widget=self.buttons['export'],text='导出工程文件',bootstyle='secondary-inverse'),
-            'close'     : ToolTip(widget=self.buttons['close'], text='关闭项目',bootstyle='danger-inverse'),
+            'save'      : ToolTip(widget=self.buttons['save']  ,text=tr('保存项目'),bootstyle='secondary-inverse'),
+            'config'    : ToolTip(widget=self.buttons['config'],text=tr('项目设置'),bootstyle='secondary-inverse'),
+            'import'    : ToolTip(widget=self.buttons['import'],text=tr('导入工程文件'),bootstyle='secondary-inverse'),
+            'export'    : ToolTip(widget=self.buttons['export'],text=tr('导出工程文件'),bootstyle='secondary-inverse'),
+            'close'     : ToolTip(widget=self.buttons['close'], text=tr('关闭项目'),bootstyle='danger-inverse'),
         }
         # 放置
         self.title_pic.pack(fill='none',side='top')
@@ -133,7 +133,7 @@ class FileManager(ttk.Frame):
         self.check_project_media_exist()
         # 文件浏览器元件
         self.project_content = FluentFrame(master=self,borderwidth=0,bootstyle='light',autohide=True)
-        self.project_content.vscroll.config(bootstyle='warning-round')
+        self.project_content.vscroll.config(bootstyle='secondary-round')
         # 对应的page_frame对象
         self.page_frame:PageFrame = page_frame
         self.page_frame.ref_medef = self.project.mediadef
@@ -223,9 +223,9 @@ class FileManager(ttk.Frame):
                 self.project.mediadef.struct[keyword_new] = imported.struct[keyword]
             # 返回summary
             if count_of_rep == 0:
-                return f"向媒体库中导入媒体对象{count_of_add}个。"
+                return tr("向媒体库中导入媒体对象{ct}个。").format(ct=count_of_add)
             else:
-                return f"向媒体库中导入媒体对象{count_of_add}个；更新媒体对象{count_of_rep}个。"
+                return tr("向媒体库中导入媒体对象{ct}个；更新媒体对象{cr}个。").format(ct=count_of_add,cr=count_of_rep)
         elif ftype == 'chartab':
             imported:CharTable = object
             collapse:CTBCollapsing = self.items['chartab']
@@ -265,9 +265,9 @@ class FileManager(ttk.Frame):
                 count_of_add += 1
             # 返回summary
             if count_of_rep == 0:
-                return f"向角色配置中导入新角色{len(new_charactor)}个；新增角色差分{count_of_add}个。"
+                return tr("向角色配置中导入新角色{nc}个；新增角色差分{ct}个。").format(nc=len(new_charactor),ct=count_of_add)
             else:
-                return f"向角色配置中导入新角色{len(new_charactor)}个；新增角色差分{count_of_add}个，更新角色差分{count_of_rep}个。"
+                return tr("向角色配置中导入新角色{nc}个；新增角色差分{ct}个，更新角色差分{cr}个。").format(nc=len(new_charactor),ct=count_of_add,cr=count_of_rep)
         else: # rplgenlog
             imported:RplGenLog = object
             collapse:RGLCollapsing = self.items['rplgenlog']
@@ -282,7 +282,7 @@ class FileManager(ttk.Frame):
                 # 更新文件管理器
                 collapse.create_new_button(new_keyword=filename)
             # import_mode 对rgl不生效
-            return f"向剧本文件中添加新剧本【{filename}】，包含{count_of_add}个小节。"
+            return tr("向剧本文件中添加新剧本【{fn}】，包含{ct}个小节。").format(fn=filename,ct=count_of_add)
     # 导入文件
     def import_file(self):
         get_file:list = browse_multi_file(master=self.winfo_toplevel(),filetype='rgscripts',related=False)
@@ -300,7 +300,7 @@ class FileManager(ttk.Frame):
                     summary_recode[file] = self.load_file(path=file, ftype=Tp, object=Ob)
                     type_recode.append(Tp)
                 else:
-                    summary_recode[file] = f'导入失败，无法读取该文件！'
+                    summary_recode[file] = tr('导入失败，无法读取该文件！')
             # 是否需要刷新视图
             if 'mediadef' in type_recode:
                 # 检查是否有脱机素材，如果有则启动重定位
@@ -311,13 +311,13 @@ class FileManager(ttk.Frame):
                 # 刷新已有标签页的page_element
                 self.update_pages_elements(ftype='chartab')
             # 最后总结
-            summary = '导入如下文件：\n'
+            summary = tr('导入如下文件：\n')
             for file in summary_recode:
                 text = summary_recode[file]
                 filename = file.replace('\\','/').split('/')[-1]
                 summary = summary + f"{filename}：{text}\n"
             Messagebox().show_info(
-                title   = '导入文件',
+                title   = tr('导入文件'),
                 message = summary[:-1]
                 )
     # 导出文件
@@ -327,30 +327,30 @@ class FileManager(ttk.Frame):
         if get_file != '':
             try:
                 # 媒体定义
-                self.project.mediadef.dump_file(filepath=get_file+'.媒体库.txt')
+                self.project.mediadef.dump_file(filepath=get_file+'.'+tr('媒体库')+'.txt')
                 # 角色配置
-                self.project.chartab.dump_file(filepath=get_file+'.角色配置.tsv')
+                self.project.chartab.dump_file(filepath=get_file+'.'+tr('角色配置')+'.tsv')
                 # 剧本文件
                 for keyword, rgl in self.project.logfile.items():
                     rgl.dump_file(filepath=get_file+'.{}.rgl'.format(keyword))
                 # 显示消息
-                Messagebox().show_info(title='导出成功',message='成功将工程导出为脚本文件！\n导出路径：{}'.format(get_file))
+                Messagebox().show_info(title=tr('导出成功'),message=tr('成功将工程导出为脚本文件！\n导出路径：{}').format(get_file))
             except Exception as E:
-                Messagebox().show_error(title='导出失败',message='无法将工程导出！\n由于：{}'.format(E))
+                Messagebox().show_error(title=tr('导出失败'),message=tr('无法将工程导出！\n由于：{}').format(E))
     # 保存文件
     def save_file(self):
         # 先去尝试将目前启动的所有rgl窗口保存了
         page_dict:dict = self.master.page_frame.page_dict
         warning_message = {}
         for page in page_dict:
-            if page[0:2] == '剧本':
+            if page[0:2] == '剧本' or page[0:3] == 'RGL':
                 try:
                     page_dict[page].update_rplgenlog()
                 except Exception as E:
                     warning_message[page] = re.sub('\x1B\[\d+m','',str(E))
         if len(warning_message) != 0:
-            message = '\n'.join([f"保存【{page}】时出现异常：{warning_message[page]}" for page in warning_message])
-            Messagebox().show_warning(message=message+'\n在异常得到解决前，上述剧本文件的变更将无法得到保存！',title='警告')
+            message = '\n'.join([tr("保存【{p}】时出现异常：{w}").format(p=page,w=warning_message[page]) for page in warning_message])
+            Messagebox().show_warning(message=message+tr('\n在异常得到解决前，上述剧本文件的变更将无法得到保存！'),title=tr('警告'))
         # 将整个项目dump下来
         if self.project_file is None:
             select_path = save_file(master=self.winfo_toplevel(),filetype='rplgenproj')
@@ -361,8 +361,8 @@ class FileManager(ttk.Frame):
             self.project.dump_json(filepath=self.project_file)
         # 弹出消息提示，Toast
         ToastNotification(
-            title='保存成功',
-            message=f'成功保存项目到文件：\n{self.project_file}',
+            title=tr('保存成功'),
+            message=tr('成功保存项目到文件：\n')+self.project_file,
             duration=3000
         ).show_toast()
     # 配置项目
@@ -387,17 +387,17 @@ class FileManager(ttk.Frame):
         x = int(self.winfo_x())
         y = int(self.winfo_y())
         choice = Messagebox().show_question(
-            message='在关闭项目前，是否要保存项目？',
-            title='关闭项目',
-            buttons=["取消:secondary"," 否 :secondary"," 是 :primary"],
+            message=tr('在关闭项目前，是否要保存项目？'),
+            title=tr('关闭项目'),
+            buttons=["{}:secondary".format(tr('取消'))," {} :secondary".format(tr('否'))," {} :primary".format(tr('是'))],
             alert=True,
             parent=toplevel,
-            width=10,
+            #width=10,
             position=(x+w,y+h)
             )
-        if choice == ' 是 ':
+        if choice == ' {} '.format(tr('是')):
             self.save_file()
-        elif choice == ' 否 ':
+        elif choice == ' {} '.format(tr('否')):
             pass
         else:
             return
@@ -475,8 +475,8 @@ class FileCollapsing(ttk.Frame):
         # 获取关键字
         keyword = event.widget.cget('text')
         menu = ttk.Menu(master=self.content_frame,tearoff=0)
-        menu.add_command(label="重命名",command=lambda:self.rename_item(keyword))
-        menu.add_command(label="删除",command=lambda:self.delete_item(keyword))
+        menu.add_command(label=tr("重命名"),command=lambda:self.rename_item(keyword))
+        menu.add_command(label=tr("删除"),command=lambda:self.delete_item(keyword))
         # 显示菜单
         menu.post(event.x_root, event.y_root)
     def add_item(self):
@@ -499,7 +499,7 @@ class FileCollapsing(ttk.Frame):
         self.items['new:init'].destroy()
         self.items.pop('new:init')
         self.update_filelist()
-    def add_item_done(self,enter,filetype='角色')->bool:
+    def add_item_done(self,enter,filetype='角色')->bool: # TODO：本地化做到这一步了！
         new_keyword = self.re_name.get()
         origin_keyword = 'new:init'
         # 每次rename，done只能触发一次！

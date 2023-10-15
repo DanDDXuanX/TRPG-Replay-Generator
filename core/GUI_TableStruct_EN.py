@@ -2718,7 +2718,7 @@ ProjectTableStruct = {
                     "valuekey": None,
                     "vitem": "combox",
                     "vtype": "str",
-                    "default": "横屏-高清 (1920x1080, 30fps)"
+                    "default": "FHD-H (1920x1080, 30fps)"
                 },
                 "video_width":{
                     "ktext": "Width:",
@@ -2764,7 +2764,7 @@ ProjectTableStruct = {
                     "valuekey": None,
                     "vitem": "combox",
                     "vtype": "str",
-                    "default": "背景->立绘->气泡"
+                    "default": "Background->Animation->Bubble"
                 },
                 "layer_zorder":{
                     "ktext": "Order",

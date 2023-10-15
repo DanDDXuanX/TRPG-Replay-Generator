@@ -30,7 +30,6 @@ class EmptyView(ttk.Frame):
         SZ_10 = int(self.sz * 10)
         super().__init__(master,borderwidth=0,bootstyle='light')
         # 子原件
-        icon_size = (SZ_150, SZ_150)
         self.texture = Texture(master=self, screenzoom=self.sz, file='./assets/texture/texture5.png')
         self.content = HomePageElements(master=self, screenzoom=self.sz)
         self.update_items()
