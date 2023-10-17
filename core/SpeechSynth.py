@@ -91,6 +91,10 @@ class SpeechSynthesizer:
             except ValueError as E:
                 # 包含非法音源名，异常退出
                 print(E)
+            except SynthesisError as E:
+                # 无法初始化
+                raise E
+                
         # 返回 TTS engine
         return TTS
     # 对log文件施加语音合成: 成功走完流程：0，FatalBreak : 1，终止2

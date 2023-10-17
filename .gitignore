@@ -11,3 +11,4 @@ assets/preview_tempfile.wav
 .vscode/*
 test_project.json
 temp/*
+assets/security/*

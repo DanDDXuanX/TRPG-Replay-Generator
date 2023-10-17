@@ -10,6 +10,7 @@ from .Exceptions import ArgumentError,WarningPrint,Print,RplGenError
 from .Motion import MotionMethod
 from .Medias import MediaObj, BuiltInAnimation, HitPoint, Dice
 from .TTSengines import Aliyun_TTS_engine,Azure_TTS_engine,Tencent_TTS_engine
+from .Security import KeyRequest
 
 # 项目设置
 class Config:
@@ -212,6 +213,9 @@ class Preference:
             Tencent_TTS_engine.APPID = int(self.appid)
             Tencent_TTS_engine.SecretId = self.secretid
             Tencent_TTS_engine.SecretKey = self.secretkey
+        else:
+            self.bulitin_keys = KeyRequest()
+            print(self.bulitin_keys.status)
         # 内建动画
         BuiltInAnimation.BIA_font = self.BIA_font
         BuiltInAnimation.BIA_font_size = self.BIA_font_size
