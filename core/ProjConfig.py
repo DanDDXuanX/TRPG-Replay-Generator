@@ -85,6 +85,7 @@ class Config:
 class Preference:
     default = {
         # 合成语音时：key
+        'use_bulitin_keys' : True,
         'accesskey' : 'Your_AccessKey',
         'accesskey_secret' : 'Your_AccessKey_Secret',
         'appkey' : 'Your_Appkey',
@@ -124,6 +125,7 @@ class Preference:
     }
     keyword = {
         # 语音key
+        'use_bulitin_keys' : "TTSKey.UseBulitInKeys",
         'accesskey' : 'Aliyun.accesskey',
         'accesskey_secret' : 'Aliyun.accesskey_secret',
         'appkey' : 'Aliyun.appkey',
@@ -197,17 +199,19 @@ class Preference:
             # 英文
             Print.lang == 0
             RplGenError.lang = 0
-        # 阿里云语音合成key
-        Aliyun_TTS_engine.AKID = self.accesskey
-        Aliyun_TTS_engine.AKKEY = self.accesskey_secret
-        Aliyun_TTS_engine.APPKEY = self.appkey
-        # Azure语音合成key
-        Azure_TTS_engine.AZUKEY = self.azurekey
-        Azure_TTS_engine.service_region = self.service_region
-        # 腾讯的语音合成key
-        Tencent_TTS_engine.APPID = int(self.appid)
-        Tencent_TTS_engine.SecretId = self.secretid
-        Tencent_TTS_engine.SecretKey = self.secretkey
+        # 如果不使用内置key
+        if self.use_bulitin_keys == False:
+            # 阿里云语音合成key
+            Aliyun_TTS_engine.AKID = self.accesskey
+            Aliyun_TTS_engine.AKKEY = self.accesskey_secret
+            Aliyun_TTS_engine.APPKEY = self.appkey
+            # Azure语音合成key
+            Azure_TTS_engine.AZUKEY = self.azurekey
+            Azure_TTS_engine.service_region = self.service_region
+            # 腾讯的语音合成key
+            Tencent_TTS_engine.APPID = int(self.appid)
+            Tencent_TTS_engine.SecretId = self.secretid
+            Tencent_TTS_engine.SecretKey = self.secretkey
         # 内建动画
         BuiltInAnimation.BIA_font = self.BIA_font
         BuiltInAnimation.BIA_font_size = self.BIA_font_size

@@ -2235,92 +2235,6 @@ EditTableStruct = {
 }
 
 PreferenceTableStruct = {
-    "KeySep":{
-        "Text": "Speech Synthesis Key",
-        "Command":None,
-        "Content":{
-            "Aliyun.accesskey": {
-                "ktext": "Aliyun-AccessKey",
-                "tooltip":"A string length 24, obtainable in AccessKey Management page.",
-                "dtext": "(input)",
-                "ditem": "label",
-                "valuekey": "Aliyun.accesskey",
-                "vitem": "entry",
-                "vtype": "str",
-                "default": "Your_AccessKey！"
-            },
-            "Aliyun.accesskey_secret": {
-                "ktext": "Aliyun-AccessKeySecret",
-                "tooltip":"A string length 30, obtainable in AccessKey Management page.",
-                "dtext": "(input)",
-                "ditem": "label",
-                "valuekey": "Aliyun.accesskey_secret",
-                "vitem": "entry",
-                "vtype": "str",
-                "default": "Your_AccessKeySecret！"
-            },
-            "Aliyun.appkey": {
-                "ktext": "Aliyun-AppKey",
-                "tooltip":"A string length 16, Obtainable in Application Management page, need to new a app.",
-                "dtext": "(input)",
-                "ditem": "label",
-                "valuekey": "Aliyun.appkey",
-                "vitem": "entry",
-                "vtype": "str",
-                "default": "Your_AppKey！"
-            },
-            "Azure.azurekey": {
-                "ktext": "Azure-Key",
-                "tooltip": "A string length 32, obtain in [Key and Endpoint] page.",
-                "dtext": "(input)",
-                "ditem": "label",
-                "valuekey": "Azure.azurekey",
-                "vitem": "entry",
-                "vtype": "str",
-                "default": "Your_AzureKey"
-            },
-            "Azure.service_region": {
-                "ktext": "Azure-ServiceRegion",
-                "tooltip":"The service region selected when creating the speech service.",
-                "dtext": "(input)",
-                "ditem": "label",
-                "valuekey": "Azure.service_region",
-                "vitem": "entry",
-                "vtype": "str",
-                "default": "eastasia"
-            },
-            "Tencent.appid": {
-                "ktext": "Tencent-AppId",
-                "tooltip":"A digit string length 10, obtained from Tencent Cloud Permission Management.",
-                "dtext": "(input)",
-                "ditem": "label",
-                "valuekey": "Tencent.appid",
-                "vitem": "entry",
-                "vtype": "str",
-                "default": "Your_AppId！"
-            },
-            "Tencent.secretid": {
-                "ktext": "Tencent-SecretId",
-                "tooltip":"A string length 36, obtained from Tencent Cloud Permission Management.",
-                "dtext": "(input)",
-                "ditem": "label",
-                "valuekey": "Tencent.secretid",
-                "vitem": "entry",
-                "vtype": "str",
-                "default": "Your_SecretId！"
-            },
-            "Tencent.secretkey": {
-                "ktext": "Tencent-SecretKey",
-                "tooltip":"A string length 32, obtained from Tencent Cloud Permission Management.",
-                "dtext": "(input)",
-                "ditem": "label",
-                "valuekey": "Tencent.secretkey",
-                "vitem": "entry",
-                "vtype": "str",
-                "default": "Your_AppKey！"
-            },
-        }
-    },
     "AppearanceSep":{
         "Text": "Appearance",
         "Command":None,
@@ -2578,6 +2492,102 @@ PreferenceTableStruct = {
                 "vitem": "combox",
                 "vtype": "bool",
                 "default": False
+            },
+        }
+    },
+    "KeySep":{
+        "Text": "Speech Synthesis Key",
+        "Command":None,
+        "Content":{
+            "TTSKey.UseBulitInKeys": {
+                "ktext": "Use BulitIn Keys",
+                "tooltip":"If disable, TTS Service will uses the following user-entered key instead of the built-in key.",
+                "dtext": "(select)",
+                "ditem": "label",
+                "valuekey": "TTSKey.UseBulitInKeys",
+                "vitem": "combox",
+                "vtype": "bool",
+                "default": True
+            },
+            "Aliyun.accesskey": {
+                "ktext": "Aliyun-AccessKey",
+                "tooltip":"A string length 24, obtainable in AccessKey Management page.",
+                "dtext": "(input)",
+                "ditem": "label",
+                "valuekey": "Aliyun.accesskey",
+                "vitem": "entry",
+                "vtype": "str",
+                "default": "Your_AccessKey！"
+            },
+            "Aliyun.accesskey_secret": {
+                "ktext": "Aliyun-AccessKeySecret",
+                "tooltip":"A string length 30, obtainable in AccessKey Management page.",
+                "dtext": "(input)",
+                "ditem": "label",
+                "valuekey": "Aliyun.accesskey_secret",
+                "vitem": "entry",
+                "vtype": "str",
+                "default": "Your_AccessKeySecret！"
+            },
+            "Aliyun.appkey": {
+                "ktext": "Aliyun-AppKey",
+                "tooltip":"A string length 16, Obtainable in Application Management page, need to new a app.",
+                "dtext": "(input)",
+                "ditem": "label",
+                "valuekey": "Aliyun.appkey",
+                "vitem": "entry",
+                "vtype": "str",
+                "default": "Your_AppKey！"
+            },
+            "Azure.azurekey": {
+                "ktext": "Azure-Key",
+                "tooltip": "A string length 32, obtain in [Key and Endpoint] page.",
+                "dtext": "(input)",
+                "ditem": "label",
+                "valuekey": "Azure.azurekey",
+                "vitem": "entry",
+                "vtype": "str",
+                "default": "Your_AzureKey"
+            },
+            "Azure.service_region": {
+                "ktext": "Azure-ServiceRegion",
+                "tooltip":"The service region selected when creating the speech service.",
+                "dtext": "(input)",
+                "ditem": "label",
+                "valuekey": "Azure.service_region",
+                "vitem": "entry",
+                "vtype": "str",
+                "default": "eastasia"
+            },
+            "Tencent.appid": {
+                "ktext": "Tencent-AppId",
+                "tooltip":"A digit string length 10, obtained from Tencent Cloud Permission Management.",
+                "dtext": "(input)",
+                "ditem": "label",
+                "valuekey": "Tencent.appid",
+                "vitem": "entry",
+                "vtype": "str",
+                "default": "Your_AppId！"
+            },
+            "Tencent.secretid": {
+                "ktext": "Tencent-SecretId",
+                "tooltip":"A string length 36, obtained from Tencent Cloud Permission Management.",
+                "dtext": "(input)",
+                "ditem": "label",
+                "valuekey": "Tencent.secretid",
+                "vitem": "entry",
+                "vtype": "str",
+                "default": "Your_SecretId！"
+            },
+            "Tencent.secretkey": {
+                "ktext": "Tencent-SecretKey",
+                "tooltip":"A string length 32, obtained from Tencent Cloud Permission Management.",
+                "dtext": "(input)",
+                "ditem": "label",
+                "valuekey": "Tencent.secretkey",
+                "vitem": "entry",
+                "vtype": "str",
+                "default": "Your_AppKey！"
             },
         }
     },

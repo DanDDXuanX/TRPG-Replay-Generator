@@ -154,6 +154,7 @@ class PreferenceTable(TableEdit):
         self.elements['Edit.asterisk_import'].input.update_dict(True_False)
         self.elements['Edit.rename_boardcast'].input.update_dict(askyesno)
         self.elements['BIA.dice_mode'].input.update_dict(dice_mode)
+        self.elements['TTSKey.UseBulitInKeys'].input.update_dict(is_enable)
         # spine
         self.elements['System.editer_fontsize'].input.configure(from_=5,to=30,increment=1)
         self.elements['System.terminal_fontsize'].input.configure(from_=5,to=30,increment=1)

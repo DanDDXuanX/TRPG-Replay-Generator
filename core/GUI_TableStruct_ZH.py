@@ -2235,99 +2235,13 @@ EditTableStruct = {
 }
 
 PreferenceTableStruct = {
-    "KeySep":{
-        "Text": "语音合成Key",
-        "Command":None,
-        "Content":{
-            "Aliyun.accesskey": {
-                "ktext": "阿里云-AccessKey",
-                "tooltip":"在AccessKey管理中获取，是一段长度为24的乱码。",
-                "dtext": "（输入）",
-                "ditem": "label",
-                "valuekey": "Aliyun.accesskey",
-                "vitem": "entry",
-                "vtype": "str",
-                "default": "请输入你的AccessKey！"
-            },
-            "Aliyun.accesskey_secret": {
-                "ktext": "阿里云-AccessKeySecret",
-                "tooltip":"在AccessKey管理中获取，是一段长度为30的乱码。",
-                "dtext": "（输入）",
-                "ditem": "label",
-                "valuekey": "Aliyun.accesskey_secret",
-                "vitem": "entry",
-                "vtype": "str",
-                "default": "请输入你的AccessKeySecret！"
-            },
-            "Aliyun.appkey": {
-                "ktext": "阿里云-AppKey",
-                "tooltip":"在智能语音服务的项目管理页面中，新建项目后获取，是一段长度为16的乱码。",
-                "dtext": "（输入）",
-                "ditem": "label",
-                "valuekey": "Aliyun.appkey",
-                "vitem": "entry",
-                "vtype": "str",
-                "default": "请输入你的AppKey！"
-            },
-            "Azure.azurekey": {
-                "ktext": "微软Azure-密钥",
-                "tooltip":"在语音服务中，点击管理密钥后获取，是一段长度为32的乱码。",
-                "dtext": "（输入）",
-                "ditem": "label",
-                "valuekey": "Azure.azurekey",
-                "vitem": "entry",
-                "vtype": "str",
-                "default": "请输入你的密钥！"
-            },
-            "Azure.service_region": {
-                "ktext": "微软Azure-位置/区域",
-                "tooltip":"开通语音服务时选择的服务区域。",
-                "dtext": "（输入）",
-                "ditem": "label",
-                "valuekey": "Azure.service_region",
-                "vitem": "entry",
-                "vtype": "str",
-                "default": "eastasia"
-            },
-            "Tencent.appid": {
-                "ktext": "腾讯云-AppId",
-                "tooltip":"在腾讯云权限管理中获取，是一段长度为10的数字。",
-                "dtext": "（输入）",
-                "ditem": "label",
-                "valuekey": "Tencent.appid",
-                "vitem": "entry",
-                "vtype": "str",
-                "default": "请输入你的AppId！"
-            },
-            "Tencent.secretid": {
-                "ktext": "腾讯云-SecretId",
-                "tooltip":"在腾讯云权限管理中获取，是一段长度为36的乱码。",
-                "dtext": "（输入）",
-                "ditem": "label",
-                "valuekey": "Tencent.secretid",
-                "vitem": "entry",
-                "vtype": "str",
-                "default": "请输入你的SecretId！"
-            },
-            "Tencent.secretkey": {
-                "ktext": "腾讯云-SecretKey",
-                "tooltip":"在腾讯云权限管理中获取，是一段长度为32的乱码。",
-                "dtext": "（输入）",
-                "ditem": "label",
-                "valuekey": "Tencent.secretkey",
-                "vitem": "entry",
-                "vtype": "str",
-                "default": "请输入你的AppKey！"
-            },
-        }
-    },
     "AppearanceSep":{
         "Text": "界面外观",
         "Command":None,
         "Content":{
             "System.lang":{
                 "ktext": "语言：",
-                "tooltip":"在控制台终端显示的语言。",
+                "tooltip":"主界面中使用的语言。",
                 "dtext": "（选择）",
                 "ditem": "label",
                 "valuekey": "System.lang",
@@ -2578,6 +2492,102 @@ PreferenceTableStruct = {
                 "vitem": "combox",
                 "vtype": "bool",
                 "default": False
+            },
+        }
+    },
+    "KeySep":{
+        "Text": "语音合成Key",
+        "Command":None,
+        "Content":{
+            "TTSKey.UseBulitInKeys": {
+                "ktext": "使用软件内置Key",
+                "tooltip":"如果禁用，语音合成服务将会使用下列用户输入的Key，而非软件内置的Key。",
+                "dtext": "(选择)",
+                "ditem": "label",
+                "valuekey": "TTSKey.UseBulitInKeys",
+                "vitem": "combox",
+                "vtype": "bool",
+                "default": True
+            },
+            "Aliyun.accesskey": {
+                "ktext": "阿里云-AccessKey",
+                "tooltip":"在AccessKey管理中获取，是一段长度为24的乱码。",
+                "dtext": "（输入）",
+                "ditem": "label",
+                "valuekey": "Aliyun.accesskey",
+                "vitem": "entry",
+                "vtype": "str",
+                "default": "请输入你的AccessKey！"
+            },
+            "Aliyun.accesskey_secret": {
+                "ktext": "阿里云-AccessKeySecret",
+                "tooltip":"在AccessKey管理中获取，是一段长度为30的乱码。",
+                "dtext": "（输入）",
+                "ditem": "label",
+                "valuekey": "Aliyun.accesskey_secret",
+                "vitem": "entry",
+                "vtype": "str",
+                "default": "请输入你的AccessKeySecret！"
+            },
+            "Aliyun.appkey": {
+                "ktext": "阿里云-AppKey",
+                "tooltip":"在智能语音服务的项目管理页面中，新建项目后获取，是一段长度为16的乱码。",
+                "dtext": "（输入）",
+                "ditem": "label",
+                "valuekey": "Aliyun.appkey",
+                "vitem": "entry",
+                "vtype": "str",
+                "default": "请输入你的AppKey！"
+            },
+            "Azure.azurekey": {
+                "ktext": "微软Azure-密钥",
+                "tooltip":"在语音服务中，点击管理密钥后获取，是一段长度为32的乱码。",
+                "dtext": "（输入）",
+                "ditem": "label",
+                "valuekey": "Azure.azurekey",
+                "vitem": "entry",
+                "vtype": "str",
+                "default": "请输入你的密钥！"
+            },
+            "Azure.service_region": {
+                "ktext": "微软Azure-位置/区域",
+                "tooltip":"开通语音服务时选择的服务区域。",
+                "dtext": "（输入）",
+                "ditem": "label",
+                "valuekey": "Azure.service_region",
+                "vitem": "entry",
+                "vtype": "str",
+                "default": "eastasia"
+            },
+            "Tencent.appid": {
+                "ktext": "腾讯云-AppId",
+                "tooltip":"在腾讯云权限管理中获取，是一段长度为10的数字。",
+                "dtext": "（输入）",
+                "ditem": "label",
+                "valuekey": "Tencent.appid",
+                "vitem": "entry",
+                "vtype": "str",
+                "default": "请输入你的AppId！"
+            },
+            "Tencent.secretid": {
+                "ktext": "腾讯云-SecretId",
+                "tooltip":"在腾讯云权限管理中获取，是一段长度为36的乱码。",
+                "dtext": "（输入）",
+                "ditem": "label",
+                "valuekey": "Tencent.secretid",
+                "vitem": "entry",
+                "vtype": "str",
+                "default": "请输入你的SecretId！"
+            },
+            "Tencent.secretkey": {
+                "ktext": "腾讯云-SecretKey",
+                "tooltip":"在腾讯云权限管理中获取，是一段长度为32的乱码。",
+                "dtext": "（输入）",
+                "ditem": "label",
+                "valuekey": "Tencent.secretkey",
+                "vitem": "entry",
+                "vtype": "str",
+                "default": "请输入你的AppKey！"
             },
         }
     },
