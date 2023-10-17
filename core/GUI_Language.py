@@ -35,6 +35,9 @@ class Translate:
             '错误': 'Error',
             '确定': 'OK',
             '取消': 'Cancel',
+            '复制': 'Copy',
+            '保存': 'Save',
+            '试听': 'Play',
             '：':':',
             '首选项': "Preference",
             '项目'  : "Projects",
@@ -83,6 +86,14 @@ class Translate:
             '保存成功': 'Saved',
             '重命名' : 'Rename',
             '删除'  : 'Delete',
+            '音源名：': 'Voice:',
+            '语速：': 'SR:',
+            '语调：': 'PR:',
+            '风格：': 'style:',
+            '强度：': 'degree:',
+            '扮演：': 'role:',
+            '选择音源' : 'Select Voice',
+            '测试文本' : 'Text for text',
             '从文件夹中打开一个现有的项目。':'Open a project from local files.',
             '创建一个空白的项目，导入回声工坊1.0版本的工程文件，或者从头开始创建你的项目。':'Create an empty project and start from scratch, or load existing scripts.',
             '选择样式模板，智能解析导入聊天记录或者染色器log文件，直接创建一个半成品项目。':'Select a template, import raw chat logs, and create a semi-finished project.',
@@ -114,6 +125,11 @@ class Translate:
             '\n在异常得到解决前，上述剧本文件的变更将无法得到保存！': '\nChanges to RGL above cannot be saved until these issues are resolved!',
             '成功保存项目到文件：\n':'Successfully save the project to a file:\n',
             '在关闭项目前，是否要保存项目？':'Save project before closing?',
+            '语音Key未初始化！请检查版本，或者填写自定义key。': 'TTS Key is uninitiated! Please check the version, or offer custom keys.',
+            '语音合成失败！检视控制台获取详细信息。': 'Synthesis Failed, check the terminal to get detail info',
+            '必须选择一个音源！': 'Must choose a voice name.',
+            '音源名是无效的！': 'The selected voice is invalid.',
+            '在这里输入你想要合成的文本！' : 'Please enter the text for test here.'
         }
     }
     lang = 'zh'

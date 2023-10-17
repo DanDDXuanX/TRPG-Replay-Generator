@@ -69,6 +69,13 @@ class Aliyun_TTS_engine(TTS_engine):
                     on_close=self.on_close,
                     callback_args=[self.ID,self.voice]
                 )
+        # 检查key状态
+        if (
+            Aliyun_TTS_engine.AKID == 'Your_AccessKey' or 
+            Aliyun_TTS_engine.AKKEY == 'Your_AccessKey_Secret' or 
+            Aliyun_TTS_engine.APPKEY == 'Your_Appkey'
+        ):
+            raise SynthesisError('AliyunKey')
     def start(self,text,ofile):
         self.ofile = open(ofile,'wb')
         success = self.synthesizer.start(text = text,
@@ -179,6 +186,9 @@ class Azure_TTS_engine(TTS_engine):
                                      style=self.style,degree=self.degree,role=self.role,
                                      pitch=self.pitch_rate,rate=self.speech_rate,volume=self.volume,
                                      speech_text="{text}")
+        # 检查key状态
+        if Azure_TTS_engine.AZUKEY == 'Your_Azurekey':
+            raise SynthesisError('AzureKey')
     def start(self,text,ofile):
         # 准备配置
         speech_config = speechsdk.SpeechConfig(subscription=Azure_TTS_engine.AZUKEY, region=Azure_TTS_engine.service_region)
@@ -249,8 +259,8 @@ class Beats_engine(TTS_engine):
 # 腾讯云的TTS
 class Tencent_TTS_engine(TTS_engine):
     APPID = 0
-    SecretId = ''
-    SecretKey = ''
+    SecretId = 'Your_SecretID'
+    SecretKey = 'Your_SecretKey'
 
     _PROTOCOL = "wss://"
     _HOST = "tts.cloud.tencent.com"
@@ -289,6 +299,13 @@ class Tencent_TTS_engine(TTS_engine):
         # self.emotion_intensity = 0
         # 初始化的会话ID
         self.session_id = ""
+        # 检查key状态
+        if (
+            Tencent_TTS_engine.APPID == 0 or 
+            Tencent_TTS_engine.SecretId == 'Your_SecretID' or 
+            Tencent_TTS_engine.SecretKey == 'Your_SecretKey'
+        ):
+            raise SynthesisError('TencentKey')
     def speechrate_formula(self, speechrate):
         # value in [-2,4] = 0.25 * value + 1
         return (self.linear_mapping(speechrate) - 1)/0.25

@@ -2517,7 +2517,7 @@ PreferenceTableStruct = {
                 "valuekey": "Aliyun.accesskey",
                 "vitem": "entry",
                 "vtype": "str",
-                "default": "Your_AccessKey！"
+                "default": "Your_AccessKey"
             },
             "Aliyun.accesskey_secret": {
                 "ktext": "Aliyun-AccessKeySecret",
@@ -2527,7 +2527,7 @@ PreferenceTableStruct = {
                 "valuekey": "Aliyun.accesskey_secret",
                 "vitem": "entry",
                 "vtype": "str",
-                "default": "Your_AccessKeySecret！"
+                "default": "Your_AccessKey_Secret"
             },
             "Aliyun.appkey": {
                 "ktext": "Aliyun-AppKey",
@@ -2537,7 +2537,7 @@ PreferenceTableStruct = {
                 "valuekey": "Aliyun.appkey",
                 "vitem": "entry",
                 "vtype": "str",
-                "default": "Your_AppKey！"
+                "default": "Your_AppKey"
             },
             "Azure.azurekey": {
                 "ktext": "Azure-Key",
@@ -2567,7 +2567,7 @@ PreferenceTableStruct = {
                 "valuekey": "Tencent.appid",
                 "vitem": "entry",
                 "vtype": "str",
-                "default": "Your_AppId！"
+                "default": "0"
             },
             "Tencent.secretid": {
                 "ktext": "Tencent-SecretId",
@@ -2577,7 +2577,7 @@ PreferenceTableStruct = {
                 "valuekey": "Tencent.secretid",
                 "vitem": "entry",
                 "vtype": "str",
-                "default": "Your_SecretId！"
+                "default": "Your_SecretID"
             },
             "Tencent.secretkey": {
                 "ktext": "Tencent-SecretKey",
@@ -2587,7 +2587,7 @@ PreferenceTableStruct = {
                 "valuekey": "Tencent.secretkey",
                 "vitem": "entry",
                 "vtype": "str",
-                "default": "Your_AppKey！"
+                "default": "Your_SecretKey"
             },
         }
     },

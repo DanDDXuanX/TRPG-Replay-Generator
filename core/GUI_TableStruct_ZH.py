@@ -2517,7 +2517,7 @@ PreferenceTableStruct = {
                 "valuekey": "Aliyun.accesskey",
                 "vitem": "entry",
                 "vtype": "str",
-                "default": "请输入你的AccessKey！"
+                "default": "Your_AccessKey"
             },
             "Aliyun.accesskey_secret": {
                 "ktext": "阿里云-AccessKeySecret",
@@ -2527,7 +2527,7 @@ PreferenceTableStruct = {
                 "valuekey": "Aliyun.accesskey_secret",
                 "vitem": "entry",
                 "vtype": "str",
-                "default": "请输入你的AccessKeySecret！"
+                "default": "Your_AccessKey_Secret"
             },
             "Aliyun.appkey": {
                 "ktext": "阿里云-AppKey",
@@ -2537,7 +2537,7 @@ PreferenceTableStruct = {
                 "valuekey": "Aliyun.appkey",
                 "vitem": "entry",
                 "vtype": "str",
-                "default": "请输入你的AppKey！"
+                "default": "Your_AppKey"
             },
             "Azure.azurekey": {
                 "ktext": "微软Azure-密钥",
@@ -2547,7 +2547,7 @@ PreferenceTableStruct = {
                 "valuekey": "Azure.azurekey",
                 "vitem": "entry",
                 "vtype": "str",
-                "default": "请输入你的密钥！"
+                "default": "Your_AzureKey"
             },
             "Azure.service_region": {
                 "ktext": "微软Azure-位置/区域",
@@ -2567,7 +2567,7 @@ PreferenceTableStruct = {
                 "valuekey": "Tencent.appid",
                 "vitem": "entry",
                 "vtype": "str",
-                "default": "请输入你的AppId！"
+                "default": "0"
             },
             "Tencent.secretid": {
                 "ktext": "腾讯云-SecretId",
@@ -2577,7 +2577,7 @@ PreferenceTableStruct = {
                 "valuekey": "Tencent.secretid",
                 "vitem": "entry",
                 "vtype": "str",
-                "default": "请输入你的SecretId！"
+                "default": "Your_SecretID"
             },
             "Tencent.secretkey": {
                 "ktext": "腾讯云-SecretKey",
@@ -2587,7 +2587,7 @@ PreferenceTableStruct = {
                 "valuekey": "Tencent.secretkey",
                 "vitem": "entry",
                 "vtype": "str",
-                "default": "请输入你的AppKey！"
+                "default": "Your_SecretKey"
             },
         }
     },

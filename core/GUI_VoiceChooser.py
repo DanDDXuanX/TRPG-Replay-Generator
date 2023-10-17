@@ -12,8 +12,9 @@ from ttkbootstrap.dialogs import Messagebox, Dialog
 from tkinter.filedialog import asksaveasfilename
 from .TTSengines import Aliyun_TTS_engine, Azure_TTS_engine, Beats_engine
 from .TTSengines import System_TTS_engine, Tencent_TTS_engine, voice_lib
-from .Exceptions import WarningPrint
-from .ProjConfig import home_dir
+from .GUI_Language import tr
+from .Exceptions import WarningPrint,SynthesisError
+from .ProjConfig import home_dir, preference
 from .Medias import Audio
 from .Utils import mod62_timestamp
 from .GUI_Util import DictCombobox
@@ -27,7 +28,7 @@ class VoiceArgs(ttk.Frame):
         super().__init__(master,borderwidth=SZ_5)
         # variables
         self.service = service
-        self.voice_description = '无'
+        self.voice_description = tr('(无)')
         self.voice_lib = voice_lib[voice_lib.service==self.service]
         self.TTS = Aliyun_TTS_engine
         # 载入输入参数
@@ -40,9 +41,9 @@ class VoiceArgs(ttk.Frame):
             'pitchrate'     : ttk.Frame(master=self),
         }
         self.labels = {
-            'voice'         : ttk.Label(master=self.frames['voice'],text='音源名：',width=6),
-            'speechrate'    : ttk.Label(master=self.frames['speechrate'],text='语速：',width=6),
-            'pitchrate'     : ttk.Label(master=self.frames['pitchrate'],text='语调：',width=6)
+            'voice'         : ttk.Label(master=self.frames['voice'],text=tr('音源名：'),width=6),
+            'speechrate'    : ttk.Label(master=self.frames['speechrate'],text=tr('语速：'),width=6),
+            'pitchrate'     : ttk.Label(master=self.frames['pitchrate'],text=tr('语调：'),width=6)
         }
         # input
         self.inputs = {
@@ -88,7 +89,7 @@ class VoiceArgs(ttk.Frame):
         try:
             return self.voice_lib.loc[self.variables['voice'].get(),colname]
         except Exception:
-            return {'description':'无','style':'general','role':'Default'}[colname]
+            return {'description':tr('(无)'),'style':'general','role':'Default'}[colname]
     def update_selected_voice(self,event):
         # 更新介绍label
         self.addition['voice'].configure(text=self.get_voice_info('voice'))
@@ -107,19 +108,23 @@ class VoiceArgs(ttk.Frame):
         except ValueError as E:
             return False, str(E)
         if args['voice'] == '':
-            return False, '缺少音源名！'
+            return False, tr('必须选择一个音源！')
         elif '::' in args['voice']:
             TTS_voice = args['voice'].split('::')[1]
         else:
             TTS_voice = args['voice']
         # 新建语音合成对象
-        this_TTS = self.TTS(
-            name = 'preview',
-            voice = TTS_voice,
-            speech_rate = args['speechrate'],
-            pitch_rate = args['pitchrate'],
-            aformat = 'wav'
-        )
+        try:
+            this_TTS = self.TTS(
+                name = 'preview',
+                voice = TTS_voice,
+                speech_rate = args['speechrate'],
+                pitch_rate = args['pitchrate'],
+                aformat = 'wav'
+            )
+        except SynthesisError as E:
+            print(WarningPrint('PrevFail',E))
+            return False, tr('语音Key未初始化！请检查版本，或者填写自定义key。')
         # 执行合成
         try:
             temp_path = str(home_dir / '.rplgen' / 'preview_tempfile.wav').replace('\\','/')
@@ -127,7 +132,7 @@ class VoiceArgs(ttk.Frame):
             return True, temp_path
         except Exception as E:
             print(WarningPrint('PrevFail',E))
-            return False, '语音合成失败！检视控制台获取详细信息。'
+            return False, tr('语音合成失败！检视控制台获取详细信息。')
 class AliyunVoiceArgs(VoiceArgs):
     def __init__(self, master, screenzoom, voice: str = '', speech_rate: int = 0, pitch_rate: int = 0):
         # 继承
@@ -141,9 +146,9 @@ class AliyunVoiceArgs(VoiceArgs):
         if self.variables['voice'].get() in self.voice_lib.index:
             return super().get_args()
         elif self.variables['voice'].get() == '':
-            raise ValueError('必须选择一个音源！')
+            raise ValueError(tr('必须选择一个音源！'))
         else:
-            raise ValueError('音源名是无效的！')
+            raise ValueError(tr('音源名是无效的！'))
 class BeatsVoiceArgs(VoiceArgs):
     def __init__(self, master, screenzoom, voice: str = '', speech_rate: int = 0, pitch_rate: int = 0):
         # 继承
@@ -168,9 +173,9 @@ class BeatsVoiceArgs(VoiceArgs):
             args['voice'] = 'Beats::' + args['voice']
             return args
         elif self.variables['voice'].get() == '':
-            raise ValueError('必须选择一个音源！')
+            raise ValueError(tr('必须选择一个音源！'))
         else:
-            raise ValueError('音源名是无效的！')
+            raise ValueError(tr('音源名是无效的！'))
     def exec_synthesis(self,text:str):
         # 载入音源名
         try:
@@ -178,7 +183,7 @@ class BeatsVoiceArgs(VoiceArgs):
         except ValueError as E:
             return False, str(E)
         if args['voice'] == '':
-            return False, '缺少音源名！'
+            return False, '必须选择一个音源！'
         elif '::' in args['voice']:
             TTS_voice = args['voice'].split('::')[1]
         else:
@@ -198,7 +203,7 @@ class BeatsVoiceArgs(VoiceArgs):
             return True, temp_path
         except Exception as E:
             print(WarningPrint('PrevFail',E))
-            return False, '语音合成失败！检视控制台获取详细信息。'
+            return False, tr('语音合成失败！检视控制台获取详细信息。')
 class AzureVoiceArgs(VoiceArgs):
     def __init__(self, master, screenzoom, voice: str = '', speech_rate: int = 0, pitch_rate: int = 0):
         # 继承
@@ -209,9 +214,9 @@ class AzureVoiceArgs(VoiceArgs):
         self.frames['style'] = ttk.Frame(master=self)
         self.frames['roleplay'] = ttk.Frame(master=self)
         # labels
-        self.labels['style'] = ttk.Label(master=self.frames['style'], text='风格：',width=6)
-        self.labels['degree'] = ttk.Label(master=self.frames['style'], text='强度：',width=6)
-        self.labels['roleplay'] = ttk.Label(master=self.frames['roleplay'], text='扮演：',width=6)
+        self.labels['style'] = ttk.Label(master=self.frames['style'], text=tr('风格：'),width=6)
+        self.labels['degree'] = ttk.Label(master=self.frames['style'], text=tr('强度：'),width=6)
+        self.labels['roleplay'] = ttk.Label(master=self.frames['roleplay'], text=tr('扮演：'),width=6)
         # input
         self.inputs['style'] = ttk.Combobox(master=self.frames['style'],textvariable=self.variables['style'])
         self.inputs['degree'] = ttk.Spinbox(master=self.frames['style'], textvariable=self.variables['degree'], width=8, from_=0.1,to=2.0,increment=0.1)
@@ -223,6 +228,7 @@ class AzureVoiceArgs(VoiceArgs):
         # order
         self.display_order = ['voice','style','degree','roleplay','speechrate','pitchrate']
         # 放置元件
+        self.update_selected_voice(None)
         self.update_voice_style()
         self.update_elements()
         self.update_items()
@@ -261,7 +267,7 @@ class AzureVoiceArgs(VoiceArgs):
         super().load_input_args(speaker, speech_rate, pitch_rate)
     def get_args(self) -> dict:
         if self.variables['voice'].get() == '':
-            raise ValueError('必须选择一个音源！')
+            raise ValueError(tr('必须选择一个音源！'))
         args = super().get_args()
         style = self.variables['style'].get()
         degree = str(self.variables['degree'].get())
@@ -313,9 +319,9 @@ class SystemVoiceArgs(VoiceArgs):
             args['voice'] = 'System::' + args['voice']
             return args
         elif self.variables['voice'].get() == '':
-            raise ValueError('必须选择一个音源！')
+            raise ValueError(tr('必须选择一个音源！'))
         else:
-            raise ValueError('音源名是无效的！')
+            raise ValueError(tr('音源名是无效的！'))
 class TencentVoiceArgs(VoiceArgs):
     def __init__(self, master, screenzoom, voice: str = '', speech_rate: int = 0, pitch_rate: int = 0):
         # 继承
@@ -338,9 +344,9 @@ class TencentVoiceArgs(VoiceArgs):
             args['voice'] = 'Tencent::' + args['voice']
             return args
         elif self.variables['voice'].get() == '':
-            raise ValueError('必须选择一个音源！')
+            raise ValueError(tr('必须选择一个音源！'))
         else:
-            raise ValueError('音源名是无效的！')
+            raise ValueError(tr('音源名是无效的！'))
 # 语音选择
 class VoiceChooser(ttk.Frame):
     def __init__(self,master,screenzoom,voice:str,speech_rate:int,pitch_rate:int,close_func):
@@ -362,7 +368,7 @@ class VoiceChooser(ttk.Frame):
             service = "Aliyun"
             speaker = voice
         # 建立元件
-        self.title = ttk.Label(master=self,text='选择音源',font=(Link['system_font_family'], 15, "bold"))
+        self.title = ttk.Label(master=self,text=tr('选择音源'),font=(Link['system_font_family'], 15, "bold"))
         self.argument_notebook = ttk.Notebook(master=self,bootstyle="primary")
         self.args_frame = {
             'Aliyun'    : AliyunVoiceArgs(master=self.argument_notebook,screenzoom=self.sz,voice=speaker,speech_rate=speech_rate,pitch_rate=pitch_rate),
@@ -372,28 +378,37 @@ class VoiceChooser(ttk.Frame):
             'System'    : SystemVoiceArgs(master=self.argument_notebook,screenzoom=self.sz,voice=speaker,speech_rate=speech_rate,pitch_rate=pitch_rate),
         }
         self.service_name = {
-            'Aliyun'    : '阿里云',
-            'Azure'     : '微软Azure',
-            'Tencent'   : '腾讯云',
-            'Beats'     : '节奏音',
-            'System'    : '系统',
-        }
+            'zh' : {
+                'Aliyun'    : '阿里云',
+                'Azure'     : '微软Azure',
+                'Tencent'   : '腾讯云',
+                'Beats'     : '节奏音',
+                'System'    : '系统',
+            },
+            'en' : {
+                'Aliyun'    : 'Aliyun',
+                'Azure'     : 'Azure',
+                'Tencent'   : 'Tencent',
+                'Beats'     : 'Beats',
+                'System'    : 'System',
+            }
+        }[preference.lang]
         for keyword in self.args_frame:
             self.argument_notebook.add(self.args_frame[keyword],text='{}'.format(self.service_name[keyword]))
         # 切换初始化选择的标签
         self.argument_notebook.select(self.args_frame[service])
         # 测试文本
-        self.preview_frame = ttk.LabelFrame(master=self, text='测试文本',padding=(SZ_10,SZ_5,SZ_10,SZ_10))
+        self.preview_frame = ttk.LabelFrame(master=self, text=tr('测试文本'),padding=(SZ_10,SZ_5,SZ_10,SZ_10))
         self.preview_text = ttk.Text(master=self.preview_frame,font=(Link['system_font_family'], 12),height=5,width=20)
-        self.preview_text.insert("end",'在这里输入你想要合成的文本！')
+        self.preview_text.insert("end",tr('在这里输入你想要合成的文本！'))
         self.preview_text.pack(fill='both',expand=True)
         # 按钮
         self.button_frame = ttk.Frame(master=self)
         self.buttons = {
-            'confirm' : ttk.Button(master=self.button_frame,bootstyle='primary',text='确定',command=self.comfirm),
-            'preview' : ttk.Button(master=self.button_frame,bootstyle='primary',text='试听',command=self.preview),
-            'save'    : ttk.Button(master=self.button_frame,bootstyle='primary',text='保存',command=self.savefile),
-            'copy'    : ttk.Button(master=self.button_frame,bootstyle='primary',text='复制',command=self.copy_args),
+            'confirm' : ttk.Button(master=self.button_frame,bootstyle='primary',text=tr('确定'),command=self.comfirm),
+            'preview' : ttk.Button(master=self.button_frame,bootstyle='primary',text=tr('试听'),command=self.preview),
+            'save'    : ttk.Button(master=self.button_frame,bootstyle='primary',text=tr('保存'),command=self.savefile),
+            'copy'    : ttk.Button(master=self.button_frame,bootstyle='primary',text=tr('复制'),command=self.copy_args),
         }
         for keyword in self.buttons:
             self.buttons[keyword].pack(side='left',fill='x',expand=True,padx=SZ_10,ipady=SZ_5)
@@ -416,7 +431,7 @@ class VoiceChooser(ttk.Frame):
         try:
             args = this_VoiceArgs.get_args()
         except ValueError as E:
-            Messagebox().show_error(message=str(E),title='错误',parent=self)
+            Messagebox().show_error(message=str(E),title=tr('错误'),parent=self)
             return
         # 添加到剪贴板
         self.clipboard_clear()
@@ -428,7 +443,7 @@ class VoiceChooser(ttk.Frame):
             # 关闭
             self.close_func(result=args)
         except ValueError as E:
-            Messagebox().show_error(message=str(E),title='错误',parent=self)
+            Messagebox().show_error(message=str(E),title=tr('错误'),parent=self)
             return
     def preview_command(self)->bool:
         this_VoiceArgs = self.get_select_args()

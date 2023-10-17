@@ -5,13 +5,14 @@
 
 import pandas as pd
 import ttkbootstrap as ttk
-from ttkbootstrap.dialogs import Dialog,MessageCatalog
+from ttkbootstrap.dialogs import Dialog
 from tkinter import StringVar, IntVar
 # 语音选择、重定位文件、新建项目
 from .GUI_TableStruct import ABMethod
 from .GUI_VoiceChooser import VoiceChooserDialog
 from .GUI_NewProject import CreateProjectDialog
 from .GUI_Relocate import RelocateDialog
+from .GUI_Language import tr
 from .GUI_Util import DictCombobox
 from .GUI_Link import Link
 # 语法解释器
@@ -153,7 +154,7 @@ def voice_chooser(master,voice_obj:StringVar,speech_obj:IntVar,pitch_obj:IntVar)
     dialog_window = VoiceChooserDialog(
         parent=master,
         screenzoom=master.sz,
-        title='选择语音音源',
+        title=tr('选择音源'),
         voice=init_voice,
         speechrate=init_speech,
         pitchrate=init_pitch
