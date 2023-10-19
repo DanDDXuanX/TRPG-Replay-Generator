@@ -186,6 +186,8 @@ class PreferenceTable(TableEdit):
             preference.set_struct(new_struct)
             preference.execute() # 执行变更
             preference.dump_json() # 保存配置文件
+            # 更新状态栏
+            Link['update_statusbar']()
             # 消息
             self.show_toast(message=tr('已经成功设置首选项！\n主题变更需要重启程序后才会生效'),title=tr('修改','首选项'))
         except Exception as E:

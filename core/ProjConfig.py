@@ -213,9 +213,10 @@ class Preference:
             Tencent_TTS_engine.APPID = int(self.appid)
             Tencent_TTS_engine.SecretId = self.secretid
             Tencent_TTS_engine.SecretKey = self.secretkey
+            self.bulitin_keys_status = -1
         else:
-            self.bulitin_keys = KeyRequest()
-            print(self.bulitin_keys.status)
+            bulitin_keys = KeyRequest()
+            self.bulitin_keys_status = bulitin_keys.status
         # 内建动画
         BuiltInAnimation.BIA_font = self.BIA_font
         BuiltInAnimation.BIA_font_size = self.BIA_font_size

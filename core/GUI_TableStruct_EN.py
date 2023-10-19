@@ -3299,3 +3299,14 @@ media_help_url = {
     'Audio':    'https://www.wolai.com/vg19WbT72VHjBGnbQ4UmgW#eaN2UDJyU3d5dj34sozhzk',
     'BGM':  'https://www.wolai.com/vg19WbT72VHjBGnbQ4UmgW#63Go1D2Nef7LoBS6J9D1zo',
 }
+# 状态栏
+key_status_bar = {
+    -1: 'TTS key service disabled, using custom keys.',
+    0: 'TTS service online, welcome.',
+    1: '[ERROR:1] Error occurred in response format.',
+    2: '[ERROR:2] Error occurred in TTS key decrypt.',
+    3: '[ERROR:3] Request failed, current client has no permission.',
+    4: '[ERROR:4] Connection timed out. please check your network.',
+    5: '[ERROR:5] Service IP not found!',
+    6: '[ERROR:6] Communication key not found!'
+}

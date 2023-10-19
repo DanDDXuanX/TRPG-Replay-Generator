@@ -17,6 +17,10 @@ from .GUI_Util import Texture
 from .GUI_DialogWindow import browse_file
 from .GUI_CustomDialog import new_project
 from .GUI_EmptyHomeView import HomePageElements
+from .GUI_TableStruct import key_status_bar
+from .GUI_Link import Link
+from .ProjConfig import preference
+from .Utils import EDITION
 # 脚本视图：运行 MDF、CTB、RGL 脚本文件的视图。
 # 控制台视图：容纳控制台输出内容的视图。
 # 首选项视图：设置整个程序的首选项的视图。
@@ -26,16 +30,29 @@ class EmptyView(ttk.Frame):
     def __init__(self,master,screenzoom)->None:
         # 缩放比例
         self.sz = screenzoom
-        SZ_150 = int(self.sz * 150)
         SZ_10 = int(self.sz * 10)
         super().__init__(master,borderwidth=0,bootstyle='light')
         # 子原件
         self.texture = Texture(master=self, screenzoom=self.sz, file='./assets/texture/texture5.png')
         self.content = HomePageElements(master=self, screenzoom=self.sz)
+        self.statusbar = ttk.Frame(master=self,padding=0)
+        self.status_text = {
+            'version': ttk.Label(master=self.statusbar,text=tr('回声工坊') + ' ' + EDITION,padding=(SZ_10,0,SZ_10,0)),
+            'keys' : ttk.Label(master=self.statusbar,padding=(SZ_10,0,SZ_10,0))
+        }
+        self.update_status_bar()
+        Link['update_statusbar'] = self.update_status_bar
         self.update_items()
     def update_items(self):
+        SZ_20 = int(self.sz * 20)
         self.texture.place(relx=0,rely=0,relwidth=1,relheight=1)
         self.content.place(relx=0.25,rely=0.15,relwidth=0.5,relheight=0.65)
+        self.status_text['version'].pack(side='left',fill='y')
+        self.status_text['keys'].pack(side='right',fill='y')
+        self.statusbar.place(relx=0,rely=1,y=-SZ_20,height=SZ_20,relwidth=1)
+    def update_status_bar(self):
+        text_style = (lambda x: 'secondary-inverse' if x==-1 else 'primary-inverse' if x==0 else 'danger-inverse')(preference.bulitin_keys_status)
+        self.status_text['keys'].configure(text=key_status_bar[preference.bulitin_keys_status],bootstyle=text_style)
     def open_project_file(self,filepath):
         try:
             PView = ProjectView(master=self.master,screenzoom=self.sz,project_file=filepath)

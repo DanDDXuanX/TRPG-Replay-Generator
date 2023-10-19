@@ -3299,3 +3299,14 @@ media_help_url = {
     'Audio':    'https://www.wolai.com/vg19WbT72VHjBGnbQ4UmgW#eaN2UDJyU3d5dj34sozhzk',
     'BGM':  'https://www.wolai.com/vg19WbT72VHjBGnbQ4UmgW#63Go1D2Nef7LoBS6J9D1zo',
 }
+# 状态栏
+key_status_bar = {
+    -1: '已禁用TTS密钥服务，正在使用自定义密钥。',
+    0: '语音合成服务已上线，欢迎你！',
+    1: '[ERROR:1] 响应格式发生错误。',
+    2: '[ERROR:2] TTS密钥解密错误。',
+    3: '[ERROR:3] 请求失败，当前客户端没有权限。',
+    4: '[ERROR:4] 连接超时，请检查网络。',
+    5: '[ERROR:5] 找不到服务IP!',
+    6: '[ERROR:6] 找不到通讯密钥！'
+}
