@@ -71,6 +71,7 @@ class FreeToolTip(ToolTip):
         """Create a show the tooltip window"""
         if self.toplevel:
             return
+        SZ_8 = int(self.sz*8)
         SZ_10 = int(self.sz * 10)
         SZ_17 = int(self.sz * 17)
         SZ_25 = int(self.sz * 25)
@@ -82,7 +83,10 @@ class FreeToolTip(ToolTip):
             self.tx =  SZ_10
             self.ty = -SZ_50
         elif self.side == 'left':
-            self.tx = -SZ_17 * len(self.text) - SZ_25
+            if preference.lang == 'zh': # 一般来说中文比英文宽
+                self.tx = -SZ_17 * len(self.text) - SZ_25
+            else:
+                self.tx = -SZ_8 * len(self.text) - SZ_25
             self.ty = -SZ_10
         self.toplevel = ttk.Toplevel(
             position=(

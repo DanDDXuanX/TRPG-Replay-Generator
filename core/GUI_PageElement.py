@@ -26,6 +26,7 @@ from .ScriptParser import Script
 from .FilePaths import Filepath
 from .GUI_Link import Link
 from .GUI_Util import FreeToolTip
+from .ProjConfig import preference
 
 # 搜索窗口
 class SearchBar(ttk.Frame):
@@ -82,20 +83,28 @@ class OutPutCommand(ttk.Frame):
             'recode'    : ImageTk.PhotoImage(name='recode',image=Image.open('./assets/icon/ffmpeg.png').resize(icon_size)),
         }
         self.buttons = {
-            'display'   : ttk.Button(master=self,image='display',text='播放预览',compound='left',style='output.TButton',command=lambda:self.open_new_thread('display'),cursor='hand2'),
-            'synth'     : ttk.Button(master=self,image='synth',text='语音合成',compound='left',style='output.TButton',command=lambda:self.open_new_thread('synth'),cursor='hand2'),
-            'exportpr'    : ttk.Button(master=self,image='exportpr',text='导出PR工程',compound='left',style='output.TButton',command=lambda:self.open_new_thread('exportpr'),cursor='hand2'),
-            'recode'    : ttk.Button(master=self,image='recode',text='导出视频',compound='left',style='output.TButton',command=lambda:self.open_new_thread('recode'),cursor='hand2'),
+            'display'   : ttk.Button(master=self,image='display',text=tr('播放预览'),compound='left',style='output.TButton',command=lambda:self.open_new_thread('display'),cursor='hand2'),
+            'synth'     : ttk.Button(master=self,image='synth',text=tr('语音合成'),compound='left',style='output.TButton',command=lambda:self.open_new_thread('synth'),cursor='hand2'),
+            'exportpr'    : ttk.Button(master=self,image='exportpr',text=tr('导出PR项目'),compound='left',style='output.TButton',command=lambda:self.open_new_thread('exportpr'),cursor='hand2'),
+            'recode'    : ttk.Button(master=self,image='recode',text=tr('导出视频'),compound='left',style='output.TButton',command=lambda:self.open_new_thread('recode'),cursor='hand2'),
         }
         # 音效
         self.toastSE = pygame.mixer.Sound('./assets/SE_toast.wav')
         # 退出状态
         self.status = {
-            0 : '正常',
-            1 : '异常',
-            2 : '终止',
-            3 : '初始化'
-        }
+            'zh':{
+                0 : '正常',
+                1 : '异常',
+                2 : '终止',
+                3 : '初始化'
+            },
+            'en':{
+                0 : 'Normal',
+                1 : 'Error',
+                2 : 'Terminated',
+                3 : 'Initialize'
+            }
+        }[preference.lang]
         # 线程
         self.runing_thread = None
         self.update_item()
@@ -147,8 +156,9 @@ class OutPutCommand(ttk.Frame):
             Link['terminal_control'].configure(state='disable')
             self.winfo_toplevel().navigate_bar.enable_navigate()
             self.show_toast(
-                message='【预览播放】执行完毕\n退出状态是：【{}】'.format(
-                    self.status[exit_status]
+                message=tr('【{core}】执行完毕\n退出状态是：【{status}】').format(
+                    core=tr('预览播放'),
+                    status=self.status[exit_status]
                 ),
                 notice=False
             )
@@ -188,8 +198,9 @@ class OutPutCommand(ttk.Frame):
             Link['terminal_control'].configure(state='disable')
             self.winfo_toplevel().navigate_bar.enable_navigate()
             self.show_toast(
-                message='【语音合成】执行完毕\n退出状态是：【{}】'.format(
-                    self.status[exit_status]
+                message=tr('【{core}】执行完毕\n退出状态是：【{status}】').format(
+                    core=tr('语音合成'),
+                    status=self.status[exit_status]
                 )
             )
     def export_video(self):
@@ -221,8 +232,9 @@ class OutPutCommand(ttk.Frame):
             Link['terminal_control'].configure(state='disable')
             self.winfo_toplevel().navigate_bar.enable_navigate()
             self.show_toast(
-                message='【导出视频】执行完毕\n退出状态是：【{}】'.format(
-                    self.status[exit_status]
+                message=tr('【{core}】执行完毕\n退出状态是：【{status}】').format(
+                    core=tr('导出视频'),
+                    status=self.status[exit_status]
                 )
             )
     def export_xml(self):
@@ -261,8 +273,9 @@ class OutPutCommand(ttk.Frame):
             Link['terminal_control'].configure(state='disable')
             self.winfo_toplevel().navigate_bar.enable_navigate()
             self.show_toast(
-                message='【导出PR项目】执行完毕\n退出状态是：【{}】'.format(
-                    self.status[exit_status]
+                message=tr('【{core}】执行完毕\n退出状态是：【{status}】').format(
+                    core=tr('导出PR项目'),
+                    status=self.status[exit_status]
                 )
             )
     def open_new_thread(self,output_type:str):
@@ -273,7 +286,7 @@ class OutPutCommand(ttk.Frame):
         if self.runing_thread is None:
             pass
         elif self.runing_thread.is_alive():
-            print("正在执行中")
+            print(tr("正在执行中"))
             return
         # 新建线程
         if output_type == 'display':
@@ -285,7 +298,7 @@ class OutPutCommand(ttk.Frame):
         elif output_type == 'recode':
             self.runing_thread = threading.Thread(target=self.export_video)
         else:
-            self.runing_thread = threading.Thread(target=lambda:print("无效的执行"))
+            self.runing_thread = threading.Thread(target=lambda:print(tr("无效的执行")))
         # 开始执行
         self.runing_thread.start()
         Link['runing_thread'] = self.runing_thread
@@ -294,7 +307,7 @@ class OutPutCommand(ttk.Frame):
     def show_toast(self,message,notice=True):
         # 弹出消息提示，Toast
         ToastNotification(
-            title='核心退出',
+            title=tr('核心退出'),
             message=message,
             duration=5000
         ).show_toast()
@@ -323,14 +336,14 @@ class VerticalOutputCommand(OutPutCommand):
         }
         # 小贴士
         self.tooltip = {
-            'display'        : FreeToolTip(widget=self.buttons['display'],bootstyle='primary-inverse',text='播放预览',screenzoom=self.sz,side='left'),
-            'synth'          : FreeToolTip(widget=self.buttons['synth'],bootstyle='primary-inverse',text='语音合成',screenzoom=self.sz,side='left'),
-            'exportpr'       : FreeToolTip(widget=self.buttons['exportpr'],bootstyle='primary-inverse',text='导出PR项目',screenzoom=self.sz,side='left'),
-            'recode'         : FreeToolTip(widget=self.buttons['recode'],bootstyle='primary-inverse',text='导出视频',screenzoom=self.sz,side='left'),
-            'asterisk_add'   : FreeToolTip(widget=self.side_button['asterisk_add'],bootstyle='secondary-inverse',text='添加语音合成标记',screenzoom=self.sz,side='left'),
-            'asterisk_import': FreeToolTip(widget=self.side_button['asterisk_import'],bootstyle='secondary-inverse',text='批量导入外部语音文件',screenzoom=self.sz,side='left'),
-            'asterisk_del'   : FreeToolTip(widget=self.side_button['asterisk_del'],bootstyle='danger-inverse',text='移除星标语音',screenzoom=self.sz,side='left'),
-            'intel_import'   : FreeToolTip(widget=self.side_button['intel_import'],bootstyle='secondary-inverse',text='智能导入剧本',screenzoom=self.sz,side='left'),
+            'display'        : FreeToolTip(widget=self.buttons['display'],bootstyle='primary-inverse',text=tr('播放预览'),screenzoom=self.sz,side='left'),
+            'synth'          : FreeToolTip(widget=self.buttons['synth'],bootstyle='primary-inverse',text=tr('语音合成'),screenzoom=self.sz,side='left'),
+            'exportpr'       : FreeToolTip(widget=self.buttons['exportpr'],bootstyle='primary-inverse',text=tr('导出PR项目'),screenzoom=self.sz,side='left'),
+            'recode'         : FreeToolTip(widget=self.buttons['recode'],bootstyle='primary-inverse',text=tr('导出视频'),screenzoom=self.sz,side='left'),
+            'asterisk_add'   : FreeToolTip(widget=self.side_button['asterisk_add'],bootstyle='secondary-inverse',text=tr('添加语音合成标记'),screenzoom=self.sz,side='left'),
+            'asterisk_import': FreeToolTip(widget=self.side_button['asterisk_import'],bootstyle='secondary-inverse',text=tr('批量导入外部语音文件'),screenzoom=self.sz,side='left'),
+            'asterisk_del'   : FreeToolTip(widget=self.side_button['asterisk_del'],bootstyle='danger-inverse',text=tr('移除星标语音'),screenzoom=self.sz,side='left'),
+            'intel_import'   : FreeToolTip(widget=self.side_button['intel_import'],bootstyle='secondary-inverse',text=tr('智能导入剧本'),screenzoom=self.sz,side='left'),
         }
         self.update_side_button()
         self.configure(borderwidth=SZ_5,bootstyle='light')
@@ -393,31 +406,31 @@ class VerticalOutputCommand(OutPutCommand):
         "弹出询问框，让用户选择目标角色。返回name,subtypes"
         # 获取名字
         all_names = self.master.ref_chartab.get_names()
-        name_dict = {value:value for value in ['（全部）']+all_names}
+        name_dict = {value:value for value in [tr('（全部）')]+all_names}
         name_choice = selection_query(
             master  = self.master,
             screenzoom  = self.sz,
-            prompt  = '目标角色（Name）是？',
+            prompt  = tr('目标角色（Name）是？'),
             title   = title,
             choice  = name_dict,
-            init    = '（全部）'
+            init    = tr('（全部）')
         )
-        if name_choice == '（全部）':
+        if name_choice == tr('（全部）'):
             return None,None
         elif name_choice == None:
             return 
         else:
             all_subtype = self.master.ref_chartab.get_subtype(name=name_choice)
-            subtype_dict = {value:value for value in ['（全部）']+all_subtype}
+            subtype_dict = {value:value for value in [tr('（全部）')]+all_subtype}
             subtype_choice = selection_query(
                 master  = self.master,
                 screenzoom  = self.sz,
-                prompt  = '目标差分（Subtype）是？',
+                prompt  = tr('目标差分（Subtype）是？'),
                 title   = title,
                 choice  = subtype_dict,
-                init    = '（全部）'
+                init    = tr('（全部）')
             )
-            if subtype_choice == '（全部）':
+            if subtype_choice == tr('（全部）'):
                 return name_choice,None
             elif subtype_choice == None:
                 return
@@ -426,14 +439,14 @@ class VerticalOutputCommand(OutPutCommand):
     def del_asterisk_marks(self):
         # 获取名字
         try:
-            name_choice,subtype_choice = self.target_charactor_query(title='删除星标')
+            name_choice,subtype_choice = self.target_charactor_query(title=tr('移除星标语音'))
             self.codeview.remove_asterisk_marks(name=name_choice,subtype=subtype_choice)
         except TypeError: # cannot unpack non-iterable NoneType object
             return
     def fill_asterisk_from_files(self):
         # 获取名字
         try:
-            name_choice,subtype_choice = self.target_charactor_query(title='批量导入语音')
+            name_choice,subtype_choice = self.target_charactor_query(title=tr('批量导入语音'))
             self.codeview.fill_asterisk_from_files(name=name_choice,subtype=subtype_choice)
         except TypeError: # cannot unpack non-iterable NoneType object
             return
@@ -492,9 +505,13 @@ class NewElementCommand(ttk.Frame):
         def command():
             if self.pagetype == 'charactor':
                 name_this = self.container.name
-                element_name = self.page.content.new_subtype(name=name_this,subtype='新建差分')
+                element_name = self.page.content.new_subtype(name=name_this,subtype=tr('新建差分'))
             elif self.pagetype in Script.Media_type:
-                element_name = self.page.content.new_element(name='新建'+button_this['text'],element_type=keyword)
+                if preference.lang == 'zh':
+                    new_name = '新建'+button_this['text']
+                else:
+                    new_name = 'New_' + button_this['text']
+                element_name = self.page.content.new_element(name=new_name,element_type=keyword)
             else:
                 return
             # 新建原件

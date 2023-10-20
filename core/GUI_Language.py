@@ -97,6 +97,11 @@ class Translate:
             '角色' : 'CTB',
             '媒体' : 'MDF',
             '剧本' : 'RGL',
+            '播放预览' : 'Play Preview',
+            '语音合成' : 'Speech Synthesis',
+            '导出PR项目': 'Export PR Project',
+            '导出视频' : 'Export Video',
+            '新建差分' : 'New_Subtype',
             '从文件夹中打开一个现有的项目。':'Open a project from local files.',
             '创建一个空白的项目，导入回声工坊1.0版本的工程文件，或者从头开始创建你的项目。':'Create an empty project and start from scratch, or load existing scripts.',
             '选择样式模板，智能解析导入聊天记录或者染色器log文件，直接创建一个半成品项目。':'Select a template, import raw chat logs, and create a semi-finished project.',
@@ -139,7 +144,20 @@ class Translate:
             '确定要删除这个条目？\n这项删除将无法复原！': 'Sure to delete this item? This deletion cannot be recovered!',
             '尝试重命名一个已经启动的{}页面！\n重命名后，这个页面会被关闭！': 'Trying to rename a enabled {} page.\nAfter renaming, this page will be closed!',
             '失败的重命名':'Failed to Rename',
-            '#! {executable}\n# {new_keyword}: 空白的剧本文件。点按键盘Tab键，获取命令智能补全。预览和导出按钮在右侧 ->\n':'#! {executable}\n# {new_keyword}: Empty RplGenLog. Press Tab to access Text Autocomplete Engine. Preview and export buttons are on the right->\n'
+            '#! {executable}\n# {new_keyword}: 空白的剧本文件。点按键盘Tab键，获取命令智能补全。预览和导出按钮在右侧 ->\n':'#! {executable}\n# {new_keyword}: Empty RplGenLog. Press Tab to access Text Autocomplete Engine. Preview and export buttons are on the right->\n',
+            '【{core}】执行完毕\n退出状态是：【{status}】': '[{core}] Execute done!\nExit status: [{status}]',
+            "正在执行中": 'Core running!',
+            "无效的执行": 'Invalid execution!',
+            '核心退出': 'Core Exit',
+            '添加语音合成标记': 'Add TTS mark',
+            '批量导入外部语音文件': 'Import external voice files in batches',
+            '移除星标语音': 'Remove asterisk voices',
+            '智能导入剧本': 'Intel script-text importing',
+            '（全部）': '(All)',
+            '目标角色（Name）是？': 'Target character Name is ___?',
+            '目标差分（Subtype）是？': 'Target character Subtype is ___?',
+            '批量导入语音':'Import voice in batches',
+
         }
     }
     lang = 'zh'
