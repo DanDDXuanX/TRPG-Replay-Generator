@@ -196,10 +196,12 @@ class Preference:
             # 中文
             Print.lang = 1 
             RplGenError.lang = 1
+            MediaObj.test_str = '测试文本'
         else:
             # 英文
             Print.lang == 0
             RplGenError.lang = 0
+            MediaObj.test_str = 'Test'
         # 如果不使用内置key
         if self.use_bulitin_keys == False:
             # 阿里云语音合成key

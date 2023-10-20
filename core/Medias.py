@@ -32,6 +32,8 @@ class MediaObj:
         'greenscreen':(0,177,64,255),
         'notetext':(118,185,0,255),'empty':(0,0,0,0)
         }
+    # 语言：因为Medias无法引用preference
+    test_str = '测试文本'
     # 导出PR项目相关的类变量
     # clip_XML 模板
     clip_tplt = open('./assets/xml_templates/tplt_clip.xml','r',encoding='utf-8').read()
@@ -164,7 +166,7 @@ class Text(MediaObj):
     # 预览
     def preview(self, surface:pygame.Surface):
         # 测试文本
-        test_text = ("测1试Te2st文3本Te4xt" * (self.line_limit//16+1))[0:self.line_limit]
+        test_text = (self.test_str * (self.line_limit//4+1))[0:self.line_limit]
         text_surf:pygame.Surface = self.draw(test_text)[0]
         # 尺寸
         w,h = text_surf.get_size()
@@ -769,7 +771,7 @@ class Bubble(MediaObj):
             lines = 1
         # 主文本
         if self.MainText is not None:
-            line1 = ((self.MainText.line_limit//lines+1)*"测试文本")
+            line1 = ((self.MainText.line_limit//lines+1)*self.test_str)
             if type(self.MainText) is RichText:
                 richlabels = ['[u]','[i]','[b]','[fg:#ff5555][bg:#cccccc]']
                 test_text = '[^]'
@@ -793,7 +795,7 @@ class Bubble(MediaObj):
             if type(self.Header) is HPLabel:
                 test_head = '5/10'
             else:
-                test_head = ((self.Header.line_limit//4+1)*"测试文本")[0:self.Header.line_limit]
+                test_head = ((self.Header.line_limit//4+1)*self.test_str)[0:self.Header.line_limit]
         else:
             test_head = ''
         return test_head
@@ -945,7 +947,7 @@ class Balloon(Bubble):
                 if type(header_this) is HPLabel:
                     test_head.append('5/10')
                 else:
-                    test_head.append(((header_this.line_limit//4+1)*"测试文本")[0:header_this.line_limit])
+                    test_head.append(((header_this.line_limit//4+1)*self.test_str)[0:header_this.line_limit])
             else:
                 test_head.append('')
         test_head = '|'.join(test_head)

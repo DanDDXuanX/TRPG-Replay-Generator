@@ -134,7 +134,20 @@ class SectionElement:
                         else:
                             temp_canvas.fill('white')
                     # 渲染预览字体
-                    test_text = {'Text':'字体#Text','StrokeText':'描边#Stroke','RichText':'[i]富文[#][/i][u]Rich','HPLabel':'血条#1/2'}[section['type']]
+                    test_text = {
+                        'zh':{
+                            'Text':'字体#Text',
+                            'StrokeText':'描边#Stroke',
+                            'RichText':'[i]富文[#][/i][u]Rich',
+                            'HPLabel':'血条#1/2'
+                        },
+                        'en':{
+                            'Text':'Test#Text',
+                            'StrokeText':'Test#Stroke',
+                            'RichText':'[i]Test[#][/i][u]Rich',
+                            'HPLabel':'HP#1/2'
+                        },
+                        }[preference.lang][section['type']]
                     for idx,text in enumerate(text_obj.draw(text=test_text)):
                         text:pygame.Surface
                         w,h = text.get_size()
