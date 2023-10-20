@@ -94,6 +94,9 @@ class Translate:
             '扮演：': 'role:',
             '选择音源' : 'Select Voice',
             '测试文本' : 'Text for text',
+            '角色' : 'CTB',
+            '媒体' : 'MDF',
+            '剧本' : 'RGL',
             '从文件夹中打开一个现有的项目。':'Open a project from local files.',
             '创建一个空白的项目，导入回声工坊1.0版本的工程文件，或者从头开始创建你的项目。':'Create an empty project and start from scratch, or load existing scripts.',
             '选择样式模板，智能解析导入聊天记录或者染色器log文件，直接创建一个半成品项目。':'Select a template, import raw chat logs, and create a semi-finished project.',
@@ -129,7 +132,14 @@ class Translate:
             '语音合成失败！检视控制台获取详细信息。': 'Synthesis Failed, check the terminal to get detail info',
             '必须选择一个音源！': 'Must choose a voice name.',
             '音源名是无效的！': 'The selected voice is invalid.',
-            '在这里输入你想要合成的文本！' : 'Please enter the text for test here.'
+            '在这里输入你想要合成的文本！' : 'Please enter the text for test here.',
+            '失败的新建':'Failed to Create',
+            '非法的{type}名：{name}\n{type}名只能包含中文、英文、数字、下划线和空格！': 'Invalid {type} name: {name}\n{type} name can only contain Chinese characters, English letters, numbers, underscores, and spaces.',
+            '重复的{type}名：{name}！': 'Duplicate {type} name: {name} !',
+            '确定要删除这个条目？\n这项删除将无法复原！': 'Sure to delete this item? This deletion cannot be recovered!',
+            '尝试重命名一个已经启动的{}页面！\n重命名后，这个页面会被关闭！': 'Trying to rename a enabled {} page.\nAfter renaming, this page will be closed!',
+            '失败的重命名':'Failed to Rename',
+            '#! {executable}\n# {new_keyword}: 空白的剧本文件。点按键盘Tab键，获取命令智能补全。预览和导出按钮在右侧 ->\n':'#! {executable}\n# {new_keyword}: Empty RplGenLog. Press Tab to access Text Autocomplete Engine. Preview and export buttons are on the right->\n'
         }
     }
     lang = 'zh'

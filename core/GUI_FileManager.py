@@ -499,7 +499,7 @@ class FileCollapsing(ttk.Frame):
         self.items['new:init'].destroy()
         self.items.pop('new:init')
         self.update_filelist()
-    def add_item_done(self,enter,filetype='角色')->bool: # TODO：本地化做到这一步了！
+    def add_item_done(self,enter,filetype=tr('角色'))->bool: # TODO：本地化做到这一步了！
         new_keyword = self.re_name.get()
         origin_keyword = 'new:init'
         # 每次rename，done只能触发一次！
@@ -514,15 +514,15 @@ class FileCollapsing(ttk.Frame):
             if re.match('^[\w\ ]+$',new_keyword) is None:
                 self.add_item_failed()
                 Messagebox().show_warning(
-                    message = '非法的{type}名：{name}\n{type}名只能包含中文、英文、数字、下划线和空格！'.format(type=filetype, name=new_keyword),
-                    title   = '失败的新建'
+                    message = tr('非法的{type}名：{name}\n{type}名只能包含中文、英文、数字、下划线和空格！').format(type=filetype, name=new_keyword),
+                    title   = tr('失败的新建')
                     )
                 raise Exception('非法名')
             if new_keyword in self.items.keys():
                 self.add_item_failed()
                 Messagebox().show_warning(
-                    message = '重复的{type}名：{name}\n！'.format(type=filetype, name=new_keyword),
-                    title   = '失败的新建'
+                    message = tr('重复的{type}名：{name}！').format(type=filetype, name=new_keyword),
+                    title   = tr('失败的新建')
                     )
                 raise Exception('重复名')
             # 删除原来的关键字
@@ -551,28 +551,28 @@ class FileCollapsing(ttk.Frame):
     def delete_item(self,keyword)->bool:
         # 确定真的要这么做吗？
         choice = Messagebox().show_question(
-            message='确定要删除这个条目？\n这项删除将无法复原！',
-            title='警告！',
-            buttons=["取消:primary","确定:danger"]
+            message=tr('确定要删除这个条目？\n这项删除将无法复原！'),
+            title=tr('警告'),
+            buttons=[tr('取消')+":primary", tr('确定')+":danger"]
             )
         # 返回是否需要删除项目数据
-        if choice != '确定':
+        if choice != tr('确定'):
             return False
         else:
             self.items[keyword].destroy()
             self.items.pop(keyword)
             return True
-    def rename_item(self,keyword,filetype='角色'):
+    def rename_item(self,keyword,filetype=tr('角色')):
         # 如果尝试重命名的是一个已经打开的标签页
         rename_an_active_page:bool = filetype+"-"+keyword in self.page_frame.page_dict.keys()
         if rename_an_active_page:
             choice = Messagebox().show_question(
-                message='尝试重命名一个已经启动的{}页面！\n重命名后，这个页面会被关闭！'.format(filetype),
-                title='警告！',
-                buttons=["取消:primary","确定:danger"],
+                message=tr('尝试重命名一个已经启动的{}页面！\n重命名后，这个页面会被关闭！').format(filetype),
+                title=tr('警告'),
+                buttons=[tr('取消')+":primary", tr('确定')+":danger"],
                 parent=self
                 )
-            if choice != '确定':
+            if choice != tr('确定'):
                 return
         # 原来的按钮
         self.button_2_rename:ttk.Button = self.items[keyword]
@@ -594,7 +594,7 @@ class FileCollapsing(ttk.Frame):
         self.items[origin_keyword].destroy()
         self.items[origin_keyword] = self.button_2_rename
         self.update_filelist()
-    def rename_item_done(self,enter:bool,filetype='角色'):
+    def rename_item_done(self,enter:bool,filetype=tr('角色')):
         # 关键字
         origin_keyword = self.button_2_rename.cget('text')
         new_keyword = self.re_name.get()
@@ -611,15 +611,15 @@ class FileCollapsing(ttk.Frame):
             if re.match('^[\w\ ]+$',new_keyword) is None:
                 self.rename_item_failed(origin_keyword)
                 Messagebox().show_warning(
-                    message = '非法的{type}名：{name}\n{type}名只能包含中文、英文、数字、下划线和空格！'.format(type=filetype, name=new_keyword),
-                    title   = '失败的重命名'
+                    message = tr('非法的{type}名：{name}\n{type}名只能包含中文、英文、数字、下划线和空格！').format(type=filetype, name=new_keyword),
+                    title   = tr('失败的重命名')
                     )
                 raise Exception('非法名')
             if new_keyword in self.items.keys() and new_keyword != origin_keyword:
                 self.rename_item_failed(origin_keyword)
                 Messagebox().show_warning(
-                    message = '重复的{type}名：{name}\n！'.format(type=filetype, name=new_keyword),
-                    title   = '失败的重命名'
+                    message = tr('重复的{type}名：{name}\n！').format(type=filetype, name=new_keyword),
+                    title   = tr('失败的重命名')
                     )
                 raise Exception('重复名')
             # 删除原来的关键字
@@ -677,7 +677,10 @@ class MDFCollapsing(FileCollapsing):
         self.image = {}
         for mediatype in ['Pos', 'Text', 'Bubble', 'Animation', 'Background', 'Audio']:
             filename = self.media_type_name[mediatype]
-            showname = "{} ({})".format(filename,mediatype)
+            if preference.lang == 'zh':
+                showname = "{} ({})".format(filename,mediatype)
+            else:
+                showname = mediatype
             if preference.theme == 'rplgendark':
                 self.image[mediatype] = ImageTk.PhotoImage(name='FM_'+mediatype , image=self.enhance_image(Image.open(self.image_path[mediatype]).resize(icon_size)))
             else:
@@ -697,10 +700,14 @@ class MDFCollapsing(FileCollapsing):
     def open_item_as_page(self,event):
         # 获取点击按钮的关键字
         keyword = event.widget.cget('text')
-        filename,file_index = keyword.split(' ') # 前两个字
-        file_index = file_index[1:-1] # 去除括号
+        if preference.lang == 'zh':
+            filename,file_index = keyword.split(' ') # 前两个字
+            file_index = file_index[1:-1] # 去除括号
+        else:
+            filename = keyword
+            file_index = keyword
         super().open_item_as_page(
-            keyword     = '媒体-' + filename, # '媒体-立绘'
+            keyword     = tr('媒体')+'-' + filename, # '媒体-立绘'
             image       = 'FM_' + file_index,
             file_type   = 'MDF',
             file_index  = file_index # 'Animation'
@@ -745,29 +752,29 @@ class CTBCollapsing(FileCollapsing):
             self.items[name].bind("<Button-3>",self.right_click_menu)
         self.update_item()
     def add_item_done(self, enter):
-        confirm_add =  super().add_item_done(enter, '角色')
+        confirm_add =  super().add_item_done(enter, tr('角色'))
         new_keyword = self.re_name.get()
         if confirm_add:
             self.content.add_chara_default(new_keyword)
     def delete_item(self, keyword):
         confirm_delete:bool = super().delete_item(keyword)
-        delete_an_active_page:bool = "角色-"+keyword in self.page_frame.page_dict.keys()
+        delete_an_active_page:bool = tr("角色") + "-"+keyword in self.page_frame.page_dict.keys()
         if confirm_delete:
             # 如果是激活的页面，关闭激活的标签页
             if delete_an_active_page:
-                self.page_frame.page_notebook.delete("角色-"+keyword)
+                self.page_frame.page_notebook.delete(tr("角色")+"-"+keyword)
             # 执行删除项目
             self.content.delete_chara(name=keyword)
     def rename_item(self, keyword):
-        return super().rename_item(keyword,filetype='角色')
+        return super().rename_item(keyword,filetype=tr('角色'))
     def rename_item_done(self,enter:bool):
         origin_keyword = self.button_2_rename.cget('text')
         new_keyword = self.re_name.get()
-        rename_an_active_page:bool = "角色-"+origin_keyword in self.page_frame.page_dict.keys()
-        edit_CTB = super().rename_item_done(enter=enter,filetype='角色')
+        rename_an_active_page:bool = tr("角色") + "-" + origin_keyword in self.page_frame.page_dict.keys()
+        edit_CTB = super().rename_item_done(enter=enter,filetype=tr('角色'))
         if edit_CTB:
             if rename_an_active_page:
-                self.page_frame.page_notebook.delete("角色-"+origin_keyword)
+                self.page_frame.page_notebook.delete(tr("角色")+"-"+origin_keyword)
             # 重命名 content
             self.content.rename(origin_keyword,new_keyword)
             # 是否广播
@@ -776,7 +783,7 @@ class CTBCollapsing(FileCollapsing):
         # 获取点击按钮的关键字
         keyword = event.widget.cget('text')
         super().open_item_as_page(
-            keyword     = '角色-'+keyword,
+            keyword     = tr('角色') + '-'+keyword,
             image       = self.img_name,
             file_type   = 'CTB',
             file_index  = keyword
@@ -784,7 +791,7 @@ class CTBCollapsing(FileCollapsing):
     def get_chara_name(self)->list:
         return list(self.items.keys())
 # 项目视图-可折叠类容器-剧本类
-class RGLCollapsing(FileCollapsing):
+class RGLCollapsing(FileCollapsing): 
     def __init__(self, master, screenzoom: float, content:dict, page_frame:PageFrame):
         super().__init__(master, screenzoom, 'rplgenlog', content, page_frame)
         SZ_15 = int(self.sz * 15)
@@ -824,33 +831,36 @@ class RGLCollapsing(FileCollapsing):
             self.items[key].bind("<Button-3>",self.right_click_menu)
         self.update_item()
     def add_item_done(self, enter):
-        confirm_add =  super().add_item_done(enter, '剧本')
+        confirm_add =  super().add_item_done(enter, tr('剧本'))
         new_keyword = self.re_name.get()
         executable = sys.executable
         if confirm_add:
             # 新建一个空白的RGL
             self.content[new_keyword] = RplGenLog(
-                string_input=f'#! {executable}\n# {new_keyword}: 空白的剧本文件。点按键盘Tab键，获取命令智能补全。预览和导出按钮在右侧 ->\n'
+                string_input=tr('#! {executable}\n# {new_keyword}: 空白的剧本文件。点按键盘Tab键，获取命令智能补全。预览和导出按钮在右侧 ->\n').format(
+                    executable=executable,
+                    new_keyword=new_keyword
+                )
                 )
     def delete_item(self, keyword):
         confirm_delete:bool = super().delete_item(keyword)
-        delete_an_active_page:bool = "剧本-"+keyword in self.page_frame.page_dict.keys()
+        delete_an_active_page:bool = tr("剧本")+"-"+keyword in self.page_frame.page_dict.keys()
         if confirm_delete:
             # 如果是激活的页面，关闭激活的标签页
             if delete_an_active_page:
-                self.page_frame.page_notebook.delete("剧本-"+keyword)
+                self.page_frame.page_notebook.delete(tr("剧本")+"-"+keyword)
             # 执行删除项目
             self.content.pop(keyword)
     def rename_item(self, keyword):
-        return super().rename_item(keyword,filetype='剧本')
+        return super().rename_item(keyword,filetype=tr('剧本'))
     def rename_item_done(self,enter:bool):
         origin_keyword = self.button_2_rename.cget('text')
         new_keyword = self.re_name.get()
-        rename_an_active_page:bool = "剧本-"+origin_keyword in self.page_frame.page_dict.keys()
-        edit_RGL = super().rename_item_done(enter=enter,filetype='剧本')
+        rename_an_active_page:bool = tr("剧本") + "-"+origin_keyword in self.page_frame.page_dict.keys()
+        edit_RGL = super().rename_item_done(enter=enter,filetype=tr('剧本'))
         if edit_RGL:
             if rename_an_active_page:
-                self.page_frame.page_notebook.delete("剧本-"+origin_keyword)
+                self.page_frame.page_notebook.delete(tr("剧本")+"-"+origin_keyword)
             # 重命名 content
             self.content[new_keyword] = self.content[origin_keyword]
             self.content.pop(origin_keyword)
@@ -858,7 +868,7 @@ class RGLCollapsing(FileCollapsing):
         # 获取点击按钮的关键字
         keyword = event.widget.cget('text')
         super().open_item_as_page(
-            keyword     = '剧本-'+keyword,
+            keyword     = tr("剧本")+"-"+keyword,
             image       = self.img_name,
             file_type   = 'RGL',
             file_index  = keyword
