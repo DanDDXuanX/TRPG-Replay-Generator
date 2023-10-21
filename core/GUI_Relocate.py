@@ -11,9 +11,27 @@ from ttkbootstrap.dialogs import Messagebox, Dialog
 from tkinter.filedialog import askdirectory
 from .GUI_Link import Link
 from .FilePaths import Filepath
+from .GUI_Language import Localize
+from .ProjConfig import preference
 
 # 框
-class RelocateFile(ttk.Frame):
+class RelocateFile(ttk.Frame, Localize):
+    language = {
+        'en': {
+            '序号': 'Index',
+            '媒体名': 'Media Name',
+            '文件名': 'File Name',
+            '脱机素材': 'Offline File',
+            '新路径': 'New Path',
+            '全部脱机': 'Offline All',
+            '脱机': 'Offline',
+            '搜索': 'Search',
+            '确定': 'OK',
+            '还有尚未处理的待定位文件！\n请完成搜索，或将设置为脱机。': 'There are unprocessed files!\nPlease finish all relinks, or set it to offline.',
+            '还未完成重定位': 'Relink not finish',
+        }
+    }
+    localize = preference.lang
     def __init__(self,master,screenzoom,close_func,file_not_found:dict={}):
         # 缩放尺度
         self.sz = screenzoom
@@ -41,18 +59,18 @@ class RelocateFile(ttk.Frame):
         self.table.column('file_name',anchor='center',width=SZ_150,stretch=True)
         self.table.column('invalid_path',anchor='center',width=SZ_400,stretch=True)
         self.table.column('relocate_path',anchor='center',width=SZ_400,stretch=True)
-        self.table.heading('#0',text='序号',anchor='center')
-        self.table.heading('media_name',text='媒体名',anchor='center')
-        self.table.heading('file_name',text='文件名',anchor='center')
-        self.table.heading('invalid_path',text='脱机素材',anchor='center')
-        self.table.heading('relocate_path',text='新路径',anchor='center')
+        self.table.heading('#0',text=self.tr('序号'),anchor='center')
+        self.table.heading('media_name',text=self.tr('媒体名'),anchor='center')
+        self.table.heading('file_name',text=self.tr('文件名'),anchor='center')
+        self.table.heading('invalid_path',text=self.tr('脱机素材'),anchor='center')
+        self.table.heading('relocate_path',text=self.tr('新路径'),anchor='center')
         # 按钮
         self.button_frame = ttk.Frame(master=self)
         self.buttons = {
-            'offall'  :ttk.Button(master=self.button_frame,bootstyle='danger' ,text='全部脱机',width=10,command=self.offline_all_file),
-            'offline' :ttk.Button(master=self.button_frame,bootstyle='secondary',text='脱机',width=10,command=self.offline_a_file),
-            'browse'  :ttk.Button(master=self.button_frame,bootstyle='secondary',text='搜索',width=10,command=self.search_file_by_browse),
-            'comfirm' :ttk.Button(master=self.button_frame,bootstyle='primary',text='确定',width=10,command=self.comfirm),
+            'offall'  :ttk.Button(master=self.button_frame,bootstyle='danger' ,text=self.tr('全部脱机'),width=10,command=self.offline_all_file),
+            'offline' :ttk.Button(master=self.button_frame,bootstyle='secondary',text=self.tr('脱机'),width=10,command=self.offline_a_file),
+            'browse'  :ttk.Button(master=self.button_frame,bootstyle='secondary',text=self.tr('搜索'),width=10,command=self.search_file_by_browse),
+            'comfirm' :ttk.Button(master=self.button_frame,bootstyle='primary',text=self.tr('确定'),width=10,command=self.comfirm),
         }
         for keyword in self.buttons:
             self.buttons[keyword].pack(side='left',padx=SZ_10,ipady=SZ_3,expand=True,fill='x')
@@ -83,7 +101,7 @@ class RelocateFile(ttk.Frame):
         # 更新数据
     def update_title(self):
         self.relocate_len = self.missing_len - len(self.get_file_to_search())
-        self.title.config(text=f'重新定位媒体[{self.relocate_len}/{self.missing_len}]')
+        self.title.config(text=self.tr('重新定位媒体') + f' [{self.relocate_len}/{self.missing_len}]')
     def get_file_to_search(self,colname='media_name'):
         return self.data.query("relocate_path=='None'")[colname].values
     def search_file_by_browse(self):
@@ -105,18 +123,18 @@ class RelocateFile(ttk.Frame):
         try:
             select_idx = [self.table.index(x) for x in self.table.selection()]
             for idx in select_idx:
-                self.update_relocate_path(idx, '脱机')
+                self.update_relocate_path(idx, self.tr('脱机'))
             self.update_title()
         except IndexError:
             return
     def offline_all_file(self):
         for idx in self.data.index:
-            self.update_relocate_path(idx, '脱机')
+            self.update_relocate_path(idx, self.tr('脱机'))
         self.update_title()
     def comfirm(self):
         # 如不不为空
         if len(self.get_file_to_search('relocate_path'))!=0:
-            Messagebox().show_info(message='还有尚未处理的待定位文件！\n请完成搜索，或将设置为脱机。',title='还未完成重定位',parent=self)
+            Messagebox().show_info(message=self.tr('还有尚未处理的待定位文件！\n请完成搜索，或将设置为脱机。'),title=self.tr('还未完成重定位'),parent=self)
         else:
             self.close_func(result=self.data)
     def update_relocate_path(self,idx,path):

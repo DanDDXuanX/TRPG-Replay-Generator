@@ -5,10 +5,11 @@ import re
 import ttkbootstrap as ttk
 from .GUI_Util import KeyValueDescribe, TextSeparator, FluentFrame, ask_rename_boardcast
 from .GUI_TableStruct import EditTableStruct, label_colors, projection, alignments, vertical_alignments, chatalign, charactor_columns, fill_mode, fit_axis, True_False, left_right, media_help_url
-from .ScriptParser import MediaDef, RplGenLog, CharTable
 from .GUI_CustomDialog import voice_chooser, selection_query
-from .Exceptions import SyntaxsError
+from .GUI_Language import tr
 from .GUI_Link import Link
+from .ScriptParser import MediaDef, RplGenLog, CharTable
+from .Exceptions import SyntaxsError
 from ttkbootstrap.dialogs import Messagebox, Querybox
 from ttkbootstrap.toast import ToastNotification
 # 编辑区
@@ -198,7 +199,7 @@ class EditWindow(FluentFrame):
     def get_avaliable_custom(self)->dict:
         charactor_columns_this = {}
         for key in Link['project_chartab'].customize_col:
-            charactor_columns_this["{}（自定义）".format(key)] = "'{}'".format(key)
+            charactor_columns_this[tr("{}（自定义）").format(key)] = "'{}'".format(key)
         return charactor_columns_this
     # 刷新预览
     def update_preview(self,keywords:list):
@@ -216,8 +217,8 @@ class CharactorEdit(EditWindow):
         super().update_from_section(index,section,line_type=line_type)
         CharactorEdit.custom_col = self.page.content.customize_col # 直接引用，read only！
         # 补充自定义列的内容
-        self.seperator['CustomSep'].add_button(text='添加+',command=self.add_customs)
-        self.seperator['CustomSep'].add_button(text='删除-',command=self.remove_customs)
+        self.seperator['CustomSep'].add_button(text=tr('添加+'),command=self.add_customs)
+        self.seperator['CustomSep'].add_button(text=tr('删除-'),command=self.remove_customs)
         for custom in CharactorEdit.custom_col:
             self.add_a_custom_kvd(custom=custom)
         # 是否是default？是则禁用相应entry
@@ -263,11 +264,11 @@ class CharactorEdit(EditWindow):
             # 检查新名字是否可用
             if new_keyword in self.page.content.struct:
                 # BUG：如何避免使用 focus out？ 这样会导致重复弹出两次！
-                Messagebox().show_warning(message='这个差分名已经被使用了！',title='重名',parent=self)
+                Messagebox().show_warning(message=tr('这个差分名已经被使用了！'),title=tr('重名'),parent=self)
                 self.reset_name()
                 return self.section
             elif re.fullmatch("^\w+$",new_section['Subtype']) is None:
-                Messagebox().show_warning(message='这个差分名是非法的！',title='非法名',parent=self)
+                Messagebox().show_warning(message=tr('这个差分名是非法的！'),title=tr('非法名'),parent=self)
                 self.reset_name()
                 return self.section
             else:
@@ -303,9 +304,9 @@ class CharactorEdit(EditWindow):
         self.update_section_from()
     # 添加一个自定义列
     def add_customs(self):
-        get_string = Querybox().get_string(prompt="请输入自定义列名",title='新建自定义列',parent=self)
+        get_string = Querybox().get_string(prompt=tr("请输入自定义列名"),title=tr('新建自定义列'),parent=self)
         if get_string in self.custom_col or get_string in self.table_col:
-            Messagebox().show_warning(message='这个列名已经使用过了',title='重名！',parent=self)
+            Messagebox().show_warning(message=tr('这个列名已经使用过了！'),title=tr('重名'),parent=self)
             return
         elif get_string is None:
             return
@@ -316,7 +317,7 @@ class CharactorEdit(EditWindow):
             self.add_a_custom_kvd(custom=get_string)
     # 移除一个自定义列
     def remove_customs(self):
-        get_string = selection_query(master=self,screenzoom=self.sz,prompt='请选择想要删除的自定义项',choice=self.get_avaliable_custom())
+        get_string = selection_query(master=self,screenzoom=self.sz,title=tr('删除自定义'),prompt=tr('请选择想要删除的自定义项'),choice=self.get_avaliable_custom())
         if get_string:
             del_colname = get_string[1:-1]
             if del_colname in self.custom_col:
@@ -368,8 +369,8 @@ class CharactorEdit(EditWindow):
     def notice_enter(self,event):
         # 弹出消息提示，Toast
         ToastNotification(
-            title='按回车确定',
-            message='如果确认修改差分名，请按回车键！',
+            title=tr('按回车确定'),
+            message=tr('如果确认修改差分名，请按回车键！'),
             duration=1000
         ).show_toast()
 class MediaEdit(EditWindow):
@@ -405,11 +406,11 @@ class MediaEdit(EditWindow):
         if new_keyword != self.section_index:
             # 检查新名字是否可用
             if new_keyword in self.page.content.struct or new_keyword in ['black','white']:
-                Messagebox().show_warning(message='这个媒体名已经被使用了！',title='重名',parent=self)
+                Messagebox().show_warning(message=tr('这个媒体名已经被使用了！'),title=tr('重名'),parent=self)
                 self.reset_name()
                 return self.section
             elif re.fullmatch("^\w+$",new_keyword) is None or new_keyword[0].isdigit():
-                Messagebox().show_warning(message='这个媒体名是非法的！',title='非法名',parent=self)
+                Messagebox().show_warning(message=tr('这个媒体名是非法的！'),title=tr('非法名'),parent=self)
                 self.reset_name()
                 return self.section
             else:
@@ -539,7 +540,7 @@ class MediaEdit(EditWindow):
         try:
             return self.medef_tool.value_parser(str(value))
         except SyntaxsError:
-            Messagebox().show_error(message='无效的值：{}'.format(value),title='错误',parent=self)
+            Messagebox().show_error(message=tr('无效的值：{}').format(value),title=tr('错误'),parent=self)
             return value
     def update_preview(self, keywords: list):
         # 更新对象
@@ -579,9 +580,9 @@ class MediaEdit(EditWindow):
             else:
                 # 在最后一个小节建立
                 end = idx-1
-                self.seperator[MultiSep%end].add_button(text='添加+',command=self.add_a_sep)
+                self.seperator[MultiSep%end].add_button(text=tr('添加+'),command=self.add_a_sep)
                 if end > 1:
-                    self.seperator[MultiSep%end].add_button(text='删除-',command=self.del_a_sep)
+                    self.seperator[MultiSep%end].add_button(text=tr('删除-'),command=self.del_a_sep)
                 # 结束循环
                 self.sep_end = end
                 self.multisep = MultiSep
@@ -660,8 +661,8 @@ class MediaEdit(EditWindow):
     def notice_enter(self,event):
         # 弹出消息提示，Toast
         ToastNotification(
-            title='按回车确定',
-            message='如果确认修改媒体名，请按回车键！',
+            title=tr('按回车确定'),
+            message=tr('如果确认修改媒体名，请按回车键！'),
             duration=1000
         ).show_toast()
 class LogEdit(EditWindow):

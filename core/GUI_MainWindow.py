@@ -230,14 +230,14 @@ class RplGenStudioMainWindow(ttk.Window):
             x = int(self.winfo_x())
             y = int(self.winfo_y())
             choice = Messagebox().show_question(
-            message='确认要关闭软件？\n尚未保存的项目变更将会丢失！',
-            title='警告！',
-            buttons=["取消:secondary","确定:danger"],
+            message=tr('确认要关闭软件？\n尚未保存的项目变更将会丢失！'),
+            title=tr('警告'),
+            buttons=[tr('取消')+":secondary",tr('确定')+":danger"],
             alert=True,
             position=(x+w,y+h),
             width=100
             )
-            if choice != '确定':
+            if choice != tr('确定'):
                 return False
         self.dump_recent_project()
         self.destroy()
@@ -408,7 +408,7 @@ class NavigateBar(ttk.Frame):
     def press_button(self,button,force=False):
         # 检查是否禁用
         if self.disabled and force==False:
-            ToastNotification(title='禁用图形界面',message='核心程序正在运行中！在核心程序终止前，图形界面已被暂时的禁用。').show_toast()
+            ToastNotification(title=tr('禁用图形界面'),message=tr('核心程序正在运行中！在核心程序终止前，图形界面已被暂时的禁用。'),duration=3000).show_toast()
             return
         position = int(self.ypos[button]*self.sz)
         if position < 0:

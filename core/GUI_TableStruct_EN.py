@@ -2241,7 +2241,7 @@ PreferenceTableStruct = {
         "Content":{
             "System.lang":{
                 "ktext": "language",
-                "tooltip":"Language of UI.",
+                "tooltip":"Language of UI. Need restarted for take effect.",
                 "dtext": "(select)",
                 "ditem": "label",
                 "valuekey": "System.lang",

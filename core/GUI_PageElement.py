@@ -157,7 +157,7 @@ class OutPutCommand(ttk.Frame):
             self.winfo_toplevel().navigate_bar.enable_navigate()
             self.show_toast(
                 message=tr('【{core}】执行完毕\n退出状态是：【{status}】').format(
-                    core=tr('预览播放'),
+                    core=tr('播放预览'),
                     status=self.status[exit_status]
                 ),
                 notice=False

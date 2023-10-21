@@ -2240,8 +2240,8 @@ PreferenceTableStruct = {
         "Command":None,
         "Content":{
             "System.lang":{
-                "ktext": "语言：",
-                "tooltip":"主界面中使用的语言。",
+                "ktext": "语言(Language)：",
+                "tooltip":"主界面中使用的语言。变更后需要重启软件！",
                 "dtext": "（选择）",
                 "ditem": "label",
                 "valuekey": "System.lang",

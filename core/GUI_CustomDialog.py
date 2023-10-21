@@ -52,7 +52,7 @@ class SelectionQurey(Dialog):
         submit = ttk.Button(
             master=frame,
             bootstyle="primary",
-            text='确定',
+            text=tr('确定'),
             command=self.on_submit,
         )
         submit.pack(padx=5, side='right')
@@ -61,7 +61,7 @@ class SelectionQurey(Dialog):
         cancel = ttk.Button(
             master=frame,
             bootstyle="secondary",
-            text='取消',
+            text=tr('取消'),
             command=self.on_cancel,
         )
         cancel.pack(padx=5, side='right')
@@ -88,7 +88,7 @@ def selection_query(master,screenzoom,prompt,choice:dict,title:str="选择",init
 class ABMethodQurey(SelectionQurey):
     TableStruct = ABMethod
     def __init__(self,parent=None,screenzoom=1.0):
-        super().__init__(parent=parent,screenzoom=screenzoom,title='自定义切换效果',prompt="",choice={},alert=False)
+        super().__init__(parent=parent,screenzoom=screenzoom,title=tr('自定义切换效果'),prompt="",choice={},alert=False)
         SZ_10 = int(self.sz * 10)
         self._padding = (SZ_10,SZ_10)
     def create_body(self, master):
@@ -103,18 +103,18 @@ class ABMethodQurey(SelectionQurey):
             'cut'       : StringVar(master=self,value='both'),
         }
         self.commobox = {
-            'alpha'     : self.add_a_query(frame=combox_frame, varible=self.method_varible['alpha'],choice=self.TableStruct['透明度']),
-            'motion'    : self.add_a_query(frame=combox_frame, varible=self.method_varible['motion'],choice=self.TableStruct['运动']),
-            'direction' : self.add_a_query(frame=combox_frame, varible=self.method_varible['direction'],choice=self.TableStruct['方向']),
-            'scale'     : self.add_a_query(frame=combox_frame, varible=self.method_varible['scale'],choice=self.TableStruct['尺度']),
-            'cut'       : self.add_a_query(frame=combox_frame, varible=self.method_varible['cut'],choice=self.TableStruct['进出']),
+            'alpha'     : self.add_a_query(frame=combox_frame, varible=self.method_varible['alpha'],choice=self.TableStruct[tr('透明度')]),
+            'motion'    : self.add_a_query(frame=combox_frame, varible=self.method_varible['motion'],choice=self.TableStruct[tr('运动')]),
+            'direction' : self.add_a_query(frame=combox_frame, varible=self.method_varible['direction'],choice=self.TableStruct[tr('方向')]),
+            'scale'     : self.add_a_query(frame=combox_frame, varible=self.method_varible['scale'],choice=self.TableStruct[tr('尺度')]),
+            'cut'       : self.add_a_query(frame=combox_frame, varible=self.method_varible['cut'],choice=self.TableStruct[tr('进出')]),
         }
         self.labels = {
-            'alpha'     : ttk.Label(master=combox_frame,text='透明度：',width=6),
-            'motion'    : ttk.Label(master=combox_frame,text='运动：',width=6),
-            'direction' : ttk.Label(master=combox_frame,text='方向：',width=6),
-            'scale'     : ttk.Label(master=combox_frame,text='尺度：',width=6),
-            'cut'       : ttk.Label(master=combox_frame,text='进出：',width=6),
+            'alpha'     : ttk.Label(master=combox_frame,text=tr('透明度')+tr('：'),width=8),
+            'motion'    : ttk.Label(master=combox_frame,text=tr('运动')+tr('：'),width=8),
+            'direction' : ttk.Label(master=combox_frame,text=tr('方向')+tr('：'),width=8),
+            'scale'     : ttk.Label(master=combox_frame,text=tr('尺度')+tr('：'),width=8),
+            'cut'       : ttk.Label(master=combox_frame,text=tr('进出')+tr('：'),width=8),
         }
         for idx, keyword in enumerate(self.commobox):
             self.labels[keyword].grid(column=0,row=idx,pady=(0,SZ_5))
@@ -175,7 +175,7 @@ def relocate_file(master, file_not_found:dict, mediadef:MediaDef):
     dialog_window = RelocateDialog(
         parent=master,
         screenzoom=master.sz,
-        title = '重新定位媒体',
+        title = tr('重新定位媒体'),
         file_not_found=file_not_found,
     )
     dialog_window.show()
@@ -184,7 +184,7 @@ def relocate_file(master, file_not_found:dict, mediadef:MediaDef):
     if result_args is not None:
         for key,value in result_args.iterrows():
             # 检查是否需要替换：空白和脱机则不需要替换
-            if value['relocate_path'] in ['None', '脱机']:
+            if value['relocate_path'] in ['None', '脱机', 'Offline']:
                 continue
             else:
                 # 变更媒体定义文件

@@ -551,7 +551,7 @@ class RGLSnippets(CodeSnippet, Localize):
                         try:
                             audio_length = round(Audio(getfile[1:-1]).media.get_length(),2)
                             text = '{' + f'{getfile};*{audio_length}' + '}'
-                            insert(text, len(text)+2)
+                            insert(text, len(text))
                         except Exception as E:
                             print(E)
                             insert('{'+getfile+'}',len(getfile)+2)
