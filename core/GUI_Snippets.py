@@ -13,111 +13,232 @@ from .ScriptParser import CharTable, MediaDef
 from .GUI_CustomDialog import abmethod_query
 from .GUI_DialogWindow import browse_file
 from .GUI_Link import Link
+from .GUI_Language import Localize
 
 class CodeSnippet(ttk.Menu):
     def __init__(self,master):
         super().__init__(master=master, tearoff=0, font=(Link['terminal_font_family'],10))
 
-class RGLSnippets(CodeSnippet):
+class RGLSnippets(CodeSnippet, Localize):
     Snippets = {
-        "command":{
-            "dialog"        :['对话行','[]:',1],
-            "wait"          :['停顿','<wait>:',7],
-            "sep1"          :'sep',
-            "background"    :['切换背景','<background>:',13],
-            "animation"     :['常驻立绘','<animation>:()',13],
-            "bubble"        :['常驻气泡','<bubble>:',9],
-            "BGM"           :['背景音乐','<BGM>:',6],
-            "sep2"          :'sep',
-            "set"           :['设置','<set:>:',5],
-            "table"         :['修改角色表','<table:>:',7],
-            "move"          :['移动媒体','<move:>:',6],
-            "clear"         :['清空聊天窗','<clear>:',8],
-            "sep3"          :'sep',
-            "hitpoint"      :['血量动画','<hitpoint>:(描述,10,10,5)',14],
-            "dice"          :['骰子动画','<dice>:(描述,100,50,75),(描述,100,50,25)',10],
-            "sep4"          :'sep',
-            "comment"       :['注释','# ',2]
+        'zh':{
+            "command":{
+                "dialog"        :['对话行','[]:',1],
+                "wait"          :['停顿','<wait>:',7],
+                "sep1"          :'sep',
+                "background"    :['切换背景','<background>:',13],
+                "animation"     :['常驻立绘','<animation>:()',13],
+                "bubble"        :['常驻气泡','<bubble>:',9],
+                "BGM"           :['背景音乐','<BGM>:',6],
+                "sep2"          :'sep',
+                "set"           :['设置','<set:>:',5],
+                "table"         :['修改角色表','<table:>:',7],
+                "move"          :['移动媒体','<move:>:',6],
+                "clear"         :['清空聊天窗','<clear>:',8],
+                "sep3"          :'sep',
+                "hitpoint"      :['血量动画','<hitpoint>:(描述,10,10,5)',14],
+                "dice"          :['骰子动画','<dice>:(描述,100,50,75),(描述,100,50,25)',10],
+                "sep4"          :'sep',
+                "comment"       :['注释','# ',2]
+            },
+            "set":{
+                "am_method_default"     :["默认切换效果-立绘","am_method_default",19],
+                "bb_method_default"     :["默认切换效果-气泡","bb_method_default",19],
+                "bg_method_default"     :["默认切换效果-背景","bg_method_default",19],
+                "tx_method_default"     :["默认文字效果","tx_method_default",19],
+                "sep1"                  :'sep',
+                "speech_speed"          :["无语音句子的播放速度","speech_speed",14],
+                "asterisk_pause"        :["句子的间隔时间","asterisk_pause",16],
+                "secondary_alpha"       :["非发言角色的立绘透明度","secondary_alpha",17],
+                "inline_method_apply"   :["对话行中效果的作用对象","inline_method_apply",21],
+                "sep2"                  :'sep',
+                "am_dur_default"        :["默认切换时间-立绘","am_dur_default",16],
+                "bb_dur_default"        :["默认切换时间-气泡","bb_dur_default",16],
+                "bg_dur_default"        :["默认切换时间-背景","bg_dur_default",16],
+                "tx_dur_default"        :["默认文字效果时间","tx_dur_default",16],
+                "sep3"                  :'sep',
+                "formula"               :["动画曲线","formula",9],
+            },
+            "am_dur":{
+                "0"    : ["0","0",1],
+                "10"    : ["10","10",2],
+                "20"    : ["20","20",2],
+                "30"    : ["30","30",2],
+                "60"    : ["60","60",2],
+                "100"   : ["100","100",3],
+            },
+            "tx_dur":{
+                "1"     : ["1","1",1],
+                "2"     : ["2","2",1],
+                "3"     : ["3","3",1],
+                "10"    : ["10","10",2],
+                "30"    : ["30","30",2],
+            },
+            "speed":{
+                "220"   : ["220","220",3],
+                "300"   : ["300","300",3],
+                "600"   : ["600","600",3],
+                "900"   : ["900","900",3],
+                "1800"  : ["1800","1800",4],
+            },
+            "formula":{
+                "linear"    : ["线性","linear",6],
+                "quadratic" : ["二次","quadratic",9],
+                "quadraticR": ["反二次","quadraticR",10],
+                "sigmoid"   : ["正S形","sigmoid",7],
+                "right"     : ["右S形","right",5],
+                "left"      : ["左S形","left",4],
+                "sincurve"  : ["正弦","sincurve",8],
+            },
+            "inline":{
+                "both"      : ["全部","both",4],
+                "amimation" : ["立绘","animation",9],
+                "bubble"    : ["气泡","bubble",6],
+                "none"      : ["禁用","none",4],
+            },
+            "tx_met":{
+                "all"   : ["全部","<all=>",5],
+                "w2w"   : ["逐字","<w2w=>",5],
+                "l2l"   : ["逐行","<l2l=>",5],
+                "run"   : ["滚动","<run=>",5],
+            },
+            "bg_met":{
+                "replace"   : ["直接替换","<replace=>",9],
+                "delay"     : ["延迟替换","<delay=>",7],
+                "cross"     : ["交叉溶解","<cross=>",7],
+                "black"     : ["黑场","<black=>",7],
+                "white"     : ["白场","<white=>",7],
+                "push"      : ["推入","<push=>",6],
+                "cover"     : ["覆盖","<cover=>",7],
+            },
+            "ab_met":{
+                "replace"   : ["直接替换","<replace=>",9],
+                "cross"     : ["交叉溶解","<cross=>",7],
+                "black"     : ["淡入淡出","<black=>",7],
+                "pass"      : ["左进右出","<black_pass_left_minor=>",23],
+                "leap"      : ["上进上出","<black_leap_down_minor=>",23],
+                "shake"     : ["震动*"   , "<shake_in_minor=45>",19],
+            },
         },
-        "set":{
-            "am_method_default"     :["默认切换效果-立绘","am_method_default",19],
-            "bb_method_default"     :["默认切换效果-气泡","bb_method_default",19],
-            "bg_method_default"     :["默认切换效果-背景","bg_method_default",19],
-            "tx_method_default"     :["默认文字效果","tx_method_default",19],
-            "sep1"                  :'sep',
-            "speech_speed"          :["无语音句子的播放速度","speech_speed",14],
-            "asterisk_pause"        :["句子的间隔时间","asterisk_pause",16],
-            "secondary_alpha"       :["非发言角色的立绘透明度","secondary_alpha",17],
-            "inline_method_apply"   :["对话行中效果的作用对象","inline_method_apply",21],
-            "sep2"                  :'sep',
-            "am_dur_default"        :["默认切换时间-立绘","am_dur_default",16],
-            "bb_dur_default"        :["默认切换时间-气泡","bb_dur_default",16],
-            "bg_dur_default"        :["默认切换时间-背景","bg_dur_default",16],
-            "tx_dur_default"        :["默认文字效果时间","tx_dur_default",16],
-            "sep3"                  :'sep',
-            "formula"               :["动画曲线","formula",9],
-        },
-        "am_dur":{
-            "0"    : ["0","0",1],
-            "10"    : ["10","10",2],
-            "20"    : ["20","20",2],
-            "30"    : ["30","30",2],
-            "60"    : ["60","60",2],
-            "100"   : ["100","100",3],
-        },
-        "tx_dur":{
-            "1"     : ["1","1",1],
-            "2"     : ["2","2",1],
-            "3"     : ["3","3",1],
-            "10"    : ["10","10",2],
-            "30"    : ["30","30",2],
-        },
-        "speed":{
-            "220"   : ["220","220",3],
-            "300"   : ["300","300",3],
-            "600"   : ["600","600",3],
-            "900"   : ["900","900",3],
-            "1800"  : ["1800","1800",4],
-        },
-        "formula":{
-            "linear"    : ["线性","linear",6],
-            "quadratic" : ["二次","quadratic",9],
-            "quadraticR": ["反二次","quadraticR",10],
-            "sigmoid"   : ["正S形","sigmoid",7],
-            "right"     : ["右S形","right",5],
-            "left"      : ["左S形","left",4],
-            "sincurve"  : ["正弦","sincurve",8],
-        },
-        "inline":{
-            "both"      : ["全部","both",4],
-            "amimation" : ["立绘","animation",9],
-            "bubble"    : ["气泡","bubble",6],
-            "none"      : ["禁用","none",4],
-        },
-        "tx_met":{
-            "all"   : ["全部","<all=>",5],
-            "w2w"   : ["逐字","<w2w=>",5],
-            "l2l"   : ["逐行","<l2l=>",5],
-            "run"   : ["滚动","<run=>",5],
-        },
-        "bg_met":{
-            "replace"   : ["直接替换","<replace=>",9],
-            "delay"     : ["延迟替换","<delay=>",7],
-            "cross"     : ["交叉溶解","<cross=>",7],
-            "black"     : ["黑场","<black=>",7],
-            "white"     : ["白场","<white=>",7],
-            "push"      : ["推入","<push=>",6],
-            "cover"     : ["覆盖","<cover=>",7],
-        },
-        "ab_met":{
-            "replace"   : ["直接替换","<replace=>",9],
-            "cross"     : ["交叉溶解","<cross=>",7],
-            "black"     : ["淡入淡出","<black=>",7],
-            "pass"      : ["左进右出","<black_pass_left_minor=>",23],
-            "leap"      : ["上进上出","<black_leap_down_minor=>",23],
-            "shake"     : ["震动*"   , "<shake_in_minor=45>",19],
-        },
+        'en':{
+            "command":{
+                "dialog"        :['[dialog]','[]:',1],
+                "wait"          :['<wait>','<wait>:',7],
+                "sep1"          :'sep',
+                "background"    :['<background>','<background>:',13],
+                "animation"     :['<animation>','<animation>:()',13],
+                "bubble"        :['<bubble>','<bubble>:',9],
+                "BGM"           :['<BGM>','<BGM>:',6],
+                "sep2"          :'sep',
+                "set"           :['<set:__>','<set:>:',5],
+                "table"         :['<table:__>','<table:>:',7],
+                "move"          :['<move:__>','<move:>:',6],
+                "clear"         :['<clear>','<clear>:',8],
+                "sep3"          :'sep',
+                "hitpoint"      :['<hitpoint>','<hitpoint>:(description,10,10,5)',23],
+                "dice"          :['<dice>','<dice>:(description,100,50,75),(description,100,50,25)',19],
+                "sep4"          :'sep',
+                "comment"       :['# comment','# ',2]
+            },
+            "set":{
+                "am_method_default"     :["am_method_default","am_method_default",19],
+                "bb_method_default"     :["bb_method_default","bb_method_default",19],
+                "bg_method_default"     :["bg_method_default","bg_method_default",19],
+                "tx_method_default"     :["tx_method_default","tx_method_default",19],
+                "sep1"                  :'sep',
+                "speech_speed"          :["speech_speed","speech_speed",14],
+                "asterisk_pause"        :["asterisk_pause","asterisk_pause",16],
+                "secondary_alpha"       :["secondary_alpha","secondary_alpha",17],
+                "inline_method_apply"   :["inline_method_apply","inline_method_apply",21],
+                "sep2"                  :'sep',
+                "am_dur_default"        :["am_dur_default","am_dur_default",16],
+                "bb_dur_default"        :["bb_dur_default","bb_dur_default",16],
+                "bg_dur_default"        :["bg_dur_default","bg_dur_default",16],
+                "tx_dur_default"        :["tx_dur_default","tx_dur_default",16],
+                "sep3"                  :'sep',
+                "formula"               :["formula","formula",9],
+            },
+            "am_dur":{
+                "0"    : ["0","0",1],
+                "10"    : ["10","10",2],
+                "20"    : ["20","20",2],
+                "30"    : ["30","30",2],
+                "60"    : ["60","60",2],
+                "100"   : ["100","100",3],
+            },
+            "tx_dur":{
+                "1"     : ["1","1",1],
+                "2"     : ["2","2",1],
+                "3"     : ["3","3",1],
+                "10"    : ["10","10",2],
+                "30"    : ["30","30",2],
+            },
+            "speed":{
+                "220"   : ["220","220",3],
+                "300"   : ["300","300",3],
+                "600"   : ["600","600",3],
+                "900"   : ["900","900",3],
+                "1800"  : ["1800","1800",4],
+            },
+            "formula":{
+                "linear"    : ["linear","linear",6],
+                "quadratic" : ["quadratic","quadratic",9],
+                "quadraticR": ["quadraticR","quadraticR",10],
+                "sigmoid"   : ["sigmoid","sigmoid",7],
+                "right"     : ["right","right",5],
+                "left"      : ["left","left",4],
+                "sincurve"  : ["sincurve","sincurve",8],
+            },
+            "inline":{
+                "both"      : ["both","both",4],
+                "amimation" : ["animation","animation",9],
+                "bubble"    : ["bubble","bubble",6],
+                "none"      : ["none","none",4],
+            },
+            "tx_met":{
+                "all"   : ["<all=_>","<all=>",5],
+                "w2w"   : ["<w2w=_>","<w2w=>",5],
+                "l2l"   : ["<l2l=_>","<l2l=>",5],
+                "run"   : ["<run=_>","<run=>",5],
+            },
+            "bg_met":{
+                "replace"   : ["<replace=_>","<replace=>",9],
+                "delay"     : ["<delay=_>","<delay=>",7],
+                "cross"     : ["<cross=_>","<cross=>",7],
+                "black"     : ["<black=_>","<black=>",7],
+                "white"     : ["<white=_>","<white=>",7],
+                "push"      : ["<push=_>","<push=>",6],
+                "cover"     : ["<cover=_>","<cover=>",7],
+            },
+            "ab_met":{
+                "replace"   : ["<replace=_>","<replace=>",9],
+                "cross"     : ["<cross=_>","<cross=>",7],
+                "black"     : ["<black=_>","<black=>",7],
+                "pass"      : ["<pass=_>","<black_pass_left_minor=>",23],
+                "leap"      : ["<leap=_>","<black_leap_down_minor=>",23],
+                "shake"     : ["<shake=_>","<shake_in_minor=45>",19],
+            },
+        }
     }
+    language = {
+        'en' : {
+            "（自定义）": '(Custom)',
+            '（全部差分）': '(All Subtype)',
+            '（黑）': '(Black)',
+            '（白）': '(White)',
+            '（无）': '(None)',
+            '（停止）': '(Stop)',
+            '（浏览文件）': '(Browse Files)',
+            '（语音合成）': '(TTS Mark)',
+            '立绘':  'Animation',
+            '气泡':  'Bubble',
+            '背景':  'Background',
+            '（坐标）': '(Coordinate)',
+            '文字效果': 'Text Method',
+            '音效': 'Sound Effect',
+        }
+    }
+    localize = preference.lang
     def __init__(self, master, mediadef:MediaDef, chartab:CharTable):
         # 初始化菜单
         super().__init__(master=master)
@@ -246,7 +367,7 @@ class RGLSnippets(CodeSnippet):
         self.snippets_type = type_
         # 行命令
         if self.snippets_type in ['command','set','am_dur','tx_dur','formula','inline','speed','bg_met','ab_met','tx_met']:
-            self.snippets_content = self.Snippets[self.snippets_type]
+            self.snippets_content = self.Snippets[self.localize][self.snippets_type]
             for keyword in self.snippets_content:
                 if self.snippets_content[keyword] == 'sep':
                     self.add_separator()
@@ -255,7 +376,7 @@ class RGLSnippets(CodeSnippet):
                     self.add_command(label=option, command=self.insert_snippets(snippet, cpos))
             # 立绘切换效果的特殊之处
             if self.snippets_type == 'ab_met':
-                self.add_command(label='（自定义）',command=self.custom_ab_method)
+                self.add_command(label=self.tr('（自定义）'),command=self.custom_ab_method)
         # 角色联想
         elif self.snippets_type=='charactor':
             list_of_snippets = self.ref_char.get_names()
@@ -279,51 +400,51 @@ class RGLSnippets(CodeSnippet):
                 for name in list_of_columns:
                     menu.add_command(label=name, command=self.insert_snippets(name, len(name)+2))
                 self.add_separator()
-                self.add_cascade(label='（全部差分）',menu=menu)
+                self.add_cascade(label=self.tr('（全部差分）'),menu=menu)
         # 背景
         elif self.snippets_type=='background':
-            self.add_command(label='（黑）', command=self.insert_snippets("black", 5))
-            self.add_command(label='（白）', command=self.insert_snippets("white", 5))
+            self.add_command(label=self.tr('（黑）'), command=self.insert_snippets("black", 5))
+            self.add_command(label=self.tr('（白）'), command=self.insert_snippets("white", 5))
             list_of_snippets = self.ref_media.get_type('background')
             for name in list_of_snippets:
                 self.add_command(label=name, command=self.insert_snippets(name, len(name)))
         # 立绘
         elif self.snippets_type=='animation':
-            self.add_command(label='（无）', command=self.force_line("<animation>:NA"))
+            self.add_command(label=self.tr('（无）'), command=self.force_line("<animation>:NA"))
             list_of_snippets = self.ref_media.get_type('anime')
             for name in list_of_snippets:
                 self.add_command(label=name, command=self.insert_snippets(name, len(name)))
         # 气泡联想，聊天窗以对象而不是关键字的形式返回
         elif self.snippets_type=='bubble':
-            self.add_command(label='（无）', command=self.force_line("<bubble>:NA"))
+            self.add_command(label=self.tr('（无）'), command=self.force_line("<bubble>:NA"))
             list_of_snippets = self.ref_media.get_type('bubble',cw=False) + self.ref_media.get_type('chatwindow')
             for name in list_of_snippets:
                 self.add_command(label=name, command=self.insert_snippets(name+'("","")', len(name)+2))
         # 背景音乐
         elif self.snippets_type=='bgm':
-            self.add_command(label='（停止）', command=self.insert_snippets("stop", 4))
+            self.add_command(label=self.tr('（停止）'), command=self.insert_snippets("stop", 4))
             self.add_separator() # --------------------
             list_of_snippets = self.ref_media.get_type('bgm')
             for name in list_of_snippets:
                 self.add_command(label=name, command=self.insert_snippets(name, len(name)))
             self.add_separator() # --------------------
-            self.add_command(label='（浏览文件）', command=self.open_browse_file(mtype='BGM'))
+            self.add_command(label=self.tr('（浏览文件）'), command=self.open_browse_file(mtype='BGM'))
         # 音效
         elif self.snippets_type=='audio':
             if kw_args['asterisk']:
-                self.add_command(label='（语音合成）', command=self.insert_snippets("{*}", 3))
+                self.add_command(label=self.tr('（语音合成）'), command=self.insert_snippets("{*}", 3))
             else:
-                self.add_command(label='（语音合成）', command=self.insert_snippets("{*}", 3), state='disabled')
-            self.add_command(label='（无）', command=self.insert_snippets(r"{NA}", 4))
+                self.add_command(label=self.tr('（语音合成）'), command=self.insert_snippets("{*}", 3), state='disabled')
+            self.add_command(label=self.tr('（无）'), command=self.insert_snippets(r"{NA}", 4))
             self.add_separator() # --------------------
             list_of_snippets = self.ref_media.get_type('audio')
             for name in list_of_snippets:
                 self.add_command(label=name, command=self.insert_snippets("{"+name+"}", len(name)+2))
             self.add_separator() # --------------------
             if kw_args['asterisk']:
-                self.add_command(label='（浏览文件）', command=self.open_browse_file(mtype='SE',asterisk=True))
+                self.add_command(label=self.tr('（浏览文件）'), command=self.open_browse_file(mtype='SE',asterisk=True))
             else:
-                self.add_command(label='（浏览文件）', command=self.open_browse_file(mtype='SE'))
+                self.add_command(label=self.tr('（浏览文件）'), command=self.open_browse_file(mtype='SE'))
         # 清除对话框
         elif self.snippets_type=='chatwindow':
             list_of_snippets = self.ref_media.get_type('chatwindow')
@@ -338,7 +459,7 @@ class RGLSnippets(CodeSnippet):
             self.add_separator()
             # animation，bubble，background
             menus = {}
-            for label,keyword in zip(['立绘','气泡','背景'],['Animation','Bubble','Background']):
+            for label,keyword in zip([self.tr('立绘'),self.tr('气泡'),self.tr('背景')],['Animation','Bubble','Background']):
                 menus[keyword] = CodeSnippet(master=self)
                 for name in dict_of_snippets[keyword]:
                     menus[keyword].add_command(label=name, command=self.insert_snippets(name, len(name)+2))
@@ -362,7 +483,7 @@ class RGLSnippets(CodeSnippet):
             coord_menu = CodeSnippet(master=self)
             for name in dict_of_snippets['coord']:
                 coord_menu.add_command(label=name, command=self.insert_snippets(name, len(name)))
-            self.add_cascade(label='（坐标）',menu=coord_menu)
+            self.add_cascade(label=self.tr('（坐标）'),menu=coord_menu)
         # 角色表
         elif self.snippets_type=='columns':
             list_of_snippets = self.ref_char.customize_col
@@ -370,25 +491,25 @@ class RGLSnippets(CodeSnippet):
                 self.add_command(label=name, command=self.insert_snippets(name, len(name)+2))
         # 音效和文字效果组合
         elif self.snippets_type=='audio|tx_met':
-            self.add_command(label='（语音合成）', command=self.insert_snippets("{*}", 3))
+            self.add_command(label=self.tr('（语音合成）'), command=self.insert_snippets("{*}", 3))
             self.add_separator()
             tx_met_menu = CodeSnippet(master=self)
             audio_menu = CodeSnippet(master=self)
-            self.add_cascade(label='文字效果',menu=tx_met_menu)
-            self.add_cascade(label='音效',menu=audio_menu)
+            self.add_cascade(label=self.tr('文字效果'),menu=tx_met_menu)
+            self.add_cascade(label=self.tr('音效'),menu=audio_menu)
             # 文字效果
-            dict_of_snippets = self.Snippets['tx_met']
+            dict_of_snippets = self.Snippets[self.localize]['tx_met']
             for keyword in dict_of_snippets:
                 option, snippet, cpos = dict_of_snippets[keyword]
                 tx_met_menu.add_command(label=option, command=self.insert_snippets(snippet, cpos))
             # 音效
-            audio_menu.add_command(label='（无）', command=self.insert_snippets(r"{NA}", 4))
+            audio_menu.add_command(label=self.tr('（无）'), command=self.insert_snippets(r"{NA}", 4))
             audio_menu.add_separator() #------------------------
             list_of_snippets = self.ref_media.get_type('audio')
             for name in list_of_snippets:
                 audio_menu.add_command(label=name, command=self.insert_snippets("{"+name+"}", len(name)+2))
             audio_menu.add_separator() #------------------------
-            audio_menu.add_command(label='（浏览文件）', command=self.open_browse_file(mtype='SE',asterisk=True))
+            audio_menu.add_command(label=self.tr('（浏览文件）'), command=self.open_browse_file(mtype='SE',asterisk=True))
     # 闭包
     def insert_snippets(self, snippet, cpos):
         # 命令内容
@@ -447,7 +568,24 @@ class VirtualEvent:
     def __init__(self,key):
         self.keysym = key
 
-class RGLRightClick(ttk.Menu):
+class RGLRightClick(ttk.Menu, Localize):
+    language = {
+        'en':{
+            '全选': 'Select All',
+            '复制': 'Copy',
+            '黏贴': 'Paste',
+            '剪切': 'Cut',
+            '撤回': 'Undo',
+            '重做': 'Redo',
+            '上移': 'Shift Up',
+            '下移': 'Shift Down ',
+            '拆分': 'Split',
+            '保存': 'Save',
+            '刷新': 'Reload',
+            '查找替换': 'Find & Repl',
+        }
+    }
+    localize = preference.lang
     def __init__(self, master:CodeView,frame, mediadef:MediaDef, chartab:CharTable, event):
         # 初始化菜单
         super().__init__(master=master, tearoff=0)
@@ -455,22 +593,22 @@ class RGLRightClick(ttk.Menu):
         self.codeframe = frame
         # 固定的结构
         self.TableStruct = {
-            'all'       : ['全选', 'ctrl+A',self.codeview._select_all],
+            'all'       : [self.tr('全选'), 'ctrl+A',self.codeview._select_all],
             'sep1'      : 'sep',
-            'copy'      : ['复制', 'ctrl+C', self.codeview._copy],
-            'paste'     : ['黏贴', 'ctrl+V', self.codeview._paste],
-            'cut'       : ['剪切', 'ctrl+X', lambda: self.codeview.event_generate("<<Cut>>")],
+            'copy'      : [self.tr('复制'), 'ctrl+C', self.codeview._copy],
+            'paste'     : [self.tr('黏贴'), 'ctrl+V', self.codeview._paste],
+            'cut'       : [self.tr('剪切'), 'ctrl+X', lambda: self.codeview.event_generate("<<Cut>>")],
             'sep2'      : 'sep',
-            're'        : ['撤回', 'ctrl+Z', self.codeview.edit_undo],
-            'redo'      : ['重做', 'ctrl+Y', self.codeview.redo],
+            're'        : [self.tr('撤回'), 'ctrl+Z', self.codeview.edit_undo],
+            'redo'      : [self.tr('重做'), 'ctrl+Y', self.codeview.redo],
             'sep3'      : 'sep',
-            'up'        : ['上移', 'alt+↑', lambda: self.codeframe.swap_lines(VirtualEvent('Up'))],
-            'down'      : ['下移', 'alt+↓', lambda: self.codeframe.swap_lines(VirtualEvent('Down'))],
-            'split'     : ['拆分', 'alt+enter', lambda: self.codeframe.split_dialog(None)],
+            'up'        : [self.tr('上移'), 'alt+↑', lambda: self.codeframe.swap_lines(VirtualEvent('Up'))],
+            'down'      : [self.tr('下移'), 'alt+↓', lambda: self.codeframe.swap_lines(VirtualEvent('Down'))],
+            'split'     : [self.tr('拆分'), 'alt+enter', lambda: self.codeframe.split_dialog(None)],
             'sep4'      : 'sep',
-            'save'      : ['保存', 'ctrl+S', lambda: self.codeframe.save_command(None)],
-            'refresh'   : ['刷新', 'ctrl+R', lambda: self.codeframe.update_codeview(None)],
-            'search'    : ['查找替换','ctrl+F',lambda: self.codeframe.show_search(None)]
+            'save'      : [self.tr('保存'), 'ctrl+S', lambda: self.codeframe.save_command(None)],
+            'refresh'   : [self.tr('刷新'), 'ctrl+R', lambda: self.codeframe.update_codeview(None)],
+            'search'    : [self.tr('查找替换'),'ctrl+F',lambda: self.codeframe.show_search(None)]
         }
         # 引用媒体
         self.ref_media = mediadef

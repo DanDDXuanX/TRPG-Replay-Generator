@@ -14,40 +14,59 @@ from .Medias import MediaObj
 from .FilePaths import Filepath
 from .Exceptions import MediaError
 from .ProjConfig import preference
+from .GUI_Language import tr, Localize
 
 # 右键菜单
-class RightClickMenu(ttk.Menu):
-    # 
+class RightClickMenu(ttk.Menu, Localize):
+    language = {
+        'en':{
+            '全选': 'Select All',
+            '删除': 'Delete',
+            '复制': 'Copy',
+            '粘贴': 'Paste',
+            '粘贴（上方）': 'Paste Above',
+            '粘贴属性': 'Paste Attributes',
+            '保存': 'Save',
+            '按名称': 'By Name',
+            '按类型': 'By Type',
+            '按标签色': 'By Labelcolor',
+            '按立绘': 'By Animation',
+            '按气泡': 'By Bubble',
+            '按语音': 'By Voice',
+            '排序': 'Sort',
+        },
+    }
+    localize = preference.lang
     # 初始化菜单
     def __init__(self,master,event):
         super().__init__(master=master, tearoff=0)
         self.container = master
         # 常规
-        self.add_command(label='全选',accelerator='ctrl+A',command=lambda :self.container.select_range(None,index=False))
-        self.add_command(label='删除',accelerator='Del',command=lambda :self.container.del_select(None),foreground='#cc0000',activebackground='#ff6666')
+        self.add_command(label=self.tr('全选'),accelerator='ctrl+A',command=lambda :self.container.select_range(None,index=False))
+        self.add_command(label=self.tr('删除'),accelerator='Del',command=lambda :self.container.del_select(None),foreground='#cc0000',activebackground='#ff6666')
         self.add_separator()
         # ------------------------
-        self.add_command(label='复制',accelerator='ctrl+C',command=lambda :self.container.copy_element(None))
-        self.add_command(label='粘贴',accelerator='ctrl+V',command=lambda :self.container.paste_element(None,key=self.container.selected[0],ahead=False))
-        self.add_command(label='粘贴（上方）',command=lambda :self.container.paste_element(None,key=self.container.selected[0],ahead=True))
-        self.add_command(label='粘贴属性',accelerator='alt+V', command=lambda :self.container.paste_attribute(None))
+        self.add_command(label=self.tr('复制'),accelerator='ctrl+C',command=lambda :self.container.copy_element(None))
+        self.add_command(label=self.tr('粘贴'),accelerator='ctrl+V',command=lambda :self.container.paste_element(None,key=self.container.selected[0],ahead=False))
+        self.add_command(label=self.tr('粘贴（上方）'),command=lambda :self.container.paste_element(None,key=self.container.selected[0],ahead=True))
+        self.add_command(label=self.tr('粘贴属性'),accelerator='alt+V', command=lambda :self.container.paste_attribute(None))
         # ------------------------
         self.add_separator()
-        self.add_command(label='保存',accelerator='ctrl+S',command=lambda :self.container.save_command(None))
+        self.add_command(label=self.tr('保存'),accelerator='ctrl+S',command=lambda :self.container.save_command(None))
         # ------------------------
         self.add_separator()
         sort_menu = ttk.Menu(master=self)
-        sort_menu.add_command(label='按名称',command=lambda :self.container.sort_element(by='name'))
+        sort_menu.add_command(label=self.tr('按名称'),command=lambda :self.container.sort_element(by='name'))
         if type(self.container.content) is MediaDef:
-            sort_menu.add_command(label='按类型',command=lambda :self.container.sort_element(by='type'))
-            sort_menu.add_command(label='按标签色',command=lambda :self.container.sort_element(by='label_color'))
+            sort_menu.add_command(label=self.tr('按类型'),command=lambda :self.container.sort_element(by='type'))
+            sort_menu.add_command(label=self.tr('按标签色'),command=lambda :self.container.sort_element(by='label_color'))
         elif type(self.container.content) is CharTable:
-            sort_menu.add_command(label='按立绘',command=lambda :self.container.sort_element(by='Animation'))
-            sort_menu.add_command(label='按气泡',command=lambda :self.container.sort_element(by='Bubble'))
-            sort_menu.add_command(label='按语音',command=lambda :self.container.sort_element(by='Voice'))
+            sort_menu.add_command(label=self.tr('按立绘'),command=lambda :self.container.sort_element(by='Animation'))
+            sort_menu.add_command(label=self.tr('按气泡'),command=lambda :self.container.sort_element(by='Bubble'))
+            sort_menu.add_command(label=self.tr('按语音'),command=lambda :self.container.sort_element(by='Voice'))
         else:
             pass
-        self.add_cascade(label='排序',menu=sort_menu)
+        self.add_cascade(label=self.tr('排序'),menu=sort_menu)
         # 显示
         self.post(event.x_root, event.y_root)
 
@@ -542,14 +561,14 @@ class CTBSectionElement(ttk.Frame,SectionElement):
         self.name = keyword
         # key == 'Animation':
         am_thumbname = self.update_image_from_section(media_name=self.section['Animation'])
-        self.items['anime'].configure(text='立绘：'+self.section['Animation'])
+        self.items['anime'].configure(text=tr('立绘：')+self.section['Animation'])
         self.items['AMThB'].configure(image=am_thumbname)
         # key == 'Bubble':
         bb_thumbname = self.update_image_from_section(media_name=self.section['Bubble'])
-        self.items['bubble'].configure(text='气泡：'+self.section['Bubble'])
+        self.items['bubble'].configure(text=tr('气泡：')+self.section['Bubble'])
         self.items['BBThB'].configure(image=bb_thumbname)
         # key in ['Voice','SpeechRate','PitchRate']:
-        self.items['voice'].configure(text='语音：'+self.section['Voice']+'|'+str(self.section['SpeechRate'])+'|'+str(self.section['PitchRate']))
+        self.items['voice'].configure(text=tr('语音：')+self.section['Voice']+'|'+str(self.section['SpeechRate'])+'|'+str(self.section['PitchRate']))
         self.items['head'].configure(text=self.name)
         # 搜索关键字
         self.search_text = self.name + '\n' + self.section['Animation'] + '\n' + self.section['Bubble'] + '\n' + self.section['Voice']

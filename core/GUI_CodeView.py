@@ -18,9 +18,21 @@ from .GUI_Snippets import RGLSnippets, RGLRightClick
 from .GUI_PreviewCanvas import RGLPreviewCanvas
 from .GUI_DialogWindow import browse_multi_file, browse_file
 from .GUI_Util import clear_speech
+from .GUI_Language import tr, Localize
 
 # 查找且替换
-class SearchReplaceBar(ttk.Frame):
+class SearchReplaceBar(ttk.Frame, Localize):
+    language = {
+        'en':{
+            '查找：': 'Find:',
+            '替换：': 'Replace:',
+            '正则' : 'Regex',
+            '查找' : 'Find',
+            '替换' : 'Replace',
+            '全部替换' : 'Repl all'
+        }
+    }
+    localize = preference.lang
     def __init__(self,master,codeview,screenzoom):
         # 缩放尺度
         self.sz = screenzoom
@@ -35,17 +47,17 @@ class SearchReplaceBar(ttk.Frame):
         self.to_find.trace_add('write',callback=self.modify_tofind)
         # 元件
         self.line1 = {
-            'label': ttk.Label(master=self,anchor='e',text='查找：',bootstyle='light-inverse',width=8),
+            'label': ttk.Label(master=self,anchor='e',text=self.tr('查找：'),bootstyle='light-inverse',width=8),
             'entry': ttk.Entry(master=self,font=(Link['terminal_font_family'],10),bootstyle='secondary',textvariable=self.to_find),
-            'button1': ttk.Checkbutton(master=self,text='正则',bootstyle='secondary-toolbutton',width=7,variable=self.is_regex,takefocus=False,cursor='hand2'),
-            'button2': ttk.Button(master=self,text='查找',bootstyle='secondary-outline',width=7,command=self.search,takefocus=False,cursor='hand2'),
+            'button1': ttk.Checkbutton(master=self,text=self.tr('正则'),bootstyle='secondary-toolbutton',width=7,variable=self.is_regex,takefocus=False,cursor='hand2'),
+            'button2': ttk.Button(master=self,text=self.tr('查找'),bootstyle='secondary-outline',width=7,command=self.search,takefocus=False,cursor='hand2'),
         }
         self.bind_key(self.line1['entry'])
         self.line2 = {
-            'label': ttk.Label(master=self,anchor='e',text='替换：',bootstyle='light-inverse',width=8),
+            'label': ttk.Label(master=self,anchor='e',text=self.tr('替换：'),bootstyle='light-inverse',width=8),
             'entry': ttk.Entry(master=self,font=(Link['terminal_font_family'],10),bootstyle='secondary',textvariable=self.to_replace),
-            'button1': ttk.Button(master=self,text='替换',bootstyle='secondary-outline',width=7,command=self.replace,takefocus=False,cursor='hand2'),
-            'button2': ttk.Button(master=self,text='全部替换',bootstyle='secondary-outline',width=7,command=self.replace_all,takefocus=False,cursor='hand2'),
+            'button1': ttk.Button(master=self,text=self.tr('替换'),bootstyle='secondary-outline',width=7,command=self.replace,takefocus=False,cursor='hand2'),
+            'button2': ttk.Button(master=self,text=self.tr('全部替换'),bootstyle='secondary-outline',width=7,command=self.replace_all,takefocus=False,cursor='hand2'),
         }
         self.bind_key(self.line2['entry'])
         self.update_item()

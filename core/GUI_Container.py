@@ -198,7 +198,7 @@ class Container(FluentFrame):
             except Exception as E:
                 Messagebox().show_error(
                     message = re.sub('\x1B\[\d+m','',str(E)),
-                    title   = '错误',
+                    title   = tr('错误'),
                     parent  = self.page.preview
                 )
     def edit_select(self,to_preview):
@@ -234,7 +234,7 @@ class Container(FluentFrame):
         # 分析结果
         if len(is_match) == 0 and to_search != '':
             # 没有匹配到任何内容，重置搜索
-            Messagebox().show_info(message='没有匹配到任何小节！',title='无匹配',parent=self.page.searchbar)
+            Messagebox().show_info(message=tr('没有匹配到任何小节！'),title=tr('无匹配'),parent=self.page.searchbar)
             self.reset_search()
         else:
             # 应用搜索
@@ -265,9 +265,9 @@ class Container(FluentFrame):
     def paste_attribute(self, event):
         # 从Container剪贴板中复制
         if len(Container.element_clipboard) > 1:
-            Messagebox().show_warning(message='复制了多个对象，无法粘贴属性。',title=tr('警告'),parent=self.page)
+            Messagebox().show_warning(message=tr('复制了多个对象，','无法粘贴属性。'),title=tr('警告'),parent=self.page)
         elif len(Container.element_clipboard) == 0:
-            Messagebox().show_warning(message='没有复制对象，无法粘贴属性。',title=tr('警告'),parent=self.page)
+            Messagebox().show_warning(message=tr('没有复制对象，','无法粘贴属性。'),title=tr('警告'),parent=self.page)
         else:
             for name in Container.element_clipboard:
                 copyed_object = Container.element_clipboard[name]
@@ -531,7 +531,7 @@ class MDFContainer(Container):
         idx = self.element_keys.index(key)
         # 检查剪贴板内容，
         if Container.element_clipboard_source != self:
-            Messagebox().show_warning(message='复制的内容无法黏贴到这个页面！',title='类型不正确',parent=self.page)
+            Messagebox().show_warning(message=tr('复制的内容无法黏贴到这个页面！'),title=tr('类型不正确'),parent=self.page)
             return
         # 从Container剪贴板中复制
         for ele in Container.element_clipboard.keys():
@@ -606,7 +606,7 @@ class CTBContainer(Container):
         idx = self.element_keys.index(key)
         # 检查剪贴板内容
         if type(Container.element_clipboard_source) is not CTBContainer:
-            Messagebox().show_warning(message='复制的内容无法黏贴到这个页面！',title='类型不正确',parent=self.page)
+            Messagebox().show_warning(message=tr('复制的内容无法黏贴到这个页面！'),title=tr('类型不正确'),parent=self.page)
             return
         # 执行粘贴
         for ele in Container.element_clipboard.keys():
@@ -643,6 +643,6 @@ class CTBContainer(Container):
             if keyword.split('.')[1] == 'default':
                 self.selected.remove(keyword)
                 self.element[keyword].drop_select()
-                Messagebox().show_warning(title='警告',message='无法删除default差分！',parent=self.page)
+                Messagebox().show_warning(title=tr('警告'),message=tr('无法删除default差分！'),parent=self.page)
         # 继承
         return super().del_select(event)
