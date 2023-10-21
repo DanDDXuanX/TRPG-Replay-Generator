@@ -187,7 +187,10 @@ class PreferenceTable(TableEdit):
             preference.execute() # 执行变更
             preference.dump_json() # 保存配置文件
             # 更新状态栏
-            Link['update_statusbar']()
+            try:
+                Link['update_statusbar']()
+            except Exception: # 在当前显示的不是首页时，可能会出现异常
+                pass
             # 消息
             self.show_toast(message=tr('已经成功设置首选项！\n主题变更需要重启程序后才会生效'),title=tr('修改','首选项'))
         except Exception as E:

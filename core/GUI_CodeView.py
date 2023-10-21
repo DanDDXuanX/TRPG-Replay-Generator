@@ -230,7 +230,7 @@ class SearchReplaceBar(ttk.Frame, Localize):
         self.codeview.configure(autoseparators=True)
         self.codeview.highlight_all()
         # 弹出消息
-        Messagebox().show_info(message=f'已替换{str(replace_count)}处文本。',title='全部替换',parent=self.master)
+        Messagebox().show_info(message=tr('已替换{}处文本。').format(replace_count),title=tr('全部替换'),parent=self.master)
     def bind_key(self,widget:ttk.Entry):
         widget.bind("<Return>", lambda _:self.search())
         widget.bind("<Shift-Return>", lambda _:self.replace_all())
@@ -426,7 +426,7 @@ class RGLCodeViewFrame(ttk.Frame):
         try:
             self.update_rplgenlog()
         except Exception as E:
-            Messagebox().show_error(message=re.sub('\x1B\[\d+m','',str(E)),title='错误',parent=self)
+            Messagebox().show_error(message=re.sub('\x1B\[\d+m','',str(E)),title=tr('错误'),parent=self)
             return
         if self.preview_window is None:
             # 唤起
@@ -521,12 +521,18 @@ class RGLCodeViewFrame(ttk.Frame):
             errorline = line
             self.is_error = True
             self.codeview.tag_add('error', f"{errorline}.0", f"{errorline}.end")
+        # 这一块好像根本没用到
         elif E:
             self.is_error = True
             try:
-                errorline = re.findall('.*错误.*第(\d+)行.*',str(E))[0]
+                if preference.lang == 'zh':
+                    errorline = re.findall('.*异常.*第(\d+)行.*',str(E))[0]
+                else:
+                    errorline = re.findall('.*exception.*in line (\d+).*', str(E))[0]
                 self.codeview.tag_add('error', f"{errorline}.0", f"{errorline}.end")
             except:
+                pass
+            finally:
                 print(E)
         # 高亮所有异常
         else:
@@ -554,7 +560,7 @@ class RGLCodeViewFrame(ttk.Frame):
         try:
             self.update_rplgenlog()
         except Exception as E:
-            Messagebox().show_error(message=re.sub('\x1B\[\d+m','',str(E)),title='错误',parent=self)
+            Messagebox().show_error(message=re.sub('\x1B\[\d+m','',str(E)),title=tr('错误'),parent=self)
             return
         # 添加星标
         add_count = 0
@@ -580,25 +586,32 @@ class RGLCodeViewFrame(ttk.Frame):
             self.hightlight_error(line=line)
         # 消息框
         if add_count == 0:
-            Messagebox().show_info(message='没有添加语音合成标记！\n不会给没有指定音源的角色添加语音合成标记。',title='添加星标',parent=self)
+            Messagebox().show_info(message=tr('没有添加语音合成标记！\n不会给没有指定音源的角色添加语音合成标记。'),title=tr('添加星标'),parent=self)
         else:
             if len(missing_line)==0:
-                Messagebox().show_info(message=f'添加语音合成标记{add_count}个',title='添加星标',parent=self)
+                Messagebox().show_info(message=tr('添加语音合成标记{}个').format(add_count),title='添加星标',parent=self)
             else:
-                Messagebox().show_warning(message=f'添加语音合成标记{add_count}个\n检查到共{len(missing_line)}行出现未定义角色！',title='添加星标',parent=self)
+                Messagebox().show_warning(
+                    message=tr('添加语音合成标记{add}个\n检查到共{miss}行出现未定义角色！').format(
+                        add=add_count,
+                        miss=len(missing_line)
+                        ),
+                    title=tr('添加星标'),
+                    parent=self
+                    )
     # 移除所有星标
     def remove_asterisk_marks(self,name=None,subtype=None):
         # 解析文字
         try:
             self.update_rplgenlog()
         except Exception as E:
-            Messagebox().show_error(message=re.sub('\x1B\[\d+m','',str(E)),title='错误',parent=self)
+            Messagebox().show_error(message=re.sub('\x1B\[\d+m','',str(E)),title=tr('错误'),parent=self)
             return
         # 目标角色
         target_charactors = self.chartab.get_target(name=name,subtype=subtype)
         # 如果目标是空，就可以结束了
         if len(target_charactors) == 0:
-            Messagebox().show_warning(message='指定的角色尚未定义！',title='移除星标',parent=self)
+            Messagebox().show_warning(message=tr('指定的角色尚未定义！'),title=tr('移除星标'),parent=self)
             return
         # 移除星标
         remove_asterisk = 0
@@ -621,22 +634,29 @@ class RGLCodeViewFrame(ttk.Frame):
         self.update_codeview(None)
         # 消息框
         if (remove_asterisk+remove_voice) == 0:
-            Messagebox().show_warning(message='没有找到需要移除的星标音频或待合成标记！',title='移除星标',parent=self)
+            Messagebox().show_warning(message=tr('没有找到需要移除的星标音频或待合成标记！'),title=tr('移除星标'),parent=self)
         else:
-            Messagebox().show_info(message=f'移除星标语音{remove_voice}个，\n待合成标记{remove_asterisk}个。',title='移除星标',parent=self)
+            Messagebox().show_info(
+                message=tr('移除星标语音{voice}个，\n待合成标记{asterisk}个。').format(
+                    voice=remove_voice,
+                    asterisk=remove_asterisk
+                    ),
+                title=tr('移除星标'),
+                parent=self
+            )
     # 批量导入音频文件
     def fill_asterisk_from_files(self,name=None,subtype=None):
         # 解析文字
         try:
             self.update_rplgenlog()
         except Exception as E:
-            Messagebox().show_error(message=re.sub('\x1B\[\d+m','',str(E)),title='错误',parent=self)
+            Messagebox().show_error(message=re.sub('\x1B\[\d+m','',str(E)),title=tr('错误'),parent=self)
             return
         # 目标角色
         target_charactors = self.chartab.get_target(name=name,subtype=subtype)
         # 如果目标是空，就可以结束了
         if len(target_charactors) == 0:
-            Messagebox().show_warning(message='指定的角色尚未定义！',title='移除星标',parent=self)
+            Messagebox().show_warning(message=tr('指定的角色尚未定义！'),title=tr('移除星标'),parent=self)
             return
         # 浏览文件
         list_of_files = browse_multi_file(master=self,filetype='soundeff',related=True,convert=True)
@@ -673,7 +693,7 @@ class RGLCodeViewFrame(ttk.Frame):
         self.update_codeview(None)
         # 消息框
         if filter_asterisk == 0:
-            Messagebox().show_warning(message='没有找到符合过滤条件的待合成标记！',title='批量导入语音',parent=self)
+            Messagebox().show_warning(message=tr('没有找到符合过滤条件的待合成标记！'),title=tr('批量导入语音'),parent=self)
         else:
             if name:
                 if subtype:
@@ -681,18 +701,18 @@ class RGLCodeViewFrame(ttk.Frame):
                 else:
                     target = name
             else:
-                target = "（全部角色）"
-            message = '——批量导入语音报告——\n'
-            message += f'目标角色：{target}\n选中的文件数量：{num_of_files}\n'
-            message += f'目标星标数量：{filter_asterisk}\n填充的音标数量：{fill_asterisk}'
-            Messagebox().show_info(message=message,title='批量导入语音',parent=self)
+                target = tr("（全部角色）")
+            message = tr('——批量导入语音报告——\n')
+            message += tr('目标角色：{target}\n选中的文件数量：{num}\n').format(target=target,num=num_of_files)
+            message += tr('目标星标数量：{filter}\n填充的音标数量：{fill}').format(filter=filter_asterisk,fill=fill_asterisk)
+            Messagebox().show_info(message=message,title=tr('批量导入语音'),parent=self)
     # 智能导入
     def rgl_intel_import(self):
         # 0. 将尚未保存的编辑内容保存
         try:
             self.update_rplgenlog()
         except Exception as E:
-            Messagebox().show_error(message=re.sub('\x1B\[\d+m','',str(E)),title='错误',parent=self)
+            Messagebox().show_error(message=re.sub('\x1B\[\d+m','',str(E)),title=tr('错误'),parent=self)
             return
         # 1. 载入导入的文本
         target_file = browse_file(master=self, text_obj=tk.StringVar(),method='file',filetype='text',related=False)
@@ -704,17 +724,17 @@ class RGLCodeViewFrame(ttk.Frame):
             try:
                 load_text = open(target_file,'r',encoding='gbk').read()
             except Exception as E:
-                Messagebox().show_error('无法解读导入文件的编码！\n请确定导入的是文本文件？',title='格式错误',parent=self)
+                Messagebox().show_error(tr('无法解读导入文件的编码！\n请确定导入的是文本文件？'),title=tr('格式错误'),parent=self)
                 return False
         except FileNotFoundError:
-            Messagebox().show_error('找不到导入的剧本文件，请检查文件名！',title='找不到文件',parent=self)
+            Messagebox().show_error(tr('找不到导入的剧本文件，请检查文件名！'),title=tr('找不到文件'),parent=self)
             return False
         # 2. 开始解析
         story = StoryImporter()
         story.load(text=load_text,max_=300) # 限制，在单个log文件中最多导入300句
         # 3. 检查是否解析成功
         if story.log_mode is None:
-            Messagebox().show_error('当前着色器无法解析导入文本的结构！',title='格式错误',parent=self)
+            Messagebox().show_error(tr('当前着色器无法解析导入文本的结构！'),title=tr('格式错误'),parent=self)
             return False
         # 4. 获取角色
         charinfo = story.get_charinfo()

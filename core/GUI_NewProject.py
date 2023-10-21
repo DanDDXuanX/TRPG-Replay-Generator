@@ -515,13 +515,13 @@ class ConfigureProject(CreateEmptyProject):
                 self.elements['preset_video'].value.set(keyword)
                 break
             else:
-                self.elements['preset_video'].value.set('自定义')
+                self.elements['preset_video'].value.set(tr('自定义'))
         for keyword in self.zorder_preset:
             if Z == self.zorder_preset[keyword]:
                 self.elements['preset_layer'].value.set(keyword)
                 break
             else:
-                self.elements['preset_layer'].value.set('自定义')
+                self.elements['preset_layer'].value.set(tr('自定义'))
         # 更新预设
         self.update_preset(None)
     def confirm(self):

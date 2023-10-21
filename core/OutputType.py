@@ -7,6 +7,7 @@ import pygame
 import ffmpeg
 import time
 import os
+import json
 
 from datetime import datetime
 import pygame.freetype
@@ -477,20 +478,20 @@ class PreviewDisplay(OutputMediaType):
     def welcome(self) -> int:
         size = {
             'main':36,
-            'head':64,
-            'space':48,
+            'head':{'zh':64,'en':50}[preference.lang],
+            'space':{'zh':48,'en':36}[preference.lang],
         }
         rect = {
             'square':(40,40,1000,1000),
             'square_shade':(50,50,1000,1000),
-            'space': (-400,-112,360,72),
+            'space': ({'zh':-400,'en':-480}[preference.lang],-112,{'zh':360,'en':440}[preference.lang],72),
             'dialog': (-840,40,0,72),
             'h1' : (990,60,30,5),
             'h2' : (990,1015,30,5),
             'v1' : (1015,990,5,30),
             'v2' : (1015,60,5,30),
             'k1' : (57,0,10,80),
-            'k2' : (77,0,175,80),
+            'k2' : (77,0,{'zh':175,'en':320}[preference.lang],80),
             'k3' : (80,150,900,2),
         }
         head = {
@@ -500,34 +501,68 @@ class PreviewDisplay(OutputMediaType):
         }
         meta = self.get_meta()
         content={
-            'software':{
-                'head':'软件',
-                'describe':f'RplGen Studio {EDITION} for Dev',
-                'element':[
-                    'Copyright Betelgeuse Industry 2022-2023'
-                ]
+            'zh': {
+                'software':{
+                    'head':'软件',
+                    'describe':f'回声工坊 {EDITION} Dev版',
+                    'element':[
+                        '版权所有 © 2022-2023 Betelgeuse Industry'
+                    ]
+                },
+                'project':{
+                    'head':'项目',
+                    'describe': meta['name'],
+                    'element':[
+                        '分辨率　：{} x {}'.format(self.config.Width, self.config.Height),
+                        '帧率　　：{}'.format(self.config.frame_rate),
+                        '图层顺序：{}'.format('-'.join(self.config.zorder)),
+                    ]
+                },
+                'logfile':{
+                    'head':'剧本',
+                    'describe':"{}  (预览时间：{})".format(meta['title'], meta['current']),
+                    'element':[
+                        "字数　　：{dialog}/{all}（发言/合计）".format(**meta['words']),
+                        "小节　　：{dialog}/{all}（发言/合计）".format(**meta['section']),
+                        "时长　　：{}".format(meta['time']),
+                    ]
+                }
             },
-            'project':{
-                'head':'项目',
-                'describe': meta['name'],
-                'element':[
-                    '分辨率　：{} x {}'.format(self.config.Width, self.config.Height),
-                    '帧率　　：{}'.format(self.config.frame_rate),
-                    '图层顺序：{}'.format('-'.join(self.config.zorder)),
-                ]
-            },
-            'logfile':{
-                'head':'剧本',
-                'describe':"{}  (预览时间：{})".format(meta['title'], meta['current']),
-                'element':[
-                    "字数　　：{dialog}/{all}（发言/合计）".format(**meta['words']),
-                    "小节　　：{dialog}/{all}（发言/合计）".format(**meta['section']),
-                    "时长　　：{}".format(meta['time']),
-                ]
+            'en': {
+                'software':{
+                    'head':'Software',
+                    'describe':f'RplGen Studio {EDITION} for Dev',
+                    'element':[
+                        'Copyright © Betelgeuse Industry 2022-2023'
+                    ]
+                },
+                'project':{
+                    'head':'Project',
+                    'describe': meta['name'],
+                    'element':[
+                        'Resolution: {} x {}'.format(self.config.Width, self.config.Height),
+                        'FrameRate: {}'.format(self.config.frame_rate),
+                        'Zorder: {}'.format('-'.join(self.config.zorder)),
+                    ]
+                },
+                'logfile':{
+                    'head':'RplGenLog',
+                    'describe':"{}  (Start Time: {})".format(meta['title'], meta['current']),
+                    'element':[
+                        "WordCount:   {dialog}/{all} (Dialog/Total)".format(**meta['words']),
+                        "Sections:   {dialog}/{all} (Dialog/Total)".format(**meta['section']),
+                        "Duration:   {}".format(meta['time']),
+                    ]
+                }
             }
-        }
+        }[preference.lang]
+        press_space = {
+            'zh' : '按空格键开始',
+            'en' : 'Press Space to Start'
+        }[preference.lang]
         # 获取tip
-        tip_list = open('./assets/tips.txt','r',encoding='utf-8').read().split('\n')
+        tip_list = json.load(open('./assets/Tips.json','r',encoding='utf-8'))[preference.lang]
+        #tip_list = open('./assets/Tips.json','r',encoding='utf-8').read().split('\n')
         def get_tips()->pygame.Surface:
             text = np.random.choice(tip_list)
             text_surf = freetext.render(text,size=size['main'],fgcolor=color['text_bg'])[0]
@@ -606,22 +641,22 @@ class PreviewDisplay(OutputMediaType):
             for rc in ['k1','k2','k3']:
                 x,y,w,h = rect[rc]
                 pygame.draw.rect(text_foreground,color=color['text_fg'],rect=(x,y+y_this,w,h))
-            text_foreground.blit(freetext.render(content[key]['head'],size=size['head'],fgcolor=color['text_bg'])[0],(88,y_this+7))
-            text_foreground.blit(freetext.render(content[key]['describe'],size=size['main'],fgcolor=color['text_fg'])[0],(88,y_this+98))
+            text_foreground.blit(freetext.render(content[key]['head'],size=size['head'],fgcolor=color['text_bg'])[0], (88,y_this+(78-size['head'])//2))
+            text_foreground.blit(freetext.render(content[key]['describe'],size=size['main'],fgcolor=color['text_fg'])[0], (88,y_this+98))
             for idx, element in enumerate(content[key]['element']):
                 text_foreground.blit(freetext.render(element,size=size['main'],fgcolor=color['text_fg'])[0],(88,y_this+170+idx*56))
         main_canvas.blit(pygame.transform.smoothscale(text_foreground,(square,square)),(0,0))
         # 按空格键开始
         x,y,w,h = rect['space']
-        press_space_text = freetext.render('按空格键开始',size=size['space'],fgcolor=color['text_bg'])[0]
+        press_space_text = freetext.render(press_space,size=size['space'],fgcolor=color['text_bg'])[0]
         space = {
-            'text_mg'         :pygame.Surface(size=(w,h)),
-            'button'      :pygame.Surface(size=(w,h)),
-            'button_press'   :pygame.Surface(size=(w,h)),
+            'text_mg'       : pygame.Surface(size=(w,h)),
+            'button'        : pygame.Surface(size=(w,h)),
+            'button_press'  : pygame.Surface(size=(w,h)),
         }
         for key in space:
             space[key].fill(color[key])
-            space[key].blit(press_space_text,(36,10))
+            space[key].blit(press_space_text,(36,(68-size['space'])//2))
             space[key] = pygame.transform.smoothscale(space[key],(w*zoom,h*zoom))
         button_area = pygame.Rect(self.config.Width+x*zoom,self.config.Height+y*zoom,w*zoom,h*zoom)
         # 伊可            
@@ -851,7 +886,12 @@ class PreviewDisplay(OutputMediaType):
                         ))
                 # 如果正在暂停
                 if forward == 0:
-                    self.annot.blit(self.note_text.render('Press space to continue.',fgcolor=MediaObj.cmap['notetext'],size=0.0278*self.config.Height)[0],(0.410*self.config.Width,0.926*self.config.Height)) # pause
+                    text_space = {
+                        'zh' : '按空格键继续',
+                        'en' : 'Press space to continue'
+                    }[preference.lang]
+                    space_continue = self.note_text.render(text_space,fgcolor=MediaObj.cmap['notetext'],size=0.0278*self.config.Height)[0]
+                    self.annot.blit(space_continue,((self.config.Width-space_continue.get_width())//2,0.926*self.config.Height)) # pause
                 # 显示详情模式
                 if show_detail_info == 1:
                     self.annot.blit(self.note_text.render(detail_info[0],fgcolor=MediaObj.cmap['notetext'],size=0.0185*self.config.Height)[0],(10,10))

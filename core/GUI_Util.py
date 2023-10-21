@@ -16,6 +16,7 @@ from .GUI_DialogWindow import color_chooser, browse_file
 from .Boardcast import BoardcastHandler
 from .ProjConfig import preference
 from .GUI_Link import Link
+from .GUI_Language import tr
 
 # 公用小元件
 # 滚动得更加流畅的scollframe
@@ -236,8 +237,8 @@ class KeyValueDescribe(ttk.Frame):
         except Exception:
             this_key = self.key.cget('text')
             Messagebox().show_error(
-                message=f'【{this_key}】填写的内容数据类型不合法！\n类型要求：{self.dtype}',
-                title='数据类型错误',
+                message=tr('【{key}】填写的内容数据类型不合法！\n类型要求：{dtype}').format(key=this_key,dtype=self.dtype),
+                title=tr('数据类型错误'),
                 )
             if self.dtype == 'int':
                 self.value.set(0)
@@ -561,17 +562,17 @@ def ask_rename_boardcast(master, old_name, new_name, otype):
     # 判断是否要做
     if preference.rename_boardcast == 'ask':
         choice = Messagebox().show_question(
-            message='是否要将更名同步到所有引用位置？\n如果不希望每次询问，请修改：首选项-编辑设置-更名广播',
-            title='更名广播',
-            buttons=["否:secondary","是:primary"],
+            message=tr('是否要将更名同步到所有引用位置？')+'\n'+tr('如果不希望每次询问，请修改：首选项-编辑设置-','更名广播'),
+            title=tr('更名广播'),
+            buttons=[tr('否')+":secondary",tr('是')+":primary"],
             parent= master
             )
     elif preference.rename_boardcast == 'yes':
-        choice = '是'
+        choice = tr('是')
     else:
-        choice = '否'
+        choice = tr('否')
     # 广播
-    if choice == '是':
+    if choice == tr('是'):
         if otype == 'name':
             result = boardcast.rename_charactor(old_name=old_name,new_name=new_name)
         elif otype == 'subtype':
@@ -580,9 +581,9 @@ def ask_rename_boardcast(master, old_name, new_name, otype):
             result = boardcast.rename_media(mtype=otype,old_name=old_name,new_name=new_name)
         # 弹出消息提示，Toast
         message = f'{otype}: {old_name}->{new_name}\n'
-        message += '在媒体库中更新了{mediadef}处引用\n在角色配置中更新了{chartab}处引用\n在剧本文件中更新了{logfile}处引用'.format(**result)
+        message += tr('在媒体库中更新了{mediadef}处引用\n在角色配置中更新了{chartab}处引用\n在剧本文件中更新了{logfile}处引用').format(**result)
         ToastNotification(
-            title='更名广播',
+            title=tr('更名广播'),
             message=message,
             duration=3000
         ).show_toast()
