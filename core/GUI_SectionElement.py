@@ -34,6 +34,8 @@ class RightClickMenu(ttk.Menu, Localize):
             '按气泡': 'By Bubble',
             '按语音': 'By Voice',
             '排序': 'Sort',
+            '固定到预览': 'Fix to Preview',
+            '取消固定': 'Cancel Fix'
         },
     }
     localize = preference.lang
@@ -67,6 +69,15 @@ class RightClickMenu(ttk.Menu, Localize):
         else:
             pass
         self.add_cascade(label=self.tr('排序'),menu=sort_menu)
+        # ------------------------
+        if type(self.container.content) is MediaDef and self.container.typelist != ['Audio','BGM']:
+            self.add_separator()
+            self.add_command(label=self.tr('固定到预览'),command=lambda :self.container.preview_canvas.set_fix(self.container.selected[0]))
+            self.add_command(label=self.tr('取消固定'),command=lambda :self.container.preview_canvas.set_fix('NA'))
+        elif type(self.container.content) is CharTable:
+            pass
+        else:
+            pass
         # 显示
         self.post(event.x_root, event.y_root)
 

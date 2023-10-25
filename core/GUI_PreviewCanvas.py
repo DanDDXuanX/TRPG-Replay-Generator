@@ -196,12 +196,15 @@ class PreviewCanvas(ttk.Frame):
     # 更新画布尺寸
     def update_canvas_size(self, event):
         self.canvas_size = (self.proj_config.Width, self.proj_config.Height)
+        self.update_empty_canvas()
+        self.canvas = pygame.Surface(size=self.canvas_size)
+        self.canvas.blit(self.empty_canvas,(0,0))
+    # 更新背景底图
+    def update_empty_canvas(self):
         self.empty_canvas = pygame.image.load('./assets/canvas.png').subsurface([0,0,self.proj_config.Width,self.proj_config.Height])
         # 如果是黑暗模式，做反相
         if preference.theme == 'rplgendark':
             self.empty_canvas = pygame.surfarray.make_surface(270-pygame.surfarray.array3d(self.empty_canvas))
-        self.canvas = pygame.Surface(size=self.canvas_size)
-        self.canvas.blit(self.empty_canvas,(0,0))
     # 更新显示尺寸
     def update_display_size(self, event):
         WW = self.canvas_label.winfo_width()
@@ -266,9 +269,12 @@ class PreviewCanvas(ttk.Frame):
         # 找到保存项目的命令
         mainwindow.view['project'].file_manager.save_file()
 class MDFPreviewCanvas(PreviewCanvas):
+    fixed_media = None
     def __init__(self, master, screenzoom, mediadef):
         # 继承
         super().__init__(master, screenzoom, mediadef)
+        # 固定
+        self.current_fix = None
         # 可交互的预览窗的特性：
         # 预览窗是可输入焦点的
         self.canvas_label.configure(takefocus=True) 
@@ -301,9 +307,15 @@ class MDFPreviewCanvas(PreviewCanvas):
         # ctrl + Z 撤回
     # 实例化媒体，生成点视图，并预览一次
     def preview(self, media_name:str):
+        # 检查是否需要更新空白画布
+        if self.current_fix is not MDFPreviewCanvas.fixed_media:
+            self.update_empty_canvas()
+            self.current_fix = MDFPreviewCanvas.fixed_media
+        # 继承
         super().preview()
-        # 需要将这个对象保存下来
-        self.object_this = self.get_media(media_name)
+        # 需要将这个对象保存下来：如果media_name不是None
+        if media_name:
+            self.object_this = self.get_media(media_name)
         # print(self.object_this)
         if self.object_this:
             self.object_this.preview(self.canvas)
@@ -312,6 +324,11 @@ class MDFPreviewCanvas(PreviewCanvas):
         self.update_dotview()
         # 刷新显示
         self.update_canvas()
+    # 更新画布尺寸：MDF特性，允许固定媒体
+    def update_empty_canvas(self):
+        super().update_empty_canvas()
+        if MDFPreviewCanvas.fixed_media:
+            MDFPreviewCanvas.fixed_media.preview(surface=self.empty_canvas)
     # 拖拽中实时刷新点视图的内容
     def update_preview(self,pressed:tuple=None):
         # 没有press（是edit在调用这个方法）则更新媒体画面
@@ -556,6 +573,12 @@ class MDFPreviewCanvas(PreviewCanvas):
         self.object_this = None
         self.recode = self.empty_canvas.copy()
         self.dots.clear()
+    # 设置常驻
+    def set_fix(self,media_name:str):
+        # 更新常驻对象
+        MDFPreviewCanvas.fixed_media = self.get_media(media_name=media_name)
+        # 更新画布
+        self.preview(media_name=None)
 class CTBPreviewCanvas(PreviewCanvas):
     def __init__(self, master, screenzoom, chartab, mediadef):
         self.chartab:CharTable = chartab
