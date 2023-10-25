@@ -468,6 +468,9 @@ class MDFContainer(Container):
         self.typelist = typelist
         # 初始化基类
         super().__init__(master=master,content=content,screenzoom=screenzoom)
+        # 按键绑定：暂时不能固定音频类
+        self.container.bind('<Control-Key-q>',lambda event:self.preview_canvas.set_fix('NA'),"+")
+        self.container.bind('<Control-Key-e>',lambda event:self.preview_canvas.set_fix(self.selected[0]),"+")
         # 初始的列数
         self.colnum:int = 3
         self.container.bind('<Configure>', self.update_container_colnum, '+')

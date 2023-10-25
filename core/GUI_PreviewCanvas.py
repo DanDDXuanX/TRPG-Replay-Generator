@@ -5,6 +5,7 @@ import numpy as np
 import tkinter as tk
 import ttkbootstrap as ttk
 import pygame
+from copy import copy
 from pygame.draw import line, rect
 from PIL import Image, ImageTk
 
@@ -12,10 +13,10 @@ from core.Medias import MediaObj
 
 from .ProjConfig import preference
 from .ScriptParser import MediaDef, CharTable, RplGenLog
-from .Medias import MediaObj, Animation, Bubble, ChatWindow, Balloon, Background, HitPoint, Dice
-from .FreePos import Pos, PosGrid
+from .Medias import MediaObj, Animation, Bubble, ChatWindow, Balloon, Background, HitPoint, Dice, Audio, BGM
 from .Utils import get_vppr
 from .GUI_Link import Link
+
 # 可交互的点线框
 class InteractiveDot:
     def __init__(self,p1:tuple,p2:tuple,color:str,master:Animation=None,screen_zoom:float=1.0) -> None:
@@ -294,6 +295,10 @@ class MDFPreviewCanvas(PreviewCanvas):
         self.canvas_label.bind('<Key-Right>',self.adjust_selected_point)
         # 保存
         self.canvas_label.bind('<Control-Key-s>',self.save_command)
+        # 固定和取消固定
+        # 按键绑定：暂时不能固定音频类
+        self.canvas_label.bind('<Control-Key-q>',lambda event:self.set_fix('NA'),"+")
+        self.canvas_label.bind('<Control-Key-e>',lambda event:self.set_fix(),"+")
         # 可以联动编辑区
         self.edit_frame = self.master.edit
         # 初始的鼠标
@@ -327,7 +332,7 @@ class MDFPreviewCanvas(PreviewCanvas):
     # 更新画布尺寸：MDF特性，允许固定媒体
     def update_empty_canvas(self):
         super().update_empty_canvas()
-        if MDFPreviewCanvas.fixed_media:
+        if MDFPreviewCanvas.fixed_media and type(MDFPreviewCanvas.fixed_media) not in [BGM,Audio]:
             MDFPreviewCanvas.fixed_media.preview(surface=self.empty_canvas)
     # 拖拽中实时刷新点视图的内容
     def update_preview(self,pressed:tuple=None):
@@ -574,9 +579,13 @@ class MDFPreviewCanvas(PreviewCanvas):
         self.recode = self.empty_canvas.copy()
         self.dots.clear()
     # 设置常驻
-    def set_fix(self,media_name:str):
-        # 更新常驻对象
-        MDFPreviewCanvas.fixed_media = self.get_media(media_name=media_name)
+    def set_fix(self,media_name:str=None):
+        if media_name:
+            # 更新常驻对象
+            MDFPreviewCanvas.fixed_media = self.get_media(media_name=media_name)
+        else:
+            # 默认，将当前对象设置为常驻对象
+            MDFPreviewCanvas.fixed_media = copy(self.object_this)
         # 更新画布
         self.preview(media_name=None)
 class CTBPreviewCanvas(PreviewCanvas):
