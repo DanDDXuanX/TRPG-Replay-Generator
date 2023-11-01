@@ -11,7 +11,7 @@ from ttkbootstrap.dialogs import Messagebox, Dialog
 from tkinter.filedialog import askdirectory
 from .GUI_Link import Link
 from .FilePaths import Filepath
-from .GUI_Language import Localize
+from .GUI_Language import Localize, tr
 from .ProjConfig import preference
 
 # 框
@@ -101,7 +101,7 @@ class RelocateFile(ttk.Frame, Localize):
         # 更新数据
     def update_title(self):
         self.relocate_len = self.missing_len - len(self.get_file_to_search())
-        self.title.config(text=self.tr('重新定位媒体') + f' [{self.relocate_len}/{self.missing_len}]')
+        self.title.config(text=tr('重新定位媒体') + f' [{self.relocate_len}/{self.missing_len}]')
     def get_file_to_search(self,colname='media_name'):
         return self.data.query("relocate_path=='None'")[colname].values
     def search_file_by_browse(self):

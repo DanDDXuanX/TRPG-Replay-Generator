@@ -117,6 +117,8 @@ class Translate:
             '重名' : 'Duplicate Name',
             '非法名' : 'Invalid Name',
             '新建自定义列' : 'New Custom',
+            '打开失败': 'Failed to Open',
+            '无法读取工程文件，该文件可能已损坏。': 'Cannot read the project file, this file might been damaged.',
             '从文件夹中打开一个现有的项目。':'Open a project from local files.',
             '创建一个空白的项目，导入回声工坊1.0版本的工程文件，或者从头开始创建你的项目。':'Create an empty project and start from scratch, or load existing scripts.',
             '选择样式模板，智能解析导入聊天记录或者染色器log文件，直接创建一个半成品项目。':'Select a template, import raw chat logs, and create a semi-finished project.',

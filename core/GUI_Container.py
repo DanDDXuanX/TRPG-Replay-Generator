@@ -275,7 +275,8 @@ class Container(FluentFrame):
                     screenzoom=self.sz,
                     container=self,
                     select_element=self.selected,
-                    parent=self,title=tr('粘贴','属性'),
+                    parent=self.page,
+                    title=tr('粘贴','属性'),
                     clipboard_element=copyed_object,
                     clipboard_name=name
                     )
