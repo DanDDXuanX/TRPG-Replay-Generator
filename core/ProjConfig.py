@@ -86,6 +86,7 @@ class Config:
 class Preference:
     default = {
         # 合成语音时：key
+        'cdkey': '',
         'use_bulitin_keys' : True,
         'accesskey' : 'Your_AccessKey',
         'accesskey_secret' : 'Your_AccessKey_Secret',
@@ -126,6 +127,7 @@ class Preference:
     }
     keyword = {
         # 语音key
+        'cdkey': 'TTSKey.cdkey',
         'use_bulitin_keys' : "TTSKey.UseBulitInKeys",
         'accesskey' : 'Aliyun.accesskey',
         'accesskey_secret' : 'Aliyun.accesskey_secret',
@@ -217,7 +219,7 @@ class Preference:
             Tencent_TTS_engine.SecretKey = self.secretkey
             self.bulitin_keys_status = -1
         else:
-            bulitin_keys = KeyRequest()
+            bulitin_keys = KeyRequest(self.cdkey)
             self.bulitin_keys_status = bulitin_keys.status
         # 内建动画
         BuiltInAnimation.BIA_font = self.BIA_font
