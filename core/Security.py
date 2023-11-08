@@ -6,7 +6,10 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives import hashes
 import base64
+import hashlib
 import os
+import uuid
+import sys
 
 from .TTSengines import Aliyun_TTS_engine, Azure_TTS_engine, Tencent_TTS_engine
 
@@ -16,6 +19,9 @@ class KeyRequest:
     service_ip_path = './assets/security/service_ip'
     private_key_path = './assets/security/private_key.pem'
     def __init__(self):
+        # 初始化
+        self.mac_address:str = self.get_mac_address()
+        self.client_tag:str  = self.get_client_tag()
         # 载入key和ip
         self.status = self.load_private_key()
         if self.status:
@@ -30,6 +36,18 @@ class KeyRequest:
             return
         # 将获取的key应用到TTSengine
         self.status = self.execute()
+    # 获取设备的Mac地址
+    def get_mac_address(self):
+        mac_address = uuid.getnode()
+        mac_address_str = ':'.join(format(mac_address, '012x')[i:i+2] for i in range(0, 12, 2))
+        return mac_address_str
+    def get_client_tag(self):
+        file_path = sys.executable
+        with open(file_path, 'rb') as file:
+            md5_hash = hashlib.md5()
+            while chunk := file.read(4096):
+                md5_hash.update(chunk)
+        return md5_hash.hexdigest()
     # 客户端解密并使用key
     def load_private_key(self):
         if os.path.isfile(self.private_key_path):
