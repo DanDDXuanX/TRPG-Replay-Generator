@@ -2499,16 +2499,6 @@ PreferenceTableStruct = {
         "Text": "语音合成Key",
         "Command":None,
         "Content":{
-            "TTSKey.cdkey":{
-                "ktext": "软件序列号",
-                "tooltip": "正版授权凭证，从销售渠道处获取。",
-                "dtext": "（输入）",
-                "ditem": "label",
-                "valuekey": "TTSKey.cdkey",
-                "vitem": "entry",
-                "vtype": "str",
-                "default": ''
-            },
             "TTSKey.UseBulitInKeys": {
                 "ktext": "使用软件内置Key",
                 "tooltip":"如果禁用，语音合成服务将会使用下列用户输入的Key，而非软件内置的Key。",
@@ -3315,10 +3305,8 @@ key_status_bar = {
     0: '语音合成服务已上线，欢迎你！',
     1: '[ERROR:1] 响应格式发生错误。',
     2: '[ERROR:2] TTS密钥解密错误。',
-    3: '[ERROR:3] 请求失败，当前序列号没有权限。',
+    3: '[ERROR:3] 请求失败，当前客户端没有权限。',
     4: '[ERROR:4] 连接超时，请检查网络。',
     5: '[ERROR:5] 找不到服务IP!',
-    6: '[ERROR:6] 找不到通讯密钥！',
-    7: '[ERROR:7] 软件序列号格式错误！',
-    8: '[ERROR:8] 没有输入软件序列号！'
+    6: '[ERROR:6] 找不到通讯密钥！'
 }

@@ -7,7 +7,6 @@ from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives import hashes
 import base64
 import os
-import re
 
 from .TTSengines import Aliyun_TTS_engine, Azure_TTS_engine, Tencent_TTS_engine
 
@@ -16,11 +15,7 @@ from .TTSengines import Aliyun_TTS_engine, Azure_TTS_engine, Tencent_TTS_engine
 class KeyRequest:
     service_ip_path = './assets/security/service_ip'
     private_key_path = './assets/security/private_key.pem'
-    def __init__(self,cdkey:str):
-        # 校验CDKey
-        self.status = self.checkup_cdkey(cdkey)
-        if self.status:
-            return
+    def __init__(self):
         # 载入key和ip
         self.status = self.load_private_key()
         if self.status:
@@ -35,17 +30,7 @@ class KeyRequest:
             return
         # 将获取的key应用到TTSengine
         self.status = self.execute()
-    # 检查CDKEY
-    def checkup_cdkey(self,cdkey:str):
-        if cdkey == '':
-            return 8
-        self.cdkey:str = str(cdkey).upper()
-        RE_CDKey = re.compile('([A-Z0-9]{4}-){3}[A-Z0-9]{4}')
-        if RE_CDKey.fullmatch(self.cdkey):
-            return 0
-        else:
-            return 7
-    # 载入私钥
+    # 客户端解密并使用key
     def load_private_key(self):
         if os.path.isfile(self.private_key_path):
             with open(self.private_key_path, 'rb') as key_file:
@@ -85,7 +70,7 @@ class KeyRequest:
     def request_key(self):
         # 构造请求的数据 # TODO：请求内容
         request_message = {
-            'cdkey': self.cdkey
+            'text': 'valid_text',
         }
         # 发送 POST 请求
         try:

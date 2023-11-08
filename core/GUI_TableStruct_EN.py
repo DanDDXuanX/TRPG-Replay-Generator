@@ -2499,16 +2499,6 @@ PreferenceTableStruct = {
         "Text": "Speech Synthesis Key",
         "Command":None,
         "Content":{
-            "TTSKey.cdkey":{
-                "ktext": "CDKey",
-                "tooltip": "The authorized credential, obtained from the distribution channel.",
-                "dtext": "(input)",
-                "ditem": "label",
-                "valuekey": "TTSKey.cdkey",
-                "vitem": "entry",
-                "vtype": "str",
-                "default": ''
-            },
             "TTSKey.UseBulitInKeys": {
                 "ktext": "Use BulitIn Keys",
                 "tooltip":"If disable, TTS Service will uses the following user-entered key instead of the built-in key.",
@@ -3315,10 +3305,8 @@ key_status_bar = {
     0: 'TTS service online, welcome.',
     1: '[ERROR:1] Error occurred in response format.',
     2: '[ERROR:2] Error occurred in TTS key decrypt.',
-    3: '[ERROR:3] Request failed, current CDKey has no permission.',
+    3: '[ERROR:3] Request failed, current client has no permission.',
     4: '[ERROR:4] Connection timed out. please check your network.',
     5: '[ERROR:5] Service IP not found!',
-    6: '[ERROR:6] Communication key not found!',
-    7: '[ERROR:7] CDKey format invalid!',
-    8: '[ERROR:8] No CDKey specified!',
+    6: '[ERROR:6] Communication key not found!'
 }
