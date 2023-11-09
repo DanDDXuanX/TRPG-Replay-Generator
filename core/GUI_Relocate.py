@@ -21,7 +21,7 @@ class RelocateFile(ttk.Frame, Localize):
             '序号': 'Index',
             '媒体名': 'Media Name',
             '文件名': 'File Name',
-            '脱机素材': 'Offline File',
+            '脱机路径': 'Offline Path',
             '新路径': 'New Path',
             '全部脱机': 'Offline All',
             '脱机': 'Offline',
@@ -62,7 +62,7 @@ class RelocateFile(ttk.Frame, Localize):
         self.table.heading('#0',text=self.tr('序号'),anchor='center')
         self.table.heading('media_name',text=self.tr('媒体名'),anchor='center')
         self.table.heading('file_name',text=self.tr('文件名'),anchor='center')
-        self.table.heading('invalid_path',text=self.tr('脱机素材'),anchor='center')
+        self.table.heading('invalid_path',text=self.tr('脱机路径'),anchor='center')
         self.table.heading('relocate_path',text=self.tr('新路径'),anchor='center')
         # 按钮
         self.button_frame = ttk.Frame(master=self)

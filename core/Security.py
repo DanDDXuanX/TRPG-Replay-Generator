@@ -17,7 +17,8 @@ from .TTSengines import Aliyun_TTS_engine, Azure_TTS_engine, Tencent_TTS_engine
 
 class KeyRequest:
     service_ip_path = './assets/security/service_ip'
-    private_key_path = './assets/security/private_key.pem'
+    private_key_path = './assets/security/keys_private_key.pem'
+    public_key_path = './assets/security/messages_public_key.pem'
     def __init__(self):
         # 初始化
         self.mac_address:str = self.get_mac_address()
@@ -48,8 +49,17 @@ class KeyRequest:
             while chunk := file.read(4096):
                 md5_hash.update(chunk)
         return md5_hash.hexdigest()
-    # 客户端解密并使用key
+    # 载入key
     def load_private_key(self):
+        # 用于发送消息的公钥
+        if os.path.isfile(self.public_key_path):
+            with open(self.public_key_path, 'rb') as key_file:
+                self.public_key = serialization.load_pem_public_key(
+                    key_file.read()
+                )
+        else:
+            return 6 # Key
+        # 用于接受消息的私钥
         if os.path.isfile(self.private_key_path):
             with open(self.private_key_path, 'rb') as key_file:
                 self.private_key = serialization.load_pem_private_key(
@@ -58,13 +68,25 @@ class KeyRequest:
                 )
         else:
             return 6 # Key
+        # 服务端地址
         if os.path.isfile(self.service_ip_path):
             with open(self.service_ip_path,'r') as ip_file:
                 self.service_ip = ip_file.read()
         else:
             return 5 # IP
         return 0
-    # 解密
+    # 加密发送的消息
+    def encrypt_message(self,message:str)->str:
+        encrypted_message = self.public_key.encrypt(
+            message.encode('utf-8'),
+            padding.OAEP(
+                mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                algorithm=hashes.SHA256(),
+                label=None
+            )
+        )
+        return base64.b64encode(encrypted_message).decode()
+    # 解密接受的Key
     def decrypt_key(self,encrypted_base64:str)->str:
         '输入一个base64，解密并输出key原文'
         encrypted_key = base64.b64decode(encrypted_base64)
@@ -87,18 +109,22 @@ class KeyRequest:
     # 请求
     def request_key(self):
         # 构造请求的数据 # TODO：请求内容
+    # 鉴权消息
         request_message = {
-            'text': 'valid_text',
+            'message': 'key_request',
+            'client': self.encrypt_message(self.client_tag),
+            'mac': self.encrypt_message(self.mac_address)
         }
         # 发送 POST 请求
         try:
-            response = requests.post(self.service_ip, data=request_message)
+            response = requests.post(self.service_ip+'/authenticate', json=request_message)
             self.result = response.json()
         except Exception as E:
             # print(E)
             return 4 # network
         # 查看请求
         if self.result['status'] == 200:
+            print('usage:', self.result['usage'])
             return 0
         elif self.result['status'] == 401:
             return 3 # 无权限
@@ -121,3 +147,6 @@ class KeyRequest:
             return 0
         except Exception:
             return 1
+    # TODO: 发送报文
+    def post_usage(self):
+        pass
