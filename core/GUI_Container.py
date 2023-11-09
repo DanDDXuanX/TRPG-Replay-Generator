@@ -8,6 +8,7 @@ import re
 import numpy as np
 from pinyin import pinyin
 from ttkbootstrap.dialogs import Messagebox
+import ttkbootstrap as ttk
 
 from .GUI_Util import FluentFrame
 from .GUI_SectionElement import MDFSectionElement, CTBSectionElement, RGLSectionElement
@@ -39,6 +40,9 @@ class Container(FluentFrame):
         self.container.bind('<Down>',lambda event:self.select_down(event),"+")
         self.container.bind('<Delete>',lambda event:self.del_select(event),"+")
         # self.container.bind('<Button-3>',lambda event:self.right_click(event),"+") 
+        # 是否溢出
+        self.overflow_mark = ttk.Label(text=tr('无法显示更多'),anchor='center',master=self,style="comment.TLabel")
+        self.overflow = False
         # 容器高度
         self.container_height = 0
         # 内容物
@@ -101,6 +105,12 @@ class Container(FluentFrame):
         return 0
     def reset_container_height(self):
         this_height = self.get_container_height()
+        # 注意：由于tcl的固有限制，一个frame的长度无法超过2^15
+        if this_height > 32400:
+            this_height = 32500
+            self.overflow = True
+        else:
+            self.overflow = False
         if self.container_height != this_height:
             self.config(height=this_height)
             self.container_height = this_height
@@ -120,6 +130,11 @@ class Container(FluentFrame):
             for ele in to_update:
                 self.element[ele].place_forget()
                 self.place_item(ele, self.display_filter.index(ele))
+        # 标记溢出
+        if self.overflow:
+            self.overflow_mark.place(x=0,y=32400,relwidth=1,height=100)
+        else:
+            self.overflow_mark.place_forget()
     # 选择项目
     def select_item(self,event,index,add=False):
         self.container.focus_set()
@@ -531,7 +546,11 @@ class MDFContainer(Container):
             SZ_190 = int(self.sz * 190)
             sz_10 = int(self.sz * 10)
         this_section_frame:MDFSectionElement = self.element[key]
-        this_section_frame.place(relx=idx%self.colnum * (1/self.colnum),y=idx//self.colnum*SZ_200,width=-sz_10,height=SZ_190,relwidth=(1/self.colnum))
+        # 溢出部分就不显示了
+        y_this = idx//self.colnum*SZ_200
+        if y_this >= 32400:
+            return
+        this_section_frame.place(relx=idx%self.colnum * (1/self.colnum),y=y_this,width=-sz_10,height=SZ_190,relwidth=(1/self.colnum))
     def edit_select(self,to_preview):
         section_2_preview:dict = self.content.struct[to_preview]
         self.edit_window.update_from_section(index=to_preview, section=section_2_preview, line_type=section_2_preview['type'])

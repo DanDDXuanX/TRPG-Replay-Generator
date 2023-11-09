@@ -195,6 +195,7 @@ class Translate:
             '无效的值：{}': 'Invalid value: {}',
             '自定义切换效果': 'Custom Am/Bb Method',
             '删除自定义': 'Del Custom',
+            '无法显示更多': 'Cannot Show More',
             '确认要关闭软件？\n尚未保存的项目变更将会丢失！': 'Sure to close? The unsaved changes in project will be lost!',
             '核心程序正在运行中！在核心程序终止前，图形界面已被暂时的禁用。': 'The core program is running! The GUI is disabled before the core program terminates',
             '禁用图形界面': 'GUI disabled',
