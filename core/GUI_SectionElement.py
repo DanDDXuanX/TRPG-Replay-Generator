@@ -451,7 +451,7 @@ class MDFSectionElement(ttk.Frame,SectionElement):
         # 从小节中获取缩略图
         self.items = {
             'head' : ttk.Label(master=self,anchor='center'),
-            'thumbnail' : ttk.Label(master=self,anchor='center')
+            'thumbnail' : ttk.Label(master=self,anchor='center',borderwidth=0)
         }
         self.refresh_item(keyword=self.name)
         # 被选中的标志

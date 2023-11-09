@@ -516,10 +516,10 @@ class MDFContainer(Container):
             section=section,
             screenzoom=self.sz)
     def update_container_colnum(self,event) -> int:
-        # 一个col最窄190？
-        SZ_200 = int(self.sz * 200)
+        # 一个col最窄160？
+        SZ_175 = int(self.sz * 175)
         FW = self.container.winfo_width()
-        colnum = FW // SZ_200
+        colnum = FW // SZ_175
         # 设置列数
         if colnum < 1:
             self.colnum = 1

@@ -182,6 +182,8 @@ class PreferenceTable(TableEdit):
             # 结束
             new_struct[keyword] = element_value
         try:
+            # 修改首选项前，将之前的用量报文上传
+            preference.post_usage()
             # 重设prefernce对象
             preference.set_struct(new_struct)
             preference.execute() # 执行变更

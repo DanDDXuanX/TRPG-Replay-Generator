@@ -239,7 +239,11 @@ class RplGenStudioMainWindow(ttk.Window):
             )
             if choice != tr('确定'):
                 return False
+        # 上传报文
+        preference.post_usage()
+        # 记录最近项目
         self.dump_recent_project()
+        # 关闭当前窗口
         self.destroy()
     # 当导航栏被点击时
     def navigateBar_get_click(self,event):

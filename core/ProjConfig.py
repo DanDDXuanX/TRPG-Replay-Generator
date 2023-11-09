@@ -217,8 +217,8 @@ class Preference:
             Tencent_TTS_engine.SecretKey = self.secretkey
             self.bulitin_keys_status = -1
         else:
-            bulitin_keys = KeyRequest()
-            self.bulitin_keys_status = bulitin_keys.status
+            self.key_security = KeyRequest()
+            self.bulitin_keys_status = self.key_security.status
         # 内建动画
         BuiltInAnimation.BIA_font = self.BIA_font
         BuiltInAnimation.BIA_font_size = self.BIA_font_size
@@ -236,7 +236,14 @@ class Preference:
             filepath = self.file
         with open(filepath,'w') as out_file:
             json.dump(self.get_struct(), out_file, indent=4)
-
+    # 反馈语音合成用量报文
+    def post_usage(self):
+        if self.bulitin_keys_status == 0:
+            # 上传用量信息报文
+            status = self.key_security.post_usage()
+            return status
+        else:
+            return -1 # 代表没做
 # 全局变量
 
 home_dir = Path(os.path.expanduser("~"))

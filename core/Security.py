@@ -108,7 +108,6 @@ class KeyRequest:
             return 2 # decrypt_key
     # 请求
     def request_key(self):
-        # 构造请求的数据 # TODO：请求内容
     # 鉴权消息
         request_message = {
             'message': 'key_request',
@@ -147,6 +146,32 @@ class KeyRequest:
             return 0
         except Exception:
             return 1
-    # TODO: 发送报文
+    # 发送报文
     def post_usage(self):
-        pass
+        # 用量
+        usage_counter = Aliyun_TTS_engine.counter + Azure_TTS_engine.counter + Tencent_TTS_engine.counter
+        # 报文消息
+        if usage_counter:
+            post_message = {
+                'message': 'usage_report',
+                'client': self.encrypt_message(self.client_tag),
+                'mac': self.encrypt_message(self.mac_address),
+                'value': int(usage_counter)
+            }
+        # 发送 POST 请求
+        try:
+            response = requests.post(self.service_ip+'/messages', json=post_message)
+            self.result = response.json()
+        except Exception as E:
+            return 4 # 网络和服务端
+        # 查看请求
+        if self.result['status'] == 200:
+            # 重置用量
+            Aliyun_TTS_engine.counter = 0
+            Azure_TTS_engine.counter = 0
+            Tencent_TTS_engine.counter = 0
+            return 0 # 正常
+        elif self.result['status'] == 400:
+            return 1 # 报文错误
+        else:
+            return 9 # 其他

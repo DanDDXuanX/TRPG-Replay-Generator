@@ -24,6 +24,8 @@ voice_lib = pd.read_csv('./assets/voice_volume.tsv',sep='\t').set_index('Voice')
 
 # 没用的基类
 class TTS_engine:
+    # 调用计数器
+    counter = 0
     def __init__(self,name='unnamed',voice = 'ailun',speech_rate=0,pitch_rate=0,aformat='wav'):
         pass
     def start(self,text,ofile):
@@ -36,6 +38,8 @@ class TTS_engine:
         else:
             return 1 + value/1000
     def print_success(self,text,ofile):
+        # 计数器+1
+        self.__class__.counter += 1
         if len(text) >= 5:
             print_text = text[0:5]+'...'
         else:
