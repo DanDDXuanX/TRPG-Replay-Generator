@@ -12,6 +12,7 @@ from ttkbootstrap.dialogs import Messagebox
 from .GUI_Util import FluentFrame
 from .GUI_SectionElement import MDFSectionElement, CTBSectionElement, RGLSectionElement
 from .ScriptParser import MediaDef, CharTable, RplGenLog
+from .ProjConfig import preference
 from .GUI_PasteAttributes import PasteAttributesDialog
 from .GUI_Language import tr
 
@@ -515,11 +516,20 @@ class MDFContainer(Container):
         # 返回
         return self.colnum
     def get_container_height(self) -> int:
-        return int(200*self.sz*np.ceil(len(self.display_filter)/self.colnum))
+        if preference.performance_mode:
+            unit = 36
+        else:
+            unit = 200
+        return int(unit*self.sz*np.ceil(len(self.display_filter)/self.colnum))
     def place_item(self,key,idx):
-        SZ_200 = int(self.sz * 200)
-        SZ_190 = int(self.sz * 190)
-        sz_10 = int(self.sz * 10)
+        if preference.performance_mode:
+            SZ_200 = int(self.sz * 36)
+            SZ_190 = int(self.sz * 30)
+            sz_10 = int(self.sz * 6)
+        else:
+            SZ_200 = int(self.sz * 200)
+            SZ_190 = int(self.sz * 190)
+            sz_10 = int(self.sz * 10)
         this_section_frame:MDFSectionElement = self.element[key]
         this_section_frame.place(relx=idx%self.colnum * (1/self.colnum),y=idx//self.colnum*SZ_200,width=-sz_10,height=SZ_190,relwidth=(1/self.colnum))
     def edit_select(self,to_preview):

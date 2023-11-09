@@ -458,12 +458,22 @@ class MDFSectionElement(ttk.Frame,SectionElement):
         self.select_symbol = ttk.Frame(master=self,bootstyle='primary')
         self.update_item()
     def update_image_from_section(self,section):
-        icon_size= int(160*self.sz)
+        if preference.performance_mode:
+            icon_size = int(28*self.sz)
+        else:
+            icon_size = int(160*self.sz)
         return super().update_image_from_section(section=section,icon_size=icon_size,thumbname='MDFthumb%d')
     def update_item(self):
-        for idx,key in enumerate(self.items):
+        if preference.performance_mode:
+            order = ['thumbnail', 'head']
+        else:
+            order = ['head', 'thumbnail']
+        for key in order:
             this_item:ttk.Label = self.items[key]
-            this_item.pack(fill='both',anchor='w',side='top',expand={'head':False,'thumbnail':True}[key])
+            if preference.performance_mode:
+                this_item.pack(fill='both',anchor='e',side='left',expand={'head':True,'thumbnail':False}[key])
+            else:
+                this_item.pack(fill='both',anchor='w',side='top',expand={'head':False,'thumbnail':True}[key])
             # 按键点击事件
             this_item.bind('<Button-1>',lambda event:self.master.select_item(event,index=self.name,add=False))
             this_item.bind('<Control-Button-1>',lambda event:self.master.select_item(event,index=self.name,add=True))
