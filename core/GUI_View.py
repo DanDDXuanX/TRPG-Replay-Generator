@@ -20,7 +20,7 @@ from .GUI_EmptyHomeView import HomePageElements
 from .GUI_TableStruct import key_status_bar
 from .GUI_Link import Link
 from .ProjConfig import preference
-from .Utils import EDITION
+from .Utils import EDITION, PUBLICATION
 # 脚本视图：运行 MDF、CTB、RGL 脚本文件的视图。
 # 控制台视图：容纳控制台输出内容的视图。
 # 首选项视图：设置整个程序的首选项的视图。
@@ -37,7 +37,7 @@ class EmptyView(ttk.Frame):
         self.content = HomePageElements(master=self, screenzoom=self.sz)
         self.statusbar = ttk.Frame(master=self,padding=0)
         self.status_text = {
-            'version': ttk.Label(master=self.statusbar,text=tr('回声工坊') + ' ' + EDITION,padding=(SZ_10,0,SZ_10,0)),
+            'version': ttk.Label(master=self.statusbar,text=tr('回声工坊') + f' @{PUBLICATION} {EDITION}' ,padding=(SZ_10,0,SZ_10,0)),
             'keys' : ttk.Label(master=self.statusbar,padding=(SZ_10,0,SZ_10,0))
         }
         self.update_status_bar()

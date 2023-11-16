@@ -19,7 +19,7 @@ from .Exceptions import RenderError, MediaError
 from .Exceptions import WarningPrint, MainPrint, VideoPrint, PrxmlPrint
 from .Medias import *
 
-from .Utils import EDITION, zoom_surface
+from .Utils import EDITION, zoom_surface, PUBLICATION
 
 # 输出模式：预览、XML或者MP4
 
@@ -412,7 +412,7 @@ class PreviewDisplay(OutputMediaType):
             print(WarningPrint('FixScrZoom'))
         # 初始化显示窗口
         pygame.init()
-        pygame.display.set_caption('TRPG Replay Generator '+EDITION)
+        pygame.display.set_caption('RplGenStudio '+EDITION)
         pygame.display.set_icon(pygame.image.load('./assets/icon.png'))
         self.fps_clock    = pygame.time.Clock()
         self.screen       = pygame.display.set_mode(size=(self.config.Width,self.config.Height),flags=pygame.SHOWN)
@@ -504,7 +504,7 @@ class PreviewDisplay(OutputMediaType):
             'zh': {
                 'software':{
                     'head':'软件',
-                    'describe':f'回声工坊 {EDITION} Dev版',
+                    'describe':f'回声工坊 {EDITION} @ {PUBLICATION}',
                     'element':[
                         '版权所有 © 2022-2023 Betelgeuse Industry'
                     ]
@@ -531,7 +531,7 @@ class PreviewDisplay(OutputMediaType):
             'en': {
                 'software':{
                     'head':'Software',
-                    'describe':f'RplGen Studio {EDITION} for Dev',
+                    'describe':f'RplGen Studio {EDITION} @ {PUBLICATION}',
                     'element':[
                         'Copyright © Betelgeuse Industry 2022-2023'
                     ]
