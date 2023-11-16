@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 # 小工具们
-EDITION = 'alpha 2.0.1'
+EDITION = 'beta 2.0.0'
 
 import numpy as np
 import pygame
