@@ -13,7 +13,7 @@ from .FilePaths import Filepath
 from .FreePos import Pos,FreePos
 from .Exceptions import MediaError, WarningPrint
 from .Formulas import sigmoid
-from .Utils import hex_2_rgba, rotate_surface, rotate_vector
+from .Utils import hex_2_rgba, rotate_surface, rotate_vector, brightness
 from .UtilityImage import UtilityImage
 from .Regexs import RE_rich
 # 主程序 replay_generator
@@ -1685,7 +1685,7 @@ class Animation(MediaObj):
         self.size:tuple = self.media[0].get_size()
         self.origin_size:tuple = pygame.image.load(self.filepath.list()[0]).get_size()
         self.scale:float  = scale
-    def display(self,surface:pygame.Surface,alpha:float=100,center:str='NA',adjust:str='NA',frame:int=0)->None:
+    def display(self,surface:pygame.Surface,alpha:float=100,center:str='NA',adjust:str='NA',frame:int=0,bright:int=100)->None:
         self.this = frame
         if center == 'NA':
             render_center = self.pos
@@ -1695,13 +1695,15 @@ class Animation(MediaObj):
             render_pos = render_center
         else:
             render_pos = render_center + eval(adjust)
-        if alpha !=100:
-            temp = self.media[int(self.this)].copy()
-            temp.set_alpha(alpha/100*255)
-            surface.blit(temp,render_pos.get())
-        else:
-           # surface.blit(self.gaussian_blur(self.media[int(self.this)],100),(render_pos+(10,10)).get())
+        if bright == 100 and alpha == 100:
            surface.blit(self.media[int(self.this)],render_pos.get())
+        else:
+            temp = self.media[int(self.this)].copy()
+            if bright != 100:
+                temp = brightness(temp,bright=bright)
+            if alpha != 100:
+                temp.set_alpha(alpha/100*255)
+            surface.blit(temp,render_pos.get())
     def export(self,begin:int,end:int,center:str='NA')->str:
         # PR 中的位置
         if center == 'NA':

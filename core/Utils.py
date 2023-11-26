@@ -71,6 +71,18 @@ def cutout(surface:pygame.Surface,color:tuple=None)->pygame.Surface:
     mask = pygame.surfarray.array_alpha(surface)
     pygame.surfarray.pixels_alpha(outsurface)[:] = mask
     return outsurface
+def brightness(surface:pygame.Surface,bright:int=50):
+    if bright == 100:
+        return surface
+    else:
+        outsurface = surface.copy()
+        pygame.surfarray.pixels3d(outsurface)[:] = np.multiply(
+            pygame.surfarray.pixels3d(outsurface)[:],
+            int(bright),
+            dtype=np.uint16,
+        ) // 100
+        return outsurface
+            
 # 向量顺时针旋转
 def rotate_vector(vector, angle):
     # 将角度转为弧度
