@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # coding: utf-8
 # 小工具们
-EDITION = 'beta 2.0.0'
-PUBLICATION = 'dev'
+EDITION = 'beta 2.0.0-r1'
+PUBLICATION = '2780274841'
 
 import numpy as np
 import pygame

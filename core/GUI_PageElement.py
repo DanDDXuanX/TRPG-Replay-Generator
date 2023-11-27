@@ -333,6 +333,8 @@ class VerticalOutputCommand(OutPutCommand):
             'asterisk_del'   : ttk.Button(master=self,image=self.image['asterisk_del'],bootstyle='danger',command=self.del_asterisk_marks,padding=SZ_5,cursor='hand2'),
             'sep1'           : ttk.Separator(master=self), # --------------------------
             'intel_import'   : ttk.Button(master=self,image=self.image['intel_import'],bootstyle='secondary',command=self.rgl_intel_import,padding=SZ_5,cursor='hand2'),
+            'sep2'           : ttk.Separator(master=self), # --------------------------
+            'auto_duet'      : ttk.Button(master=self,text='双',bootstyle='secondary',command=self.auto_duet,padding=SZ_5,cursor='hand2'),
         }
         # 小贴士
         self.tooltip = {
@@ -344,6 +346,7 @@ class VerticalOutputCommand(OutPutCommand):
             'asterisk_import': FreeToolTip(widget=self.side_button['asterisk_import'],bootstyle='secondary-inverse',text=tr('批量导入外部语音文件'),screenzoom=self.sz,side='left'),
             'asterisk_del'   : FreeToolTip(widget=self.side_button['asterisk_del'],bootstyle='danger-inverse',text=tr('移除星标语音'),screenzoom=self.sz,side='left'),
             'intel_import'   : FreeToolTip(widget=self.side_button['intel_import'],bootstyle='secondary-inverse',text=tr('智能导入剧本'),screenzoom=self.sz,side='left'),
+            'auto_duet'      : FreeToolTip(widget=self.side_button['auto_duet'],bootstyle='secondary-inverse',text=tr('自动双人同屏'),screenzoom=self.sz,side='left'),
         }
         self.update_side_button()
         self.configure(borderwidth=SZ_5,bootstyle='light')
@@ -453,6 +456,9 @@ class VerticalOutputCommand(OutPutCommand):
     # 智能导入
     def rgl_intel_import(self):
         self.codeview.rgl_intel_import()
+    # 拓展：自动双人同屏
+    def auto_duet(self):
+        self.codeview.auto_duet()
 # 新建指令
 class NewElementCommand(ttk.Frame):
     struct = NewElement

@@ -81,10 +81,16 @@ class OutputMediaType:
                     for cross in cross_zorder:
                         try:
                             Object = self.medias[cross[layer]]
-                            Object.display(
-                                surface=surface,alpha=float(cross[layer+'_a']),frame=int(cross[layer+'_t']),
-                                adjust=cross[layer+'_p'],center=cross[layer+'_c']
-                            )
+                            if layer.endswith('2') or layer.endswith('3'):
+                                Object.display(
+                                    surface=surface,alpha=float(cross[layer+'_a']),frame=int(cross[layer+'_t']),
+                                    adjust=cross[layer+'_p'],center=cross[layer+'_c'],bright=50
+                                )
+                            else:
+                                Object.display(
+                                    surface=surface,alpha=float(cross[layer+'_a']),frame=int(cross[layer+'_t']),
+                                    adjust=cross[layer+'_p'],center=cross[layer+'_c']
+                                )
                         except Exception as E:
                             print(E)
                             raise RenderError('FailRender',cross[layer],'Animation')
@@ -109,10 +115,16 @@ class OutputMediaType:
             elif layer[0:2] == 'Am': # 兼容H_LG1(1)这种动画形式 alpha1.6.3
                 try:
                     Object = self.medias[this_frame[layer]]
-                    Object.display(
-                        surface=surface,alpha=this_frame[layer+'_a'],frame=this_frame[layer+'_t'],
-                        adjust=this_frame[layer+'_p'],center=this_frame[layer+'_c']
-                    )
+                    if layer.endswith('2') or layer.endswith('3'):
+                        Object.display(
+                            surface=surface,alpha=this_frame[layer+'_a'],frame=this_frame[layer+'_t'],
+                            adjust=this_frame[layer+'_p'],center=this_frame[layer+'_c'],bright=50
+                        )
+                    else:
+                        Object.display(
+                            surface=surface,alpha=this_frame[layer+'_a'],frame=this_frame[layer+'_t'],
+                            adjust=this_frame[layer+'_p'],center=this_frame[layer+'_c']
+                        )
                 except Exception as E:
                     print(E)
                     raise RenderError('FailRender',this_frame[layer],'Animation')

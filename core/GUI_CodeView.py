@@ -19,6 +19,7 @@ from .GUI_PreviewCanvas import RGLPreviewCanvas
 from .GUI_DialogWindow import browse_multi_file, browse_file
 from .GUI_Util import clear_speech
 from .GUI_Language import tr, Localize
+from .Extension import auto_duet
 
 # 查找且替换
 class SearchReplaceBar(ttk.Frame, Localize):
@@ -768,3 +769,15 @@ class RGLCodeViewFrame(ttk.Frame):
             line_index += 1
         self.update_codeview(None)
         # 7. 添加角色 # TODO
+    # 拓展功能
+    def auto_duet(self):
+        # 0. 将尚未保存的编辑内容保存
+        try:
+            self.update_rplgenlog()
+        except Exception as E:
+            Messagebox().show_error(message=re.sub('\x1B\[\d+m','',str(E)),title=tr('错误'),parent=self)
+            return
+        # 1. 执行
+        auto_duet(rgl=self.content,mdf=self.mediadef,ctb=self.chartab)
+        # 2. 刷新
+        self.update_codeview(None)
