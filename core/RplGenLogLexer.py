@@ -89,7 +89,7 @@ class RplGenLogLexer(RegexLexer):
             # 冒号
             (r'\B:',Operator),
             # 富文本标记
-            (r'\[(\w{1,2}|\/\w{1,2}|(bg|fg)\:#\w{6,8})\]',Name.Tag),
+            (r'\[(\w{1,2}|\/\w{1,2}|fs\:\d+|(bg|fg)\:#([\da-fA-F]{2}){3,4})\]',Name.Tag),
             # 换行符
             (r'(\^|#)',Name.Tag),
             # 待合成星标
