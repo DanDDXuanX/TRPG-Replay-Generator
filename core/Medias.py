@@ -351,15 +351,21 @@ class RichText(Text):
                     line_cells.append(self.render(cell,self.riches))
                     len_of_line += len(cell)
                 else:
-                    # 否则就截断，自动换行
-                    tail_count = self.line_limit - len_of_line
-                    line_cells.append(self.render(cell[:tail_count],self.riches))
-                    # 换行并输出
-                    out_text.append(self.renderline(line_cells))
-                    line_cells.clear()
-                    # 后半段
-                    line_cells.append(self.render(cell[tail_count:],self.riches))
-                    len_of_line = len(cell[tail_count:])
+                    rest_cell = cell
+                    while (len(rest_cell) + len_of_line >= self.line_limit):
+                        # 否则就截断，自动换行
+                        tail_count = self.line_limit - len_of_line
+                        line_cells.append(self.render(rest_cell[:tail_count],self.riches))
+                        # 换行并输出
+                        out_text.append(self.renderline(line_cells))
+                        line_cells.clear()
+                        len_of_line = 0
+                        # 更新剩余部分
+                        rest_cell = rest_cell[tail_count:]
+                    else:
+                        # 最后一段半段
+                        line_cells.append(self.render(rest_cell,self.riches))
+                        len_of_line = len(rest_cell)
         # 收尾工作
         out_text.append(self.renderline(line_cells))
         return out_text
