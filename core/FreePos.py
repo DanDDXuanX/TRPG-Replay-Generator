@@ -9,6 +9,7 @@
 import numpy as np
 import pygame
 from pygame.draw import line
+from .Formulas import formula_available
 
 class Pos:
     # 初始化
@@ -161,3 +162,90 @@ class PosGrid:
         elif key == 'y_step':
             self._size[1] = value
         self.make_grid()
+class BezierCurve:
+    def __init__(self, pos, control_left:list, control_right:list, anchor:list, frame_point:list, speed_formula:list):
+        self.pos = pos
+        self.control_left = control_left
+        self.control_right = control_right
+        self.anchor = anchor
+        self.frame_point = frame_point
+        self.speed_formula = speed_formula
+        # 执行初始化
+        self.make_curve()
+    def make_curve(self):
+        self.curve_set = {}
+        if type(self.pos) in [Pos, FreePos]:
+            self.pos = self.pos
+        else:
+            self.pos = Pos(*self.pos)
+        # 创建曲线组合时间点组
+        for i in range(len(self.anchor)):
+            if i == 0:
+                start_point = self.pos.get()
+            else:
+                start_point = self.anchor[i-1]
+            try:
+                raw_pos = [start_point, self.control_left[i], self.control_right[i], self.anchor[i]]
+                calc_pos = raw_pos.copy()
+                for idx, dot in enumerate(raw_pos):
+                    if type(dot) in [Pos, FreePos]:
+                        calc_pos[idx] = dot.get()
+                self.curve_set[i] = {
+                    'control_points' : np.array(calc_pos),
+                    'frame_timestamp': self.frame_point[i],
+                    'time_formula' : formula_available[self.speed_formula[i]],
+                }
+            except IndexError:
+                raise Exception()
+        # 创建曲线
+        self.all_dots = np.array(self.pos)
+        for key in self.curve_set:
+            # 曲线段的持续时间
+            if key == 0:
+                length = self.curve_set[key]['frame_timestamp']
+            else:
+                length = self.curve_set[key]['frame_timestamp'] - self.curve_set[key-1]['frame_timestamp']
+            # 曲线段的速度曲线
+            control_points:np.ndarray = self.curve_set[key]['control_points']
+            formula:function = self.curve_set[key]['time_formula']
+            frametime = formula(0,1,length+1)[1:]
+            UF_evaluate = np.frompyfunc(lambda t: self.evaluate(control_point=control_points,t=t),1,1)
+            self.curve_set[key]['dots'] = UF_evaluate(frametime)
+            self.all_dots = np.hstack([self.all_dots, self.curve_set[key]['dots']])
+        # 最后
+        self.max_idx = len(self.all_dots)-1
+    def evaluate(self, control_point:np.ndarray, t:float)->Pos:
+        if t < 0:
+            t = 0
+        elif t > 1:
+            t = 1
+        else:
+            t = np.float64(t)
+        bernstein_coefficients = np.array([
+            (1 - t)**3,
+            3 * t * (1 - t)**2,
+            3 * t**2 * (1 - t),
+            t**3
+        ])
+        # Evaluate the Bezier curve at the given parameter.
+        point = Pos(*np.dot(bernstein_coefficients, control_point))
+        return point
+    def __getitem__(self,idx:int)->Pos:
+        if idx > self.max_idx:
+            return self.all_dots[self.max_idx]
+        elif idx < 0:
+            return self.all_dots[0]
+        else:
+            return self.all_dots[int(idx)]
+    # TODO
+    # 当预览时
+    def preview(self, surface):
+        pass
+    def convert(self):
+        pass
+    # 在IPW中的点
+    def get_pos(self):
+        pass
+    # TODO: 当某些值发生变化的时候
+    def configure(self, key: str, value, index: int = 0):
+        pass
