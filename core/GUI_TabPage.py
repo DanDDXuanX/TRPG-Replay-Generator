@@ -279,7 +279,7 @@ class RGLPage(ttk.Frame):
 class MDFPage(ttk.Frame):
     categroy_dict = {
         'Text'      : ['Text', 'StrokeText', 'RichText', 'HPLabel'],
-        'Pos'       : ['Pos','FreePos','PosGrid'],
+        'Pos'       : ['Pos','FreePos','PosGrid','BezierCurve'],
         'Animation' : ['Animation'],
         'Bubble'    : ['Bubble','Balloon','DynamicBubble','ChatWindow'],
         'Background': ['Background'],

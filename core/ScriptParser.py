@@ -12,7 +12,7 @@ from .Exceptions import DecodeError,ParserError,WarningPrint,SyntaxsError,MediaE
 from .Regexs import *
 from .Formulas import *
 from .Medias import Text,StrokeText,RichText,HPLabel,Bubble,Balloon,DynamicBubble,ChatWindow,Animation,GroupedAnimation,Dice,HitPoint,Background,BGM,Audio
-from .FreePos import Pos,FreePos,PosGrid
+from .FreePos import Pos,FreePos,PosGrid,BezierCurve
 from .FilePaths import Filepath
 from .ProjConfig import Config
 from .Motion import MotionMethod
@@ -22,7 +22,7 @@ from .Utils import concat_xy
 class Script:
     # 类型名对应的Class
     Media_type = {
-        'Pos':Pos,'FreePos':FreePos,'PosGrid':PosGrid,
+        'Pos':Pos,'FreePos':FreePos,'PosGrid':PosGrid,'BezierCurve':BezierCurve,
         'Text':Text,'StrokeText':StrokeText,'RichText':RichText,'HPLabel':HPLabel,
         'Bubble':Bubble,'Balloon':Balloon,'DynamicBubble':DynamicBubble,'ChatWindow':ChatWindow,
         'Animation':Animation,'GroupedAnimation':GroupedAnimation,'HitPoint':HitPoint,'Dice':Dice,
@@ -34,6 +34,7 @@ class Script:
         'Pos'           :['pos'],
         'FreePos'       :['pos'],
         'PosGrid'       :['pos','end','x_step','y_step'],
+        'BezierCurve'   :['pos','control_left','control_right','anchor','frame_point','speed_formula'],
         'Text'          :['fontfile','fontsize','color','line_limit','label_color'],
         'StrokeText'    :['fontfile','fontsize','color','line_limit','edge_color','edge_width','projection','label_color'],
         'RichText'      :['fontfile','fontsize','color','line_limit','label_color'],
@@ -51,6 +52,7 @@ class Script:
         'Pos'           :[[100,100]],
         'FreePos'       :[[100,100]],
         'PosGrid'       :[[100,100],[300,300],2,2],
+        'BezierCurve'   :[[100,100],[[200,200]],[[300,300]],[[400,400]],[30],['linear']],
         'Text'          :['./assets/SourceHanSansCN-Regular.otf',40,[0,0,0,255],20,'Lavender'],
         'StrokeText'    :['./assets/SourceHanSansCN-Regular.otf',40,[0,0,0,255],20,[255,255,255,255],1,'C','Lavender'],
         'RichText'      :['./assets/SourceHanSansCN-Regular.otf',40,[0,0,0,255],20,'Lavender'],
@@ -412,7 +414,7 @@ class MediaDef(Script):
             'anime'     :['Animation'],
             'bubble'    :['Bubble','Balloon','DynamicBubble'],
             'text'      :['Text','StrokeText','RichText','HPLabel'],
-            'pos'       :['Pos','FreePos'],
+            'pos'       :['Pos','FreePos','BezierCurve'],
             'posgrid'   :['PosGrid'],
             'freepos'   :['FreePos'],
             'background':['Background'],

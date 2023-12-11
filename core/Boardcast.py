@@ -18,7 +18,7 @@ class BoardcastHandler:
             'logfile'   :0
         }
         # 位置类
-        if mtype in ['Pos','FreePos','PosGrid']:
+        if mtype in ['Pos','FreePos','PosGrid','BezierCurve']:
             # 媒体
             counter['mediadef'] += self._handle_pos(old_name=old_name, new_name=new_name)
             counter['logfile'] += self._handle_rplgenlog(old_name=old_name, new_name=new_name, etype='move_pos')

@@ -6,7 +6,7 @@ import tkinter as tk
 import ttkbootstrap as ttk
 import pygame
 from copy import copy
-from pygame.draw import line, rect
+from pygame.draw import line, rect, circle
 from PIL import Image, ImageTk
 
 from core.Medias import MediaObj
@@ -43,8 +43,14 @@ class InteractiveDot:
         elif self.color == 'magenta':
             self.p1 = np.array(p1) + np.array(master.pos.get())
             self.p2 = np.array(p2) + np.array(master.pos.get())
-        else: # am left / right 一条竖线
+        elif self.color == 'red': # am left / right 一条竖线
             self.p1 = np.array([p1[0], int(self.master.size[1]/2)]) + np.array(master.pos.get())
+            self.p2 = np.array([-np.inf,-np.inf]) # 无效的占位符
+        elif self.color == 'control': # 锚点和控制点
+            self.p1 = np.array(p1) # 控制点
+            self.p2 = np.array(p2) # 锚点：无法操作的
+        elif self.color == 'anchor': # 锚点本体
+            self.p1 = np.array(p1)
             self.p2 = np.array([-np.inf,-np.inf]) # 无效的占位符
         # 是否被选中
         self.selected = {
@@ -58,7 +64,7 @@ class InteractiveDot:
             self.selected['p2'] = False
             return True
         elif np.max(np.abs(np.array(pos) - self.p2)) < rw:
-            if self.color != 'blue':
+            if self.color not in ['blue','control']: # 蓝点和控制点是无法被选中P2的
                 self.selected['p1'] = False
                 self.selected['p2'] = True
                 return True
@@ -129,7 +135,7 @@ class InteractiveDot:
                 )            
             rect(surface=surface,color=color,rect=p1_rect,width=dlw[self.selected['p1']])
             rect(surface=surface,color=color,rect=p2_rect,width=dlw[self.selected['p2']])
-        else:
+        elif self.color=='red':
             # center = self.master.pos.get()[1] + int(self.master.size[1]/2)
             p1_rect = [self.p1[0]-rw, self.p1[1]-rw, 2*rw, 2*rw]
             line(
@@ -139,6 +145,12 @@ class InteractiveDot:
                 width=lw, color='#aa0000'
                 )
             rect(surface=surface,color='#aa0000',rect=p1_rect,width=dlw[self.selected['p1']])
+        elif self.color=='control':
+            circle(surface=surface,color='#00aaaa',center=self.p1,radius=rw,width=dlw[self.selected['p1']])
+            line(surface=surface,color='#00aaaa',start_pos=self.p1,end_pos=self.p2,width=lw)
+        elif self.color=='anchor':
+            p1_rect = [self.p1[0]-rw, self.p1[1]-rw, 2*rw, 2*rw]
+            rect(surface=surface,color='#00aaaa',rect=p1_rect,width=dlw[self.selected['p1']])
     def move(self, new_pos):
         if self.selected['p1'] == True:
             if self.color in ('green','blue'):
@@ -152,7 +164,7 @@ class InteractiveDot:
         else:
             pass
     def get(self):
-        if self.color in ('green','orange'):
+        if self.color in ('green','orange','control','anchor'):
             return self.p1.tolist(), self.p2.tolist()
         else:
             master_pos = np.array(self.master.pos.get())
@@ -422,7 +434,7 @@ class MDFPreviewCanvas(PreviewCanvas):
                         master=self.object_this,
                         screen_zoom=self.sz
                         )
-                else:
+                elif color == 'blue':
                     if dot == 'b0':
                         p1k = 'mt_pos'
                         p2k = 'mt_end'
@@ -432,6 +444,22 @@ class MDFPreviewCanvas(PreviewCanvas):
                     self.dots[dot] = InteractiveDot(
                         p1=this_color[dot][p1k],
                         p2=this_color[dot][p2k],
+                        color=color,
+                        master=self.object_this,
+                        screen_zoom=self.sz
+                        )
+                elif color == 'control':
+                    self.dots[dot] = InteractiveDot(
+                        p1=this_color[dot]['control'],
+                        p2=this_color[dot]['anchor'],
+                        color=color,
+                        master=self.object_this,
+                        screen_zoom=self.sz
+                        )
+                elif color == 'anchor':
+                    self.dots[dot] = InteractiveDot(
+                        p1=this_color[dot]['pos'],
+                        p2=None,
                         color=color,
                         master=self.object_this,
                         screen_zoom=self.sz
@@ -509,9 +537,9 @@ class MDFPreviewCanvas(PreviewCanvas):
                 header_index = int(self.selected_dot_name[1:])-1
                 new_pos = self.selected_dot.get()[0]
                 if type(self.object_this) is Balloon:
-                    self.edit_frame.elements['ht_pos_%d'%(header_index+1)].set( '({},{})'.format(new_pos[0], new_pos[1]) )
+                    self.edit_frame.elements['ht_pos_%d'%(header_index+1)].set( '({},{})'.format(new_pos[0], new_pos[1]))
                 else:
-                    self.edit_frame.elements['ht_pos'].set( '({},{})'.format(new_pos[0], new_pos[1]) )
+                    self.edit_frame.elements['ht_pos'].set( '({},{})'.format(new_pos[0], new_pos[1]))
             # 红点，影响am_left_right
             elif self.selected_dot_name == 'r0':
                 new_pos = self.selected_dot.get()[0]
@@ -538,6 +566,25 @@ class MDFPreviewCanvas(PreviewCanvas):
             elif self.selected_dot_name == 'o1':
                 new_pos = self.selected_dot.get()[0]
                 self.edit_frame.elements['end'].set('({},{})'.format(new_pos[0], new_pos[1]))
+            # 控制点和锚点，影响BezierCurve
+            elif self.selected_dot_name[0] == 'a':
+                header_index = int(self.selected_dot_name[1:])
+                new_pos = self.selected_dot.get()[0]
+                if header_index == 0:
+                    self.edit_frame.elements['pos'].set('({},{})'.format(new_pos[0], new_pos[1]))
+                else:
+                    self.edit_frame.elements['anchor_%d'%(header_index)].set('({},{})'.format(new_pos[0], new_pos[1]))
+            elif self.selected_dot_name[0] == 'c':
+                header_index = int(self.selected_dot_name[2:])
+                new_pos = self.selected_dot.get()[0]
+                if self.selected_dot_name[1] == 'l':
+                    anchor = self.object_this.curve_set[header_index-1]['control_points'][0,:]
+                    new_vec = np.array(new_pos) - anchor
+                    self.edit_frame.elements['control_left_%d'%(header_index)].set('({},{})'.format(new_vec[0], new_vec[1]))
+                else:
+                    anchor = self.object_this.curve_set[header_index-1]['control_points'][3,:]
+                    new_vec = np.array(new_pos) - anchor
+                    self.edit_frame.elements['control_right_%d'%(header_index)].set('({},{})'.format(new_vec[0], new_vec[1]))
             else:
                 pass
         # 唤起编辑区的输出结果

@@ -204,14 +204,16 @@ class SectionElement:
                 self.thumbnail_name['Audio'] = 'Audio'
                 self.thumbnail_name['BGM'] = 'BGM'
             self.thumb = section['type']
-        elif section['type'] in ['Pos','PosGrid','FreePos']:
+        elif section['type'] in ['Pos','PosGrid','FreePos','BezierCurve']:
             if section['type'] not in self.thumbnail_name.keys():
                 self.__class__.thumbnail_image['Pos']        = ImageTk.PhotoImage(name='Pos',    image=Image.open('./assets/icon/medias/Pos.png').resize([icon_size,icon_size]))
                 self.__class__.thumbnail_image['PosGrid']    = ImageTk.PhotoImage(name='PosGrid',image=Image.open('./assets/icon/medias/PosGrid.png').resize([icon_size,icon_size]))
                 self.__class__.thumbnail_image['FreePos']    = ImageTk.PhotoImage(name='FreePos',image=Image.open('./assets/icon/medias/FreePos.png').resize([icon_size,icon_size]))
+                self.__class__.thumbnail_image['BezierCurve']= ImageTk.PhotoImage(name='BezierCurve',image=Image.open('./assets/icon/medias/BezierCurve.png').resize([icon_size,icon_size]))
                 self.thumbnail_name['Pos'] = 'Pos'
                 self.thumbnail_name['PosGrid'] = 'PosGrid'
                 self.thumbnail_name['FreePos'] = 'FreePos'
+                self.thumbnail_name['BezierCurve'] = 'BezierCurve'
             self.thumb = section['type']
         return self.thumb
     def rearch_is_match(self,to_search,regex=False)->bool:

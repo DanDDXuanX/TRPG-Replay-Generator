@@ -8,7 +8,7 @@
 
 import numpy as np
 import pygame
-from pygame.draw import line
+from pygame.draw import line,circle
 from .Formulas import formula_available
 
 class Pos:
@@ -185,13 +185,19 @@ class BezierCurve:
             else:
                 start_point = self.anchor[i-1]
             try:
+                # 两个控制点的位置是相对位置
                 raw_pos = [start_point, self.control_left[i], self.control_right[i], self.anchor[i]]
-                calc_pos = raw_pos.copy()
+                relative_pos = raw_pos.copy()
                 for idx, dot in enumerate(raw_pos):
                     if type(dot) in [Pos, FreePos]:
-                        calc_pos[idx] = dot.get()
+                        relative_pos[idx] = dot.get()
+                relative_pos = np.array(relative_pos)
+                # 计算为绝对位置
+                absolute_pos = relative_pos.copy()
+                absolute_pos[1,:] = relative_pos[0,:] + relative_pos[1,:]
+                absolute_pos[2,:] = relative_pos[3,:] + relative_pos[2,:]
                 self.curve_set[i] = {
-                    'control_points' : np.array(calc_pos),
+                    'control_points' : absolute_pos,
                     'frame_timestamp': self.frame_point[i],
                     'time_formula' : formula_available[self.speed_formula[i]],
                 }
@@ -240,12 +246,51 @@ class BezierCurve:
     # TODO
     # 当预览时
     def preview(self, surface):
-        pass
+        def plot_anchor(pos:Pos):
+            if type(pos) in [Pos,FreePos]:
+                px,py = pos.get()
+            else:
+                px,py = pos
+            line(surface, color='#00aa00',start_pos=(px-50,py),end_pos=(px+50,py),width=3)
+            line(surface, color='#00aa00',start_pos=(px,py-50),end_pos=(px,py+50),width=3)
+        # 锚点（额外的十字叉）
+        plot_anchor(self.pos)
+        for dot in self.anchor:
+            plot_anchor(dot)
+        # 曲线点（小圆点）
+        for idx, dot in enumerate(self.all_dots):
+            if idx != 0:
+                line(surface, color='#00aa00',start_pos=self.all_dots[idx-1].get(),end_pos=dot.get(),width=2)
+            circle(surface,color='#00aa00',center=dot.get(),radius=4)
+
     def convert(self):
         pass
     # 在IPW中的点
     def get_pos(self):
-        pass
+        pos_dict = {
+            'anchor':{
+                'a0':{
+                    'pos' : self.pos.get(),
+                },
+            },
+            'control': {}
+        }
+        for idx in self.curve_set:
+            pos_dict['anchor'][f'a{idx+1}'] = {'pos': self.curve_set[idx]['control_points'][3,:]}
+            pos_dict['control'][f'cl{idx+1}'] = {
+                'anchor'  : self.curve_set[idx]['control_points'][0,:],
+                'control' : self.curve_set[idx]['control_points'][1,:],
+            }
+            pos_dict['control'][f'cr{idx+1}'] = {
+                'anchor'  : self.curve_set[idx]['control_points'][3,:],
+                'control' : self.curve_set[idx]['control_points'][2,:],
+            }
+        return pos_dict
     # TODO: 当某些值发生变化的时候
     def configure(self, key: str, value, index: int = 0):
-        pass
+        try:
+            self.__setattr__(key,value)
+        except AttributeError:
+            pass
+        # 执行初始化
+        self.make_curve()

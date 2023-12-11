@@ -303,6 +303,118 @@ EditTableStruct = {
             "x_step": "x_step",
             "y_step": "y_step"
         },
+        "BezierCurve":{
+            "InfoSep":{
+                "Text": "基本信息",
+                "Command":None,
+                "Content":{
+                    "type": {
+                        "ktext": "类型：",
+                        "tooltip":None,
+                        "dtext": "帮助",
+                        "ditem": "button",
+                        "valuekey": "type",
+                        "vitem": "label",
+                        "vtype": "str",
+                        "default": "BezierCurve"
+                    },
+                    "Name": {
+                        "ktext": "媒体名：",
+                        "tooltip":None,
+                        "dtext": "（输入）",
+                        "ditem": "label",
+                        "valuekey": "$key",
+                        "vitem": "entry",
+                        "vtype": "str",
+                        "default": "新建贝塞尔曲线"
+                    },
+                }
+            },
+            "StartSep":{
+                "Text": "起点",
+                "Command":None,
+                "Content":{
+                    "pos": {
+                        "ktext": "起点：",
+                        "tooltip":None,
+                        "dtext": "选择",
+                        "ditem": "button",
+                        "valuekey": "pos",
+                        "vitem": "entry",
+                        "vtype": "str",
+                        "default": "(0,0)"
+                    },
+                }
+            },
+            "AnchorSep-%d":{
+                "Text": "锚点-%d",
+                "Command":{
+                    "type":'add_sep',
+                    "key":"anchor_%d"
+                },
+                "Content":{
+                    "control_left_%d": {
+                        "ktext": "左控制点：",
+                        "tooltip":None,
+                        "dtext": "选择",
+                        "ditem": "button",
+                        "valuekey": "control_left",
+                        "vitem": "entry",
+                        "vtype": "str",
+                        "default": "(0,0)"
+                    },
+                    "control_right_%d": {
+                        "ktext": "右控制点：",
+                        "tooltip":None,
+                        "dtext": "选择",
+                        "ditem": "button",
+                        "valuekey": "control_right",
+                        "vitem": "entry",
+                        "vtype": "str",
+                        "default": "(0,0)"
+                    },
+                    "anchor_%d": {
+                        "ktext": "锚点：",
+                        "tooltip":None,
+                        "dtext": "选择",
+                        "ditem": "button",
+                        "valuekey": "anchor",
+                        "vitem": "entry",
+                        "vtype": "str",
+                        "default": "(0,0)"
+                    },
+                    "frame_point_%d": {
+                        "ktext": "关键帧：",
+                        "tooltip":None,
+                        "dtext": "（数值）",
+                        "ditem": "label",
+                        "valuekey": "frame_point",
+                        "vitem": "spine",
+                        "vtype": "int",
+                        "default": "30"
+                    },
+                    "speed_formula_%d": {
+                        "ktext": "速率函数：",
+                        "tooltip":None,
+                        "dtext": "（选择）",
+                        "ditem": "label",
+                        "valuekey": "speed_formula",
+                        "vitem": "combox",
+                        "vtype": "str",
+                        "default": "'linear'"
+                    },
+                }
+            },
+        },
+        "BezierCurve.args":{
+            "type"          : "type",
+            "pos"           : "pos",
+            "control_left"  : "control_left_%d",
+            "control_right" : "control_right_%d",
+            "anchor"        : "anchor_%d",
+            "frame_point"   : "frame_point_%d",
+            "speed_formula" : "speed_formula_%d"
+        },
         "Text":{
             "InfoSep":{
                 "Text": "基本信息",
@@ -3173,6 +3285,11 @@ NewElement = {
             "text":"点网格",
             "tooltip":"【点网格】是一组棋盘网格状的点；点网格的每一个成员都是一个固定点。",
             "icon":'./assets/icon/new/PosGrid.png'
+        },
+        "BezierCurve":{
+            "text":"贝塞尔曲线",
+            "tooltip":"【贝塞尔曲线】是一条曲线路径；用于指定媒体图形的运动轨迹。",
+            "icon":'./assets/icon/new/BezierCurve.png'
         }
     },
     "Text":{
@@ -3286,6 +3403,7 @@ media_help_url = {
     'Pos':      'https://www.wolai.com/6YScpfA5QJaMCtpE999stS#jMX2TuS5Zm7CGFKdsGBRgB',
     'FreePos':  'https://www.wolai.com/6YScpfA5QJaMCtpE999stS#kj6xMgRS4reR21sCNeSHwh',
     'PosGrid':  'https://www.wolai.com/6YScpfA5QJaMCtpE999stS#gVfe7mSzoemiQvCobL5jJG',
+    'BezierCurve': 'https://www.wolai.com/6YScpfA5QJaMCtpE999stS#9RiK7CLiWtyvB9ZFhz7Tjo',
     'Text':     'https://www.wolai.com/vjbVNex55KGPn2oEVjoZyK#3xCZVi8hQLQUh8w8W7BJzx',
     'StrokeText':   'https://www.wolai.com/vjbVNex55KGPn2oEVjoZyK#aEUx1knDvNnfppNEVzEK8e',
     'RichText': 'https://www.wolai.com/vjbVNex55KGPn2oEVjoZyK#pdRe5EN6iyieLSfGKGPQ9x',
@@ -3309,4 +3427,14 @@ key_status_bar = {
     4: '[ERROR:4] 连接超时，请检查网络。',
     5: '[ERROR:5] 找不到服务IP!',
     6: '[ERROR:6] 找不到通讯密钥！'
+}
+# 曲线函数
+formulas = {
+    "线性":     "'linear'",
+    "二次":     "'quadratic'",
+    "反二次":   "'quadraticR'",
+    "正S形":    "'sigmoid'",
+    "右S形":    "'right'",
+    "左S形":    "'left'",
+    "正弦":     "'sincurve'",
 }

@@ -4,7 +4,7 @@
 import re
 import ttkbootstrap as ttk
 from .GUI_Util import KeyValueDescribe, TextSeparator, FluentFrame, ask_rename_boardcast
-from .GUI_TableStruct import EditTableStruct, label_colors, projection, alignments, vertical_alignments, chatalign, charactor_columns, fill_mode, fit_axis, True_False, left_right, media_help_url
+from .GUI_TableStruct import EditTableStruct, label_colors, projection, alignments, vertical_alignments, chatalign, charactor_columns, fill_mode, fit_axis, True_False, left_right, media_help_url,formulas
 from .GUI_CustomDialog import voice_chooser, selection_query
 from .GUI_Language import tr
 from .GUI_Link import Link
@@ -443,7 +443,7 @@ class MediaEdit(EditWindow):
         self.elements['Name'].enable_trace()
         self.elements['Name'].input.bind("<FocusIn>",self.notice_enter)
         # 标签色
-        if self.line_type not in ['Pos','FreePos','PosGrid']:
+        if self.line_type not in ['Pos','FreePos','PosGrid','BezierCurve']:
             self.elements['label_color'].input.update_dict(label_colors)
         if self.line_type in ['Pos','FreePos','PosGrid']:
             self.elements['pos'].describe.configure(command=lambda :self.select_dot('o0','p1'))
@@ -452,6 +452,19 @@ class MediaEdit(EditWindow):
             self.elements['x_step'].input.configure(from_=1,to=100,increment=1)
             self.elements['y_step'].input.configure(from_=1,to=100,increment=1)
             self.elements['end'].describe.configure(command=lambda :self.select_dot('o1','p1'))
+        # BezierCurve
+        if self.line_type == 'BezierCurve':
+            self.elements['pos'].describe.configure(command=lambda :self.select_dot('a0','p1'))
+            for idx in range(1,999):
+                if "anchor_%d"%idx in self.elements:
+                    self.elements["control_left_%d"%idx].describe.configure(command=self.select_dot_idx(idx,dottype='cl'))
+                    self.elements['control_right_%d'%idx].describe.configure(command=self.select_dot_idx(idx,dottype='cr'))
+                    self.elements['anchor_%d'%idx].describe.configure(command=self.select_dot_idx(idx,dottype='a'))
+                    self.elements["frame_point_%d"%idx].input.configure(from_=0,to=3000,increment=5)
+                    self.elements["speed_formula_%d"%idx].input.update_dict(formulas)
+                else:
+                    break
+            self.update_sep_button()
         # 字体
         if self.line_type in ['Text','StrokeText','RichText','HPLabel']:
             self.elements['fontsize'].input.configure(from_=0,to=300,increment=5)
@@ -570,6 +583,8 @@ class MediaEdit(EditWindow):
             MultiSep = 'HeadSep-%d'
         elif self.line_type == 'ChatWindow':
             MultiSep = "SubSep-%d"
+        elif self.line_type == 'BezierCurve':
+            MultiSep = 'AnchorSep-%d'
         else:
             return
         # 定位到最后一个
@@ -589,7 +604,7 @@ class MediaEdit(EditWindow):
                 break
     def add_a_sep(self):
         this_sep:dict = self.TableStruct[self.line_type][self.multisep]
-        # 先添加小节分割线
+        # 先添加小节分割线 
         sep_new = self.sep_end + 1
         self.seperator[self.multisep%sep_new] = TextSeparator(
             master=self,
@@ -616,10 +631,16 @@ class MediaEdit(EditWindow):
             self.elements['ht_target_%d'%sep_new].input.update_dict(self.get_avaliable_charcol())
             self.elements["head_align_%d"%sep_new].input.update_dict(alignments)
             self.elements["ht_rotate_%d"%sep_new].input.configure(from_=-180,to=180,increment=1)
-        if self.line_type == 'ChatWindow':
+        elif self.line_type == 'ChatWindow':
             self.elements["sub_Bubble_%d"%sep_new].input.configure(values=['Bubble()']+self.get_avaliable_bubble(cw=False),state='readonly')
             self.elements["sub_Anime_%d"%sep_new].input.configure(values=['None']+self.get_avaliable_anime(),state='readonly')
             self.elements["sub_align_%d"%sep_new].input.update_dict(chatalign)
+        elif self.line_type == 'BezierCurve':
+            self.elements["control_left_%d"%sep_new].describe.configure(command=self.select_dot_idx(sep_new-1,dottype='cl'))
+            self.elements['control_right_%d'%sep_new].describe.configure(command=self.select_dot_idx(sep_new-1,dottype='cr'))
+            self.elements['anchor_%d'%sep_new].describe.configure(command=self.select_dot_idx(sep_new,dottype='a'))
+            self.elements["frame_point_%d"%sep_new].input.configure(from_=0,to=3000,increment=5)
+            self.elements["speed_formula_%d"%sep_new].input.update_dict(formulas)
         # 更新显示
         SZ_10 = int(self.sz * 10)
         SZ_20 = 2*SZ_10
@@ -650,9 +671,9 @@ class MediaEdit(EditWindow):
     # 选中点
     def select_dot(self, dotID, pID):
         self.page.preview.force_dot(dotID, pID)
-    def select_dot_idx(self,idx):
+    def select_dot_idx(self,idx,dottype='b'):
         def command():
-            self.select_dot('b%d'%idx,'p1')
+            self.select_dot(dottype+'%d'%idx,'p1')
         return command
     # 重设名字
     def reset_name(self,toast=False):
