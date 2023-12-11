@@ -29,7 +29,7 @@ class ColorChooserDialogZH(colorchooser.ColorChooserDialog):
         self._toplevel.destroy()
 
 # 打开选色器，并把结果输出给 StringVar
-def color_chooser(master,text_obj:StringVar,quote:bool=False)->str:
+def color_chooser(master,text_obj:StringVar,quote:bool=False)->tuple:
     initcolor = rgba_str_2_hex(text_obj.get())
     if initcolor:
         dialog_window = ColorChooserDialogZH(parent=master, initialcolor=initcolor)

@@ -11,9 +11,10 @@ from .ProjConfig import preference
 from .Medias import Audio
 from .ScriptParser import CharTable, MediaDef
 from .GUI_CustomDialog import abmethod_query
-from .GUI_DialogWindow import browse_file
+from .GUI_DialogWindow import browse_file,color_chooser
 from .GUI_Link import Link
 from .GUI_Language import Localize
+from .Utils import rgb_2_hex
 
 class CodeSnippet(ttk.Menu):
     def __init__(self,master):
@@ -119,6 +120,28 @@ class RGLSnippets(CodeSnippet, Localize):
                 "leap"      : ["上进上出","<black_leap_down_minor=>",23],
                 "shake"     : ["震动*"   , "<shake_in_minor=45>",19],
             },
+            "rich":{
+                "bold"          : ["加粗","b",2],
+                "italic"        : ["斜体","i",2],
+                "underline"     : ["下划线","u",2],
+                "strickout"     : ["删除线","x",2],
+                "sep1"          : 'sep',
+                "foreground"    : ["字体颜色","fg:",3],
+                "background"    : ["底纹颜色","bg:",3],
+                "fontsize"      : ["字号","fs:",3],
+                "sep2"          : 'sep',
+                "breakline"     : ["换行","#",2]
+            },
+            "unrich":{
+                "bold"          : ["加粗","/b",3],
+                "italic"        : ["斜体","/i",3],
+                "underline"     : ["下划线","/u",3],
+                "strickout"     : ["删除线","/x",3],
+                "sep1"          : 'sep',
+                "foreground"    : ["字体颜色","/fg",4],
+                "background"    : ["底纹颜色","/bg",4],
+                "fontsize"      : ["字号","/fs",4],
+            }
         },
         'en':{
             "command":{
@@ -218,6 +241,28 @@ class RGLSnippets(CodeSnippet, Localize):
                 "leap"      : ["<leap=_>","<black_leap_down_minor=>",23],
                 "shake"     : ["<shake=_>","<shake_in_minor=45>",19],
             },
+            "rich":{
+                "bold"          : ["bold","b",2],
+                "italic"        : ["italic","i",2],
+                "underline"     : ["underline","u",2],
+                "strickout"     : ["strickout","x",2],
+                "sep1"          : 'sep',
+                "foreground"    : ["foreground","fg:",3],
+                "background"    : ["background","bg:",3],
+                "fontsize"      : ["fontsize","fs:",3],
+                "sep2"          : 'sep',
+                "breakline"     : ["breakline","n",2]
+            },
+            "unrich":{
+                "bold"          : ["bold","/b",2],
+                "italic"        : ["italic","/i",2],
+                "underline"     : ["underline","/u",2],
+                "strickout"     : ["strickout","/x",2],
+                "sep1"          : 'sep',
+                "foreground"    : ["foreground","/fg",3],
+                "background"    : ["background","/bg",3],
+                "fontsize"      : ["fontsize","/fs",3],
+            }
         }
     }
     language = {
@@ -228,7 +273,7 @@ class RGLSnippets(CodeSnippet, Localize):
             '（白）': '(White)',
             '（无）': '(None)',
             '（停止）': '(Stop)',
-            '（浏览文件）': '(Browse Files)',
+            '（导入文件）': '(Load Files)',
             '（语音合成）': '(TTS Mark)',
             '立绘':  'Animation',
             '气泡':  'Bubble',
@@ -236,6 +281,11 @@ class RGLSnippets(CodeSnippet, Localize):
             '（坐标）': '(Coordinate)',
             '文字效果': 'Text Method',
             '音效': 'Sound Effect',
+            '启用效果': 'Enable Label',
+            '取消效果': 'Disable Label',
+            '黑': 'Black',
+            '白': 'White',
+            "（选择颜色）": "(Choose Color)"
         }
     }
     localize = preference.lang
@@ -311,8 +361,15 @@ class RGLSnippets(CodeSnippet, Localize):
         elif re.fullmatch('^\[[\w\ \.\,\(\)]+\](<\w+(=\d+)>)?:[^\\"]+',text_upstream) and re.fullmatch('\{.+\}',text_downstream):
             self.init_snippets_options('tx_met')
         elif re.fullmatch('^\[[\w\ \.\,\(\)]+\](<\w+(=\d+)>)?:[^\\"]+\{\w+;',text_upstream) and text_downstream[0]=='}':
-            self.init_snippets_options('am_dur')
+            self.init_snippets_options('am_dur') # TODO，稍微优化一下这个补全
         # 文字效果
+        # 富文本
+        elif re.fullmatch('^\[[\w\ \.\,\(\)]+\](<\w+(=\d+)?>)?:[^\\"]*\[',text_upstream) and text_downstream.startswith(']'):
+            self.init_snippets_options('rich')
+        elif (text_upstream.endswith("[fg:") or text_upstream.endswith("[bg:")) and text_downstream.startswith("]"):
+            self.init_snippets_options('color')
+        elif text_upstream.endswith("[fs:") and text_downstream.startswith("]"):
+            self.init_snippets_options('fontsize')
         # 清除
         elif text_upstream == '<clear>:' and text_downstream == '':
             self.init_snippets_options('chatwindow')
@@ -363,17 +420,21 @@ class RGLSnippets(CodeSnippet, Localize):
                 self.init_snippets_options('tx_dur')
             else:
                 self.init_snippets_options('am_dur')
+    # 从self.Snippets的结构里面创建菜单
+    def bulid_menu_from_dict(self,menu,dictionary:dict):
+        for keyword in dictionary:
+            if dictionary[keyword] == 'sep':
+                menu.add_separator()
+            else:
+                option, snippet, cpos = dictionary[keyword]
+                menu.add_command(label=option, command=self.insert_snippets(snippet, cpos))
+        return menu
     def init_snippets_options(self,type_='command',**kw_args):
         self.snippets_type = type_
         # 行命令
         if self.snippets_type in ['command','set','am_dur','tx_dur','formula','inline','speed','bg_met','ab_met','tx_met']:
             self.snippets_content = self.Snippets[self.localize][self.snippets_type]
-            for keyword in self.snippets_content:
-                if self.snippets_content[keyword] == 'sep':
-                    self.add_separator()
-                else:
-                    option, snippet, cpos = self.snippets_content[keyword]
-                    self.add_command(label=option, command=self.insert_snippets(snippet, cpos))
+            self.bulid_menu_from_dict(menu=self,dictionary=self.snippets_content)
             # 立绘切换效果的特殊之处
             if self.snippets_type == 'ab_met':
                 self.add_command(label=self.tr('（自定义）'),command=self.custom_ab_method)
@@ -428,23 +489,21 @@ class RGLSnippets(CodeSnippet, Localize):
             for name in list_of_snippets:
                 self.add_command(label=name, command=self.insert_snippets(name, len(name)))
             self.add_separator() # --------------------
-            self.add_command(label=self.tr('（浏览文件）'), command=self.open_browse_file(mtype='BGM'))
+            self.add_command(label=self.tr('（导入文件）'), command=self.open_browse_file(mtype='BGM'))
         # 音效
         elif self.snippets_type=='audio':
             if kw_args['asterisk']:
                 self.add_command(label=self.tr('（语音合成）'), command=self.insert_snippets("{*}", 3))
+                self.add_command(label=self.tr('（导入文件）'), command=self.open_browse_file(mtype='SE',asterisk=True))
             else:
                 self.add_command(label=self.tr('（语音合成）'), command=self.insert_snippets("{*}", 3), state='disabled')
+                self.add_command(label=self.tr('（导入文件）'), command=self.open_browse_file(mtype='SE'))
+            self.add_separator() # --------------------
             self.add_command(label=self.tr('（无）'), command=self.insert_snippets(r"{NA}", 4))
             self.add_separator() # --------------------
             list_of_snippets = self.ref_media.get_type('audio')
             for name in list_of_snippets:
                 self.add_command(label=name, command=self.insert_snippets("{"+name+"}", len(name)+2))
-            self.add_separator() # --------------------
-            if kw_args['asterisk']:
-                self.add_command(label=self.tr('（浏览文件）'), command=self.open_browse_file(mtype='SE',asterisk=True))
-            else:
-                self.add_command(label=self.tr('（浏览文件）'), command=self.open_browse_file(mtype='SE'))
         # 清除对话框
         elif self.snippets_type=='chatwindow':
             list_of_snippets = self.ref_media.get_type('chatwindow')
@@ -492,6 +551,7 @@ class RGLSnippets(CodeSnippet, Localize):
         # 音效和文字效果组合
         elif self.snippets_type=='audio|tx_met':
             self.add_command(label=self.tr('（语音合成）'), command=self.insert_snippets("{*}", 3))
+            self.add_command(label=self.tr('（导入文件）'), command=self.open_browse_file(mtype='SE',asterisk=True))
             self.add_separator()
             tx_met_menu = CodeSnippet(master=self)
             audio_menu = CodeSnippet(master=self)
@@ -508,8 +568,23 @@ class RGLSnippets(CodeSnippet, Localize):
             list_of_snippets = self.ref_media.get_type('audio')
             for name in list_of_snippets:
                 audio_menu.add_command(label=name, command=self.insert_snippets("{"+name+"}", len(name)+2))
-            audio_menu.add_separator() #------------------------
-            audio_menu.add_command(label=self.tr('（浏览文件）'), command=self.open_browse_file(mtype='SE',asterisk=True))
+        # 富文本
+        elif self.snippets_type=='rich':
+            enable_rich_menu = CodeSnippet(master=self)
+            disable_rich_menu = CodeSnippet(master=self)
+            self.bulid_menu_from_dict(menu=enable_rich_menu,dictionary=self.Snippets[self.localize]['rich'])
+            self.bulid_menu_from_dict(menu=disable_rich_menu,dictionary=self.Snippets[self.localize]['unrich'])
+            self.add_cascade(label=self.tr('启用效果'),menu=enable_rich_menu)
+            self.add_cascade(label=self.tr('取消效果'),menu=disable_rich_menu)
+        elif self.snippets_type=='color':
+            self.add_command(label=self.tr('黑'), command=self.insert_snippets("#000000", 8))
+            self.add_command(label=self.tr('白'), command=self.insert_snippets("#ffffff", 8))
+            self.add_separator() #------------------------
+            self.add_command(label=self.tr('（选择颜色）'), command=self.choose_color())
+        elif self.snippets_type=='fontsize':
+            for i in range(10,101,10):
+                text = '%d'%i
+                self.add_command(label=text, command=self.insert_snippets(text, len(text)+1))
     # 闭包
     def insert_snippets(self, snippet, cpos):
         # 命令内容
@@ -535,7 +610,7 @@ class RGLSnippets(CodeSnippet, Localize):
             self.codeview.insert(self.curser_idx,chars=snippet)
             self.codeview.mark_set("insert",f'{self.curser_idx}+{cpos}c')
             self.codeview.highlight_all()
-    # 浏览文件：闭包
+    # 导入文件：闭包
     def open_browse_file(self,mtype='SE',asterisk=False):
         def insert(snippet,cpos):
             self.codeview.insert(self.curser_idx,chars=snippet)
@@ -563,7 +638,20 @@ class RGLSnippets(CodeSnippet, Localize):
                 if getfile != '':                
                     insert(getfile,len(getfile))
         return command
-
+    # 选择颜色：闭包
+    def choose_color(self):
+        def insert(snippet,cpos):
+            self.codeview.insert(self.curser_idx,chars=snippet)
+            self.codeview.mark_set("insert",f'{self.curser_idx}+{cpos}c')
+            self.codeview.highlight_all()
+        def command():
+            # 启用取色器
+            result = color_chooser(master=self.codeview,text_obj=tk.StringVar())
+            if result:
+                R,G,B,A = result
+                hex_color = rgb_2_hex(R,G,B)
+                insert(hex_color,len(hex_color)+1)
+        return command
 class VirtualEvent:
     def __init__(self,key):
         self.keysym = key

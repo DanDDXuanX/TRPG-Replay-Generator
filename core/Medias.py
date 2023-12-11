@@ -521,6 +521,9 @@ class HPLabel(Text):
             self.bg_media = self.load_image(self.bg_path)
         else:
             return super().configure(key, value, index)
+# 图标化
+class Iconify(Text):
+    pass
 
 # 气泡
 class Bubble(MediaObj):
