@@ -2,6 +2,7 @@
 # coding: utf-8
 
 import re
+import numpy as np
 import ttkbootstrap as ttk
 from .GUI_Util import KeyValueDescribe, TextSeparator, FluentFrame, ask_rename_boardcast
 from .GUI_TableStruct import EditTableStruct, label_colors, projection, alignments, vertical_alignments, chatalign, charactor_columns, fill_mode, fit_axis, True_False, left_right, media_help_url,formulas
@@ -190,8 +191,11 @@ class EditWindow(FluentFrame):
         return self.page.ref_medef.get_type('bubble',cw)
     def get_avaliable_text(self)->list:
         return self.page.ref_medef.get_type('text')
-    def get_avaliable_pos(self)->list:
-        return self.page.ref_medef.get_type('pos')
+    def get_avaliable_pos(self,bezier=True)->list:
+        if bezier:
+            return self.page.ref_medef.get_type('bezier')
+        else:
+            return self.page.ref_medef.get_type('pos')
     def get_avaliable_charcol(self)->dict:
         charactor_columns_this = charactor_columns.copy()
         charactor_columns_this.update(self.get_avaliable_custom())
@@ -455,11 +459,13 @@ class MediaEdit(EditWindow):
         # BezierCurve
         if self.line_type == 'BezierCurve':
             self.elements['pos'].describe.configure(command=lambda :self.select_dot('a0','p1'))
+            self.elements['pos'].input.configure(values=self.get_avaliable_pos(bezier=False))
             for idx in range(1,999):
                 if "anchor_%d"%idx in self.elements:
                     self.elements["control_left_%d"%idx].describe.configure(command=self.select_dot_idx(idx,dottype='cl'))
                     self.elements['control_right_%d'%idx].describe.configure(command=self.select_dot_idx(idx,dottype='cr'))
                     self.elements['anchor_%d'%idx].describe.configure(command=self.select_dot_idx(idx,dottype='a'))
+                    self.elements['anchor_%d'%idx].input.configure(values=self.get_avaliable_pos(bezier=False))
                     self.elements["frame_point_%d"%idx].input.configure(from_=0,to=3000,increment=5)
                     self.elements["speed_formula_%d"%idx].input.update_dict(formulas)
                 else:
@@ -636,9 +642,20 @@ class MediaEdit(EditWindow):
             self.elements["sub_Anime_%d"%sep_new].input.configure(values=['None']+self.get_avaliable_anime(),state='readonly')
             self.elements["sub_align_%d"%sep_new].input.update_dict(chatalign)
         elif self.line_type == 'BezierCurve':
+            # 贝塞尔曲线是特殊的，贝塞尔曲线需要前一个点的方向来延伸下一段线
+            end_right_control = self.section['control_right'][-1]
+            end_anchor = self.section['anchor'][-1]
+            end_frame_point = self.section['frame_point'][-1]
+            dirction_vec = -np.array(end_right_control)/np.linalg.norm(end_right_control)
+            self.elements["control_left_%d"%sep_new].set('({},{})'.format(*(dirction_vec*100).astype(int)))
+            self.elements["control_right_%d"%sep_new].set('({},{})'.format(*(-dirction_vec*100).astype(int)))
+            self.elements["anchor_%d"%sep_new].set('({},{})'.format(*(end_anchor + dirction_vec*300).astype(int)))
+            self.elements["frame_point_%d"%sep_new].set(end_frame_point+30)
+            # 正常的属性添加
             self.elements["control_left_%d"%sep_new].describe.configure(command=self.select_dot_idx(sep_new-1,dottype='cl'))
             self.elements['control_right_%d'%sep_new].describe.configure(command=self.select_dot_idx(sep_new-1,dottype='cr'))
             self.elements['anchor_%d'%sep_new].describe.configure(command=self.select_dot_idx(sep_new,dottype='a'))
+            self.elements['anchor_%d'%sep_new].input.configure(values=self.get_avaliable_pos(bezier=False))
             self.elements["frame_point_%d"%sep_new].input.configure(from_=0,to=3000,increment=5)
             self.elements["speed_formula_%d"%sep_new].input.update_dict(formulas)
         # 更新显示

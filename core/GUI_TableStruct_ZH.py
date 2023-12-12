@@ -340,7 +340,7 @@ EditTableStruct = {
                         "dtext": "选择",
                         "ditem": "button",
                         "valuekey": "pos",
-                        "vitem": "entry",
+                        "vitem": "combox",
                         "vtype": "str",
                         "default": "(0,0)"
                     },
@@ -379,7 +379,7 @@ EditTableStruct = {
                         "dtext": "选择",
                         "ditem": "button",
                         "valuekey": "anchor",
-                        "vitem": "entry",
+                        "vitem": "combox",
                         "vtype": "str",
                         "default": "(0,0)"
                     },

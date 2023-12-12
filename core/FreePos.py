@@ -202,7 +202,12 @@ class BezierCurve:
                     'time_formula' : formula_available[self.speed_formula[i]],
                 }
             except IndexError:
-                raise Exception()
+                absolute_pos = np.array([start_point, start_point, self.anchor[i], self.anchor[i]])
+                self.curve_set[i] = {
+                    'control_points' : absolute_pos,
+                    'frame_timestamp': self.frame_point[-1],
+                    'time_formula' : formula_available[self.speed_formula[-1]],
+                }
         # 创建曲线
         self.all_dots = np.array(self.pos)
         for key in self.curve_set:
@@ -236,6 +241,8 @@ class BezierCurve:
         # Evaluate the Bezier curve at the given parameter.
         point = Pos(*np.dot(bernstein_coefficients, control_point))
         return point
+    def get(self):
+        return self.pos.get()
     def __getitem__(self,idx:int)->Pos:
         if idx > self.max_idx:
             return self.all_dots[self.max_idx]
@@ -243,7 +250,6 @@ class BezierCurve:
             return self.all_dots[0]
         else:
             return self.all_dots[int(idx)]
-    # TODO
     # 当预览时
     def preview(self, surface):
         def plot_anchor(pos:Pos):
@@ -262,7 +268,6 @@ class BezierCurve:
             if idx != 0:
                 line(surface, color='#00aa00',start_pos=self.all_dots[idx-1].get(),end_pos=dot.get(),width=2)
             circle(surface,color='#00aa00',center=dot.get(),radius=4)
-
     def convert(self):
         pass
     # 在IPW中的点
@@ -286,7 +291,6 @@ class BezierCurve:
                 'control' : self.curve_set[idx]['control_points'][2,:],
             }
         return pos_dict
-    # TODO: 当某些值发生变化的时候
     def configure(self, key: str, value, index: int = 0):
         try:
             self.__setattr__(key,value)
