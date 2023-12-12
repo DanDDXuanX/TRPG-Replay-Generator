@@ -64,6 +64,11 @@ class Pos:
         return "({x},{y})".format(x=self.x,y=self.y)
     def get(self):
         return (self.x,self.y)
+    def use(self,duration=0):
+        if duration <= 0:
+            return str(self)
+        else:
+            return np.repeat(str(self),int(duration))
     def preview(self, surface:pygame.Surface):
         px = self.x
         py = self.y
@@ -163,6 +168,9 @@ class PosGrid:
             self._size[1] = value
         self.make_grid()
 class BezierCurve:
+    # markertext
+    # pygame.font.init() # 似乎是因为线程安全问题，如果在这里引入，会导致闪退
+    # markertext = pygame.font.Font('./assets/SourceHanSansCN-Regular.otf',30)
     def __init__(self, pos, control_left:list, control_right:list, anchor:list, frame_point:list, speed_formula:list):
         self.pos = pos
         self.control_left = control_left
@@ -250,19 +258,33 @@ class BezierCurve:
             return self.all_dots[0]
         else:
             return self.all_dots[int(idx)]
+    # 使用
+    def use(self,duration=0):
+        use_UF = np.frompyfunc(lambda x:x.use(),1,1)
+        if duration <= 0:
+            return self.pos.use()
+        else:
+            total_length = len(self.all_dots)
+            if duration <= total_length:
+                return use_UF(self.all_dots[0:duration])
+            else:
+                return use_UF(np.hstack([self.all_dots,np.repeat(self.all_dots[-1],duration-total_length)]))
     # 当预览时
     def preview(self, surface):
-        def plot_anchor(pos:Pos):
+        def plot_anchor(pos:Pos,keyframe=0):
             if type(pos) in [Pos,FreePos]:
                 px,py = pos.get()
             else:
                 px,py = pos
             line(surface, color='#00aa00',start_pos=(px-50,py),end_pos=(px+50,py),width=3)
             line(surface, color='#00aa00',start_pos=(px,py-50),end_pos=(px,py+50),width=3)
+            # surface.blit(self.markertext.render(str(keyframe),True,'#00aa00'), (px+10,py-50))
         # 锚点（额外的十字叉）
-        plot_anchor(self.pos)
-        for dot in self.anchor:
-            plot_anchor(dot)
+        plot_anchor(self.pos, 0)
+        for idx in self.curve_set:
+            this_kf = self.curve_set[idx]['frame_timestamp']
+            dot = self.curve_set[idx]['control_points'][3,:]
+            plot_anchor(dot, this_kf)
         # 曲线点（小圆点）
         for idx, dot in enumerate(self.all_dots):
             if idx != 0:

@@ -1293,7 +1293,7 @@ class RplGenLog(Script):
         else:
             bb_method_obj = MotionMethod(bb_method,bb_dur,self.dynamic['formula'],this_section)
             self.main_timeline.loc[last_placed_index,'BbS_a'] = bb_method_obj.alpha(this_duration,100)
-            self.main_timeline.loc[last_placed_index,'BbS_c'] = bb_center
+            self.main_timeline.loc[last_placed_index,'BbS_c'] = bb_center.use(this_duration)
             self.main_timeline.loc[last_placed_index,'BbS_p'] = bb_method_obj.motion(this_duration)
             self.main_timeline.loc[last_placed_index,'BbS_header'] = this_hd
             self.main_timeline.loc[last_placed_index,'BbS_main'] = this_tx
@@ -1340,7 +1340,7 @@ class RplGenLog(Script):
             self.main_timeline.loc[last_placed_index,'AmS_a'] = am_method_obj.alpha(this_duration,100)
             self.main_timeline.loc[last_placed_index,'AmS_p'] = am_method_obj.motion(this_duration)
             self.main_timeline.loc[last_placed_index,'AmS_t'] = self.medias[this_am].get_tick(this_duration)
-            self.main_timeline.loc[last_placed_index,'AmS_c'] = am_center
+            self.main_timeline.loc[last_placed_index,'AmS_c'] = am_center.use(this_duration)
     def check_text_execute(self,content_text,this_line_limit,i):
         # 未声明手动换行
         if ('#' in content_text)&(content_text[0]!='^'):
@@ -1393,10 +1393,10 @@ class RplGenLog(Script):
         this_background = "black"
         # 放置的立绘
         last_placed_animation_section = 0
-        this_placed_animation = ('NA','replace',0,'NA') # am,method,method_dur,center
+        this_placed_animation = ('NA','replace',0, Pos()) # am,method,method_dur,center
         # 放置的气泡
         last_placed_bubble_section = 0
-        this_placed_bubble = ('NA','replace',0,'','','all',0,'NA') # bb,method,method_dur,HT,MT,tx_method,tx_dur,center
+        this_placed_bubble = ('NA','replace',0,'','','all',0,Pos()) # bb,method,method_dur,HT,MT,tx_method,tx_dur,center
         # 当前对话小节的am_bb_method
         last_dialog_method = {'Am':None,'Bb':None,'A1':0,'A2':0,'A3':0}
         this_dialog_method = {'Am':None,'Bb':None,'A1':0,'A2':0,'A3':0}
@@ -1526,7 +1526,7 @@ class RplGenLog(Script):
                             # 立绘的对象、帧顺序、中心位置
                             this_am_obj:Animation = self.medias[this_am]
                             this_timeline[this_layer+'_t'] = this_am_obj.get_tick(this_duration).astype(str)
-                            this_timeline[this_layer+'_c'] = str(this_am_obj.pos)
+                            this_timeline[this_layer+'_c'] = this_am_obj.pos.use(this_duration)
                             # 立绘的透明度
                             if alpha is None:
                                 alpha = -1
@@ -1619,7 +1619,7 @@ class RplGenLog(Script):
                                 this_timeline['Bb'] = this_bb
                                 this_timeline['Bb_a'] = bb_method_obj.alpha(this_duration,100)
                                 this_timeline['Bb_p'] = bb_method_obj.motion(this_duration)
-                                this_timeline['Bb_c'] = str(this_bb_obj.pos)
+                                this_timeline['Bb_c'] = this_bb_obj.pos.use(this_duration)
                                 if type(this_bb_obj) is ChatWindow:
                                     # 如果是聊天窗对象，更新timeline对象，追加历史记录
                                     this_timeline['Bb_header'] = this_bb_obj.UF_add_header_text(target_text)
@@ -1768,20 +1768,20 @@ class RplGenLog(Script):
                         this_timeline=pd.DataFrame(index=range(0,method_dur),dtype=str,columns=self.render_arg)
                         this_timeline['BG2']=next_background
                         this_timeline['BG2_a']=100
-                        this_timeline['BG2_c']=str(self.medias[next_background].pos)
+                        this_timeline['BG2_c']=self.medias[next_background].pos.use()
                     elif method=='delay': # delay 等价于原来的replace，延后n秒，然后替换
                         this_timeline=pd.DataFrame(index=range(0,method_dur),dtype=str,columns=self.render_arg)
                         this_timeline['BG2']=this_background
                         this_timeline['BG2_a']=100
-                        this_timeline['BG2_c']=str(self.medias[this_background].pos)
+                        this_timeline['BG2_c']=self.medias[this_background].pos.use()
                     # 'black','white'
                     elif method in ['black','white']:
                         this_timeline=pd.DataFrame(index=range(0,method_dur),dtype=str,columns=self.render_arg)
                         # 下图层BG2，前半程是旧图层，后半程是新图层，透明度均为100
                         this_timeline.loc[:(method_dur//2),'BG2'] = this_background
                         this_timeline.loc[(method_dur//2):,'BG2'] = next_background
-                        this_timeline.loc[:(method_dur//2),'BG2_c']=str(self.medias[this_background].pos)
-                        this_timeline.loc[(method_dur//2):,'BG2_c']=str(self.medias[next_background].pos)
+                        this_timeline.loc[:(method_dur//2),'BG2_c']=self.medias[this_background].pos.use()
+                        this_timeline.loc[(method_dur//2):,'BG2_c']=self.medias[next_background].pos.use()
                         this_timeline['BG2_a'] = 100
                         # 上图层BG1，是指定的颜色，透明度是100-abs(formula(100,-100,dur))
                         this_timeline['BG1'] = method
@@ -1791,9 +1791,9 @@ class RplGenLog(Script):
                     elif method in ['cross','push','cover']: # 交叉溶解，黑场，白场，推，覆盖
                         this_timeline=pd.DataFrame(index=range(0,method_dur),dtype=str,columns=self.render_arg)
                         this_timeline['BG1']=next_background
-                        this_timeline['BG1_c']=str(self.medias[next_background].pos)
+                        this_timeline['BG1_c']=self.medias[next_background].pos.use()
                         this_timeline['BG2']=this_background
-                        this_timeline['BG2_c']=str(self.medias[this_background].pos)
+                        this_timeline['BG2_c']=self.medias[this_background].pos.use()
                         if method == 'cross':
                             this_timeline['BG1_a']=self.dynamic['formula'](0,100,method_dur)
                             this_timeline['BG2_a']=100
@@ -1854,7 +1854,7 @@ class RplGenLog(Script):
                         # 执行
                         if len(anime_objs) == 1:
                             # 检查立绘数量，是不是单个立绘
-                            this_placed_animation = (anime_name[0],method,method_dur,str(anime_poses[0]))
+                            this_placed_animation = (anime_name[0],method,method_dur,anime_poses[0])
                             last_placed_animation_section = i
                         else:
                             # 生成组合立绘
@@ -1865,7 +1865,7 @@ class RplGenLog(Script):
                                 subanimation_name = anime_name
                                 )
                             # 标记为下一次
-                            this_placed_animation = (Auto_media_name,method,method_dur,'(0,0)') # 因为place的应用是落后于设置的，因此需要保留c参数！
+                            this_placed_animation = (Auto_media_name,method,method_dur,Pos(0,0)) # 因为place的应用是落后于设置的，因此需要保留c参数！
                             last_placed_animation_section = i
                     # 如果是单个立绘
                     elif this_section['object'] in self.medias.keys():
@@ -1873,11 +1873,11 @@ class RplGenLog(Script):
                         if type(self.medias[am_name]) not in [Animation,Dice,HitPoint,GroupedAnimation]:
                             raise ParserError('NotPAnime',am_name,str(i+1))
                         else: # 如果type 不是 Animation 类，也 UndefPAnime
-                            this_placed_animation = (am_name,method,method_dur,str(self.medias[am_name].pos))
+                            this_placed_animation = (am_name,method,method_dur,self.medias[am_name].pos)
                             last_placed_animation_section = i
                     # 如果是取消立绘
                     elif this_section['object'] is None:
-                        this_placed_animation = ('NA','replace',0,'(0,0)')
+                        this_placed_animation = ('NA','replace',0, Pos())
                         last_placed_animation_section = i
                     else:
                         raise ParserError('UndefPAnime',this_section['object'],str(i+1))
@@ -1899,7 +1899,7 @@ class RplGenLog(Script):
                     # 如果是设置为NA
                     bb_target = this_section['object']
                     if bb_target is None:
-                        this_placed_bubble = ('NA','replace',0,'','','all',0,'NA')
+                        this_placed_bubble = ('NA','replace',0,'','','all',0, Pos())
                         last_placed_bubble_section = i
                         # 提前终止所必须的
                         self.break_point[i+1]=self.break_point[i]
@@ -1925,7 +1925,7 @@ class RplGenLog(Script):
                             bb_object.main_text,
                             'all', # method
                             0, # method_dur
-                            str(bb_object.pos)
+                            bb_object.pos
                             )
                         last_placed_bubble_section = i
                     # 正常的放置气泡
@@ -1954,7 +1954,7 @@ class RplGenLog(Script):
                                 bb_object.main_text,
                                 tx_method['method'],
                                 tx_method['method_dur'],
-                                str(bb_object.pos)
+                                bb_object.pos
                                 )
                             last_placed_bubble_section = i
                 except Exception as E:
@@ -2014,7 +2014,7 @@ class RplGenLog(Script):
                             else:
                                 value_pos = pos1 - pos2
                         # 检查是否是一个Pos对象
-                        if type(value_pos) in [Pos,FreePos]:
+                        if type(value_pos) in [Pos,FreePos,BezierCurve]:
                             pass
                         elif type(value_pos) in [list,tuple]:
                             value_pos = Pos(*value_pos)
@@ -2251,7 +2251,7 @@ class RplGenLog(Script):
                         # 只采用背景图层（BG2）'BG2','BG2_a','BG2_c','BG2_p'
                         this_timeline['BG2'] = this_background
                         this_timeline['BG2_a'] = 100
-                        this_timeline['BG2_c'] = str(self.medias[this_background].pos)
+                        this_timeline['BG2_c'] = self.medias[this_background].pos.use()
                         this_timeline['BG2_p'] = "NA"
                         # raise ParserError('WaitBegin') # 不再报错
                     # BGM

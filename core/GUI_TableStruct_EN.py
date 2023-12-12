@@ -303,6 +303,118 @@ EditTableStruct = {
             "x_step": "x_step",
             "y_step": "y_step"
         },
+        "BezierCurve":{
+            "InfoSep":{
+                "Text": "Basic Information",
+                "Command":None,
+                "Content":{
+                    "type": {
+                        "ktext": "Type:",
+                        "tooltip":None,
+                        "dtext": "help",
+                        "ditem": "button",
+                        "valuekey": "type",
+                        "vitem": "label",
+                        "vtype": "str",
+                        "default": "BezierCurve"
+                    },
+                    "Name": {
+                        "ktext": "Name:",
+                        "tooltip":None,
+                        "dtext": "(input)",
+                        "ditem": "label",
+                        "valuekey": "$key",
+                        "vitem": "entry",
+                        "vtype": "str",
+                        "default": "BezierCurve_new"
+                    },
+                }
+            },
+            "StartSep":{
+                "Text": "Start Point",
+                "Command":None,
+                "Content":{
+                    "pos": {
+                        "ktext": "start:",
+                        "tooltip":None,
+                        "dtext": "select",
+                        "ditem": "button",
+                        "valuekey": "pos",
+                        "vitem": "combox",
+                        "vtype": "str",
+                        "default": "(0,0)"
+                    },
+                }
+            },
+            "AnchorSep-%d":{
+                "Text": "Anchor-%d",
+                "Command":{
+                    "type":'add_sep',
+                    "key":"anchor_%d"
+                },
+                "Content":{
+                    "control_left_%d": {
+                        "ktext": "L-control:",
+                        "tooltip":None,
+                        "dtext": "select",
+                        "ditem": "button",
+                        "valuekey": "control_left",
+                        "vitem": "entry",
+                        "vtype": "str",
+                        "default": "(0,0)"
+                    },
+                    "control_right_%d": {
+                        "ktext": "R-control:",
+                        "tooltip":None,
+                        "dtext": "select",
+                        "ditem": "button",
+                        "valuekey": "control_right",
+                        "vitem": "entry",
+                        "vtype": "str",
+                        "default": "(0,0)"
+                    },
+                    "anchor_%d": {
+                        "ktext": "anchor:",
+                        "tooltip":None,
+                        "dtext": "select",
+                        "ditem": "button",
+                        "valuekey": "anchor",
+                        "vitem": "combox",
+                        "vtype": "str",
+                        "default": "(0,0)"
+                    },
+                    "frame_point_%d": {
+                        "ktext": "keyframe:",
+                        "tooltip":None,
+                        "dtext": "(digit)",
+                        "ditem": "label",
+                        "valuekey": "frame_point",
+                        "vitem": "spine",
+                        "vtype": "int",
+                        "default": "30"
+                    },
+                    "speed_formula_%d": {
+                        "ktext": "formula:",
+                        "tooltip":None,
+                        "dtext": "(select)",
+                        "ditem": "label",
+                        "valuekey": "speed_formula",
+                        "vitem": "combox",
+                        "vtype": "str",
+                        "default": "'linear'"
+                    },
+                }
+            },
+        },
+        "BezierCurve.args":{
+            "type"          : "type",
+            "pos"           : "pos",
+            "control_left"  : "control_left_%d",
+            "control_right" : "control_right_%d",
+            "anchor"        : "anchor_%d",
+            "frame_point"   : "frame_point_%d",
+            "speed_formula" : "speed_formula_%d"
+        },
         "Text":{
             "InfoSep":{
                 "Text": "Basic Information",
@@ -3173,6 +3285,11 @@ NewElement = {
             "text":"PosGrid",
             "tooltip":"[PosGrid] is a set of grid-like dots. each member of the PosGrid is a Pos.",
             "icon":'./assets/icon/new/PosGrid.png'
+        },
+        "BezierCurve":{
+            "text":"BezierCurve",
+            "tooltip":"[BezierCurve] is a curve path; used to specify the motion trajectory of a media.",
+            "icon":'./assets/icon/new/BezierCurve.png'
         }
     },
     "Text":{
@@ -3286,6 +3403,7 @@ media_help_url = {
     'Pos':      'https://www.wolai.com/6YScpfA5QJaMCtpE999stS#jMX2TuS5Zm7CGFKdsGBRgB',
     'FreePos':  'https://www.wolai.com/6YScpfA5QJaMCtpE999stS#kj6xMgRS4reR21sCNeSHwh',
     'PosGrid':  'https://www.wolai.com/6YScpfA5QJaMCtpE999stS#gVfe7mSzoemiQvCobL5jJG',
+    'BezierCurve': 'https://www.wolai.com/6YScpfA5QJaMCtpE999stS#9RiK7CLiWtyvB9ZFhz7Tjo',
     'Text':     'https://www.wolai.com/vjbVNex55KGPn2oEVjoZyK#3xCZVi8hQLQUh8w8W7BJzx',
     'StrokeText':   'https://www.wolai.com/vjbVNex55KGPn2oEVjoZyK#aEUx1knDvNnfppNEVzEK8e',
     'RichText': 'https://www.wolai.com/vjbVNex55KGPn2oEVjoZyK#pdRe5EN6iyieLSfGKGPQ9x',
@@ -3309,4 +3427,14 @@ key_status_bar = {
     4: '[ERROR:4] Connection timed out. please check your network.',
     5: '[ERROR:5] Service IP not found!',
     6: '[ERROR:6] Communication key not found!'
+}
+# 曲线函数
+formulas = {
+    "linear":       "'linear'",
+    "quadratic":    "'quadratic'",
+    "quadraticR":   "'quadraticR'",
+    "sigmoid":      "'sigmoid'",
+    "right":        "'right'",
+    "left":         "'left'",
+    "sincurve":     "'sincurve'",
 }

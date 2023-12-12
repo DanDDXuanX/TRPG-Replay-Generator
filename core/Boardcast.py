@@ -182,11 +182,19 @@ class BoardcastHandler:
             elif section[keyword] == old_name_reference:
                 section[keyword] = new_name_reference
                 return 1
+            elif keyword in ['pos1', 'pos2']:
+                if section[keyword] == f'${old_name_reference}':
+                    section[keyword] = f'${new_name_reference}'
+                    return 1
+                else:
+                    return 0
             elif keyword == 'object' and 'index' in section:
                 # 特例：move：posgrid[]
                 if section[keyword] == f'${old_name_reference}':
                     section[keyword] = f'${new_name_reference}'
                     return 1
+                else:
+                    return 0
             else:
                 return 0
         # 如果不是终端
