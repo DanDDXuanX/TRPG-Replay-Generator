@@ -449,7 +449,8 @@ class HPLabel(Text):
             if d2<d1 or d1 < 0 or d2 <0:
                 raise ValueError('invalid hp value')
         except Exception:
-            print(WarningPrint('InvHpLabel',tx))
+            # print(WarningPrint('InvHpLabel',tx))
+            # 在render阶段的报错会在控制台输出大量东西，增加完全不必要的负载。
             return super().render(tx)
         # 渲染文本
         text_to_draw = self.marker.replace('A',str(d1)).replace('B',str(d2))

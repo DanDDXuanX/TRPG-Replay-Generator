@@ -168,9 +168,7 @@ class PosGrid:
             self._size[1] = value
         self.make_grid()
 class BezierCurve:
-    # markertext
-    # pygame.font.init() # 似乎是因为线程安全问题，如果在这里引入，会导致闪退
-    # markertext = pygame.font.Font('./assets/SourceHanSansCN-Regular.otf',30)
+    pygame.font.init()
     def __init__(self, pos, control_left:list, control_right:list, anchor:list, frame_point:list, speed_formula:list):
         self.pos = pos
         self.control_left = control_left
@@ -178,6 +176,8 @@ class BezierCurve:
         self.anchor = anchor
         self.frame_point = frame_point
         self.speed_formula = speed_formula
+        # 标记字体
+        self.markertext = pygame.font.Font('./assets/SourceHanSansCN-Regular.otf',30)
         # 执行初始化
         self.make_curve()
     def make_curve(self):
@@ -278,7 +278,7 @@ class BezierCurve:
                 px,py = pos
             line(surface, color='#00aa00',start_pos=(px-50,py),end_pos=(px+50,py),width=3)
             line(surface, color='#00aa00',start_pos=(px,py-50),end_pos=(px,py+50),width=3)
-            # surface.blit(self.markertext.render(str(keyframe),True,'#00aa00'), (px+10,py-50))
+            surface.blit(self.markertext.render(str(keyframe),True,'#00aa00'), (px+10,py-50))
         # 锚点（额外的十字叉）
         plot_anchor(self.pos, 0)
         for idx in self.curve_set:

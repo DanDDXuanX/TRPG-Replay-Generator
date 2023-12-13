@@ -194,7 +194,8 @@ class OutputMediaType:
                 center_this = values[layer + '_c']
                 header_this = values[layer + '_header']
                 main_this = values[layer + '_main']
-            #如果item变化了，或者进入了指定的断点(这是保证断句的关键！)(仅断点分隔的图层)
+            # 如果item变化了，或者进入了指定的断点(这是保证断句的关键！)(仅断点分隔的图层)
+            # 由于是在item变化的时间点去进行的判断，因此如果运动轨迹是贝塞尔曲线，最后被采纳的位置是终点【最后点】的位置。
             if (item_this != item) | ((key in self.breakpoint.values) & break_at_breakpoint): 
                 if (item == 'NA') | (item!=item): # 如果item是空 item 指前一个小节的元素
                     pass # 则不输出什么

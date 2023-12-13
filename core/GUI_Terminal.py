@@ -10,12 +10,18 @@ from .ProjConfig import preference
 from .Utils import EDITION
 from .Exceptions import MainPrint
 from .GUI_Link import Link
-from .GUI_Language import tr
+from .GUI_Language import tr, Localize
 import tkinter as tk
 import sys
 import re
 
-class ExportVideoProgressBar(ttk.Frame):
+class ExportVideoProgressBar(ttk.Frame,Localize):
+    language = {
+        'en': {
+            '进度：{0}/{1}({2}%)  剩余时间：{3}': 'Progress: {0}/{1}({2}%)  ETR: {3}',
+        }
+    }
+    localize = preference.lang
     def __init__(self,master,screenzoom)->None:
         # 初始化
         self.sz = screenzoom
@@ -41,7 +47,8 @@ class ExportVideoProgressBar(ttk.Frame):
         m = self.regex.fullmatch(string)
         if m:
             self.progress.configure(value = float(m.group(3))/100)
-            self.text.configure(text = f'进度：{m.group(4)}/{m.group(5)}({m.group(3)}%)  剩余时间：{m.group(6)}')
+            #'进度：{m.group(4)}/{m.group(5)}({m.group(3)}%)  剩余时间：{m.group(6)}'
+            self.text.configure(text = self.tr('进度：{0}/{1}({2}%)  剩余时间：{3}').format(m.group(4),m.group(5),m.group(3),m.group(6)))
     def clear_value(self):
         self.progress.configure(value = 0)
         self.text.configure(text = ' ')
