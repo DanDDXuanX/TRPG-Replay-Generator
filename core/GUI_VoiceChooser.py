@@ -221,6 +221,7 @@ class AzureVoiceArgs(VoiceArgs):
         self.inputs['style'] = ttk.Combobox(master=self.frames['style'],textvariable=self.variables['style'])
         self.inputs['degree'] = ttk.Spinbox(master=self.frames['style'], textvariable=self.variables['degree'], width=8, from_=0.1,to=2.0,increment=0.1)
         self.inputs['roleplay'] = ttk.Combobox(master=self.frames['roleplay'],textvariable=self.variables['roleplay'])
+        style = self.variables['style'].get()
         # add
         self.addition['style'] = None # 空占位
         self.addition['degree'] = None # 空占位
@@ -228,7 +229,7 @@ class AzureVoiceArgs(VoiceArgs):
         # order
         self.display_order = ['voice','style','degree','roleplay','speechrate','pitchrate']
         # 放置元件
-        self.update_selected_voice(None)
+        super().update_selected_voice(None)
         self.update_voice_style()
         self.update_elements()
         self.update_items()
