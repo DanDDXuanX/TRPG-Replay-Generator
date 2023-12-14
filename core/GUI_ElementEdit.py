@@ -488,6 +488,14 @@ class MediaEdit(EditWindow):
                 self.elements['edge_color'].bind_button(dtype='color')
                 self.elements['edge_width'].input.configure(from_=0,to=30,increment=1)
                 self.elements['projection'].input.update_dict(projection)
+            if self.line_type == 'RichText':
+                self.elements['scale'].input.configure(from_=0.1,to=3.0,increment=0.2)
+                for idx in range(1,999):
+                    if "sub_key_%d"%idx in self.elements:
+                        self.elements['sub_icon_%d'%idx].bind_button(dtype='picture-file')
+                    else:
+                        break
+                self.update_sep_button()
         # Pos
         if self.line_type in ['Bubble','Balloon','DynamicBubble','ChatWindow','Animation','Background']:
             if self.line_type == 'Animation':
@@ -591,6 +599,8 @@ class MediaEdit(EditWindow):
             MultiSep = "SubSep-%d"
         elif self.line_type == 'BezierCurve':
             MultiSep = 'AnchorSep-%d'
+        elif self.line_type == 'RichText':
+            MultiSep = 'IconifySep-%d'
         else:
             return
         # 定位到最后一个
@@ -658,6 +668,8 @@ class MediaEdit(EditWindow):
             self.elements['anchor_%d'%sep_new].input.configure(values=self.get_avaliable_pos(bezier=False))
             self.elements["frame_point_%d"%sep_new].input.configure(from_=0,to=3000,increment=5)
             self.elements["speed_formula_%d"%sep_new].input.update_dict(formulas)
+        elif self.line_type == 'RichText':
+            self.elements['sub_icon_%d'%sep_new].bind_button(dtype='picture-file')
         # 更新显示
         SZ_10 = int(self.sz * 10)
         SZ_20 = 2*SZ_10

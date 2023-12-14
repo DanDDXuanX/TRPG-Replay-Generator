@@ -15,7 +15,7 @@ from .Exceptions import MediaError, WarningPrint
 from .Formulas import sigmoid
 from .Utils import hex_2_rgba, rotate_surface, rotate_vector, brightness
 from .UtilityImage import UtilityImage
-from .Regexs import RE_rich
+from .Regexs import RE_rich,RE_label
 # 主程序 replay_generator
 
 # 媒体对象，所有媒体类的基类
@@ -244,15 +244,58 @@ class StrokeText(Text):
             min_alpha = min(self.color[3],self.edge_color[3])
             canvas.set_alpha(min_alpha)
         return canvas
-
+# 字形替换的基类
+class GlyphSubstitution(Text):
+    # 将图形缩放到和字体相当的大小
+    def load_image(self,path:Filepath,scale:float=1.0):
+        image_surface = pygame.image.load(path.exact())
+        height = image_surface.get_height()
+        zoom_rate = self.size / height * scale
+        return self.zoom(image_surface, zoom_rate)
+    def blank(self):
+        blank_surf = pygame.Surface([self.size,self.size], pygame.SRCALPHA)
+        blank_surf.fill([0,0,0,0])
+        return blank_surf
 # 富文本
-class RichText(Text):
-    def __init__(self,fontfile='./assets/SourceHanSansCN-Regular.otf',fontsize=40,color=(0,0,0,255),line_limit=20,label_color='Lavender'):
-        super().__init__(fontfile=fontfile,fontsize=fontsize,color=color,line_limit=line_limit,label_color=label_color) # 继承
+class RichText(GlyphSubstitution):
+    def __init__(
+            self,
+            fontfile: str = './assets/SourceHanSansCN-Regular.otf',
+            fontsize: int = 40,
+            color: tuple = (0, 0, 0, 255),
+            line_limit:int = 20,
+            scale:float = 1.0,
+            sub_key = ['Key1'],
+            sub_icon = [''],
+            label_color: str = 'Lavender'):
+        # 继承
+        super().__init__(fontfile, fontsize, color, line_limit, label_color)
+        # 派生
+        self.scale = scale
+        self.sub_key = sub_key
+        self.sub_icon = sub_icon
+        # 生成键值对
+        self.dictionarize()
+    def dictionarize(self):
+        self.icon_dict = {}
+        for idx, key in enumerate(self.sub_key):
+            if re.fullmatch(pattern='\w+',string=key):
+                pass
+            else:
+                raise MediaError("CWKeyInv",key)
+            try:
+                icon_path = Filepath(self.sub_icon[idx])
+                self.icon_dict[key] = self.load_image(icon_path,scale=self.scale)
+            except IndexError:   
+                self.icon_dict[key] = self.blank()
+            except MediaError as E:
+                # 如果是找不到媒体的这种错误
+                raise E
     def raw(self, tx:str):
         # 原始文本：
-        pattern = RE_rich
+        pattern = RE_label
         cells = pattern.split(tx)
+        icon_placeholder = '\u3000'
         raw_text = ""
         idx_map = [0]
         this = 0
@@ -262,11 +305,17 @@ class RichText(Text):
             if cell == '[^]':
                 raw_text += '^'
                 idx_map.append(this+length)
-            elif re.match('\[[\#prn]\]',cell):
+            elif re.fullmatch('\[[\#prn]\]',cell):
                 raw_text += '#'
                 idx_map.append(this+length)
             elif pattern.match(cell):
-                pass
+                if RE_rich.fullmatch(cell[1:-1]):
+                    # 富文本标签
+                    pass
+                else:
+                    # 留给图标的占位符
+                    raw_text += icon_placeholder
+                    idx_map.append(this+length)
             else:
                 raw_text += cell
                 idx_map += [x for x in range(this+1,this+length+1)]
@@ -317,7 +366,6 @@ class RichText(Text):
             result_surf.blit(surf, (x, (max_height - surf.get_height())//2))
             x += surf.get_width()
         return result_surf
-
     def draw(self,text:str)->list:
         # 每次draw的时候，重置一次
         self.riches = {
@@ -329,19 +377,39 @@ class RichText(Text):
             'fg': None,
             'bg': None
         }
-        self.manual = False
-        # 
-        pattern = RE_rich
+        # 检查是否是手动换行模式
+        for label in ['[p]','[n]','[r]','[#]']:
+            if label in text:
+                self.manual = True
+                break
+        else:
+            self.manual = False
+        # 开始分段解析
+        pattern = RE_label
         cells = pattern.split(text)
         line_cells = []
         len_of_line = 0
         out_text = []
         for cell in cells:
             if pattern.match(cell):
-                # a rich label
-                if self.parse_richlabel(cell):
-                    # 是否是换行命令，或是遍历已达结尾
-                    self.manual = True
+                # 如果是标签
+                keyword = cell[1:-1]
+                if keyword == '^': # 手动换行声明
+                    self.manual == True
+                elif keyword in ['p','n','r','#']: # 手动换行符
+                    self.manual == True
+                    len_of_line = self.line_limit # 强制换行
+                elif RE_rich.fullmatch(keyword): # 富文本标签
+                    self.parse_richlabel(cell)
+                elif keyword in self.icon_dict: # 图标关键字
+                    line_cells.append(self.icon_dict[keyword])
+                    len_of_line += 1
+                else:
+                    line_cells.append(self.blank())
+                    len_of_line += 1
+                # 检查是否已经到达句子末尾
+                if len_of_line >= self.line_limit:
+                    # 换行并输出
                     out_text.append(self.renderline(line_cells))
                     line_cells.clear()
                     len_of_line = 0
@@ -369,7 +437,6 @@ class RichText(Text):
         # 收尾工作
         out_text.append(self.renderline(line_cells))
         return out_text
-
     def parse_richlabel(self,richlabel:str)->bool:
         content = richlabel[1:-1]
         # 减法标签
@@ -390,7 +457,8 @@ class RichText(Text):
                     'bg': None
                 }
             else:
-                WarningPrint('InvRichlab', richlabel)
+                # WarningPrint('InvRichlab', richlabel) # 不应该在这个阶段再输出警告了
+                pass
         # 加法标签
         else:
             # 拆分参数
@@ -409,8 +477,17 @@ class RichText(Text):
             else:
                 WarningPrint('InvRichlab', richlabel)
         return False
+    def configure(self, key: str, value, index: int = 0):
+        if key == 'fontsize':
+            self.size = value
+            self.text_render = pygame.font.Font(self.filepath.exact(), self.size)
+            self.dictionarize()
+        elif key in ['sub_key','sub_icon','scale']:
+            self.dictionarize()
+        else:
+            return super().configure(key, value, index)
 # 血条标签
-class HPLabel(Text):
+class HPLabel(GlyphSubstitution):
     def __init__(
             self,
             fontfile:str        = './assets/SourceHanSansCN-Regular.otf',
@@ -435,12 +512,6 @@ class HPLabel(Text):
         self.align = align
         self.width = width
         self.repeat = repeat
-    # 将图形缩放到和字体相当的大小
-    def load_image(self,path:Filepath):
-        image_surface = pygame.image.load(path.exact())
-        height = image_surface.get_height()
-        scale = self.size / height
-        return self.zoom(image_surface, scale)
     # 渲染一行
     def render(self, tx:str):
         try:
@@ -522,9 +593,6 @@ class HPLabel(Text):
             self.bg_media = self.load_image(self.bg_path)
         else:
             return super().configure(key, value, index)
-# 图标化
-class Iconify(Text):
-    pass
 
 # 气泡
 class Bubble(MediaObj):
@@ -1858,7 +1926,8 @@ class GroupedAnimation(BuiltInAnimation):
                         # 但是，在导出时，只能通过BIA的形式传递给导出模块。
                         # 如果BIA的参数中没有包括每个子Animation的准确位置，就会一律使用初始化位置
                         # （因为导出模块没有parser，FreePos类都停留在初始化位置）
-                        subanimation.display(canvas_surface,center=str(am_pos)) # am_pos = "(0,0)"
+                        # 为什么要改为：.use()? 是因为要考虑对贝塞尔曲线的兼容，如果组合立绘的位置是贝塞尔曲线，那么组合的时候仅使用其起点的位置
+                        subanimation.display(canvas_surface,center=am_pos.use()) # am_pos = "(0,0)"
         # 初始化
         super().__init__(
             media       = np.array([canvas_surface]),

@@ -324,6 +324,8 @@ class MediaError(RplGenError):
                         "无效的自适应气泡的适应方向：{}！"],
         'InvScale'    :["Invalid scale rate: {}!",
                         "指定了无效的缩放倍率：{}！"],
+        'CWKeyInv'    :["Iconify key '{}' contains invalid characters!",
+                        "图标化关键字‘{}’中包含了非法的字符！"],
     }
     error_type = ["\x1B[31m[MediaError]:\x1B[0m ",
                   "\x1B[31m[媒体错误]:\x1B[0m "]

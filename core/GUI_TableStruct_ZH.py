@@ -737,6 +737,45 @@ EditTableStruct = {
                         "vtype": "str",
                         "default": "(0,0,0,255)"
                     },
+                    "scale": {
+                        "ktext": "图标缩放：",
+                        "tooltip":None,
+                        "dtext": "（数值）",
+                        "ditem": "label",
+                        "valuekey": "scale",
+                        "vitem": "spine",
+                        "vtype": "float",
+                        "default": 1.0
+                    },
+                }
+            },
+            "IconifySep-%d":{
+                "Text": "图标化-%d",
+                "Command":{
+                    "type":'add_sep',
+                    "key":"sub_key_%d"
+                },
+                "Content":{
+                    "sub_key_%d":{
+                        "ktext": "关键字：",
+                        "tooltip":None,
+                        "dtext": "（输入）",
+                        "ditem": "label",
+                        "valuekey": "sub_key",
+                        "vitem": "entry",
+                        "vtype": "str",
+                        "default": "'Key%d'"
+                    },
+                    "sub_icon_%d":{
+                        "ktext": "图标路径：",
+                        "tooltip":None,
+                        "dtext": "浏览",
+                        "ditem": "button",
+                        "valuekey": "sub_icon",
+                        "vitem": "entry",
+                        "vtype": "str",
+                        "default": "'./assets/icon.png'"
+                    }
                 }
             }
         },
@@ -746,7 +785,10 @@ EditTableStruct = {
             "fontsize"      : "fontsize",
             "color"         : "color",
             "line_limit"    : "line_limit",
-            "label_color"   : "label_color"
+            "scale"         : "scale",
+            "sub_key"       : "sub_key_%d",
+            "sub_icon"      : "sub_icon_%d",
+            "label_color"   : "label_color",
         },
         "HPLabel":{
             "InfoSep":{

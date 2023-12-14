@@ -737,6 +737,45 @@ EditTableStruct = {
                         "vtype": "str",
                         "default": "(0,0,0,255)"
                     },
+                    "scale": {
+                        "ktext": "icon_scale：",
+                        "tooltip":None,
+                        "dtext": "(digit)",
+                        "ditem": "label",
+                        "valuekey": "scale",
+                        "vitem": "spine",
+                        "vtype": "float",
+                        "default": 1.0
+                    },
+                }
+            },
+            "IconifySep-%d":{
+                "Text": "Iconify-%d",
+                "Command":{
+                    "type":'add_sep',
+                    "key":"sub_key_%d"
+                },
+                "Content":{
+                    "sub_key_%d":{
+                        "ktext": "keyword:",
+                        "tooltip":None,
+                        "dtext": "(input)",
+                        "ditem": "label",
+                        "valuekey": "sub_key",
+                        "vitem": "entry",
+                        "vtype": "str",
+                        "default": "'Key%d'"
+                    },
+                    "sub_icon_%d":{
+                        "ktext": "icon_path:",
+                        "tooltip":None,
+                        "dtext": "browse",
+                        "ditem": "button",
+                        "valuekey": "sub_icon",
+                        "vitem": "entry",
+                        "vtype": "str",
+                        "default": "'./assets/icon.png'"
+                    }
                 }
             }
         },
@@ -746,7 +785,10 @@ EditTableStruct = {
             "fontsize"      : "fontsize",
             "color"         : "color",
             "line_limit"    : "line_limit",
-            "label_color"   : "label_color"
+            "scale"         : "scale",
+            "sub_key"       : "sub_key_%d",
+            "sub_icon"      : "sub_icon_%d",
+            "label_color"   : "label_color",
         },
         "HPLabel":{
             "InfoSep":{
