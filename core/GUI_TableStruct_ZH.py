@@ -326,7 +326,7 @@ EditTableStruct = {
                         "valuekey": "$key",
                         "vitem": "entry",
                         "vtype": "str",
-                        "default": "新建贝塞尔曲线"
+                        "default": "新建曲线"
                     },
                 }
             },
@@ -3329,8 +3329,8 @@ NewElement = {
             "icon":'./assets/icon/new/PosGrid.png'
         },
         "BezierCurve":{
-            "text":"贝塞尔曲线",
-            "tooltip":"【贝塞尔曲线】是一条曲线路径；用于指定媒体图形的运动轨迹。",
+            "text":"曲线",
+            "tooltip":"【曲线】是一条曲线路径；用于指定媒体图形的运动轨迹。",
             "icon":'./assets/icon/new/BezierCurve.png'
         }
     },
