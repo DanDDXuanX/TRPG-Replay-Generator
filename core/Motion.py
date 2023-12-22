@@ -199,6 +199,9 @@ class MotionMethod:
         elif self.method_dur != last.method_dur:
             # 如果前一个小节和本小节的切换时间不匹配，那么不能交叉
             return False
+        elif self.method_dur == 0:
+            # 如果交叉溶解的切换时间是0，那么不能交叉
+            return False
         elif self.method_args['cut'][0] != 1 or last.method_args['cut'][1] != 1:
             # 如果本小节的切入或前小节的切出不都有效，那么不能交叉
             return False

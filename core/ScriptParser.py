@@ -1342,6 +1342,9 @@ class RplGenLog(Script):
             self.main_timeline.loc[last_placed_index,'AmS_t'] = self.medias[this_am].get_tick(this_duration)
             self.main_timeline.loc[last_placed_index,'AmS_c'] = am_center.use(this_duration)
     def check_text_execute(self,content_text,this_line_limit,i):
+        # 检查文本是否为空
+        if len(content_text) == 0:
+            return
         # 未声明手动换行
         if ('#' in content_text)&(content_text[0]!='^'):
             # content_text = '^' + content_text # 补齐申明符号 # 因为和富文本冲突，取消这个功能

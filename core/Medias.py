@@ -86,7 +86,7 @@ class MediaObj:
             self.fileindex = None
         else:
             self.xmlpath:str = self.filepath.xml_reformated()
-            self.filename:str = self.filepath.name()
+            self.filename:str = self.filepath.xml_name()
             self.fileindex = file_index % MediaObj.file_index
             MediaObj.file_index = MediaObj.file_index + 1
     # 处理PR的图片坐标

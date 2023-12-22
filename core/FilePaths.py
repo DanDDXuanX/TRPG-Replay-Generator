@@ -76,6 +76,14 @@ class Filepath:
     # 文件名字
     def name(self) -> str:
         return self.exact().split('/')[-1]
+    def xml_name(self)-> str:
+        to_format = self.name()
+        if ('&' in to_format)|('<' in to_format)|('>' in to_format):
+            # xml 对于特殊字符的转义
+            to_format = to_format.replace('&','&amp;').replace('<','&lt;').replace('>','&gt;') 
+        if ('"' in to_format)|("'" in to_format):
+            to_format = to_format.replace('"','&quot;').replace("'",'&apos;')
+        return to_format
     # 文件名字，不含后缀
     def prefix(self) -> str:
         suffix = '.' + self.type()
