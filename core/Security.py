@@ -23,6 +23,7 @@ class KeyRequest:
         # 初始化
         self.mac_address:str = self.get_mac_address()
         self.client_tag:str  = self.get_client_tag()
+        self.service_message = None
         # 载入key和ip
         self.status = self.load_private_key()
         if self.status:
@@ -33,10 +34,6 @@ class KeyRequest:
             return
         # 解密反馈
         self.status = self.bulid_key_struct()
-        if self.status:
-            return
-        # 检查服务端消息
-        self.status = self.check_service_message()
         if self.status:
             return
         # 将获取的key应用到TTSengine
@@ -125,6 +122,8 @@ class KeyRequest:
         except Exception as E:
             # print(E)
             return 4 # network
+        # 查看消息
+        self.check_service_message()
         # 查看请求
         if self.result['status'] == 200:
             return 0
@@ -186,9 +185,7 @@ class KeyRequest:
         if 'message' in self.result:
             try:
                 self.service_message = self.decrypt_key(self.result['message'])
-                return 0
             except Exception as E:
-                return 2 # decrypt_key
+                pass
         else:
-            self.service_message = None
-            return 0 # 无消息，正常
+            pass # 无消息，正常

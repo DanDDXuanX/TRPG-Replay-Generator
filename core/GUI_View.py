@@ -38,7 +38,8 @@ class EmptyView(ttk.Frame):
         self.statusbar = ttk.Frame(master=self,padding=0)
         self.status_text = {
             'version': ttk.Label(master=self.statusbar,text=tr('回声工坊') + f' @{PUBLICATION} {EDITION}' ,padding=(SZ_10,0,SZ_10,0)),
-            'keys' : ttk.Label(master=self.statusbar,padding=(SZ_10,0,SZ_10,0))
+            'keys' : ttk.Label(master=self.statusbar,padding=(SZ_10,0,SZ_10,0)),
+            'message' : ttk.Label(master=self.statusbar,padding=(SZ_10,0,SZ_10,0))
         }
         self.update_status_bar()
         Link['update_statusbar'] = self.update_status_bar
@@ -49,10 +50,15 @@ class EmptyView(ttk.Frame):
         self.content.place(relx=0.25,rely=0.15,relwidth=0.5,relheight=0.65)
         self.status_text['version'].pack(side='left',fill='y')
         self.status_text['keys'].pack(side='right',fill='y')
+        self.status_text['message'].pack(side='right',fill='y')
         self.statusbar.place(relx=0,rely=1,y=-SZ_20,height=SZ_20,relwidth=1)
     def update_status_bar(self):
         text_style = (lambda x: 'secondary-inverse' if x==-1 else 'primary-inverse' if x==0 else 'danger-inverse')(preference.bulitin_keys_status)
         self.status_text['keys'].configure(text=key_status_bar[preference.bulitin_keys_status],bootstyle=text_style)
+        if preference.service_message:
+            self.status_text['message'].configure(text=preference.service_message)
+        else:
+            self.status_text['message'].configure(text='')
     def open_project_file(self,filepath):
         try:
             PView = ProjectView(master=self.master,screenzoom=self.sz,project_file=filepath)

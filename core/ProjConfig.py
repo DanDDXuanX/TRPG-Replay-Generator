@@ -216,9 +216,11 @@ class Preference:
             Tencent_TTS_engine.SecretId = self.secretid
             Tencent_TTS_engine.SecretKey = self.secretkey
             self.bulitin_keys_status = -1
+            self.service_message = '测试消息：在开发的过程中试试看。'
         else:
             self.key_security = KeyRequest()
             self.bulitin_keys_status = self.key_security.status
+            self.service_message = self.key_security.service_message
         # 内建动画
         BuiltInAnimation.BIA_font = self.BIA_font
         BuiltInAnimation.BIA_font_size = self.BIA_font_size
