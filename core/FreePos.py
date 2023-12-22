@@ -24,6 +24,7 @@ class Pos:
         else:
             self.x = int(argpos[0])
             self.y = int(argpos[1])
+        self.pos = self
     # 重载取负号
     def __neg__(self):
         return Pos(-self.x,-self.y)
@@ -104,6 +105,8 @@ class FreePos(Pos):
                 raise Exception('The length of tuple to set is insufficient.')
             except ValueError: # 列表数组不能解释为整数
                 raise Exception('Invalid value type to set.')
+        elif type(others) == BezierCurve: # 如果将一个自由位置设置为贝塞尔曲线，那么只会在起点生效
+            self.set(others.pos)
         else: # 设置的不是一个合理的类型
             raise Exception('Unsuppoeted type to set!')
 class PosGrid:
@@ -184,6 +187,8 @@ class BezierCurve:
         self.curve_set = {}
         if type(self.pos) in [Pos, FreePos]:
             self.pos = self.pos
+        elif type(self.pos) == BezierCurve:
+            raise Exception('Recursive calling!')
         else:
             self.pos = Pos(*self.pos)
         # 创建曲线组合时间点组
@@ -199,6 +204,8 @@ class BezierCurve:
                 for idx, dot in enumerate(raw_pos):
                     if type(dot) in [Pos, FreePos]:
                         relative_pos[idx] = dot.get()
+                    elif type(dot) == BezierCurve:
+                        raise Exception('Recursive calling!')
                 relative_pos = np.array(relative_pos)
                 # 计算为绝对位置
                 absolute_pos = relative_pos.copy()

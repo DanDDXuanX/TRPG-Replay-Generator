@@ -10,7 +10,7 @@ import pydub
 import re
 
 from .FilePaths import Filepath
-from .FreePos import Pos,FreePos
+from .FreePos import Pos,FreePos,BezierCurve
 from .Exceptions import MediaError, WarningPrint
 from .Formulas import sigmoid
 from .Utils import hex_2_rgba, rotate_surface, rotate_vector, brightness
@@ -112,7 +112,7 @@ class MediaObj:
             else:
                 self.filepath = Filepath(filepath=value)
         elif key == 'pos':
-            if type(value) in [Pos,FreePos]:
+            if type(value) in [Pos,FreePos,BezierCurve]:
                 self.pos = value
             else:
                 self.pos = Pos(*value)
@@ -635,7 +635,7 @@ class Bubble(MediaObj):
             # 其他参数
             self.PR_init(file_index='BBfile_%d')
         # 底图位置
-        if type(pos) in [Pos,FreePos]:
+        if type(pos) in [Pos,FreePos,BezierCurve]:
             self.pos = pos
         else:
             self.pos = Pos(*pos)
@@ -767,7 +767,7 @@ class Bubble(MediaObj):
     def display(self, surface:pygame.surface, text:str, header:str='',effect:float=np.nan,alpha:int=100,center:str='NA',adjust:str='NA'):
         # 中心位置
         if center == 'NA':
-            render_center = self.pos
+            render_center = self.pos.pos
         else:
             render_center = Pos(*eval(center))
         # 校正位置
@@ -892,7 +892,7 @@ class Bubble(MediaObj):
             'green': {
                 'g0':{
                     'pos' : self.pos.get(),
-                    'scale' : (self.pos + self.media.get_size()).get()
+                    'scale' : (self.pos.pos + self.media.get_size()).get()
                 }
             },
             'blue':{
@@ -1312,7 +1312,7 @@ class DynamicBubble(Bubble):
             'green': {
                 'g0':{
                     'pos' : self.pos.get(),
-                    'scale' : (self.pos + self.media.get_size()).get()
+                    'scale' : (self.pos.pos + self.media.get_size()).get()
                 }
             },
             'magenta':{
@@ -1377,7 +1377,7 @@ class ChatWindow(Bubble):
             self.load_image(scale=scale)
             self.PR_init('BBfile_%d')
         # 位置
-        if type(pos) in [Pos,FreePos]:
+        if type(pos) in [Pos,FreePos,BezierCurve]:
             self.pos = pos
         else:
             self.pos = Pos(*pos)
@@ -1540,7 +1540,7 @@ class ChatWindow(Bubble):
             'green': {
                 'g0':{
                     'pos' : self.pos.get(),
-                    'scale' : (self.pos + self.media.get_size()).get()
+                    'scale' : (self.pos.pos + self.media.get_size()).get()
                 }
             },
             'purple':{
@@ -1634,7 +1634,7 @@ class Background(MediaObj):
         # 路径
         self.PR_init(filepath,'BGfile_%d')
         # 位置
-        if type(pos) in [Pos,FreePos]:
+        if type(pos) in [Pos,FreePos,BezierCurve]:
             self.pos = pos
         else:
             self.pos = Pos(*pos)
@@ -1652,7 +1652,7 @@ class Background(MediaObj):
         return super().PR_init(file_index)
     def display(self,surface,alpha=100,center='NA',adjust='NA'):
         if center == 'NA':
-            render_center = self.pos
+            render_center = self.pos.pos
         else:
             render_center = Pos(*eval(center))
         if adjust in ['(0,0)','NA']:
@@ -1704,7 +1704,7 @@ class Background(MediaObj):
             'green': {
                 'g0':{
                     'pos' : self.pos.get(),
-                    'scale' : (self.pos + self.media.get_size()).get()
+                    'scale' : (self.pos.pos + self.media.get_size()).get()
                 }
             },
         }
@@ -1741,7 +1741,7 @@ class Animation(MediaObj):
         # 初始化PR
         self.PR_init(file_index='AMfile_%d')
         # 位置
-        if type(pos) in [Pos,FreePos]:
+        if type(pos) in [Pos,FreePos,BezierCurve]:
             self.pos = pos
         else:
             self.pos = Pos(*pos)
@@ -1766,7 +1766,7 @@ class Animation(MediaObj):
     def display(self,surface:pygame.Surface,alpha:float=100,center:str='NA',adjust:str='NA',frame:int=0,bright:int=100)->None:
         self.this = frame
         if center == 'NA':
-            render_center = self.pos
+            render_center = self.pos.pos
         else:
             render_center = Pos(*eval(center))
         if adjust in ['(0,0)','NA']:
@@ -1828,7 +1828,7 @@ class Animation(MediaObj):
             'green': {
                 'g0':{
                     'pos' : self.pos.get(),
-                    'scale' : (self.pos + self.media[0].get_size()).get()
+                    'scale' : (self.pos.pos + self.media[0].get_size()).get()
                 }
             },
         }

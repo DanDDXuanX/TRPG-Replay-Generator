@@ -451,7 +451,7 @@ class MediaDef(Script):
                     all_used_pos_coord.append('({},{})'.format(*this_section['pos']))
         all_used_pos_coord = np.sort(np.unique(np.array(all_used_pos_coord)))
         return {
-            'pos'       : self.get_type('pos'),
+            'pos'       : self.get_type('bezier'),
             'posgrid'   : self.get_type('posgrid'),
             'coord'     : all_used_pos_coord
         }
