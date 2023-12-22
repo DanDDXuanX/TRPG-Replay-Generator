@@ -35,6 +35,10 @@ class KeyRequest:
         self.status = self.bulid_key_struct()
         if self.status:
             return
+        # 检查服务端消息
+        self.status = self.check_service_message()
+        if self.status:
+            return
         # 将获取的key应用到TTSengine
         self.status = self.execute()
     # 获取设备的Mac地址
@@ -123,7 +127,6 @@ class KeyRequest:
             return 4 # network
         # 查看请求
         if self.result['status'] == 200:
-            print('usage:', self.result['usage'])
             return 0
         elif self.result['status'] == 401:
             return 3 # 无权限
@@ -156,7 +159,10 @@ class KeyRequest:
                 'message': 'usage_report',
                 'client': self.encrypt_message(self.client_tag),
                 'mac': self.encrypt_message(self.mac_address),
-                'value': int(usage_counter)
+                'value': int(usage_counter),
+                'value.aliyun': int(Aliyun_TTS_engine.counter),
+                'value.azure' : int(Azure_TTS_engine.counter),
+                'value.tencent': int(Tencent_TTS_engine.counter)
             }
         # 发送 POST 请求
         try:
@@ -175,3 +181,14 @@ class KeyRequest:
             return 1 # 报文错误
         else:
             return 9 # 其他
+    # 检视消息
+    def check_service_message(self):
+        if 'message' in self.result:
+            try:
+                self.service_message = self.decrypt_key(self.result['message'])
+                return 0
+            except Exception as E:
+                return 2 # decrypt_key
+        else:
+            self.service_message = None
+            return 0 # 无消息，正常
