@@ -47,7 +47,7 @@ class RplGenLogLexer(RegexLexer):
         # 括号内的东西
         "brackets":[
             # 字符串？
-            (r'["\'].+?["\']', String),
+            (r'[\"\'].*?[\"\']', String),
             # 整数
             (r'\b(-)?\d+\b', Number.Integer),
             # NA
