@@ -350,6 +350,8 @@ class PreviewDisplay(OutputMediaType):
                                 # 交叉溶解模式
                                 this_color = self.medias[section_first_frame[layer].split(' <- ')[0]].label_color
                             break
+                    else:
+                        this_color = 'Lavender'
                     # 渲染
                     pygame.draw.rect(
                         surface=progress_bar_surface,
