@@ -2584,6 +2584,16 @@ PreferenceTableStruct = {
                 "vitem": "combox",
                 "vtype": "str",
                 "default": 'ask'
+            },
+            'Edit.masked_symbol':{
+                "ktext": "Ignored Symbol",
+                "tooltip":"Ignore the symbols when synthesizing speech to avoid abnormal punctuation.",
+                "dtext": "(input)",
+                "ditem": "label",
+                "valuekey": "Edit.masked_symbol",
+                "vitem": "entry",
+                "vtype": "str",
+                "default": ""
             }
         }
     },

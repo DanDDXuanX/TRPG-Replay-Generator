@@ -12,7 +12,7 @@ from .TTSengines import Aliyun_TTS_engine,Azure_TTS_engine,Tencent_TTS_engine,Be
 from .Exceptions import WarningPrint,RplGenError,SynthesisError,SynthPrint,ParserError
 from .FilePaths import Filepath
 from .Medias import Audio
-from .Utils import mod62_timestamp,clean_ts,EDITION
+from .Utils import mod62_timestamp,EDITION
 
 class SpeechSynthesizer:
     # 初始化
@@ -135,7 +135,7 @@ class SpeechSynthesizer:
                     this_content = this_asterisk['specified_speech']
                 else:
                     # 普通的语音合成
-                    this_content = clean_ts(this_section['content'])
+                    this_content = this_section['content']
                 # 取出首位角色名
                 this_name:dict = this_section['charactor_set']['0']
                 this_name_key:str = this_name['name'] + '.' + this_name['subtype']
@@ -194,6 +194,8 @@ class SpeechSynthesizer:
     def synthesizer(self,TTS_engine:Aliyun_TTS_engine,content:str,i:int)->str:
         # 输出文件
         ofile = f"{self.output_path}auto_AU_{i}_{mod62_timestamp()}.wav"
+        # 去除不需要的符号
+        content = TTS_engine.clean_ts(content)
         # 检查，是不是空文件
         if re.findall('\w+',content) == []:
             print(WarningPrint('EmptyText', str(i)))

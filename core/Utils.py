@@ -10,7 +10,6 @@ import time
 import re
 import os
 import subprocess
-from .Regexs import RE_label
 
 # 文字处理
 # UF : 将2个向量组合成"(x,y)"的形式
@@ -19,10 +18,6 @@ concat_xy = np.frompyfunc(lambda x,y:'('+'%d'%x+','+'%d'%y+')',2,1)
 def cut_str(str_,len_):
     return str_[0:int(len_)]
 UF_cut_str = np.frompyfunc(cut_str,2,1)
-# 清理ts文本中的标记符号
-def clean_ts(text):
-    # 用于语音合成的内容，不应该包括富标记
-    return RE_label.sub('',text).replace('^','').replace('#','')
 # 是否是数值
 def isnumber(str):
     try:

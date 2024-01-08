@@ -2584,6 +2584,16 @@ PreferenceTableStruct = {
                 "vitem": "combox",
                 "vtype": "str",
                 "default": 'ask'
+            },
+            'Edit.masked_symbol':{
+                "ktext": "忽略字符：",
+                "tooltip":"语音合成时忽略以下字符，以避免不需要的断句和停顿。",
+                "dtext": "（输入）",
+                "ditem": "label",
+                "valuekey": "Edit.masked_symbol",
+                "vitem": "entry",
+                "vtype": "str",
+                "default": ""
             }
         }
     },
