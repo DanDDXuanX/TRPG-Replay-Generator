@@ -309,7 +309,7 @@ class RGLSnippets(CodeSnippet, Localize):
         # 显示
         self.post(
             x = self.codeview.winfo_rootx()+self.curser_pos[0],
-            y = self.codeview.winfo_rooty()+self.curser_pos[1]
+            y = self.codeview.winfo_rooty()+self.curser_pos[1]+int(preference.editer_fontsize*Link['sz']*1.6)
             )
     # 获取当前光标位置
     def get_insert_curser(self):
