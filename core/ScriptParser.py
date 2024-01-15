@@ -413,6 +413,7 @@ class MediaDef(Script):
         type_name = {
             'anime'     :['Animation'],
             'bubble'    :['Bubble','Balloon','DynamicBubble'],
+            'subbubble' :['Bubble','Bubble'],
             'text'      :['Text','StrokeText','RichText','HPLabel'],
             'pos'       :['Pos','FreePos'],
             'bezier'    :['Pos','FreePos','BezierCurve'],

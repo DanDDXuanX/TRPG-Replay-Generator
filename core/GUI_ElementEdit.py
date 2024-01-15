@@ -187,8 +187,11 @@ class EditWindow(FluentFrame):
     # 获取可用立绘、气泡名
     def get_avaliable_anime(self)->list:
         return self.page.ref_medef.get_type('anime')
-    def get_avaliable_bubble(self,cw=True)->list:
-        return self.page.ref_medef.get_type('bubble',cw)
+    def get_avaliable_bubble(self,cw=True,bb=True)->list:
+        if bb:
+            return self.page.ref_medef.get_type('bubble',cw)
+        else:
+            return self.page.ref_medef.get_type('subbubble')
     def get_avaliable_text(self)->list:
         return self.page.ref_medef.get_type('text')
     def get_avaliable_pos(self,bezier=True)->list:
@@ -546,7 +549,7 @@ class MediaEdit(EditWindow):
             self.elements["am_right"].describe.configure(command=lambda :self.select_dot('r1','p1'))
             for idx in range(1,999):
                 if "sub_key_%d"%idx in self.elements:
-                    self.elements["sub_Bubble_%d"%idx].input.configure(values=['Bubble()']+self.get_avaliable_bubble(cw=False),state='readonly')
+                    self.elements["sub_Bubble_%d"%idx].input.configure(values=['Bubble()']+self.get_avaliable_bubble(cw=False,bb=False),state='readonly')
                     self.elements["sub_Anime_%d"%idx].input.configure(values=['None']+self.get_avaliable_anime(),state='readonly')
                     self.elements["sub_align_%d"%idx].input.update_dict(chatalign)
                 else:
@@ -648,7 +651,7 @@ class MediaEdit(EditWindow):
             self.elements["head_align_%d"%sep_new].input.update_dict(alignments)
             self.elements["ht_rotate_%d"%sep_new].input.configure(from_=-180,to=180,increment=1)
         elif self.line_type == 'ChatWindow':
-            self.elements["sub_Bubble_%d"%sep_new].input.configure(values=['Bubble()']+self.get_avaliable_bubble(cw=False),state='readonly')
+            self.elements["sub_Bubble_%d"%sep_new].input.configure(values=['Bubble()']+self.get_avaliable_bubble(cw=False,bb=False),state='readonly')
             self.elements["sub_Anime_%d"%sep_new].input.configure(values=['None']+self.get_avaliable_anime(),state='readonly')
             self.elements["sub_align_%d"%sep_new].input.update_dict(chatalign)
         elif self.line_type == 'BezierCurve':
