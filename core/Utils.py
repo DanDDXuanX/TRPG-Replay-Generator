@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # coding: utf-8
 # 小工具们
-EDITION = 'beta 2.0.1'
+
+EDITION = 'beta 2.0.2'
 PUBLICATION = 'aifadian'
 
 import numpy as np
@@ -10,7 +11,6 @@ import time
 import re
 import os
 import subprocess
-from .Regexs import RE_rich
 
 # 文字处理
 # UF : 将2个向量组合成"(x,y)"的形式
@@ -19,10 +19,6 @@ concat_xy = np.frompyfunc(lambda x,y:'('+'%d'%x+','+'%d'%y+')',2,1)
 def cut_str(str_,len_):
     return str_[0:int(len_)]
 UF_cut_str = np.frompyfunc(cut_str,2,1)
-# 清理ts文本中的标记符号
-def clean_ts(text):
-    # 用于语音合成的内容，不应该包括富标记
-    return RE_rich.sub('',text).replace('^','').replace('#','')
 # 是否是数值
 def isnumber(str):
     try:

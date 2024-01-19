@@ -215,16 +215,15 @@ class SearchReplaceBar(ttk.Frame, Localize):
             else:
                 if is_regex:
                     end_index, Match = self.regex_match_end(search_text=search_text,index=index)
-                    # 替换文本
-                    self.codeview.delete(index, end_index)
-                    self.codeview.insert(index, self.regex_replace_result(replace_text, Match))
+                    replace_result = self.regex_replace_result(replace_text, Match)
                 else:
                     end_index = f'{index}+{len(search_text)}c'
-                    # 替换文本
-                    self.codeview.delete(index, end_index)
-                    self.codeview.insert(index, replace_text)
+                    replace_result = replace_text
+                # 替换文本
+                self.codeview.delete(index, end_index)
+                self.codeview.insert(index, replace_result)
                 # 更新
-                start_index = end_index
+                start_index = f'{index}+{len(replace_result)}c'
                 replace_count += 1
         # 更新代码高亮
         self.codeview.configure(autoseparators=True)
@@ -292,6 +291,7 @@ class PreviewWindow(ttk.Toplevel):
             print(E)
             self.preview.show_error()
     def close(self):
+        self.preview.stop_audio()
         self.destroy() 
 # 脚本模式
 class RGLCodeViewFrame(ttk.Frame):

@@ -413,6 +413,7 @@ class MediaDef(Script):
         type_name = {
             'anime'     :['Animation'],
             'bubble'    :['Bubble','Balloon','DynamicBubble'],
+            'subbubble' :['Bubble','Bubble'],
             'text'      :['Text','StrokeText','RichText','HPLabel'],
             'pos'       :['Pos','FreePos'],
             'bezier'    :['Pos','FreePos','BezierCurve'],
@@ -779,7 +780,7 @@ class RplGenLog(Script):
         return this_bubble
     def parser(self,script:str,allowed_exception=False) -> dict:
         # 分割小节
-        stdin_text = script.split('\n')
+        stdin_text = script.rstrip('\n').split('\n')
         # 结构体
         struct = {}
         # 逐句读取小节

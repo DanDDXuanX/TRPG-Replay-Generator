@@ -46,6 +46,9 @@ class OutputMediaType:
             self.stdout_name:str  = '%d'%time.time()
     # 从timeline渲染一个单帧到一个Surface
     def render(self,surface:pygame.Surface,this_frame:pd.Series):
+        # 开始之前，先把目标surface涂黑
+        surface.fill((0,0,0))
+        # 开始读取帧
         for layer in self.config.zorder:
             # 不渲染的条件：图层为"Na"，或者np.nan
             if (this_frame[layer]=='NA')|(this_frame[layer]!=this_frame[layer]):
@@ -350,6 +353,8 @@ class PreviewDisplay(OutputMediaType):
                                 # 交叉溶解模式
                                 this_color = self.medias[section_first_frame[layer].split(' <- ')[0]].label_color
                             break
+                    else:
+                        this_color = 'Lavender'
                     # 渲染
                     pygame.draw.rect(
                         surface=progress_bar_surface,

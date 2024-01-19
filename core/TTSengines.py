@@ -18,6 +18,7 @@ import nls
 import azure.cognitiveservices.speech as speechsdk
 import pyttsx3
 from websocket import ABNF, WebSocketApp
+from .Regexs import RE_label
 from .Exceptions import SynthesisError, WarningPrint
 
 voice_lib = pd.read_csv('./assets/voice_volume.tsv',sep='\t').set_index('Voice')
@@ -26,6 +27,7 @@ voice_lib = pd.read_csv('./assets/voice_volume.tsv',sep='\t').set_index('Voice')
 class TTS_engine:
     # 调用计数器
     counter = 0
+    masked_symbol = []
     def __init__(self,name='unnamed',voice = 'ailun',speech_rate=0,pitch_rate=0,aformat='wav'):
         pass
     def start(self,text,ofile):
@@ -45,7 +47,11 @@ class TTS_engine:
         else:
             print_text = text
         print("[{0}({1})]: {2} -> '{3}'".format(self.ID,self.voice,print_text,ofile))
-
+    def clean_ts(self,text):
+        text = RE_label.sub('',text).replace('^','').replace('#','')
+        for symbol in self.masked_symbol:
+            text = text.replace(symbol, '')
+        return text
 # 阿里云的TTS引擎
 class Aliyun_TTS_engine(TTS_engine):
     # Keys
@@ -161,7 +167,7 @@ class Azure_TTS_engine(TTS_engine):
             except Exception as E:
                 print(WarningPrint('BadClip',ifile,E))
                 return -1
-    def clean_ts_azure(text): # SSML的转义字符
+    def ssml_symbol_rpl(text): # SSML的转义字符
         return text.replace('&','&amp;').replace('<','&lt;').replace('>','&gt;').replace("'",'&apos;')
     # 初始化
     def __init__(self,name='unnamed',voice = 'zh-CN-XiaomoNeural:general:1:Default',speech_rate=0,pitch_rate=0,aformat='wav'):
@@ -200,7 +206,7 @@ class Azure_TTS_engine(TTS_engine):
         audio_config = speechsdk.audio.AudioOutputConfig(filename=ofile)
         synthesizer = speechsdk.SpeechSynthesizer(speech_config=speech_config, audio_config=audio_config)
         # 开始合成
-        speech_synthesis_result = synthesizer.speak_ssml_async(self.ssml.format(text=Azure_TTS_engine.clean_ts_azure(text))).get()
+        speech_synthesis_result = synthesizer.speak_ssml_async(self.ssml.format(text=Azure_TTS_engine.ssml_symbol_rpl(text))).get()
         # 检查结果
         if speech_synthesis_result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted:
             # 先裁剪掉前后的静音部分

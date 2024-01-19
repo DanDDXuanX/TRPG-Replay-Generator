@@ -9,7 +9,7 @@ from PIL import ImageFile
 from .Exceptions import ArgumentError,WarningPrint,Print,RplGenError
 from .Motion import MotionMethod
 from .Medias import MediaObj, BuiltInAnimation, HitPoint, Dice
-from .TTSengines import Aliyun_TTS_engine,Azure_TTS_engine,Tencent_TTS_engine
+from .TTSengines import TTS_engine,Aliyun_TTS_engine,Azure_TTS_engine,Tencent_TTS_engine
 from .Security import KeyRequest
 
 # 项目设置
@@ -116,6 +116,7 @@ class Preference:
         'auto_convert' : 'ask',
         'rename_boardcast' : 'ask',
         'asterisk_import' : True,
+        'masked_symbol' : '',
         # 预览
         'progress_bar_style' : 'color',
         'framerate_counter' : True,
@@ -156,6 +157,7 @@ class Preference:
         'auto_convert' : 'Edit.auto_convert',
         'asterisk_import' : 'Edit.asterisk_import',
         'rename_boardcast' : 'Edit.rename_boardcast',
+        'masked_symbol' : 'Edit.masked_symbol',
         # 预览
         'progress_bar_style' : 'Preview.progress_bar_style',
         'framerate_counter' : 'Preview.framerate_counter',
@@ -202,6 +204,8 @@ class Preference:
             Print.lang == 0
             RplGenError.lang = 0
             MediaObj.test_str = 'Test'
+        # 语音合成的屏蔽符号
+        TTS_engine.masked_symbol = list(set(self.masked_symbol))
         # 如果不使用内置key
         if self.use_bulitin_keys == False:
             # 阿里云语音合成key
