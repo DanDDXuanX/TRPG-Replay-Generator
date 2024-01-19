@@ -292,6 +292,7 @@ class PreviewWindow(ttk.Toplevel):
             print(E)
             self.preview.show_error()
     def close(self):
+        self.preview.stop_audio()
         self.destroy() 
 # 脚本模式
 class RGLCodeViewFrame(ttk.Frame):

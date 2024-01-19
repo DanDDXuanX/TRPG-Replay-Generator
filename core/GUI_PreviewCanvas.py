@@ -7,6 +7,7 @@ import ttkbootstrap as ttk
 import pygame
 from copy import copy
 from pygame.draw import line, rect, circle
+from pygame.mixer import Channel
 from PIL import Image, ImageTk
 
 from core.Medias import MediaObj
@@ -669,6 +670,9 @@ class RGLPreviewCanvas(PreviewCanvas):
     def __init__(self, master, screenzoom,rplgenlog, chartab, mediadef):
         self.rplgenlog:RplGenLog = rplgenlog
         self.chartab:CharTable = chartab
+        # 预览声道
+        self.channel = Channel(3)
+        # 重载
         super().__init__(master, screenzoom, mediadef)
     def get_background(self, line_index:str)->Background:
         index_this = int(line_index)
@@ -708,8 +712,8 @@ class RGLPreviewCanvas(PreviewCanvas):
     def preview(self, line_index:str):
         super().preview()
         if line_index not in self.rplgenlog.struct.keys():
-            # TODO: Exception
-            print(line_index)
+            #: Exception
+            return
         else:
             section_dict_this = self.rplgenlog.struct[line_index]
             # 不预览的行
@@ -796,7 +800,23 @@ class RGLPreviewCanvas(PreviewCanvas):
                     elif layer == 'Bb':
                         if bubble_this:
                             bubble_this.display(surface=self.canvas, text=main_text, header=header_text)
+                # 音频
+                if '*' in section_dict_this['sound_set']:
+                    asterisk = section_dict_this['sound_set']['*']
+                    # 获取对象
+                    sound_object:Audio = self.get_media(asterisk['sound'])
+                    if sound_object:
+                        sound_object.display(channel=self.channel)
+                    else:
+                        try:
+                            path = asterisk['sound'][1:-1]
+                            sound_object = Audio(filepath=path)
+                            sound_object.display(channel=self.channel)
+                        except Exception:
+                            pass        
             else:
                 pass
         # 刷新
         self.update_canvas()
+    def stop_audio(self):
+        self.channel.stop()
