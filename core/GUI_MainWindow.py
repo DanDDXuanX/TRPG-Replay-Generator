@@ -31,7 +31,7 @@ class RplGenStudioMainWindow(ttk.Window):
         Link['sz'] = self.sz
         super().__init__(
             iconphoto   = './assets/icon.png',
-            size        = (int(1536*self.sz),int(864*self.sz)),
+            size        = (int(1500*self.sz),int(800*self.sz)),
             resizable   = (True,True),
         )
         # 语言项目
