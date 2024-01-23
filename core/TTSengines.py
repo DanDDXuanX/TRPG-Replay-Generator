@@ -483,7 +483,7 @@ class System_TTS_engine(TTS_engine):
                 self.synthesizer.setProperty('rate', int(self.linear_mapping(self.speech_rate)*200))
             except KeyError:
                 raise SynthesisError('SysInvArg',self.voice)
-        except ValueError:
+        except Exception:
             self.synthesizer = None
     # 获取可用语音列表
     def get_available(self):

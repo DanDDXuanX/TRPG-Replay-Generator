@@ -295,7 +295,10 @@ class SystemVoiceArgs(VoiceArgs):
         if 'System' in voice_lib['service'].values:
             return
         # 获取系统语音
-        list_of_voice = System_TTS_engine().get_available().keys()
+        try:
+            list_of_voice = System_TTS_engine().get_available().keys()
+        except:
+            list_of_voice = []
         L = len(list_of_voice)
         if L == 0:
             return
