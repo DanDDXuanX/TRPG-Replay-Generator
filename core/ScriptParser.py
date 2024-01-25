@@ -131,6 +131,8 @@ class MediaDef(Script):
             self.media_path = os.path.dirname(json_input.replace('\\','/'))
         else:
             self.media_path = Filepath.RplGenpath
+        # 媒体容器是否开放
+        self.activated = False
         # 执行媒体类的类变量变更
         # Filepath.Mediapath = self.media_path # 因为MediaDef()用的太多了，不能在初始化的时候这样用了！
         # raise Exception()
@@ -381,18 +383,35 @@ class MediaDef(Script):
             if media_name in self.struct.keys():
                 try:
                     obj_dict_this = self.struct[media_name]
-                    return self.instance_execute(obj_dict_this)
+                    object_this = self.instance_execute(obj_dict_this)
+                    # 保存:
+                    self.save_object_execute(obj_name=media_name, object_this=object_this)
+                    return object_this
                 except Exception as E:
                     print(E)
                     text = self.instance_export(obj_dict_this)
                     raise SyntaxsError('MediaDef',text,'?') # TODO:改改这个SyntaxsError的输出文本吧
             else:
                 raise SyntaxsError('UndefName',media_name)
+    def save_object_execute(self,object_this,obj_name):
+        "将对象保存在self.Medias里面"
+        # 如果并非启用状态
+        if not self.activated:
+            return
+        # 确实是启用状态
+        if object_this is None:
+            pass
+        else:
+            self.Medias[obj_name] = object_this
     def execute(self) -> dict:
         # 媒体对象的容器
         self.Medias = {}
+        self.activated = True
         # 每一个媒体类
         for i,obj_name in enumerate(self.struct.keys()):
+            # 检查是否已经被预先定义
+            if obj_name in self.Medias:
+                continue
             # 来自结构体
             obj_dict_this:dict = self.struct[obj_name]
             # 实例化
@@ -403,17 +422,16 @@ class MediaDef(Script):
                 text = self.instance_export(obj_dict_this)
                 raise SyntaxsError('MediaDef',text,str(i+1)) # TODO:改改这个SyntaxsError的输出文本吧
             # 保存:
-            if object_this is None:
-                pass
-            else:
-                self.Medias[obj_name] = object_this
+            self.save_object_execute(obj_name=obj_name, object_this=object_this)
+        # 结束开放
+        self.activated = False
         return self.Medias
     # 访问:
     def get_type(self,_type,cw=True) -> list:
         type_name = {
             'anime'     :['Animation'],
             'bubble'    :['Bubble','Balloon','DynamicBubble'],
-            'subbubble' :['Bubble','Bubble'],
+            'subbubble' :['Bubble','DynamicBubble'],
             'text'      :['Text','StrokeText','RichText','HPLabel'],
             'pos'       :['Pos','FreePos'],
             'bezier'    :['Pos','FreePos','BezierCurve'],
