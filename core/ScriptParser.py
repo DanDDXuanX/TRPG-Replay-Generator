@@ -120,6 +120,13 @@ class Script:
     # 添加
     def add(self, key:str, section:dict):
         self.struct[key] = section.copy()
+    # 排序
+    def sort(self, order):
+        for key in order:
+            try:
+                self.struct[key] = self.struct.pop(key)
+            except KeyError:
+                pass
 # 媒体定义文件
 class MediaDef(Script):
     def __init__(self, string_input=None, dict_input=None, file_input=None, json_input=None) -> None:

@@ -19,6 +19,7 @@ from .GUI_Container import RGLContainer, MDFContainer, CTBContainer
 from .GUI_PreviewCanvas import MDFPreviewCanvas, CTBPreviewCanvas, RGLPreviewCanvas
 from .GUI_ElementEdit import EditWindow, CharactorEdit, MediaEdit, LogEdit
 from .GUI_Link import Link
+from .GUI_Util import media_order
 
 # 项目视图-页面-总体
 class PageFrame(ttk.Frame):
@@ -277,14 +278,7 @@ class RGLPage(ttk.Frame):
         # self.codeviewframe.update_codeview(None) # 先不要了
 # 页面视图：媒体定义文件
 class MDFPage(ttk.Frame):
-    categroy_dict = {
-        'Text'      : ['Text', 'StrokeText', 'RichText', 'HPLabel'],
-        'Pos'       : ['Pos','FreePos','PosGrid','BezierCurve'],
-        'Animation' : ['Animation'],
-        'Bubble'    : ['Bubble','Balloon','DynamicBubble','ChatWindow'],
-        'Background': ['Background'],
-        'Audio'     : ['Audio','BGM'],
-    }
+    categroy_dict = media_order
     def __init__(self,master,screenzoom,name,content_obj:MediaDef,content_type='Animation'):
         # 缩放尺度
         self.sz = screenzoom

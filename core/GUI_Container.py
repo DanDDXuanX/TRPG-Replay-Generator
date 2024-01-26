@@ -332,6 +332,8 @@ class Container(FluentFrame):
         self.display_filter = self.element_keys.copy()
         # 刷新显示
         self.update_item()
+        # 更新项目的顺序
+        # self.content.sort(self.element_keys) # TODO: 暂时不更新项目顺序
     # 保存
     def save_command(self,event):
         # 保存

@@ -19,6 +19,15 @@ from .GUI_Link import Link
 from .GUI_Language import tr
 
 # 公用小元件
+# 媒体页顺序
+media_order = {
+    'Text'      : ['Text', 'StrokeText', 'RichText', 'HPLabel'],
+    'Pos'       : ['Pos','FreePos','PosGrid','BezierCurve'],
+    'Animation' : ['Animation'],
+    'Bubble'    : ['Bubble','Balloon','DynamicBubble','ChatWindow'],
+    'Background': ['Background'],
+    'Audio'     : ['Audio','BGM'],
+}
 # 滚动得更加流畅的scollframe
 class FluentFrame(ScrolledFrame):
     # 重载 yview_scroll

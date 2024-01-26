@@ -26,6 +26,7 @@ from .GUI_CustomDialog import relocate_file, configure_project
 from .GUI_Util import FluentFrame, ask_rename_boardcast
 from .GUI_Language import tr
 from .GUI_Link import Link
+import pinyin
 # 项目视图-文件管理器-RGPJ
 class RplGenProJect(Script):
     def __init__(self, json_input=None) -> None:
@@ -477,6 +478,10 @@ class FileCollapsing(ttk.Frame):
         menu = ttk.Menu(master=self.content_frame,tearoff=0)
         menu.add_command(label=tr("重命名"),command=lambda:self.rename_item(keyword))
         menu.add_command(label=tr("删除"),command=lambda:self.delete_item(keyword))
+        sort_menu = ttk.Menu(master=menu,tearoff=0)
+        sort_menu.add_command(label=tr("正序"),command=lambda:self.sort_item(ascending=True))
+        sort_menu.add_command(label=tr("倒序"),command=lambda:self.sort_item(ascending=False))
+        menu.add_cascade(label=tr("排序"),menu=sort_menu)
         # 显示菜单
         menu.post(event.x_root, event.y_root)
     def add_item(self):
@@ -652,6 +657,19 @@ class FileCollapsing(ttk.Frame):
         enhancer = ImageEnhance.Brightness(image)
         enhanced_image = enhancer.enhance(3)
         return enhanced_image
+    def sort_item(self,ascending=True):
+        # 排序
+        list_index = list(self.items.keys())
+        reversed = not ascending
+        try:
+            list_index = sorted(list_index, key=lambda x: pinyin.get(x), reverse=reversed)
+        except Exception:
+            list_index.sort(reverse=reversed)
+        # 调整item
+        for idx in list_index:
+            self.items[idx] = self.items.pop(idx)
+        # 显示
+        self.update_filelist()
 # 项目视图-可折叠类容器-媒体类
 class MDFCollapsing(FileCollapsing):
     media_type_name = {
