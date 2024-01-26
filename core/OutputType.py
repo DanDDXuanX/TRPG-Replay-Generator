@@ -512,7 +512,7 @@ class PreviewDisplay(OutputMediaType):
                     'head':'软件',
                     'describe':f'回声工坊 {EDITION} @ {PUBLICATION}',
                     'element':[
-                        '版权所有 © 2022-2023 Betelgeuse Industry'
+                        '版权所有 © 2022-2024 Betelgeuse Industry'
                     ]
                 },
                 'project':{
@@ -539,7 +539,7 @@ class PreviewDisplay(OutputMediaType):
                     'head':'Software',
                     'describe':f'RplGen Studio {EDITION} @ {PUBLICATION}',
                     'element':[
-                        'Copyright © Betelgeuse Industry 2022-2023'
+                        'Copyright © Betelgeuse Industry 2022-2024'
                     ]
                 },
                 'project':{

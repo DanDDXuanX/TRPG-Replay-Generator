@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 # 小工具们
-EDITION = 'beta 2.0.2'
+EDITION = 'beta 2.0.3'
 PUBLICATION = 'dev'
 
 import numpy as np
