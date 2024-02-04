@@ -222,11 +222,23 @@ class CreateIntelProject(CreateProject):
         self.elements['section_break'].input.configure(values=[0,100,300,1000,3000],state='readonly')
         self.elements['template'].input.bind('<<ComboboxSelected>>', self.template_selected,'+')
         # 从预设文件夹获取
-        intels = os.listdir(self.intel_dir)
+        intels = self.get_all_name()
         self.elements['template'].input.configure(values=intels,state='readonly')
         # 添加进度条
         self.progress = ttk.Progressbar(master=self.seperator['LogSep'],maximum=1.0,value=0.0,bootstyle='primary-striped')
         self.elements['progress'] = self.progress
+    def get_all_name(self)->list:
+        intels = os.listdir(self.intel_dir)
+        all_intel_names = []
+        for pack in intels:
+            rgint = self.intel_dir + pack + '/main.rgint'
+            try:
+                content = json.load(open(rgint,'r',encoding='utf-8'))
+                name_this = content['meta']['name']
+                all_intel_names.append(name_this)
+            except Exception:
+                pass
+        return all_intel_names
     def load_template(self,tplt_name):
         SZ_5 = int(self.sz * 5)
         # rgint 路径

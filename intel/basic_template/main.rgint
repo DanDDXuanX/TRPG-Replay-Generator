@@ -1,5 +1,6 @@
 {
     "meta":{
+        "name":"基本预设",
         "cover":"@/cover.jpg",
         "describe":"回声工坊2.0的基本预设模板",
         "author":"Betelgeuse Industry",
