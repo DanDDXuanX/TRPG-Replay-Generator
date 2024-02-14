@@ -3247,6 +3247,7 @@ projection = {
 }
 left_right = {
     '左侧' : "'left'",
+    '居中' : "'center'",
     '右侧' : "'right'"
 }
 alignments = {

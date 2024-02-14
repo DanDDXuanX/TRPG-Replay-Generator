@@ -3247,11 +3247,12 @@ projection = {
 }
 left_right = {
     'left' : "'left'",
+    'center' : "'center'",
     'right' : "'right'"
 }
 alignments = {
     "left" : "'left'",
-    "left": "'left'",
+    "center": "'center'",
     "right" : "'right'",
 }
 vertical_alignments = {

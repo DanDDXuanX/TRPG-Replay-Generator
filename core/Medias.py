@@ -557,16 +557,34 @@ class HPLabel(GlyphSubstitution):
             target_size = (self.width, line_height)
             bg_canvas = pygame.transform.smoothscale(bg_canvas, target_size)
         # 将text和bar合并在一起
+        if self.align in ['left','right']:
+            merge_width = bg_canvas.get_width()+int(self.size*0.5)+text_surface.get_width()
+        else:
+            merge_width = bg_canvas.get_width()
         merge_surface = pygame.Surface(
-            size = (bg_canvas.get_width()+int(self.size*0.5)+text_surface.get_width(), line_height),
+            size = (merge_width, line_height),
             flags= pygame.SRCALPHA
         )
         if self.align == 'left':
             merge_surface.blit(bg_canvas,(0,0))
             merge_surface.blit(text_surface,(bg_canvas.get_width()+int(self.size*0.5), 0))
-        else:
+        elif self.align == 'right':
             merge_surface.blit(text_surface,(0,0))
             merge_surface.blit(bg_canvas,(text_surface.get_width()+int(self.size*0.5), 0))
+        else:
+            # self.align == 'center'
+            # 这种情况下，文字标签的尺寸会稍微减小（0.7），以能准确放进血条里面
+            text_w = text_surface.get_width()*0.7
+            text_h = text_surface.get_height()*0.7
+            text_surface = pygame.transform.smoothscale(
+                surface=text_surface,
+                size=(text_w,text_h)
+            )
+            merge_surface.blit(bg_canvas,(0,0))
+            merge_surface.blit(
+                text_surface,
+                ((bg_canvas.get_width()-text_w)//2, (bg_canvas.get_height()-text_h)//2)
+            )
         return merge_surface
     # 预览的接口
     def preview(self, surface: pygame.Surface):
