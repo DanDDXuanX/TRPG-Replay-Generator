@@ -2657,6 +2657,16 @@ PreferenceTableStruct = {
                 "vtype": "bool",
                 "default": False
             },
+            "Export.alpha_export":{
+                "ktext": "Alpha Export",
+                "tooltip":"Additionally export the alpha channel to a mask video.",
+                "dtext": "(select)",
+                "ditem": "label",
+                "valuekey": "Export.alpha_export",
+                "vitem": "combox",
+                "vtype": "bool",
+                "default": False
+            },
         }
     },
     "KeySep":{

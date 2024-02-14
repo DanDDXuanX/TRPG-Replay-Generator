@@ -124,6 +124,7 @@ class Preference:
         'crf' : 24,
         'hwaccels' : False,
         'force_split_clip' : False,
+        'alphaexp' : False
     }
     keyword = {
         # 语音key
@@ -164,6 +165,7 @@ class Preference:
         # 导出
         'force_split_clip' : 'Export.force_split_clip',
         'crf' : 'Export.crf',
+        'alphaexp' : 'Export.alpha_export',
         'hwaccels' : 'Export.hwaccels',
     }
     def __init__(self,dict_input:dict=None,json_input:str=None) -> None:

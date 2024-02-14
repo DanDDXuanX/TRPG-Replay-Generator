@@ -2657,6 +2657,16 @@ PreferenceTableStruct = {
                 "vtype": "bool",
                 "default": False
             },
+            "Export.alpha_export":{
+                "ktext": "导出透明度蒙版：",
+                "tooltip":"额外将透明度通道导出为一个蒙版视频。",
+                "dtext": "（选择）",
+                "ditem": "label",
+                "valuekey": "Export.alpha_export",
+                "vitem": "combox",
+                "vtype": "bool",
+                "default": False
+            },
         }
     },
     "KeySep":{

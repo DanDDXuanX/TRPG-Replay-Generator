@@ -47,7 +47,10 @@ class OutputMediaType:
     # 从timeline渲染一个单帧到一个Surface
     def render(self,surface:pygame.Surface,this_frame:pd.Series):
         # 开始之前，先把目标surface涂黑
-        surface.fill((0,0,0))
+        if preference.alphaexp:
+            surface.fill((0,0,0,0))
+        else:
+            surface.fill((0,0,0))
         # 开始读取帧
         for layer in self.config.zorder:
             # 不渲染的条件：图层为"Na"，或者np.nan
@@ -1019,34 +1022,58 @@ class ExportVideo(OutputMediaType):
         return 0
     # 渲染视频流，异常1，正常0，终止2
     def build_video(self)->int:
-        # 初始化pygame，建立一个不显示的主画面
+        # 初始化pygame，建立一个不显示的主画面（但不使用）
         pygame.init()
-        self.screen = pygame.display.set_mode((self.config.Width,self.config.Height),pygame.HIDDEN)
+        hidden_screen = pygame.display.set_mode((self.config.Width,self.config.Height),pygame.HIDDEN)
+        if preference.alphaexp:
+            self.screen = pygame.Surface((self.config.Width,self.config.Height),pygame.SRCALPHA)
+        else:
+            self.screen = hidden_screen
         # 转换媒体对象
         self.convert_media_init()
         # 建立 ffmpeg 导出引擎
-        self.ffmpeg_output()
+        self.video_path = f'{self.output_path}{self.stdout_name}.video.mp4'
+        self.output_engine = {} 
+        self.output_engine['RGB'] = self.ffmpeg_output(
+            video_path=self.video_path,
+            audio_path=self.audio_path,
+            mode='RGB'
+        )
+        if preference.alphaexp:
+            self.alpha_path = f'{self.output_path}{self.stdout_name}.alpha.mp4'
+            self.output_engine['A'] = self.ffmpeg_output(
+                video_path=self.alpha_path,
+                audio_path=None,
+                mode='A'
+            )
         # 开始视频渲染
         begin_time = time.time() # 起始时间
         # 主循环
         n=0
         while n < self.breakpoint.max():
             if self.is_terminated:
-                self.output_engine.stdin.close()
+                for key in self.output_engine:
+                    self.output_engine[key].stdin.close()
                 return 2
             try:
                 if n in self.timeline.index:
                     this_frame = self.timeline.loc[n]
                     self.render(self.screen,this_frame)
                     obyte = pygame.image.tostring(self.screen,'RGB')
+                    if preference.alphaexp:
+                        abyte = pygame.surfarray.pixels_alpha(self.screen).transpose().tobytes()
                 else:
                     pass # 节约算力
-                self.output_engine.stdin.write(obyte) # 写入视频
+                # 写入视频
+                self.output_engine['RGB'].stdin.write(obyte)
+                if preference.alphaexp:
+                    self.output_engine['A'].stdin.write(abyte)
                 n = n + 1 #下一帧
             except Exception as E:
                 print(E)
                 print(RenderError('BreakFrame',n))
-                self.output_engine.stdin.close()
+                for key in self.output_engine:
+                    self.output_engine[key].stdin.close()
                 pygame.quit()
                 return 1
             if n%100 == 1:
@@ -1060,7 +1087,8 @@ class ExportVideo(OutputMediaType):
 
         # 改一个bug，如果最后一帧正好是显示帧，那么100% 不会正常显示
         print(VideoPrint('Progress', '\x1B[32m' + 50*'━' + '\x1B[0m', '%.1f'%100+'%', n, n ,' '*15))
-        self.output_engine.stdin.close()
+        for key in self.output_engine:
+            self.output_engine[key].stdin.close()
         pygame.quit()
         # 消耗的时间
         used_time = time.time()-begin_time
@@ -1071,52 +1099,63 @@ class ExportVideo(OutputMediaType):
         # 正常退出
         return 0
     # ffmepg 导出视频的接口
-    def ffmpeg_output(self):
-        self.vidio_path = f'{self.output_path}{self.stdout_name}.video.mp4'
+    def ffmpeg_output(self,video_path,audio_path,mode='RGB'):
+        o_format = 'yuv420p'
+        # 色彩模式
+        if mode=='RGB':
+            i_format = 'rgb24'
+        elif mode=='A':
+            i_format = 'gray'
+        # 硬件加速
         if preference.hwaccels:
-            self.output_engine = (
+            options = {'c:v':'h264_nvenc'}
+        else:
+            options = {}
+        # 音频轨道
+        if audio_path:
+            output_engine = (
                 ffmpeg
                 .input(
                     'pipe:',
                     format  = 'rawvideo',
                     r       = self.config.frame_rate,
-                    pix_fmt = 'rgb24',
+                    pix_fmt = i_format,
                     s       = '{0}x{1}'.format(self.config.Width,self.config.Height)
                     ) # 视频来源
                 .output(
-                    ffmpeg.input(self.audio_path).audio,
-                    self.vidio_path,
-                    pix_fmt = 'yuv420p',
+                    ffmpeg.input(audio_path).audio,
+                    video_path,
+                    pix_fmt = o_format,
                     r       = self.config.frame_rate,
                     crf     = preference.crf,
                     loglevel= 'quiet',
-                    **{'c:v':'h264_nvenc'}
+                    **options
                     ) # 输出
                 .overwrite_output()
                 .run_async(pipe_stdin=True)
             )
         else:
-            self.output_engine = (
+            output_engine = (
                 ffmpeg
                 .input(
                     'pipe:',
                     format  = 'rawvideo',
                     r       = self.config.frame_rate,
-                    pix_fmt = 'rgb24',
+                    pix_fmt = i_format,
                     s       = '{0}x{1}'.format(self.config.Width,self.config.Height)
                     ) # 视频来源
                 .output(
-                    ffmpeg.input(self.audio_path).audio,
-                    self.vidio_path,
-                    pix_fmt = 'yuv420p',
+                    video_path,
+                    pix_fmt = o_format,
                     r       = self.config.frame_rate,
                     crf     = preference.crf,
                     loglevel= 'quiet',
+                    **options
                     ) # 输出
                 .overwrite_output()
                 .run_async(pipe_stdin=True)
             )
-        return self.vidio_path
+        return output_engine
     # 主流程：0终止，1异常，2终止
     def main(self)->int:
         try:
