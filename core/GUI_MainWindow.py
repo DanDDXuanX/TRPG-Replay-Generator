@@ -93,14 +93,16 @@ class RplGenStudioMainWindow(ttk.Window):
                 from tkextrafont import Font as FileFont
                 self.terminal_font = FileFont(file='./assets/sarasa-mono-sc-regular.ttf')
                 terminal_font_family = 'Sarasa Mono SC'
-            except:
+            except Exception as E:
+                print(E)
                 terminal_font_family = system_font_family
         else:
             try:
                 from tkextrafont import Font as FileFont
                 self.terminal_font = FileFont(file='./assets/sarasa-mono-sc-regular.ttf')
                 terminal_font_family = 'Sarasa Mono SC'
-            except:
+            except Exception as E:
+                print(E)
                 terminal_font_family = system_font_family
         self.terminal_font_family = terminal_font_family
         Link['terminal_font_family'] = terminal_font_family
