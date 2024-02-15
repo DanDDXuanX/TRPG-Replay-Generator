@@ -2637,6 +2637,16 @@ PreferenceTableStruct = {
                 "vtype": "bool",
                 "default": False
             },
+            "Export.export_srt":{
+                "ktext": "导出SRT字幕：",
+                "tooltip":"导出PR项目时，是否同时将所有发言内容导出为SRT字幕？",
+                "dtext": "（选择）",
+                "ditem": "label",
+                "valuekey": "Export.export_srt",
+                "vitem": "combox",
+                "vtype": "bool",
+                "default": False
+            },
             "Export.crf":{
                 "ktext": "视频质量：",
                 "tooltip":"导出为mp4视频时的质量，即ffmpeg的crf值；取值范围为0-51，越小对应越高的视频质量，通常合理范围为18-28。",
@@ -2659,7 +2669,7 @@ PreferenceTableStruct = {
             },
             "Export.alpha_export":{
                 "ktext": "导出透明度蒙版：",
-                "tooltip":"额外将透明度通道导出为一个蒙版视频。",
+                "tooltip":"导出为mp4视频时，是否将透明度通道导出为一个蒙版视频？",
                 "dtext": "（选择）",
                 "ditem": "label",
                 "valuekey": "Export.alpha_export",

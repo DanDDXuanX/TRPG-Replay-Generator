@@ -407,6 +407,8 @@ class PrxmlPrint(Print):
                         "开始导出！"],
         'Done'        :["Done! XML path : '{}'",
                         "导出完毕！XML工程文件的路径：'{}'"],
+        'DoneSRT'     :["Done! SRT path : '{}'",
+                        "导出完毕！SRT字幕文件的路径：'{}'"],
     }
     info_type = ["[export XML]: ",
                  "[导出PR工程]: "]

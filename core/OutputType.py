@@ -8,6 +8,7 @@ import ffmpeg
 import time
 import os
 import json
+import pydub
 
 from datetime import datetime
 import pygame.freetype
@@ -17,8 +18,8 @@ from .ProjConfig import Config, preference
 
 from .Exceptions import RenderError, MediaError
 from .Exceptions import WarningPrint, MainPrint, VideoPrint, PrxmlPrint
-from .Medias import *
-
+from .Medias import BGM, Audio, MediaObj
+from .Regexs import RE_label
 from .Utils import EDITION, zoom_surface, PUBLICATION
 
 # 输出模式：预览、XML或者MP4
@@ -1283,6 +1284,63 @@ class ExportXML(OutputMediaType):
             'tracks_audio' : '\n'.join(audio_tracks)
             })
         return 0
+    # 创建SRT字幕
+    def convert_frame_2_timestamp(self,frame_idx)->str:
+        # 小数秒数
+        decimal_seconds = frame_idx/self.config.frame_rate
+        # 计算
+        hours = int(decimal_seconds // 3600)
+        minutes = int((decimal_seconds % 3600) // 60)
+        seconds = int(decimal_seconds % 60)
+        milliseconds = int((decimal_seconds % 1) * 1000)
+        # 格式化
+        time_str = f"{hours:02d}:{minutes:02d}:{seconds:02d},{milliseconds:03d}"
+        # 返回
+        return time_str
+    def insert_srt(self,srt_list:list,text:str,begin:int,end:int):
+        idx = len(srt_list)+1
+        srt_section = "{idx}\n{begin} --> {end}\n{text}".format(
+            idx=idx,
+            begin=self.convert_frame_2_timestamp(begin),
+            end=self.convert_frame_2_timestamp(end),
+            text= RE_label.sub('',text).replace('^','').replace('#','')
+        )
+        srt_list.append(srt_section)
+    def bulid_srt(self):
+        self.main_text_srt = []
+        self.head_text_srt = []
+        track_items = self.parse_timeline_bubble('Bb')
+        for item in track_items:
+            # 检查终止状态
+            if self.is_terminated:
+                return 2
+            # 检查当前小节对象
+            if item[0] not in self.medias:
+                continue
+            # 插入主文本字幕
+            self.insert_srt(
+                srt_list= self.main_text_srt,
+                text    = item[1],
+                begin   = item[3],
+                end     = item[4],
+            )
+            # 插入头文本字幕
+            self.insert_srt(
+                srt_list= self.head_text_srt,
+                text    = item[2],
+                begin   = item[3],
+                end     = item[4],
+            )
+        return 0
+    def save_srt(self):
+        # 主字幕
+        ofile = open(f'{self.output_path}{self.stdout_name}.main.srt','w',encoding='utf-8')
+        ofile.write('\n\n'.join(self.main_text_srt)+'\n\n')
+        ofile.close()
+        # 头字幕
+        ofile = open(f'{self.output_path}{self.stdout_name}.head.srt','w',encoding='utf-8')
+        ofile.write('\n\n'.join(self.head_text_srt)+'\n\n')
+        ofile.close()
     # 主流程
     def main(self):
         # 欢迎
@@ -1298,5 +1356,13 @@ class ExportXML(OutputMediaType):
         ofile.write(self.main_output)
         ofile.close()
         print(PrxmlPrint('Done',f'{self.output_path}{self.stdout_name}.prproj.xml'))
+        # 导出SRT字幕
+        if preference.export_srt:
+            flag = self.bulid_srt()
+            if flag != 0:
+                return flag
+            else:
+                self.save_srt()
+                print(PrxmlPrint('DoneSRT',f'{self.output_path}{self.stdout_name}.*.srt'))
         # 正常结束
         return 0

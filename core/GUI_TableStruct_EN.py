@@ -2637,6 +2637,16 @@ PreferenceTableStruct = {
                 "vtype": "bool",
                 "default": False
             },
+            "Export.export_srt":{
+                "ktext": "Export SRT Subtitle",
+                "tooltip":"When exporting as PR project, should all speech content be exported as SRT subtitles?",
+                "dtext": "(select)",
+                "ditem": "label",
+                "valuekey": "Export.export_srt",
+                "vitem": "combox",
+                "vtype": "bool",
+                "default": False
+            },
             "Export.crf":{
                 "ktext": "Vidio Quality CRF",
                 "tooltip":"The quality of the exported MP4 video, can range from 0 to 51, smaller value means to higher quality",
@@ -2659,7 +2669,7 @@ PreferenceTableStruct = {
             },
             "Export.alpha_export":{
                 "ktext": "Alpha Export",
-                "tooltip":"Additionally export the alpha channel to a mask video.",
+                "tooltip":"Additionally export the alpha channel to a mask video?",
                 "dtext": "(select)",
                 "ditem": "label",
                 "valuekey": "Export.alpha_export",
