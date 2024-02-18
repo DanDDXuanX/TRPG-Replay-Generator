@@ -337,11 +337,12 @@ class NavigateBar(ttk.Frame):
         SZ_3 = int(self.sz *3)
         super().__init__(master,borderwidth=10*self.sz,bootstyle='success')
         icon_size = [int(50*self.sz),int(50*self.sz)]
+        logo_size = [int(150*self.sz),int(50*self.sz)]
         self.master = master
         self.is_wide = False
         # 图形
         self.image = {
-            'logo'      : ImageTk.PhotoImage(name='logo',   image=Image.open('./assets/icon/main_icon.png').resize(icon_size)),
+            'logo'      : ImageTk.PhotoImage(name='logo',   image=Image.open('./assets/icon/main_icon.png').resize(logo_size)),
             'setting'   : ImageTk.PhotoImage(name='setting',image=Image.open('./assets/icon/setting.png').resize(icon_size)),
             'project'   : ImageTk.PhotoImage(name='project',image=Image.open('./assets/icon/project.png').resize(icon_size)),
             # 'script'    : ImageTk.PhotoImage(name='script', image=Image.open('./assets/icon/script.png').resize(icon_size)),
