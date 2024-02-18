@@ -226,6 +226,7 @@ class Translate:
             '——批量导入语音报告——\n': '--Batch Voice Import Report--\n',
             '目标角色：{target}\n选中的文件数量：{num}\n': 'Target Character: {target}\nFiles Selected: {num}\n',
             '目标星标数量：{filter}\n填充的音标数量：{fill}': 'Target Asterisk: {filter}\nFilled Asterisk: {fill}',
+            '帮助': 'Help',
         }
     }
     lang = 'zh'

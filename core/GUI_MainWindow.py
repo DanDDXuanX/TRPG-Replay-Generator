@@ -347,6 +347,7 @@ class NavigateBar(ttk.Frame):
             # 'script'    : ImageTk.PhotoImage(name='script', image=Image.open('./assets/icon/script.png').resize(icon_size)),
             'console'   : ImageTk.PhotoImage(name='console',image=Image.open('./assets/icon/console.png').resize(icon_size)),
             'portal'  : ImageTk.PhotoImage(name='portal',image=Image.open('./assets/icon/portal.png').resize(icon_size)),
+            'helpdoc'  : ImageTk.PhotoImage(name='helpdoc',image=Image.open('./assets/icon/help.png').resize(icon_size)),
         }
         # 顶部
         self.buttons = {
@@ -362,11 +363,12 @@ class NavigateBar(ttk.Frame):
         }
         # 底部
         self.lowerbuttons = {
-            'portal'  : ttk.Button(master=self,image='portal',text=' '+tr('传送门'),command=lambda :self.press_button('portal'),bootstyle='success',compound='left',padding=(SZ_3,0,0,0),cursor='hand2'),
+            'helpdoc'   : ttk.Button(master=self,image='helpdoc',text=' '+tr('帮助'),command=self.show_rplgen_website,bootstyle='success',compound='left',padding=(SZ_3,0,0,0),cursor='hand2'),
+            'portal'    : ttk.Button(master=self,image='portal',text=' '+tr('传送门'),command=lambda :self.press_button('portal'),bootstyle='success',compound='left',padding=(SZ_3,0,0,0),cursor='hand2'),
         }
         # ypos
         # self.ypos = {'logo':0,'setting':70,'sep1':140,'project':150,'script':220,'console':290,'portal':-60}
-        self.ypos = {'logo':0,'setting':70,'sep1':140,'project':150,'console':220,'portal':-60}
+        self.ypos = {'logo':0,'setting':70,'sep1':140,'project':150,'console':220,'portal':-60, 'helpdoc':-130}
         # 高亮的线
         self.choice = ttk.Frame(master=self,bootstyle='primary')
         # 禁用
