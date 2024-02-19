@@ -352,8 +352,7 @@ class NavigateBar(ttk.Frame):
         }
         # 顶部
         self.buttons = {
-            'logo'      : ttk.Button(master=self,image='logo',bootstyle='success',padding=(SZ_3,0,0,0),cursor='hand2',command=self.show_rplgen_website),
-            'setting'   : ttk.Button(master=self,image='setting',text=' '+tr('首选项'),command=lambda :self.press_button('setting'),bootstyle='success',compound='left',padding=(SZ_3,0,0,0),cursor='hand2'),
+            'logo'      : ttk.Button(master=self,image='logo',bootstyle='success',padding=(SZ_3,0,0,0),cursor='hand2',command=self.show_steam_store),
             'project'   : ttk.Button(master=self,image='project',text=' '+tr('项目'),command=lambda :self.press_button('project'),bootstyle='success',compound='left',padding=(SZ_3,0,0,0),cursor='hand2'),
             # 'script'    : ttk.Button(master=self,image='script',text=' '+tr('脚本'),command=lambda :self.press_button('script'),bootstyle='success',compound='left',padding=(SZ_3,0,0,0),cursor='hand2'),
             'console'   : ttk.Button(master=self,image='console',text=' '+tr('控制台'),command=lambda :self.press_button('console'),bootstyle='success',compound='left',padding=(SZ_3,0,0,0),cursor='hand2'),
@@ -364,12 +363,20 @@ class NavigateBar(ttk.Frame):
         }
         # 底部
         self.lowerbuttons = {
+            'setting'   : ttk.Button(master=self,image='setting',text=' '+tr('首选项'),command=lambda :self.press_button('setting'),bootstyle='success',compound='left',padding=(SZ_3,0,0,0),cursor='hand2'),
             'helpdoc'   : ttk.Button(master=self,image='helpdoc',text=' '+tr('帮助'),command=self.show_rplgen_website,bootstyle='success',compound='left',padding=(SZ_3,0,0,0),cursor='hand2'),
             'portal'    : ttk.Button(master=self,image='portal',text=' '+tr('传送门'),command=lambda :self.press_button('portal'),bootstyle='success',compound='left',padding=(SZ_3,0,0,0),cursor='hand2'),
         }
         # ypos
-        # self.ypos = {'logo':0,'setting':70,'sep1':140,'project':150,'script':220,'console':290,'portal':-60}
-        self.ypos = {'logo':0,'setting':70,'sep1':140,'project':150,'console':220,'portal':-60, 'helpdoc':-130}
+        self.ypos = {
+            'logo':0,
+            'sep1':70,
+            'project':80,
+            'console':150,
+            'helpdoc':-200,
+            'setting':-130,
+            'portal':-60,
+        }
         # 高亮的线
         self.choice = ttk.Frame(master=self,bootstyle='primary')
         # 禁用
@@ -436,6 +443,8 @@ class NavigateBar(ttk.Frame):
     # 展示文档
     def show_rplgen_website(self):
         webbrowser.open('https://www.wolai.com/mJpcu5LUk3cECUjNXfHaqT')
+    def show_steam_store(self):
+        webbrowser.open('https://store.steampowered.com/app/2550090/_RplGen_Studio/')
     # 禁用
     def disable_navigate(self):
         self.disabled = True
