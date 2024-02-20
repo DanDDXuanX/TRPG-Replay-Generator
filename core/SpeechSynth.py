@@ -183,6 +183,9 @@ class SpeechSynthesizer:
                 elif os.path.isfile(this_asterisk['sound'][1:-1]):
                     # 指定的一个文件
                     this_audio_obj:Audio = Audio(this_asterisk['sound'][1:-1])
+                else:
+                    print(WarningPrint('BadAuFile',this_asterisk['sound']))
+                    continue
                 this_asterisk_synth['sound'] = this_asterisk['sound']
                 this_asterisk_synth['time'] = round(this_audio_obj.media.get_length(),2)
             # 将变更应用到rgl

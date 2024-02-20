@@ -183,6 +183,7 @@ class OutputMediaType:
         track = self.timeline[[layer,layer+'_main',layer+'_header',layer+'_c']]
         clips = []
         item,begin,end = 'NA',0,0
+        main_text,header_text = '',''
         center:str = '(0,0)'
         for key,values in track.iterrows():
             # 检查是否有交叉溶解标记
@@ -219,7 +220,6 @@ class OutputMediaType:
                 if (main_this != main_text) or (header_this != header_text):
                     end = key #否则把当前key作为一个clip的断点
                     clips.append((item,main_text,header_text,begin,end,center)) #并记录下这个断点
-                    print(item,main_text,header_text,begin,end)
                     # 重设item和begin
                     item = item_this
                     begin = key
@@ -1198,7 +1198,7 @@ class ExportXML(OutputMediaType):
     def __init__(self, rplgenlog:RplGenLog, config:Config, output_path, key):
         super().__init__(rplgenlog, config, output_path, key)
         # 全局变量
-        self.Is_NTSC:bool    = self.config.frame_rate % 30 == 0
+        self.Is_NTSC:bool    = False
         self.Audio_type:str  = 'Stereo'
         # 是否强制切割序列
         self.force_split_clip:bool = preference.force_split_clip

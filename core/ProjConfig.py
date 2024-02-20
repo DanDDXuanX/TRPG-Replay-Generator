@@ -79,7 +79,7 @@ class Config:
         # 媒体
         MediaObj.screen_size:tuple     = (self.Width,self.Height)
         MediaObj.frame_rate:int        = self.frame_rate
-        MediaObj.Is_NTSC:bool          = self.frame_rate % 30 == 0 
+        MediaObj.Is_NTSC:bool          = False
         MediaObj.Audio_type:str        = 'Audio_type'
 
 # 程序设置
