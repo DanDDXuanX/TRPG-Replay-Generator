@@ -230,21 +230,24 @@ class CreateIntelProject(CreateProject):
     def get_all_name(self)->list:
         intels = os.listdir(self.intel_dir)
         all_intel_names = []
+        self.name_2_dir = {}
         for pack in intels:
             rgint = self.intel_dir + pack + '/main.rgint'
             try:
                 content = json.load(open(rgint,'r',encoding='utf-8'))
                 name_this = content['meta']['name']
                 all_intel_names.append(name_this)
+                self.name_2_dir[name_this] = pack
             except Exception:
                 pass
         return all_intel_names
     def load_template(self,tplt_name):
         SZ_5 = int(self.sz * 5)
+        tplt_dir = self.name_2_dir[tplt_name]
         # rgint 路径
-        self.tplt_path = self.intel_dir + tplt_name + '/main.rgint'
+        self.tplt_path = self.intel_dir + tplt_dir + '/main.rgint'
         # @ 路径
-        self.at_path = self.intel_dir+tplt_name
+        self.at_path = self.intel_dir + tplt_dir
         try:
             self.template:dict = json.load(open(self.tplt_path,'r',encoding='utf-8'))
         except:

@@ -12,3 +12,5 @@ assets/preview_tempfile.wav
 test_project.json
 temp/*
 assets/security/*
+build/*
+dist/*
