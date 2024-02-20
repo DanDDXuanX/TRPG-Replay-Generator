@@ -213,6 +213,17 @@ class OutputMediaType:
                 item = item_this
                 begin = key
                 center = center_this
+            # 如果是常驻气泡图层，需要特殊的考虑
+            # 具体来说，在断点时，即使前后对象相同，也需要检定断点前后文字内容是否发生变化，如果发生了改变，则需要拆成两个不同的剪辑
+            elif (layer == 'BbS') & (key in self.breakpoint.values):
+                if (main_this != main_text) or (header_this != header_text):
+                    end = key #否则把当前key作为一个clip的断点
+                    clips.append((item,main_text,header_text,begin,end,center)) #并记录下这个断点
+                    print(item,main_text,header_text,begin,end)
+                    # 重设item和begin
+                    item = item_this
+                    begin = key
+                    center = center_this
             else: #如果不满足断点要求，那么就什么都不做
                 pass
             # 然后更新文本内容

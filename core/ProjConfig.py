@@ -125,7 +125,7 @@ class Preference:
         'hwaccels' : False,
         'force_split_clip' : False,
         'alphaexp' : False,
-        'export_srt' : True
+        'export_srt' : False
     }
     keyword = {
         # 语音key
