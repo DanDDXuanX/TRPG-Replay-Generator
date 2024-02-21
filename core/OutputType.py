@@ -90,7 +90,7 @@ class OutputMediaType:
                             Object = self.medias[cross[layer]]
                             Object.display(
                                 surface=surface,alpha=float(cross[layer+'_a']),frame=int(cross[layer+'_t']),
-                                adjust=cross[layer+'_p'],center=cross[layer+'_c']
+                                adjust=cross[layer+'_p'],center=cross[layer+'_c'],bright=float(cross[layer+'_a'])
                             )
                         except Exception as E:
                             print(E)
@@ -118,7 +118,7 @@ class OutputMediaType:
                     Object = self.medias[this_frame[layer]]
                     Object.display(
                         surface=surface,alpha=this_frame[layer+'_a'],frame=this_frame[layer+'_t'],
-                        adjust=this_frame[layer+'_p'],center=this_frame[layer+'_c']
+                        adjust=this_frame[layer+'_p'],center=this_frame[layer+'_c'],bright=this_frame[layer+'_b']
                     )
                 except Exception as E:
                     print(E)

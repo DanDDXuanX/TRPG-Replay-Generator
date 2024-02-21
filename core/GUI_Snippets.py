@@ -50,14 +50,16 @@ class RGLSnippets(CodeSnippet, Localize):
                 "sep1"                  :'sep',
                 "speech_speed"          :["无语音句子的播放速度","speech_speed",14],
                 "asterisk_pause"        :["句子的间隔时间","asterisk_pause",16],
-                "secondary_alpha"       :["非发言角色的立绘透明度","secondary_alpha",17],
                 "inline_method_apply"   :["对话行中效果的作用对象","inline_method_apply",21],
                 "sep2"                  :'sep',
+                "secondary_alpha"       :["非发言角色的立绘透明度","secondary_alpha",17],
+                "secondary_brightness"  :["非发言角色的立绘亮度","secondary_brightness",22],
+                "sep3"                  :'sep',
                 "am_dur_default"        :["默认切换时间-立绘","am_dur_default",16],
                 "bb_dur_default"        :["默认切换时间-气泡","bb_dur_default",16],
                 "bg_dur_default"        :["默认切换时间-背景","bg_dur_default",16],
                 "tx_dur_default"        :["默认文字效果时间","tx_dur_default",16],
-                "sep3"                  :'sep',
+                "sep4"                  :'sep',
                 "formula"               :["动画曲线","formula",9],
             },
             "am_dur":{
@@ -171,14 +173,16 @@ class RGLSnippets(CodeSnippet, Localize):
                 "sep1"                  :'sep',
                 "speech_speed"          :["speech_speed","speech_speed",14],
                 "asterisk_pause"        :["asterisk_pause","asterisk_pause",16],
-                "secondary_alpha"       :["secondary_alpha","secondary_alpha",17],
                 "inline_method_apply"   :["inline_method_apply","inline_method_apply",21],
                 "sep2"                  :'sep',
+                "secondary_alpha"       :["secondary_alpha","secondary_alpha",17],
+                "secondary_brightness"  :["secondary_brightness","secondary_brightness",22],
+                "sep3"                  :'sep',
                 "am_dur_default"        :["am_dur_default","am_dur_default",16],
                 "bb_dur_default"        :["bb_dur_default","bb_dur_default",16],
                 "bg_dur_default"        :["bg_dur_default","bg_dur_default",16],
                 "tx_dur_default"        :["tx_dur_default","tx_dur_default",16],
-                "sep3"                  :'sep',
+                "sep4"                  :'sep',
                 "formula"               :["formula","formula",9],
             },
             "am_dur":{
@@ -378,7 +382,7 @@ class RGLSnippets(CodeSnippet, Localize):
             self.init_snippets_options('set')
         elif re.fullmatch('^<set:(\w+)>:',text_upstream) and text_downstream=='':
             to_set = re.fullmatch('^<set:(\w+)>:',text_upstream).group(1)
-            if to_set in ['am_dur_default','bb_dur_default','bg_dur_default','asterisk_pause','secondary_alpha']:
+            if to_set in ['am_dur_default','bb_dur_default','bg_dur_default','asterisk_pause','secondary_alpha','secondary_brightness']:
                 self.init_snippets_options('am_dur')
             elif to_set in ['am_method_default','bb_method_default']:
                 self.init_snippets_options('ab_met')

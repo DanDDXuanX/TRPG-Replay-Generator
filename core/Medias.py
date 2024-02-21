@@ -1781,7 +1781,7 @@ class Animation(MediaObj):
         self.size:tuple = self.media[0].get_size()
         self.origin_size:tuple = pygame.image.load(self.filepath.list()[0]).get_size()
         self.scale:float  = scale
-    def display(self,surface:pygame.Surface,alpha:float=100,center:str='NA',adjust:str='NA',frame:int=0,bright:int=100)->None:
+    def display(self,surface:pygame.Surface,alpha:float=100,center:str='NA',adjust:str='NA',frame:int=0,bright:float=100)->None:
         self.this = frame
         if center == 'NA':
             render_center = self.pos.pos

@@ -330,6 +330,8 @@ class RGLSectionElement(ttk.LabelFrame,SectionElement):
                 'asterisk_pause'    : ['星标小节的间距时间',' 帧'],
                 # a 1.8.8 次要立绘的默认透明度
                 'secondary_alpha'   : ['次要角色立绘的默认透明度',' %'],
+                # b 2.0.5 次要立绘的亮度
+                'secondary_brightness'   : ['次要角色立绘的亮度',' %'],
                 # 对话行内指定的方法的应用对象：animation、bubble、both、none
                 'inline_method_apply' : ['对话行内效果的应用范围','']
             }[section['target']]

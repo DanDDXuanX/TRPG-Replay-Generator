@@ -905,7 +905,7 @@ class RplGenLog(Script):
                     this_section['type'] = set_type
                     this_section['target'] = target
                     # 类型1：整数型
-                    if target in ['am_dur_default','bb_dur_default','bg_dur_default','tx_dur_default','speech_speed','asterisk_pause','secondary_alpha']:
+                    if target in ['am_dur_default','bb_dur_default','bg_dur_default','tx_dur_default','speech_speed','asterisk_pause','secondary_alpha','secondary_brightness']:
                         this_section['value_type'] = 'digit' # natural number
                         try:
                             this_section['value'] = int(args)
@@ -1359,11 +1359,13 @@ class RplGenLog(Script):
         if this_am == 'NA':
             self.main_timeline.loc[last_placed_index,'AmS_t'] = 0
             self.main_timeline.loc[last_placed_index,'AmS_a'] = 0
+            self.main_timeline.loc[last_placed_index,'AmS_b'] = 100
             self.main_timeline.loc[last_placed_index,'AmS_c'] = 'NA'
             self.main_timeline.loc[last_placed_index,'AmS_p'] = 'NA'
         else:
             am_method_obj = MotionMethod(am_method,am_dur,self.dynamic['formula'],this_section)
             self.main_timeline.loc[last_placed_index,'AmS_a'] = am_method_obj.alpha(this_duration,100)
+            self.main_timeline.loc[last_placed_index,'AmS_b'] = 100
             self.main_timeline.loc[last_placed_index,'AmS_p'] = am_method_obj.motion(this_duration)
             self.main_timeline.loc[last_placed_index,'AmS_t'] = self.medias[this_am].get_tick(this_duration)
             self.main_timeline.loc[last_placed_index,'AmS_c'] = am_center.use(this_duration)
@@ -1401,8 +1403,8 @@ class RplGenLog(Script):
         self.render_arg = [
         'section',
         'BG1','BG1_a','BG1_c','BG1_p','BG2','BG2_a','BG2_c','BG2_p',
-        'Am1','Am1_t','Am1_a','Am1_c','Am1_p','Am2','Am2_t','Am2_a','Am2_c','Am2_p','Am3','Am3_t','Am3_a','Am3_c','Am3_p',
-        'AmS','AmS_t','AmS_a','AmS_c','AmS_p',
+        'Am1','Am1_t','Am1_a','Am1_c','Am1_p','Am1_b','Am2','Am2_t','Am2_a','Am2_c','Am2_p','Am2_b','Am3','Am3_t','Am3_a','Am3_c','Am3_p','Am3_b',
+        'AmS','AmS_t','AmS_a','AmS_c','AmS_p','AmS_b',
         'Bb','Bb_main','Bb_main_e','Bb_header','Bb_a','Bb_c','Bb_p',
         'BbS','BbS_main','BbS_main_e','BbS_header','BbS_a','BbS_c','BbS_p',
         'BGM','Voice','SE'
@@ -1455,6 +1457,8 @@ class RplGenLog(Script):
             'asterisk_pause' : 20,
             # a 1.8.8 次要立绘的默认透明度
             'secondary_alpha' : 60,
+            # b 2.0.5 次要立绘的默认亮度
+            'secondary_brightness': 100,
             # 对话行内指定的方法的应用对象：animation、bubble、both、none
             'inline_method_apply' : 'both'
         }
@@ -1544,6 +1548,7 @@ class RplGenLog(Script):
                             this_timeline[this_layer+'_c'] = 'NA'
                             this_timeline[this_layer+'_a'] = 0
                             this_timeline[this_layer+'_p'] = 'NA'
+                            this_timeline[this_layer+'_b'] = 100
                             this_dialog_method[AN] = 0
                         elif this_am not in self.medias.keys():
                             # 如果媒体名未定义
@@ -1571,6 +1576,11 @@ class RplGenLog(Script):
                                 else: # 如果是次要角色，透明度为secondary_alpha，默认值60
                                     this_timeline[this_layer+'_a']=am_method_obj.alpha(this_duration,self.dynamic['secondary_alpha'])
                                     this_dialog_method[AN] = self.dynamic['secondary_alpha']
+                            # 立绘的亮度
+                            if chara_key == '0': # 如果是首要角色，亮度为100
+                                this_timeline[this_layer+'_b']=100
+                            else: # 如果是次要角色，亮度为secondary_brightness，默认值100
+                                this_timeline[this_layer+'_b']=self.dynamic['secondary_brightness']
                             # 立绘的运动
                             this_timeline[this_layer+'_p'] = am_method_obj.motion(this_duration)
                         # 气泡参数: 'Bb','Bb_main','Bb_main_e','Bb_header','Bb_a','Bb_c','Bb_p',
@@ -2159,16 +2169,19 @@ class RplGenLog(Script):
                     this_timeline['Am3'] = Auto_media_name+'_0'
                     this_timeline['Am3_a'] = alpha_timeline * 100
                     this_timeline['Am3_t'] = 0
+                    this_timeline['Am3_b'] = 100
                     this_timeline['Am3_c'] = 'NA'
                     this_timeline['Am3_p'] = 'NA'
                     # 留下的血
                     this_timeline['Am2'] = Auto_media_name+'_1'
                     this_timeline['Am2_a'] = alpha_timeline * 100
                     this_timeline['Am2_t'] = 0
+                    this_timeline['Am2_b'] = 100
                     this_timeline['Am2_c'] = 'NA'
                     this_timeline['Am2_p'] = 'NA'
                     # 丢掉的血
                     this_timeline['Am1'] = Auto_media_name+'_2'
+                    this_timeline['Am1_b'] = 100
                     this_timeline['Am1_c'] = 'NA'
                     if this_section['hp_begin'] > this_section['hp_end']:
                         # 掉血模式
@@ -2227,6 +2240,7 @@ class RplGenLog(Script):
                     this_timeline['Am3'] = Auto_media_name+'_0'
                     this_timeline['Am3_a'] = alpha_timeline * 100
                     this_timeline['Am3_t'] = 0
+                    this_timeline['Am3_b'] = 100
                     this_timeline['Am3_c'] = 'NA'
                     this_timeline['Am3_p'] = 'NA'
                     # 滚动骰点
@@ -2237,6 +2251,7 @@ class RplGenLog(Script):
                                                         np.zeros(frame_rate*5-int(frame_rate*2.5))])
                     this_timeline['Am2_t'] = np.hstack([np.arange(0,int(frame_rate*2.5)),np.zeros(frame_rate*5-int(frame_rate*2.5))])
                     this_timeline['Am2_c'] = 'NA'
+                    this_timeline['Am2_b'] = 100
                     this_timeline['Am2_p'] = 'NA'
                     # 出目显示
                     this_timeline['Am1'] = np.hstack([np.repeat('NA',frame_rate*5-int(frame_rate*2.5)),np.repeat(Auto_media_name+'_2',int(frame_rate*2.5))])
@@ -2245,6 +2260,7 @@ class RplGenLog(Script):
                                                         np.ones(int(frame_rate*2.5)-frame_rate//2-frame_rate)*100,
                                                         self.dynamic['formula'](100,0,frame_rate)])
                     this_timeline['Am1_t'] = 0
+                    this_timeline['Am1_b'] = 100
                     this_timeline['Am1_c'] = 'NA'
                     this_timeline['Am1_p'] = 'NA'
                     # SE
