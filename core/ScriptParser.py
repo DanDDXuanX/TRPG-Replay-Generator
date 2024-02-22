@@ -934,6 +934,9 @@ class RplGenLog(Script):
                     elif target == 'inline_method_apply':
                         this_section['value_type'] = 'enumerate'
                         this_section['value'] = args
+                    elif target == 'method_protocol':
+                        this_section['value_type'] = 'protocol'
+                        this_section['value'] = args
                     # 否则无法解析
                     else:
                         raise ParserError('UnsuppSet',target,str(i+1))
@@ -1168,7 +1171,7 @@ class RplGenLog(Script):
             elif type_this == 'set':
                 if this_section['value_type'] == 'digit':
                     value = str(this_section['value'])
-                elif this_section['value_type'] in ['function','enumerate']:
+                elif this_section['value_type'] in ['function','enumerate','protocol']:
                     value = this_section['value']
                 elif this_section['value_type'] == 'method':
                     value = self.method_export(this_section['value'])
@@ -1395,6 +1398,47 @@ class RplGenLog(Script):
             self.main_length = self.main_length + 30000
         # 应用变更
         self.main_timeline.loc[idx1:idx2] = this_timeline
+    def check_charactor_execute(self,line_index:int,forward:bool=False,protocol='identical')->bool:
+        "在对话行中，检查本句的首要角色，是否和前/后一句是相同的，返回是或者不是"
+        this_line_index = str(line_index)
+        check_line_index = str(line_index+{True:1, False:-1}[forward])
+        # 当前行
+        this_section = self.struct[this_line_index]
+        if this_section['type'] != 'dialog':
+            return False
+        else:
+            this_primary = this_section['charactor_set']['0']
+        # 检查行
+        if check_line_index not in self.struct:
+            # 如何检查行超出了剧本的范围，直接返回False
+            return False
+        else:
+            check_section = self.struct[check_line_index]
+        if check_section['type'] != 'dialog':
+            return False
+        else:
+            check_primary = check_section['charactor_set']['0']
+        # 根据protocol，决定是否检查通过
+        flag = 0 # 3: indentical 2: charactor 1: subtype 0: none
+        protocol_flag = {
+            'none': [],
+            'subtype' : [1,3],
+            'charactor' : [2,3],
+            'identical' : [3],
+        }
+        if this_primary['name'] == check_primary['name']:
+            flag += 2
+        if this_primary['subtype'] == check_primary['subtype']:
+            flag += 1
+            # 特殊情况：差分同为default，但是角色却不一样，此时认为是完全不一样
+            if this_primary['subtype'] == 'default' and this_primary['name'] != check_primary['name']:
+                flag = 0
+        # 检查
+        if flag in protocol_flag[protocol]:
+            return True
+        else:
+            return False
+
     def execute(self,media_define:MediaDef,char_table:CharTable,config:Config)->pd.DataFrame:
         # 媒体和角色 # 浅复制，只复制了对象地址
         self.medias:dict = media_define.Medias.copy()
@@ -1460,7 +1504,9 @@ class RplGenLog(Script):
             # b 2.0.5 次要立绘的默认亮度
             'secondary_brightness': 100,
             # 对话行内指定的方法的应用对象：animation、bubble、both、none
-            'inline_method_apply' : 'both'
+            'inline_method_apply' : 'both',
+            # b 2.0.5 默认切换效果的处理方案 charactor, subtype, identical, none
+            'method_protocol' : 'none'
         }
 
         # 开始遍历
@@ -1492,21 +1538,58 @@ class RplGenLog(Script):
                     else:
                         # 如果缺省星标：持续时间 = 字数/语速 + 星标间隔
                         this_duration:int = self.dynamic['asterisk_pause'] + int(len(this_section['content'])/(self.dynamic['speech_speed']/60/config.frame_rate))
+                    # flag: 3: 全部相同 2: 仅前序相同 1: 仅后序相同 0：不存在相同
+                    if self.dynamic['method_protocol'] in ['charactor','subtype','identical']:
+                        flag = 0
+                        # 1. 先检查前一个角色
+                        if self.check_charactor_execute(line_index=i,forward=False,protocol=self.dynamic['method_protocol']):
+                            flag += 2
+                        # 2. 再检查下一个角色
+                        if self.check_charactor_execute(line_index=i,forward=True ,protocol=self.dynamic['method_protocol']):
+                            flag += 1
+                        # 3. 根据flag，调整切换效果
+                        if flag == 3:
+                            # 前序后序都相同，采用replace=0
+                            this_am_method = {'method':'replace','method_dur':0}
+                            this_bb_method = {'method':'replace','method_dur':0}
+                        elif flag == 2:
+                            # 和前序相同，仅切出
+                            new_method = self.dynamic['am_method_default'].copy()
+                            new_method['method'] = new_method['method'] + '_out'
+                            this_am_method:dict = new_method
+                            new_method = self.dynamic['bb_method_default'].copy()
+                            new_method['method'] = new_method['method'] + '_out'
+                            this_bb_method:dict = new_method
+                        elif flag == 1:
+                            # 和后序相同，仅切入
+                            new_method = self.dynamic['am_method_default'].copy()
+                            new_method['method'] = new_method['method'] + '_in'
+                            this_am_method:dict = new_method
+                            new_method = self.dynamic['bb_method_default'].copy()
+                            new_method['method'] = new_method['method'] + '_in'
+                            this_bb_method:dict = new_method
+                        else:
+                            # 默认值
+                            this_am_method:dict = self.dynamic['am_method_default'].copy()
+                            this_bb_method:dict = self.dynamic['bb_method_default'].copy()
+                    else:
+                        this_am_method:dict = self.dynamic['am_method_default'].copy()
+                        this_bb_method:dict = self.dynamic['bb_method_default'].copy()
                     # 本小节的切换效果：am_method，bb_method
                     if this_section['ab_method']['method'] == 'default' or self.dynamic['inline_method_apply'] == 'none':
                         # 未指定
-                        am_method:dict = self.dynamic['am_method_default'].copy()
-                        bb_method:dict = self.dynamic['bb_method_default'].copy()
+                        am_method:dict = this_am_method
+                        bb_method:dict = this_bb_method
                     else:
                         # 有指定
                         if self.dynamic['inline_method_apply'] in ['animation','both']:
                             am_method:dict = this_section['ab_method'].copy()
                         else:
-                            am_method:dict = self.dynamic['am_method_default'].copy()
+                            am_method:dict = this_am_method
                         if self.dynamic['inline_method_apply'] in ['bubble','both']:
                             bb_method:dict = this_section['ab_method'].copy()
                         else:
-                            bb_method:dict = self.dynamic['bb_method_default'].copy()
+                            bb_method:dict = this_bb_method
                     # 是否缺省时长
                     if am_method['method_dur'] == 'default':
                         am_method['method_dur'] = self.dynamic['am_dur_default']
@@ -2025,6 +2108,12 @@ class RplGenLog(Script):
                     # 类型5：枚举
                     elif this_section['value_type'] == 'enumerate':
                         if this_section['value'] in ['animation','bubble','both','none']:
+                            self.dynamic[this_section['target']] = this_section['value']
+                        else:
+                            print(WarningPrint('Set2Invalid',this_section['target'],this_section['value']))
+                    # 类型6：规范
+                    elif this_section['value_type'] == 'protocol':
+                        if this_section['value'] in ['charactor','subtype','identical','none']:
                             self.dynamic[this_section['target']] = this_section['value']
                         else:
                             print(WarningPrint('Set2Invalid',this_section['target'],this_section['value']))

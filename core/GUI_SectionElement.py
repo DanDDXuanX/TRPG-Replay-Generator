@@ -333,13 +333,15 @@ class RGLSectionElement(ttk.LabelFrame,SectionElement):
                 # b 2.0.5 次要立绘的亮度
                 'secondary_brightness'   : ['次要角色立绘的亮度',' %'],
                 # 对话行内指定的方法的应用对象：animation、bubble、both、none
-                'inline_method_apply' : ['对话行内效果的应用范围','']
+                'inline_method_apply' : ['对话行内效果的应用范围',''],
+                # b 2.0.5 默认切换效果的处理方案 charactor, subtype, identical, none
+                'method_protocol' : ['停用默认切换效果的条件','']
             }[section['target']]
             self.header = '<设置：' + target + '>'
             if section['value_type'] == 'digit':
                 value = str(section['value'])
                 self.mstyle = 'digit'
-            elif section['value_type'] in ['function','enumerate']:
+            elif section['value_type'] in ['function','enumerate','protocol']:
                 value = section['value']
                 self.mstyle = 'fuction'
             elif section['value_type'] == 'method':

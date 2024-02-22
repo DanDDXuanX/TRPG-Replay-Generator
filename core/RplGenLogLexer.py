@@ -70,7 +70,7 @@ class RplGenLogLexer(RegexLexer):
             # 曲线函数
             (r'\b(linear|quadraticR|quadratic|sigmoid|right|left|sincurve)\b',Name.Exception,'#pop'),
             # 特殊的关键字
-            (r'\b(animation|bubble|both|none|stop|black|white)\b',Name.Exception,'#pop'),
+            (r'\b(animation|bubble|both|none|stop|black|white|identical|charactor|subtype)\b',Name.Exception,'#pop'),
             # 方法
             (r'<\w+(\=\d+)?>',Name.Builtin.Pseudo,'#pop'),
             # 字符串？

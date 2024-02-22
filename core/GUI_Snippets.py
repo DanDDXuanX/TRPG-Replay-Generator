@@ -51,6 +51,7 @@ class RGLSnippets(CodeSnippet, Localize):
                 "speech_speed"          :["无语音句子的播放速度","speech_speed",14],
                 "asterisk_pause"        :["句子的间隔时间","asterisk_pause",16],
                 "inline_method_apply"   :["对话行中效果的作用对象","inline_method_apply",21],
+                "method_protocol"       :["停用默认切换效果的条件","method_protocol",17],
                 "sep2"                  :'sep',
                 "secondary_alpha"       :["非发言角色的立绘透明度","secondary_alpha",17],
                 "secondary_brightness"  :["非发言角色的立绘亮度","secondary_brightness",22],
@@ -97,6 +98,12 @@ class RGLSnippets(CodeSnippet, Localize):
                 "both"      : ["全部","both",4],
                 "amimation" : ["立绘","animation",9],
                 "bubble"    : ["气泡","bubble",6],
+                "none"      : ["禁用","none",4],
+            },
+            "protocol":{
+                "identical" : ["完全一致","identical",9],
+                "charactor" : ["同一角色","charactor",9],
+                "subtype"   : ["同一差分名","subtype",7],
                 "none"      : ["禁用","none",4],
             },
             "tx_met":{
@@ -174,6 +181,7 @@ class RGLSnippets(CodeSnippet, Localize):
                 "speech_speed"          :["speech_speed","speech_speed",14],
                 "asterisk_pause"        :["asterisk_pause","asterisk_pause",16],
                 "inline_method_apply"   :["inline_method_apply","inline_method_apply",21],
+                "method_protocol"       :["method_protocol","method_protocol",17],
                 "sep2"                  :'sep',
                 "secondary_alpha"       :["secondary_alpha","secondary_alpha",17],
                 "secondary_brightness"  :["secondary_brightness","secondary_brightness",22],
@@ -220,6 +228,12 @@ class RGLSnippets(CodeSnippet, Localize):
                 "both"      : ["both","both",4],
                 "amimation" : ["animation","animation",9],
                 "bubble"    : ["bubble","bubble",6],
+                "none"      : ["none","none",4],
+            },
+            "protocol":{
+                "identical" : ["identical","identical",9],
+                "charactor" : ["charactor","charactor",9],
+                "subtype"   : ["subtype","subtype",7],
                 "none"      : ["none","none",4],
             },
             "tx_met":{
@@ -396,6 +410,8 @@ class RGLSnippets(CodeSnippet, Localize):
                 self.init_snippets_options('formula')
             elif to_set == 'inline_method_apply':
                 self.init_snippets_options('inline')
+            elif to_set == 'method_protocol':
+                self.init_snippets_options('protocol')
             elif to_set == 'speech_speed':
                 self.init_snippets_options('speed')
         # 移动
@@ -436,7 +452,7 @@ class RGLSnippets(CodeSnippet, Localize):
     def init_snippets_options(self,type_='command',**kw_args):
         self.snippets_type = type_
         # 行命令
-        if self.snippets_type in ['command','set','am_dur','tx_dur','formula','inline','speed','bg_met','ab_met','tx_met']:
+        if self.snippets_type in ['command','set','am_dur','tx_dur','formula','inline','protocol','speed','bg_met','ab_met','tx_met']:
             self.snippets_content = self.Snippets[self.localize][self.snippets_type]
             self.bulid_menu_from_dict(menu=self,dictionary=self.snippets_content)
             # 立绘切换效果的特殊之处
