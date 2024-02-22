@@ -684,6 +684,36 @@ class RGLPreviewCanvas(PreviewCanvas):
                 index_this = index_this -1
         else:
             return Background('black')
+    def get_placed(self, line_index:str, target='animation'):
+        index_this = int(line_index)
+        while index_this >= 0:
+            section_this = self.rplgenlog.struct[str(index_this)]
+            # 获取
+            if section_this['type'] == target:
+                if target == 'animation':
+                    am_obj = section_this['object']
+                    if am_obj is None:
+                        pass
+                    elif type(am_obj) is dict:
+                        for idx in am_obj.keys():
+                            self.get_media(am_obj[idx]).preview(self.canvas)
+                    else:
+                        self.get_media(am_obj).preview(self.canvas)
+                elif target == 'bubble':
+                    bb_obj = section_this['object']
+                    if bb_obj is None:
+                        pass
+                    else:
+                        main_text = bb_obj['main_text']
+                        header_text = bb_obj['header_text']
+                        bubble_obj:Bubble = self.get_media(bb_obj['bubble'])
+                        bubble_obj.display(surface=self.canvas, text=main_text, header=header_text)
+                else:
+                    pass
+                # 只要获取到了target，就必须要返回
+                return
+            else:
+                index_this = index_this -1
     def get_header(self, this_bb_obj:Bubble, this_charactor_config:dict, key=None)->str:
         # 头文本
         try:
@@ -794,9 +824,13 @@ class RGLPreviewCanvas(PreviewCanvas):
                 for layer in zorder:
                     if layer == 'BG2':
                         self.get_background(line_index).preview(self.canvas) # 背景
-                    if layer in ['Am1','Am2','Am3']:
+                    elif layer in ['Am1','Am2','Am3']:
                         if am_dict[layer]:
                             am_dict[layer].preview(self.canvas)
+                    elif layer == 'AmS':
+                        self.get_placed(line_index,target='animation')
+                    elif layer == 'BbS':
+                        self.get_placed(line_index,target='bubble')
                     elif layer == 'Bb':
                         if bubble_this:
                             bubble_this.display(surface=self.canvas, text=main_text, header=header_text)
