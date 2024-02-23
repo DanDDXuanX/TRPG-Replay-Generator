@@ -79,8 +79,8 @@ class OutputMediaType:
                             print(E)
                             raise RenderError('FailRender',cross[layer],'Bubble')
                 elif layer[0:2] == 'Am':
-                    cross_1 = this_frame[[layer,layer+'_a',layer+'_t',layer+'_p',layer+'_c']].replace('(.+) (->|<-) (.+)',r'\1',regex=True)
-                    cross_2 = this_frame[[layer,layer+'_a',layer+'_t',layer+'_p',layer+'_c']].replace('(.+) (->|<-) (.+)',r'\3',regex=True)
+                    cross_1 = this_frame[[layer,layer+'_a',layer+'_t',layer+'_b',layer+'_p',layer+'_c']].replace('(.+) (->|<-) (.+)',r'\1',regex=True)
+                    cross_2 = this_frame[[layer,layer+'_a',layer+'_t',layer+'_b',layer+'_p',layer+'_c']].replace('(.+) (->|<-) (.+)',r'\3',regex=True)
                     if ' -> ' in this_frame[layer]:
                         cross_zorder = [cross_1,cross_2]
                     else:
@@ -90,7 +90,7 @@ class OutputMediaType:
                             Object = self.medias[cross[layer]]
                             Object.display(
                                 surface=surface,alpha=float(cross[layer+'_a']),frame=int(cross[layer+'_t']),
-                                adjust=cross[layer+'_p'],center=cross[layer+'_c'],bright=float(cross[layer+'_a'])
+                                adjust=cross[layer+'_p'],center=cross[layer+'_c'],bright=float(cross[layer+'_b'])
                             )
                         except Exception as E:
                             print(E)
