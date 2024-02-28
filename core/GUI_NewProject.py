@@ -419,12 +419,13 @@ class CreateIntelProject(CreateProject):
         ## 插入预设静态角色表
         static_chartable = pd.DataFrame(index=[],columns=CharTable.table_col+custom_arg)
         for keyword in static_chars:
-            if keyword in chartable.index:
+            full_index = keyword+'.default'
+            if full_index in chartable.index:
                 # 如果预设角色出现在发言角色里，用预设角色的参数更新发言角色
-                chartable.loc[keyword].update(static_chars[keyword])
+                chartable.loc[full_index].update(static_chars[keyword])
             else:
                 # 否则就把预设角色插入到静态表中
-                static_chartable.loc[keyword] = static_chars[keyword]
+                static_chartable.loc[full_index] = static_chars[keyword]
         if len(static_chartable) > 0:
             chartable = pd.concat([static_chartable,chartable],axis=0)
         ## 将所有的语音参数设为空
