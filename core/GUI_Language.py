@@ -227,6 +227,7 @@ class Translate:
             '目标角色：{target}\n选中的文件数量：{num}\n': 'Target Character: {target}\nFiles Selected: {num}\n',
             '目标星标数量：{filter}\n填充的音标数量：{fill}': 'Target Asterisk: {filter}\nFilled Asterisk: {fill}',
             '帮助': 'Help',
+            '示例剧本': 'Example_Script'
         }
     }
     lang = 'zh'

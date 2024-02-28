@@ -23,21 +23,21 @@
     },
     "media":{
         "static":{
-            "\u7acb\u7ed8\u7684\u4f4d\u7f6e": {
+            "立绘的位置": {
                 "type": "Pos",
                 "pos": [
                     72,
                     490
                 ]
             },
-            "\u6c14\u6ce1\u7684\u4f4d\u7f6e": {
+            "气泡的位置": {
                 "type": "Pos",
                 "pos": [
                     597,
                     626
                 ]
             },
-            "\u6c14\u6ce1\u6807\u9898": {
+            "气泡标题": {
                 "type": "Text",
                 "fontfile": "./assets/SourceHanSansCN-Regular.otf",
                 "fontsize": 40,
@@ -50,7 +50,7 @@
                 "line_limit": 10,
                 "label_color": "Lavender"
             },
-            "\u6c14\u6ce1\u4e3b\u6587\u672c": {
+            "气泡主文本": {
                 "type": "Text",
                 "fontfile": "./assets/SourceHanSansCN-Regular.otf",
                 "fontsize": 40,
@@ -63,13 +63,13 @@
                 "line_limit": 28,
                 "label_color": "Lavender"
             },
-            "\u6c14\u6ce1\u7ea2": {
+            "气泡红": {
                 "type": "Bubble",
-                "filepath": "@/media/\u6c14\u6ce1\u7ea2.png",
+                "filepath": "@/media/气泡红.png",
                 "scale": 1.0,
-                "Main_Text": "$\u6c14\u6ce1\u4e3b\u6587\u672c",
-                "Header_Text": "$\u6c14\u6ce1\u6807\u9898",
-                "pos": "$\u6c14\u6ce1\u7684\u4f4d\u7f6e",
+                "Main_Text": "$气泡主文本",
+                "Header_Text": "$气泡标题",
+                "pos": "$气泡的位置",
                 "mt_pos": [
                     58,
                     126
@@ -78,18 +78,18 @@
                     32,
                     35
                 ],
-                "ht_target": "Header",
+                "ht_target": "显示名",
                 "align": "left",
                 "line_distance": 1.5,
                 "label_color": "Rose"
             },
-            "\u6c14\u6ce1\u84dd": {
+            "气泡蓝": {
                 "type": "Bubble",
-                "filepath": "@/media/\u6c14\u6ce1\u84dd.png",
+                "filepath": "@/media/气泡蓝.png",
                 "scale": 1.0,
-                "Main_Text": "$\u6c14\u6ce1\u4e3b\u6587\u672c",
-                "Header_Text": "$\u6c14\u6ce1\u6807\u9898",
-                "pos": "$\u6c14\u6ce1\u7684\u4f4d\u7f6e",
+                "Main_Text": "$气泡主文本",
+                "Header_Text": "$气泡标题",
+                "pos": "$气泡的位置",
                 "mt_pos": [
                     58,
                     126
@@ -98,18 +98,18 @@
                     32,
                     35
                 ],
-                "ht_target": "Header",
+                "ht_target": "显示名",
                 "align": "left",
                 "line_distance": 1.5,
                 "label_color": "Iris"
             },
-            "\u6c14\u6ce1\u7eff": {
+            "气泡绿": {
                 "type": "Bubble",
-                "filepath": "@/media/\u6c14\u6ce1\u7eff.png",
+                "filepath": "@/media/气泡绿.png",
                 "scale": 1.0,
-                "Main_Text": "$\u6c14\u6ce1\u4e3b\u6587\u672c",
-                "Header_Text": "$\u6c14\u6ce1\u6807\u9898",
-                "pos": "$\u6c14\u6ce1\u7684\u4f4d\u7f6e",
+                "Main_Text": "$气泡主文本",
+                "Header_Text": "$气泡标题",
+                "pos": "$气泡的位置",
                 "mt_pos": [
                     58,
                     126
@@ -118,23 +118,23 @@
                     32,
                     35
                 ],
-                "ht_target": "Header",
+                "ht_target": "显示名",
                 "align": "left",
                 "line_distance": 1.5,
                 "label_color": "Forest"
             },
-            "\u9ed8\u8ba4\u7acb\u7ed8": {
+            "默认立绘": {
                 "type": "Animation",
-                "filepath": "@/media/\u9ed8\u8ba4\u7acb\u7ed8.png",
+                "filepath": "@/media/默认立绘.png",
                 "scale": 1.0,
-                "pos": "$\u7acb\u7ed8\u7684\u4f4d\u7f6e",
+                "pos": "$立绘的位置",
                 "tick": 1,
                 "loop": true,
                 "label_color": "Violet"
             },
-            "\u9ed8\u8ba4\u80cc\u666f": {
+            "默认背景": {
                 "type": "Background",
-                "filepath": "@/media/\u80cc\u666f.jpg",
+                "filepath": "@/media/背景.jpg",
                 "scale": 1.0,
                 "pos": [
                     0,
@@ -146,17 +146,30 @@
         "dynamic":{}
     },
     "charactor":{
-        "0":{
-            "Animation": "\u9ed8\u8ba4\u7acb\u7ed8",
-            "Bubble": "\u6c14\u6ce1\u7ea2"
+        "custom":["显示名"],
+        "header":"显示名",
+        "static":{
+            "骰子":{
+                "Name":"骰子",
+                "Subtype":"default",
+                "Animation": "默认立绘",
+                "Bubble": "气泡红",
+                "显示名": "骰子"
+            }
         },
-        "1":{
-            "Animation": "\u9ed8\u8ba4\u7acb\u7ed8",
-            "Bubble": "\u6c14\u6ce1\u84dd"
-        },
-        "2":{
-            "Animation": "\u9ed8\u8ba4\u7acb\u7ed8",
-            "Bubble": "\u6c14\u6ce1\u7eff"
+        "dynamic":{
+            "0":{
+                "Animation": "默认立绘",
+                "Bubble": "气泡红"
+            },
+            "1":{
+                "Animation": "默认立绘",
+                "Bubble": "气泡蓝"
+            },
+            "2":{
+                "Animation": "默认立绘",
+                "Bubble": "气泡绿"
+            }
         }
     },
     "preset":{
@@ -166,14 +179,14 @@
         },
         "1": {
             "type": "comment",
-            "content": " \u70b9\u6309\u952e\u76d8Tab\u952e\uff0c\u83b7\u53d6\u547d\u4ee4\u667a\u80fd\u8865\u5168\u3002\u9884\u89c8\u548c\u5bfc\u51fa\u6309\u94ae\u5728\u53f3\u4fa7 ->"
+            "content": " 点按键盘Tab键，获取命令智能补全。预览和导出按钮在右侧 ->"
         },
         "2": {
             "type": "blank"
         },
         "3": {
             "type": "comment",
-            "content": " \u7acb\u7ed8\u5207\u6362\u6548\u679c\uff1a\u4ea4\u53c9\u6eb6\u89e3"
+            "content": " 立绘切换效果：交叉溶解"
         },
         "4": {
             "type": "set",
@@ -186,7 +199,7 @@
         },
         "5": {
             "type": "comment",
-            "content": " \u6c14\u6ce1\u5207\u6362\u6548\u679c\uff1a\u76f4\u63a5\u66ff\u6362"
+            "content": " 气泡切换效果：直接替换"
         },
         "6": {
             "type": "set",
@@ -199,7 +212,7 @@
         },
         "7": {
             "type": "comment",
-            "content": " \u80cc\u666f\u5207\u6362\u6548\u679c\uff1a\u4ea4\u53c9\u6eb6\u89e3"
+            "content": " 背景切换效果：交叉溶解"
         },
         "8": {
             "type": "set",
@@ -212,7 +225,7 @@
         },
         "9": {
             "type": "comment",
-            "content": " \u6587\u5b57\uff1a\u9010\u5b57\u663e\u793a"
+            "content": " 文字：逐字显示"
         },
         "10": {
             "type": "set",
@@ -225,7 +238,7 @@
         },
         "11": {
             "type": "comment",
-            "content": " \u65e0\u8bed\u97f3\u8bed\u901f\uff1a900\uff0c\u548c<w2w=2>\u540c\u6b65"
+            "content": " 无语音语速：900，和<w2w=2>同步"
         },
         "12": {
             "type": "set",
@@ -235,7 +248,7 @@
         },
         "13": {
             "type": "comment",
-            "content": " \u53e5\u5b50\u95f4\u9694\uff1a1\u79d2"
+            "content": " 句子间隔：1秒"
         },
         "14": {
             "type": "set",
@@ -245,7 +258,7 @@
         },
         "15": {
             "type": "comment",
-            "content": " \u52a8\u753b\u66f2\u7ebf\uff1a\u6b63\u5f26"
+            "content": " 动画曲线：正弦"
         },
         "16": {
             "type": "set",
@@ -258,7 +271,7 @@
         },
         "18": {
             "type": "comment",
-            "content": " \u5207\u6362\u80cc\u666f"
+            "content": " 切换背景"
         },
         "19": {
             "type": "background",
@@ -266,10 +279,11 @@
                 "method": "default",
                 "method_dur": "default"
             },
-            "object": "\u9ed8\u8ba4\u80cc\u666f"
+            "object": "默认背景"
         },
         "20": {
             "type": "blank"
         }
-    }
+    },
+    "example":null
 }

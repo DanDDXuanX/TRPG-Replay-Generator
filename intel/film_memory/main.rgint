@@ -23,23 +23,23 @@
     },
     "media":{
         "static":{
-            "\u80f6\u7247\u4f4d\u7f6e": {
+            "胶片位置": {
                 "type": "Pos",
                 "pos": [
                     1000,
                     0
                 ]
             },
-            "\u62cd\u7acb\u5f97\u4f4d\u7f6e": {
+            "拍立得位置": {
                 "type": "Pos",
                 "pos": [
                     630,
                     0
                 ]
             },
-            "\u4ff1\u4e50\u90e8\u4e66\u623f": {
+            "俱乐部书房": {
                 "type": "Background",
-                "filepath": "@/media/\u4ff1\u4e50\u90e8\u4e66\u623f.jpg",
+                "filepath": "@/media/俱乐部书房.jpg",
                 "pos": [
                     0,
                     0
@@ -47,12 +47,12 @@
                 "label_color": "Lavender",
                 "scale": 1.0
             },
-            "\u7b80\u77ed\u9ab0\u5b50": {
+            "简短骰子": {
                 "type": "Audio",
-                "filepath": "@/media/\u7b80\u77ed\u9ab0\u5b50.wav",
+                "filepath": "@/media/简短骰子.wav",
                 "label_color": "Lavender"
             },
-            "\u5934\u6587\u672c\u7eff": {
+            "头文本绿": {
                 "type": "Text",
                 "fontfile": "./assets/SourceHanSerifSC-Heavy.otf",
                 "fontsize": 40,
@@ -65,7 +65,7 @@
                 "line_limit": 12,
                 "label_color": "Caribbean"
             },
-            "\u5934\u6587\u672c\u7ea2": {
+            "头文本红": {
                 "type": "Text",
                 "fontfile": "./assets/SourceHanSerifSC-Heavy.otf",
                 "fontsize": 40,
@@ -78,7 +78,7 @@
                 "line_limit": 12,
                 "label_color": "Rose"
             },
-            "\u5934\u6587\u672c\u84dd": {
+            "头文本蓝": {
                 "type": "Text",
                 "fontfile": "./assets/SourceHanSerifSC-Heavy.otf",
                 "fontsize": 40,
@@ -91,7 +91,7 @@
                 "line_limit": 12,
                 "label_color": "Cerulean"
             },
-            "\u5934\u6587\u672c\u9ec4": {
+            "头文本黄": {
                 "type": "Text",
                 "fontfile": "./assets/SourceHanSerifSC-Heavy.otf",
                 "fontsize": 40,
@@ -104,7 +104,7 @@
                 "line_limit": 12,
                 "label_color": "Mango"
             },
-            "\u5934\u6587\u672c\u767d": {
+            "头文本白": {
                 "type": "Text",
                 "fontfile": "./assets/SourceHanSerifSC-Heavy.otf",
                 "fontsize": 40,
@@ -117,7 +117,7 @@
                 "line_limit": 12,
                 "label_color": "Iris"
             },
-            "\u5934\u6587\u672c\u7d2b": {
+            "头文本紫": {
                 "type": "Text",
                 "fontfile": "./assets/SourceHanSerifSC-Heavy.otf",
                 "fontsize": 40,
@@ -130,7 +130,7 @@
                 "line_limit": 12,
                 "label_color": "Violet"
             },
-            "\u573a\u666f\u6807\u9898\u5b57\u4f53": {
+            "场景标题字体": {
                 "type": "Text",
                 "fontfile": "./assets/SourceHanSerifSC-Heavy.otf",
                 "fontsize": 50,
@@ -143,7 +143,7 @@
                 "line_limit": 12,
                 "label_color": "Iris"
             },
-            "\u80f6\u7247\u4e3b\u6587\u672c": {
+            "胶片主文本": {
                 "type": "Text",
                 "fontfile": "C:/Windows/Fonts/simsun.ttc",
                 "fontsize": 30,
@@ -156,11 +156,11 @@
                 "line_limit": 19,
                 "label_color": "Iris"
             },
-            "\u573a\u666f\u6807\u9898": {
+            "场景标题": {
                 "type": "Bubble",
-                "filepath": "@/media/\u5de6\u4e0b\u89d2.png",
+                "filepath": "@/media/左下角.png",
                 "scale": 1.0,
-                "Main_Text": "$\u573a\u666f\u6807\u9898\u5b57\u4f53",
+                "Main_Text": "$场景标题字体",
                 "Header_Text": null,
                 "pos": [
                     0,
@@ -179,11 +179,11 @@
                 "line_distance": 2.0,
                 "label_color": "Lavender"
             },
-            "\u5b50\u6c14\u6ce1\u7ea2": {
+            "子气泡红": {
                 "type": "DynamicBubble",
-                "filepath": "@/media/\u5b50\u6c14\u6ce1.png",
-                "Main_Text": "$\u80f6\u7247\u4e3b\u6587\u672c",
-                "Header_Text": "$\u5934\u6587\u672c\u7ea2",
+                "filepath": "@/media/子气泡.png",
+                "Main_Text": "$胶片主文本",
+                "Header_Text": "$头文本红",
                 "pos": [
                     0,
                     0
@@ -200,18 +200,18 @@
                     0,
                     0
                 ],
-                "ht_target": "Header",
+                "ht_target": "显示名",
                 "fill_mode": "stretch",
                 "line_distance": 1.2,
                 "label_color": "Rose",
                 "scale": 1.0,
                 "fit_axis": "vertical"
             },
-            "\u5b50\u6c14\u6ce1\u767d": {
+            "子气泡白": {
                 "type": "DynamicBubble",
-                "filepath": "@/media/\u5b50\u6c14\u6ce1.png",
-                "Main_Text": "$\u80f6\u7247\u4e3b\u6587\u672c",
-                "Header_Text": "$\u5934\u6587\u672c\u767d",
+                "filepath": "@/media/子气泡.png",
+                "Main_Text": "$胶片主文本",
+                "Header_Text": "$头文本白",
                 "pos": [
                     0,
                     0
@@ -228,18 +228,18 @@
                     0,
                     0
                 ],
-                "ht_target": "Header",
+                "ht_target": "显示名",
                 "fill_mode": "stretch",
                 "line_distance": 1.2,
                 "label_color": "Iris",
                 "scale": 1.0,
                 "fit_axis": "vertical"
             },
-            "\u5b50\u6c14\u6ce1\u84dd": {
+            "子气泡蓝": {
                 "type": "DynamicBubble",
-                "filepath": "@/media/\u5b50\u6c14\u6ce1.png",
-                "Main_Text": "$\u80f6\u7247\u4e3b\u6587\u672c",
-                "Header_Text": "$\u5934\u6587\u672c\u84dd",
+                "filepath": "@/media/子气泡.png",
+                "Main_Text": "$胶片主文本",
+                "Header_Text": "$头文本蓝",
                 "pos": [
                     0,
                     0
@@ -256,18 +256,18 @@
                     0,
                     0
                 ],
-                "ht_target": "Header",
+                "ht_target": "显示名",
                 "fill_mode": "stretch",
                 "line_distance": 1.2,
                 "label_color": "Cerulean",
                 "scale": 1.0,
                 "fit_axis": "vertical"
             },
-            "\u5b50\u6c14\u6ce1\u7eff": {
+            "子气泡绿": {
                 "type": "DynamicBubble",
-                "filepath": "@/media/\u5b50\u6c14\u6ce1.png",
-                "Main_Text": "$\u80f6\u7247\u4e3b\u6587\u672c",
-                "Header_Text": "$\u5934\u6587\u672c\u7eff",
+                "filepath": "@/media/子气泡.png",
+                "Main_Text": "$胶片主文本",
+                "Header_Text": "$头文本绿",
                 "pos": [
                     0,
                     0
@@ -284,18 +284,18 @@
                     0,
                     0
                 ],
-                "ht_target": "Header",
+                "ht_target": "显示名",
                 "fill_mode": "stretch",
                 "line_distance": 1.2,
                 "label_color": "Caribbean",
                 "scale": 1.0,
                 "fit_axis": "vertical"
             },
-            "\u5b50\u6c14\u6ce1\u9ec4": {
+            "子气泡黄": {
                 "type": "DynamicBubble",
-                "filepath": "@/media/\u5b50\u6c14\u6ce1.png",
-                "Main_Text": "$\u80f6\u7247\u4e3b\u6587\u672c",
-                "Header_Text": "$\u5934\u6587\u672c\u9ec4",
+                "filepath": "@/media/子气泡.png",
+                "Main_Text": "$胶片主文本",
+                "Header_Text": "$头文本黄",
                 "pos": [
                     0,
                     0
@@ -312,18 +312,18 @@
                     0,
                     0
                 ],
-                "ht_target": "Header",
+                "ht_target": "显示名",
                 "fill_mode": "stretch",
                 "line_distance": 1.2,
                 "label_color": "Mango",
                 "scale": 1.0,
                 "fit_axis": "vertical"
             },
-            "\u5b50\u6c14\u6ce1\u7d2b": {
+            "子气泡紫": {
                 "type": "DynamicBubble",
-                "filepath": "@/media/\u5b50\u6c14\u6ce1.png",
-                "Main_Text": "$\u80f6\u7247\u4e3b\u6587\u672c",
-                "Header_Text": "$\u5934\u6587\u672c\u7d2b",
+                "filepath": "@/media/子气泡.png",
+                "Main_Text": "$胶片主文本",
+                "Header_Text": "$头文本紫",
                 "pos": [
                     0,
                     0
@@ -340,31 +340,31 @@
                     0,
                     0
                 ],
-                "ht_target": "Header",
+                "ht_target": "显示名",
                 "fill_mode": "stretch",
                 "line_distance": 1.2,
                 "label_color": "Violet",
                 "scale": 1.0,
                 "fit_axis": "vertical"
             },
-            "\u80f6\u7247": {
+            "胶片": {
                 "type": "ChatWindow",
-                "filepath": "@/media/\u5e95\u7247.png",
+                "filepath": "@/media/底片.png",
                 "sub_key": [
-                    "\u767d",
-                    "\u7ea2",
-                    "\u9ec4",
-                    "\u84dd",
-                    "\u7eff",
-                    "\u7d2b"
+                    "白",
+                    "红",
+                    "黄",
+                    "蓝",
+                    "绿",
+                    "紫"
                 ],
                 "sub_Bubble": [
-                    "$\u5b50\u6c14\u6ce1\u767d",
-                    "$\u5b50\u6c14\u6ce1\u7ea2",
-                    "$\u5b50\u6c14\u6ce1\u9ec4",
-                    "$\u5b50\u6c14\u6ce1\u84dd",
-                    "$\u5b50\u6c14\u6ce1\u7eff",
-                    "$\u5b50\u6c14\u6ce1\u7d2b"
+                    "$子气泡白",
+                    "$子气泡红",
+                    "$子气泡黄",
+                    "$子气泡蓝",
+                    "$子气泡绿",
+                    "$子气泡紫"
                 ],
                 "sub_Anime": [
                     null,
@@ -382,7 +382,7 @@
                     "left",
                     "left"
                 ],
-                "pos": "$\u80f6\u7247\u4f4d\u7f6e",
+                "pos": "$胶片位置",
                 "sub_pos": [
                     147,
                     99
@@ -397,29 +397,29 @@
                 "label_color": "Forest",
                 "scale": 1.0
             },
-            "\u62cd\u7acb\u5f97_KP": {
+            "拍立得_KP": {
                 "type": "Animation",
-                "filepath": "@/media/\u62cd\u7acb\u5f97_KP.png",
-                "pos": "$\u62cd\u7acb\u5f97\u4f4d\u7f6e",
+                "filepath": "@/media/拍立得_KP.png",
+                "pos": "$拍立得位置",
                 "tick": 1,
                 "loop": true,
                 "label_color": "Lavender",
                 "scale": 1.0
             },
-            "\u62cd\u7acb\u5f97_\u9ab0\u5b50": {
+            "拍立得_骰子": {
                 "type": "Animation",
-                "filepath": "@/media/\u62cd\u7acb\u5f97_\u9ab0\u5b50.png",
-                "pos": "$\u62cd\u7acb\u5f97\u4f4d\u7f6e",
+                "filepath": "@/media/拍立得_骰子.png",
+                "pos": "$拍立得位置",
                 "tick": 1,
                 "loop": true,
                 "label_color": "Lavender",
                 "scale": 1.0
             },
-            "\u62cd\u7acb\u5f97_\u9ed8\u8ba4": {
+            "拍立得_默认": {
                 "type": "Animation",
-                "filepath": "@/media/\u62cd\u7acb\u5f97_\u9ed8\u8ba4.png",
+                "filepath": "@/media/拍立得_默认.png",
                 "scale": 1.0,
-                "pos": "$\u62cd\u7acb\u5f97\u4f4d\u7f6e",
+                "pos": "$拍立得位置",
                 "tick": 1,
                 "loop": true,
                 "label_color": "Lavender"
@@ -428,29 +428,45 @@
         "dynamic":{}
     },
     "charactor":{
-        "0":{
-            "Animation": "\u62cd\u7acb\u5f97_\u9ed8\u8ba4",
-            "Bubble": "\u80f6\u7247:\u767d"
+        "custom":["显示名"],
+        "header":"显示名",
+        "static":{
+            "主持人":{
+                "Name":"主持人",
+                "Subtype":"default",
+                "Animation": "拍立得_KP",
+                "Bubble": "胶片:白",
+                "显示名": "骰子"
+            },
+            "骰子":{
+                "Name":"骰子",
+                "Subtype":"default",
+                "Animation": "拍立得_骰子",
+                "Bubble": "胶片:白",
+                "显示名": "骰子"
+            }
         },
-        "1":{
-            "Animation": "\u62cd\u7acb\u5f97_\u9ed8\u8ba4",
-            "Bubble": "\u80f6\u7247:\u7ea2"
-        },
-        "2":{
-            "Animation": "\u62cd\u7acb\u5f97_\u9ed8\u8ba4",
-            "Bubble": "\u80f6\u7247:\u9ec4"
-        },
-        "3":{
-            "Animation": "\u62cd\u7acb\u5f97_\u9ed8\u8ba4",
-            "Bubble": "\u80f6\u7247:\u84dd"
-        },
-        "4":{
-            "Animation": "\u62cd\u7acb\u5f97_\u9ed8\u8ba4",
-            "Bubble": "\u80f6\u7247:\u7eff"
-        },
-        "5":{
-            "Animation": "\u62cd\u7acb\u5f97_\u9ed8\u8ba4",
-            "Bubble": "\u80f6\u7247:\u7d2b"
+        "dynamic":{
+            "0":{
+                "Animation": "拍立得_默认",
+                "Bubble": "胶片:红"
+            },
+            "1":{
+                "Animation": "拍立得_默认",
+                "Bubble": "胶片:黄"
+            },
+            "2":{
+                "Animation": "拍立得_默认",
+                "Bubble": "胶片:蓝"
+            },
+            "3":{
+                "Animation": "拍立得_默认",
+                "Bubble": "胶片:绿"
+            },
+            "4":{
+                "Animation": "拍立得_默认",
+                "Bubble": "胶片:紫"
+            }
         }
     },
     "preset":{
@@ -460,7 +476,7 @@
         },
         "1": {
             "type": "comment",
-            "content": " \u80f6\u5377\u8bb0\u5fc6-\u56de\u58f0\u5de5\u574a\u9884\u8bbe\u6a21\u677f\u3002\u70b9\u6309\u952e\u76d8Tab\u952e\uff0c\u83b7\u53d6\u547d\u4ee4\u667a\u80fd\u8865\u5168\u3002\u9884\u89c8\u548c\u5bfc\u51fa\u6309\u94ae\u5728\u53f3\u4fa7 ->"
+            "content": " 胶卷记忆-回声工坊预设模板。点按键盘Tab键，获取命令智能补全。预览和导出按钮在右侧 ->"
         },
         "2": {
             "type": "blank"
@@ -515,9 +531,9 @@
         },
         "9": {
             "type": "set",
-            "target": "secondary_alpha",
-            "value_type": "digit",
-            "value": 100
+            "target": "method_protocol",
+            "value_type": "protocol",
+            "value": "charactor"
         },
         "10": {
             "type": "set",
@@ -534,7 +550,7 @@
                 "method": "default",
                 "method_dur": "default"
             },
-            "object": "\u4ff1\u4e50\u90e8\u4e66\u623f"
+            "object": "俱乐部书房"
         },
         "13": {
             "type": "bubble",
@@ -543,9 +559,9 @@
                 "method_dur": "default"
             },
             "object": {
-                "bubble": "\u573a\u666f\u6807\u9898",
+                "bubble": "场景标题",
                 "header_text": " ",
-                "main_text": "\u573a\u666f\u6807\u9898",
+                "main_text": "场景标题",
                 "tx_method": {
                     "method": "default",
                     "method_dur": "default"

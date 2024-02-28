@@ -33,6 +33,7 @@ class RplGenStudioMainWindow(ttk.Window):
             iconphoto   = './assets/icon.png',
             size        = (int(1500*self.sz),int(800*self.sz)),
             resizable   = (True,True),
+            minsize     = (int(1370*self.sz),int(700*self.sz))
         )
         # 语言项目
         Translate.set_language(preference.lang)

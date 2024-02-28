@@ -371,7 +371,10 @@ class CreateIntelProject(CreateProject):
         return self.thread
     # 导入成功之后
     def after_loading(self):
-        tplt_chars = self.template['charactor']
+        tplt_chars:dict = self.template['charactor']['dynamic']
+        static_chars:dict = self.template['charactor']['static']
+        custom_arg:list = self.template['charactor']['custom']
+        header_arg:str  = self.template['charactor']['header']
         # 做在最前：检查是否解析成功
         if self.story.log_mode is None:
             Messagebox().show_error(tr('当前着色器无法解析导入文本的结构！'),title=tr('格式错误'),parent=self)
@@ -392,18 +395,49 @@ class CreateIntelProject(CreateProject):
             log_results['speech'].map(clear_speech)
             )
         # 10. 生成角色表
-        chartable = pd.DataFrame(index=charinfo.index,columns=CharTable.table_col)
+        chartable = pd.DataFrame(index=charinfo.index,columns=CharTable.table_col+custom_arg)
         chartable['Name'] = charinfo['name']
         chartable['Subtype'] = 'default'
         chartable['Animation'] = charinfo['key'].map(lambda x:tplt_chars[x]['Animation'])
         chartable['Bubble'] = charinfo['key'].map(lambda x:tplt_chars[x]['Bubble'])
+        ## 插入指定的headerarg做
+        if header_arg != None:
+            chartable[header_arg] = charinfo['header']
+        ## 处理自定义参数
+        for argname in custom_arg:
+            # 如果自定义参数是指定header，那么应用
+            if argname == header_arg:
+                chartable[argname] = charinfo['header']
+            # 反之，就用预设好的内容
+            else:
+                try:
+                    chartable[argname] = charinfo['key'].map(lambda x:tplt_chars[x][argname])
+                except KeyError:
+                    chartable[argname] = 'Init'
+        ## 重设index
+        chartable.index = chartable['Name']+'.'+chartable['Subtype']
+        ## 插入预设静态角色表
+        static_chartable = pd.DataFrame(index=[],columns=CharTable.table_col+custom_arg)
+        for keyword in static_chars:
+            if keyword in chartable.index:
+                # 如果预设角色出现在发言角色里，用预设角色的参数更新发言角色
+                chartable.loc[keyword].update(static_chars[keyword])
+            else:
+                # 否则就把预设角色插入到静态表中
+                static_chartable.loc[keyword] = static_chars[keyword]
+        if len(static_chartable) > 0:
+            chartable = pd.concat([static_chartable,chartable],axis=0)
+        ## 将所有的语音参数设为空
         chartable['Voice'] = 'NA'
         chartable['SpeechRate'] = 0
         chartable['PitchRate'] = 0
-        chartable['Header'] = charinfo['header']
-        chartable.index = chartable['Name']+'.'+chartable['Subtype']
+        ## 更新
         self.new_project_struct['chartab'].update(CharTable(table_input=chartable).struct)
         # 11. 生成log文件
+        ## 检查是否有example剧本
+        if self.template['example'] != None:
+            self.new_project_struct['logfile'][tr('示例剧本')] = RplGenLog(dict_input=self.template['example']).struct
+        ## 自动导入的剧本
         preset_text = RplGenLog(dict_input=self.template['preset']).export()
         sep_length:int = self.elements['section_break'].get()
         if sep_length == 0:
