@@ -3108,6 +3108,12 @@ PortalStruct = {
                 "describe": "海报平面设计参与者",
                 "url": "https://space.bilibili.com/2005143149",
             },
+            "9": {
+                "title": "GUlili",
+                "icon":"./assets/portal/gulili.jpg",
+                "describe": "steam库界面的设计者",
+                "url": "https://space.bilibili.com/4136036",
+            },
         }
     },
     "OpenSources":{

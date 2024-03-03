@@ -3108,6 +3108,12 @@ PortalStruct = {
                 "describe": "A participant of poster graphic design.",
                 "url": "https://space.bilibili.com/2005143149",
             },
+            "9": {
+                "title": "GUlili",
+                "icon":"./assets/portal/gulili.jpg",
+                "describe": "The designer steam library banner.",
+                "url": "https://space.bilibili.com/4136036",
+            },
         }
     },
     "OpenSources":{
