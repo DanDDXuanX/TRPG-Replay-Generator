@@ -235,13 +235,13 @@ class RplGenStudioMainWindow(ttk.Window):
             x = int(self.winfo_x())
             y = int(self.winfo_y())
             choice = Messagebox().show_question(
-            message=tr('确认要关闭软件？\n尚未保存的项目变更将会丢失！'),
-            title=tr('警告'),
-            buttons=[tr('取消')+":secondary",tr('确定')+":danger"],
-            alert=True,
-            position=(x+w,y+h),
-            width=100,
-            parent=self
+                message=tr('确认要关闭软件？\n尚未保存的项目变更将会丢失！'),
+                title=tr('警告'),
+                buttons=[tr('取消')+":secondary",tr('确定')+":danger"],
+                alert=True,
+                position=(x+w,y+h),
+                width=100,
+                parent=self
             )
             if choice != tr('确定'):
                 return False

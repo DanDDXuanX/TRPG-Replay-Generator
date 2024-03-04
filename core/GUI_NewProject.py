@@ -204,7 +204,7 @@ class CreateEmptyProject(CreateProject):
             # 退出
             self.close_func(save_path)
         except:
-            Messagebox().show_error(title=tr('错误'),message=tr('无法保存文件到：\n{}').format(save_path))
+            Messagebox().show_error(title=tr('错误'),message=tr('无法保存文件到：\n{}').format(save_path),parent=self)
             return False
 # 新建智能项目
 class CreateIntelProject(CreateProject):
@@ -329,7 +329,7 @@ class CreateIntelProject(CreateProject):
                 message=tr('你正在尝试向智能项目中导入一个RGL文件！\n但是，智能项目并非设计用于导入RGL，可能出现异常。\n如果你已经拥有RGL文件，请新建空白项目，再导入文件！'),
                 parent=self,
                 buttons=[tr('放弃导入')+':primary',tr('继续导入')+':danger']
-                )
+            )
             if choice != tr('继续导入'):
                 return False
         # 0. 禁用元件，更新按钮
@@ -491,7 +491,7 @@ class CreateIntelProject(CreateProject):
             # 退出
             self.close_func(save_path)
         except:
-            Messagebox().show_error(title=tr('错误'),message=tr('无法保存文件到：\n{}').format(save_path))
+            Messagebox().show_error(title=tr('错误'),message=tr('无法保存文件到：\n{}').format(save_path),parent=self)
             return False
     def update_progress(self):
         # 如果子进程还活着
@@ -583,7 +583,7 @@ class ConfigureProject(CreateEmptyProject):
         cover_path = self.elements['proj_cover'].get()
         # 检查合法性
         if W<0 or H<0 or F<0:
-            Messagebox().show_warning(title=tr('警告'),message=tr('分辨率或帧率是非法的数值！'))
+            Messagebox().show_warning(title=tr('警告'),message=tr('分辨率或帧率是非法的数值！'),parent=self)
             return False
         for symbol in ['/','\\',':','*','?','"','<','>','|']:
             if symbol in file_name:

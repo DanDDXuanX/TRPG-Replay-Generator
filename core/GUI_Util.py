@@ -248,6 +248,7 @@ class KeyValueDescribe(ttk.Frame):
             Messagebox().show_error(
                 message=tr('【{key}】填写的内容数据类型不合法！\n类型要求：{dtype}').format(key=this_key,dtype=self.dtype),
                 title=tr('数据类型错误'),
+                parent=self.winfo_toplevel()
                 )
             if self.dtype == 'int':
                 self.value.set(0)
