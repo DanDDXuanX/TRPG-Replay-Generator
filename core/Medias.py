@@ -872,7 +872,9 @@ class Bubble(MediaObj):
                 richlabels = ['[u]','[i]','[b]','[fg:#ff5555][bg:#cccccc]']
                 test_text = '[^]'
                 for k in range(0,lines):
-                    test_text += richlabels[k]+line1[0:self.MainText.line_limit*(lines-k)//lines]+'[#]'
+                    kt = k%4
+                    test_text += richlabels[kt]+line1[0:self.MainText.line_limit*(lines-k)//lines]+'[#]'
+                test_text = test_text[:-3] # 删除最后一个换行符
             elif type(self.MainText) is HPLabel:
                 test_text = ''
                 for k in range(0,lines):
@@ -882,7 +884,7 @@ class Bubble(MediaObj):
                 test_text = ''
                 for k in range(0,lines):
                     test_text += line1[0:self.MainText.line_limit*(lines-k)//lines]+'#'
-                test_text = test_text[:-1]
+                test_text = test_text[:-1] # 删除最后一个换行符
         else:
             test_text = ''
         return test_text

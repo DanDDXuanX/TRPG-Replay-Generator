@@ -240,7 +240,8 @@ class RplGenStudioMainWindow(ttk.Window):
             buttons=[tr('取消')+":secondary",tr('确定')+":danger"],
             alert=True,
             position=(x+w,y+h),
-            width=100
+            width=100,
+            parent=self
             )
             if choice != tr('确定'):
                 return False
