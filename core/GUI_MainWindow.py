@@ -89,6 +89,7 @@ class RplGenStudioMainWindow(ttk.Window):
         self.system_font_family = system_font_family
         Link['system_font_family'] = system_font_family
         # 终端字体
+        ## 由于steam库目录有时会存在空格，导致无法正常加载字体。虽然令人费解，但是还是要想想办法
         if preference.lang == 'zh':
             try:
                 from tkextrafont import Font as FileFont

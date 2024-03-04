@@ -1284,7 +1284,7 @@ class RplGenLog(Script):
             # return [-1 ~ -0<因为不能是0，所以用-1e-10替代>]，仅在ChatWindows中是有效的，其余等价于 <all=0>
             return np.hstack([
                 self.dynamic['formula'](-1,-1e-10,tx_method['method_dur']),
-                np.ones(this_duration-tx_method['method_dur']) * content_length
+                idx_uf(np.ones(this_duration-tx_method['method_dur'],dtype=int) * content_length)
                 ])
         else:
             raise ParserError('UnrecTxMet', self.method_export(tx_method), str(i+1))
