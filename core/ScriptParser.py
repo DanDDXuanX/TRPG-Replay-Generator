@@ -1537,7 +1537,12 @@ class RplGenLog(Script):
                         raise ParserError('UnpreAster', str(i+1))
                     else:
                         # 如果缺省星标：持续时间 = 字数/语速 + 星标间隔
-                        this_duration:int = self.dynamic['asterisk_pause'] + int(len(this_section['content'])/(self.dynamic['speech_speed']/60/config.frame_rate))
+                        try:
+                            original_text = this_section['content']
+                            raw_text = RE_label.sub('',original_text).replace('^','').replace('#','')
+                        except:
+                            raw_text = this_section['content']
+                        this_duration:int = self.dynamic['asterisk_pause'] + int(len(raw_text)/(self.dynamic['speech_speed']/60/config.frame_rate))
                     # flag: 3: 全部相同 2: 仅前序相同 1: 仅后序相同 0：不存在相同
                     if self.dynamic['method_protocol'] in ['charactor','subtype','identical']:
                         flag = 0

@@ -123,7 +123,7 @@ class KeyRequest:
             return 4 # network
         # 查看请求
         if self.result['status'] == 200:
-            print('usage:', self.result['usage'])
+            # print('usage:', self.result['usage'])
             return 0
         elif self.result['status'] == 401:
             return 3 # 无权限
