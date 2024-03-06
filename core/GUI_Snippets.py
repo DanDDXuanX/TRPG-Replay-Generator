@@ -150,6 +150,10 @@ class RGLSnippets(CodeSnippet, Localize):
                 "foreground"    : ["字体颜色","/fg",4],
                 "background"    : ["底纹颜色","/bg",4],
                 "fontsize"      : ["字号","/fs",4],
+            },
+            "dot":{
+                "dot"           : [".(差分)",'.',1],
+                "comma"         : [",(下一个)",',',1]
             }
         },
         'en':{
@@ -280,6 +284,10 @@ class RGLSnippets(CodeSnippet, Localize):
                 "foreground"    : ["foreground","/fg",3],
                 "background"    : ["background","/bg",3],
                 "fontsize"      : ["fontsize","/fs",3],
+            },
+            "dot":{
+                "dot"           : [".(subtype)",'.',1],
+                "comma"         : [",(next)",',',1]
             }
         }
     }
@@ -352,6 +360,20 @@ class RGLSnippets(CodeSnippet, Localize):
             # 提取角色名
             name = re.fullmatch('^\[([\w\ \.\(\)]+,)*([\w\ ]+(\(\d+\))?)\.',text_upstream).group(2)
             self.init_snippets_options('subtype',name=name,dot=False)
+        # 逗号句号
+        elif re.fullmatch('^\[([\w\ \.\(\)]+,){0,2}([\w\ \.\(\)]+[^\.])',text_upstream):
+            if text_downstream != '':
+                if text_downstream[0] not in [',','.']:
+                    comma = True
+                    dot = True
+                    # 是否有逗号
+                    if text_upstream.count(',') >= 2:
+                        comma = False
+                    # 是否有句号
+                    name = re.findall('^\[([\w\ \.\(\)]+,){0,2}([\w\ \.\(\)]+)',text_upstream)[0][-1]
+                    if '.' in name:
+                        dot = False
+                    self.init_snippets_options('dot',dot=dot,comma=comma)
         # 停顿
         elif text_upstream == '<wait>:' and text_downstream == '':
             self.init_snippets_options('am_dur')
@@ -466,6 +488,13 @@ class RGLSnippets(CodeSnippet, Localize):
                     self.add_command(label=name, command=self.insert_snippets(name+'.', len(name)+1))
                 else:
                     self.add_command(label=name, command=self.insert_snippets(name, len(name)))
+        # 点联想
+        elif self.snippets_type=='dot':
+            content = self.Snippets[self.localize][self.snippets_type]
+            for keyword in ['comma','dot']:
+                if kw_args[keyword]:
+                    label, text, length = content[keyword]
+                    self.add_command(label=label,command=self.insert_snippets(text, length))
         # 差分联想
         elif self.snippets_type=='subtype':
             char_name = kw_args['name']
