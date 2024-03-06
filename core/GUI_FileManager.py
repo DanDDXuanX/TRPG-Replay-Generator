@@ -319,7 +319,8 @@ class FileManager(ttk.Frame):
                 summary = summary + f"{filename}：{text}\n"
             Messagebox().show_info(
                 title   = tr('导入文件'),
-                message = summary[:-1]
+                message = summary[:-1],
+                parent  = self
                 )
     # 导出文件
     def export_file(self):
@@ -335,9 +336,9 @@ class FileManager(ttk.Frame):
                 for keyword, rgl in self.project.logfile.items():
                     rgl.dump_file(filepath=get_file+'.{}.rgl'.format(keyword))
                 # 显示消息
-                Messagebox().show_info(title=tr('导出成功'),message=tr('成功将工程导出为脚本文件！\n导出路径：{}').format(get_file))
+                Messagebox().show_info(title=tr('导出成功'),message=tr('成功将工程导出为脚本文件！\n导出路径：{}').format(get_file),parent=self)
             except Exception as E:
-                Messagebox().show_error(title=tr('导出失败'),message=tr('无法将工程导出！\n由于：{}').format(E))
+                Messagebox().show_error(title=tr('导出失败'),message=tr('无法将工程导出！\n由于：{}').format(E),parent=self)
     # 保存文件
     def save_file(self):
         # 先去尝试将目前启动的所有rgl窗口保存了
@@ -351,7 +352,7 @@ class FileManager(ttk.Frame):
                     warning_message[page] = re.sub('\x1B\[\d+m','',str(E))
         if len(warning_message) != 0:
             message = '\n'.join([tr("保存【{p}】时出现异常：{w}").format(p=page,w=warning_message[page]) for page in warning_message])
-            Messagebox().show_warning(message=message+tr('\n在异常得到解决前，上述剧本文件的变更将无法得到保存！'),title=tr('警告'))
+            Messagebox().show_warning(message=message+tr('\n在异常得到解决前，上述剧本文件的变更将无法得到保存！'),title=tr('警告'),parent=self)
         # 将整个项目dump下来
         if self.project_file is None:
             select_path = save_file(master=self.winfo_toplevel(),filetype='rplgenproj')
@@ -520,14 +521,16 @@ class FileCollapsing(ttk.Frame):
                 self.add_item_failed()
                 Messagebox().show_warning(
                     message = tr('非法的{type}名：{name}\n{type}名只能包含中文、英文、数字、下划线和空格！').format(type=filetype, name=new_keyword),
-                    title   = tr('失败的新建')
+                    title   = tr('失败的新建'),
+                    parent  = self.master
                     )
                 raise Exception('非法名')
             if new_keyword in self.items.keys():
                 self.add_item_failed()
                 Messagebox().show_warning(
                     message = tr('重复的{type}名：{name}！').format(type=filetype, name=new_keyword),
-                    title   = tr('失败的新建')
+                    title   = tr('失败的新建'),
+                    parent  = self.master
                     )
                 raise Exception('重复名')
             # 删除原来的关键字
@@ -558,7 +561,8 @@ class FileCollapsing(ttk.Frame):
         choice = Messagebox().show_question(
             message=tr('确定要删除这个条目？\n这项删除将无法复原！'),
             title=tr('警告'),
-            buttons=[tr('取消')+":primary", tr('确定')+":danger"]
+            buttons=[tr('取消')+":primary", tr('确定')+":danger"],
+            parent=self.master
             )
         # 返回是否需要删除项目数据
         if choice != tr('确定'):
@@ -575,7 +579,7 @@ class FileCollapsing(ttk.Frame):
                 message=tr('尝试重命名一个已经启动的{}页面！\n重命名后，这个页面会被关闭！').format(filetype),
                 title=tr('警告'),
                 buttons=[tr('取消')+":primary", tr('确定')+":danger"],
-                parent=self
+                parent=self.master
                 )
             if choice != tr('确定'):
                 return
@@ -617,14 +621,16 @@ class FileCollapsing(ttk.Frame):
                 self.rename_item_failed(origin_keyword)
                 Messagebox().show_warning(
                     message = tr('非法的{type}名：{name}\n{type}名只能包含中文、英文、数字、下划线和空格！').format(type=filetype, name=new_keyword),
-                    title   = tr('失败的重命名')
+                    title   = tr('失败的重命名'),
+                    parent  = self.master
                     )
                 raise Exception('非法名')
             if new_keyword in self.items.keys() and new_keyword != origin_keyword:
                 self.rename_item_failed(origin_keyword)
                 Messagebox().show_warning(
                     message = tr('重复的{type}名：{name}\n！').format(type=filetype, name=new_keyword),
-                    title   = tr('失败的重命名')
+                    title   = tr('失败的重命名'),
+                    parent  = self.master
                     )
                 raise Exception('重复名')
             # 删除原来的关键字
