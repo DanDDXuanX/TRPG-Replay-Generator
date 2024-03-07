@@ -105,6 +105,8 @@ class SearchReplaceBar(ttk.Frame, Localize):
                 Matches.group(int(dollar[1:])),
                 1
                 )
+        # 然后，处理转义字符
+        new_text = new_text.replace('\\n','\n').replace('\\t','\t')
         return new_text
     def check_regex(self,regex_pattern):
         try:

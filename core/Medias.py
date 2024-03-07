@@ -2302,6 +2302,21 @@ class Audio(MediaObj):
         # 波形图
         samples:np.ndarray = pygame.sndarray.sample(self.media).T[0]
         pass
+    # 获取音量
+    def dBFS(self,samplerate=30)->np.ndarray:
+        # Load the audio file
+        audio_file = pydub.AudioSegment.from_file(self.filepath.exact())
+        frame_rate = samplerate
+        frame_size_ms = 1000 / frame_rate
+        loudness_values = []
+        # Iterate over the audio file with the specified frame size
+        for i in np.arange(0, len(audio_file), frame_size_ms):
+            frame = audio_file[i:i+frame_size_ms]
+            loudness = frame.dBFS
+            if loudness<-100:
+                loudness = -100
+            loudness_values.append(loudness)
+        return np.array(loudness_values)
     def preview(self, surface: pygame.Surface):
         self.media.play()
     # 修改
