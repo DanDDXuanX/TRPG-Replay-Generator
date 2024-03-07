@@ -2453,6 +2453,16 @@ PreferenceTableStruct = {
                 "vtype": "bool",
                 "default": False
             },
+            "System.workshop_path":{
+                "ktext": "创意工坊路径：",
+                "tooltip": "指向steam创意工坊文件的路径，通常是一个名为2550090的文件夹。",
+                "dtext": "浏览",
+                "ditem": "button",
+                "valuekey": "System.workshop_path",
+                "vitem": "entry",
+                "vtype": "str",
+                "default": "../../workshop/2550090/"
+            },
         }
     },       
     "MediaSep":{

@@ -212,6 +212,7 @@ class CreateIntelProject(CreateProject):
     def __init__(self, master, screenzoom, close_func):
         self.frame_metainfo = None
         self.intel_dir = './intel/'
+        self.workshop_dir = preference.workshop_path
         super().__init__(master, screenzoom, close_func)
     def build_struct(self):
         super().build_struct()
@@ -231,13 +232,31 @@ class CreateIntelProject(CreateProject):
         intels = os.listdir(self.intel_dir)
         all_intel_names = []
         self.name_2_dir = {}
+        # 内建模板
         for pack in intels:
             rgint = self.intel_dir + pack + '/main.rgint'
             try:
                 content = json.load(open(rgint,'r',encoding='utf-8'))
                 name_this = content['meta']['name']
                 all_intel_names.append(name_this)
-                self.name_2_dir[name_this] = pack
+                self.name_2_dir[name_this] = self.intel_dir + pack
+            except Exception:
+                pass
+        # 创意工坊模板
+        try:
+            if self.workshop_dir[-1] != '/':
+                self.workshop_dir =  self.workshop_dir + '/'
+            workshops = os.listdir(self.workshop_dir)
+        except (FileNotFoundError,IndexError):
+            return all_intel_names
+        # 如有
+        for pack in workshops:
+            rgint = self.workshop_dir + pack + '/main.rgint'
+            try:
+                content = json.load(open(rgint,'r',encoding='utf-8'))
+                name_this = content['meta']['name']
+                all_intel_names.append(name_this)
+                self.name_2_dir[name_this] = self.workshop_dir + pack
             except Exception:
                 pass
         return all_intel_names
@@ -245,9 +264,9 @@ class CreateIntelProject(CreateProject):
         SZ_5 = int(self.sz * 5)
         tplt_dir = self.name_2_dir[tplt_name]
         # rgint 路径
-        self.tplt_path = self.intel_dir + tplt_dir + '/main.rgint'
+        self.tplt_path = tplt_dir + '/main.rgint'
         # @ 路径
-        self.at_path = self.intel_dir + tplt_dir
+        self.at_path = tplt_dir
         try:
             self.template:dict = json.load(open(self.tplt_path,'r',encoding='utf-8'))
         except:

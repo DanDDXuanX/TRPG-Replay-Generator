@@ -102,6 +102,7 @@ class Preference:
         'editer_colorschemes' : "monokai",
         'terminal_fontsize' : 14,
         'performance_mode'  : False,
+        'workshop_path' : '../../workshop/2550090/',
         # 内置动画
         'BIA_font' : './assets/SourceHanSerifSC-Heavy.otf',
         'BIA_font_size' : 0.0521,
@@ -145,6 +146,7 @@ class Preference:
         'editer_colorschemes' : 'System.editer_colorschemes',
         'terminal_fontsize' : 'System.terminal_fontsize',
         'performance_mode'  : 'System.performance_mode',
+        'workshop_path' : 'System.workshop_path',
         # 媒体
         'BIA_font' : 'BIA.font',
         'BIA_font_size' : 'BIA.font_size',

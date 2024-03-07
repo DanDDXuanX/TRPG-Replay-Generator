@@ -137,14 +137,17 @@ class HomePageElements(ttk.Frame):
         for i,text in enumerate(list_of_project):
             if text == '':
                 continue
-            name,path = text.split('\t')
-            self.recents[i] = RecentProject(
-                master=self.recent_project,
-                screenzoom=self.sz,
-                name=name,
-                path=path,
-                callback=self.master.open_project_file
-                )
+            try:
+                name,path = text.split('\t')
+                self.recents[i] = RecentProject(
+                    master=self.recent_project,
+                    screenzoom=self.sz,
+                    name=name,
+                    path=path,
+                    callback=self.master.open_project_file
+                    )
+            except Exception:
+                continue
     def clear_recent(self):
         Link['recent_files'].clear()
         for keyword in self.recents:

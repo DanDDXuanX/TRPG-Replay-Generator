@@ -162,6 +162,7 @@ class PreferenceTable(TableEdit):
         self.elements['System.terminal_fontsize'].input.configure(from_=5,to=30,increment=1)
         self.elements['Export.crf'].input.configure(from_=0,to=51,increment=1)
         # button
+        self.elements['System.workshop_path'].bind_button(dtype='dir',quote=False,related=False)
         self.elements['BIA.font'].bind_button(dtype='fontfile-file',quote=False,related=False)
         self.elements['BIA.heart_pic'].bind_button(dtype='picture-file',quote=False,related=False)
         self.elements['BIA.heart_shape'].bind_button(dtype='picture-file',quote=False,related=False)

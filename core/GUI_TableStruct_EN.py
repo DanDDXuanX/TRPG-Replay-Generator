@@ -2453,6 +2453,16 @@ PreferenceTableStruct = {
                 "vtype": "bool",
                 "default": False
             },
+            "System.workshop_path":{
+                "ktext": "Steam Workshop Path",
+                "tooltip": "Path to steam workshop path, typically a folder named 2550090.",
+                "dtext": "browse",
+                "ditem": "button",
+                "valuekey": "System.workshop_path",
+                "vitem": "entry",
+                "vtype": "str",
+                "default": "../../workshop/2550090/"
+            },
         }
     },       
     "MediaSep":{
