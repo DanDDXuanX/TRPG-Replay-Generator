@@ -2461,7 +2461,7 @@ PreferenceTableStruct = {
                 "valuekey": "System.workshop_path",
                 "vitem": "entry",
                 "vtype": "str",
-                "default": "../../workshop/2550090/"
+                "default": "../../workshop/content/2550090/"
             },
         }
     },       
