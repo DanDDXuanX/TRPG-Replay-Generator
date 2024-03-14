@@ -14,11 +14,11 @@ projection	投影方向	projection	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0
 marker	文字标签	marker	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0	0
 fg_path	前景路径	fg_path	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0	0
 bg_path	背景路径	bg_path	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0	0
-align	对齐	align	0	0	0	0	0	0	0	1	1	1	1	0	0	0	0	0
+align	对齐	align	0	0	0	0	0	0	0	1	1	1	0	0	0	0	0	0
 width	宽度	width	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0	0
 repeat	单位	repeat	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0	0
 filepath	文件路径	filepath	0	0	0	0	0	0	0	0	1	1	1	1	1	1	2	2
-scale	缩放	scale	0	0	0	0	0	0	0	0	1	1	1	1	1	1	0	0
+scale	缩放	scale	0	0	0	0	0	0	2	0	1	1	1	1	1	1	0	0
 Main_Text	主文本字体	Main_Text	0	0	0	0	0	0	0	0	1	1	1	0	0	0	0	0
 Header_Text	头文本字体	Header_Text	0	0	0	0	0	0	0	0	1	2	1	0	0	0	0	0
 mt_pos	主文本位置	mt_pos	0	0	0	0	0	0	0	0	1	1	1	0	0	0	0	0
@@ -27,13 +27,13 @@ mt_end	主文本终点	mt_end	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0
 ht_pos	头文本位置	ht_pos	0	0	0	0	0	0	0	0	1	2	1	0	0	0	0	0
 ht_rotate	头文本旋转	ht_rotate	0	0	0	0	0	0	0	0	1	2	0	0	0	0	0	0
 ht_target	头文本目标	ht_target	0	0	0	0	0	0	0	0	1	2	1	0	0	0	0	0
-vertical_align	垂直对齐	vertical_align	0	0	0	0	0	0	0	0	1	1	1	0	0	0	0	0
-head_align	头文本对齐	head_align	0	0	0	0	0	0	0	0	1	2	1	0	0	0	0	0
+vertical_align	垂直对齐	vertical_align	0	0	0	0	0	0	0	0	1	1	0	0	0	0	0	0
+head_align	头文本对齐	head_align	0	0	0	0	0	0	0	0	1	2	0	0	0	0	0	0
 line_distance	主文本行距	line_distance	0	0	0	0	0	0	0	0	1	1	1	0	0	0	0	0
 line_num_est	主文本行数	line_num_est	0	0	0	0	0	0	0	0	1	1	0	0	0	0	0	0
 fit_axis	适应方向	fit_axis	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0
 fill_mode	填充模式	fill_mode	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0
-sub_key	关键字	sub_key	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0
+sub_key	关键字	sub_key	0	0	0	0	0	0	2	0	0	0	0	1	0	0	0	0
 sub_Bubble	子气泡	sub_Bubble	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0
 sub_Anime	子头像	sub_Anime	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0
 sub_align	子对齐	sub_align	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0
@@ -50,3 +50,4 @@ control_right	右控制点	control_right	0	0	0	2	0	0	0	0	0	0	0	0	0	0	0	0
 anchor	锚点	anchor	0	0	0	2	0	0	0	0	0	0	0	0	0	0	0	0
 frame_point	关键帧	frame_point	0	0	0	2	0	0	0	0	0	0	0	0	0	0	0	0
 speed_formula	速率函数	speed_formula	0	0	0	2	0	0	0	0	0	0	0	0	0	0	0	0
+sub_icon	图标化	sub_icon	0	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0
