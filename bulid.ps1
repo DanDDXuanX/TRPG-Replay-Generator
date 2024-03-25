@@ -14,4 +14,5 @@ Copy-Item .\ffprobe.exe .\dist\gui\
 certutil -hashfile .\dist\gui\RplGenStudio.exe MD5
 
 # 压缩
-7z a -tzip -mcu=on .\dist\package.zip .\dist\gui\*
+$timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
+7z a -tzip -mcu=on .\dist\$timestamp.zip .\dist\gui\*

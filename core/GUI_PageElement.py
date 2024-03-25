@@ -5,7 +5,6 @@
 # 包含：搜索栏、输出命令按钮
 
 import os
-import time
 import tkinter as tk
 import ttkbootstrap as ttk
 import threading
@@ -27,6 +26,7 @@ from .FilePaths import Filepath
 from .GUI_Link import Link
 from .GUI_Util import FreeToolTip
 from .ProjConfig import preference
+from .Utils import readable_timestamp
 
 # 搜索窗口
 class SearchBar(ttk.Frame):
@@ -75,6 +75,7 @@ class OutPutCommand(ttk.Frame):
         super().__init__(master,borderwidth=0,bootstyle='light')
         # 引用
         self.page = self.master
+        self.name = self.page.page_name.lstrip(tr('剧本')+'-')
         icon_size = [int(30*self.sz),int(30*self.sz)]
         self.image = {
             'display'   : ImageTk.PhotoImage(name='display',image=Image.open('./assets/icon/display.png').resize(icon_size)),
@@ -207,14 +208,14 @@ class OutPutCommand(ttk.Frame):
         exit_status = 3
         try:
             # 载入
-            timestamp = '%d'%time.time()
+            timestamp = readable_timestamp()
             self.load_input()
             # 初始化
             Link['pipeline'] = ExportVideo(
                 rplgenlog   = self.rplgenlog,
                 config      = self.pconfig,
                 output_path = Link['media_dir'],
-                key         = timestamp    
+                key         = f"{self.name}_{timestamp}"
             )
             # 启用终止按钮
             Link['terminal_control'].configure(state='normal')
@@ -241,9 +242,9 @@ class OutPutCommand(ttk.Frame):
         exit_status = 3
         try:
             # 调整全局变量
-            timestamp = '%d'%time.time()
+            timestamp = readable_timestamp()
             MediaObj.export_xml = True
-            MediaObj.output_path = Link['media_dir'] + f'{timestamp}/'
+            MediaObj.output_path = Link['media_dir'] + f"{self.name}_{timestamp}/"
             # 检查输出路径是否存在（大多是时候都是不存在的）
             if not os.path.isdir(MediaObj.output_path):
                 os.makedirs(MediaObj.output_path)
@@ -254,7 +255,7 @@ class OutPutCommand(ttk.Frame):
                 rplgenlog   = self.rplgenlog,
                 config      = self.pconfig,
                 output_path = Link['media_dir'],
-                key         = timestamp
+                key         = f"{self.name}_{timestamp}"
             )
             # 启用终止按钮
             Link['terminal_control'].configure(state='normal')
@@ -287,6 +288,7 @@ class OutPutCommand(ttk.Frame):
             pass
         elif self.runing_thread.is_alive():
             print(tr("正在执行中"))
+            self.winfo_toplevel().navigate_bar.enable_navigate()
             return
         # 新建线程
         if output_type == 'display':

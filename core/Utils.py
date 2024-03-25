@@ -10,6 +10,7 @@ import time
 import re
 import os
 import subprocess
+from datetime import datetime
 
 # 文字处理
 # UF : 将2个向量组合成"(x,y)"的形式
@@ -166,6 +167,9 @@ def mod62_timestamp():
             outstring = outstring + chr(97+residual-36)
         timestamp = mod
     return outstring[::-1]
+def readable_timestamp():
+    current_time = datetime.now()
+    return current_time.strftime("%y%m%d_%H%M%S")
 # 从字符串提取合法文件名
 def extract_valid_variable_name(string):
     # 将非字母数字字符替换为下划线
