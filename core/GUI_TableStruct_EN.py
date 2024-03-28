@@ -3027,8 +3027,8 @@ ProjectTableStruct = {
                 "template":{
                     "ktext": "Template:",
                     "tooltip":"Select a style template for intel project.", # ，访问创意工坊获取更多预设样式模板
-                    "dtext": "(select)",
-                    "ditem": "label",
+                    "dtext": "workshop",
+                    "ditem": "button",
                     "valuekey": None,
                     "vitem": "combox",
                     "vtype": "str",

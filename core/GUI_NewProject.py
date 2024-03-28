@@ -220,6 +220,7 @@ class CreateIntelProject(CreateProject):
         self.elements['proj_cover'].bind_button(dtype='picture-file',quote=False,related=False)
         self.elements['save_pos'].bind_button(dtype='dir',quote=False,related=False)
         self.elements['textfile'].bind_button(dtype='text-file',quote=False,related=False)
+        self.elements['template'].bind_button(dtype='url:https://steamcommunity.com/app/2550090/workshop/')
         self.elements['section_break'].input.configure(values=[0,100,300,1000,3000],state='readonly')
         self.elements['template'].input.bind('<<ComboboxSelected>>', self.template_selected,'+')
         # 从预设文件夹获取

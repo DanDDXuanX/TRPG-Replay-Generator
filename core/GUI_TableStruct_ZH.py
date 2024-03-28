@@ -3027,8 +3027,8 @@ ProjectTableStruct = {
                 "template":{
                     "ktext": "模板：",
                     "tooltip":"智能项目的预设模板。", # ，访问创意工坊获取更多预设样式模板
-                    "dtext": "（选择）",
-                    "ditem": "label",
+                    "dtext": "创意工坊",
+                    "ditem": "button",
                     "valuekey": None,
                     "vitem": "combox",
                     "vtype": "str",
