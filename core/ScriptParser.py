@@ -64,7 +64,7 @@ class Script:
         'Background'    :['black',1.0,[0,0],'Lavender'],
         'Animation'     :['./assets/heart_shape.png',1.0,[100,100],1,True,'Lavender'], # TODO:这个默认的filepath应该修改！
         'Audio'         :['./assets/SE_duck.wav','Caribbean'], # TODO:这个默认的filepath应该修改！
-        'BGM'           :['./toy/media/BGM.ogg',100,True,'Caribbean'] # TODO:这个默认的filepath应该修改！
+        'BGM'           :['./assets/SE_duck.ogg',100,True,'Caribbean'] # TODO:这个默认的filepath应该修改！
         }
     # 初始化
     def __init__(self,string_input=None,dict_input=None,file_input=None,json_input=None) -> None:

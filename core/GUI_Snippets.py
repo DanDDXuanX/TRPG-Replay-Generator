@@ -361,7 +361,7 @@ class RGLSnippets(CodeSnippet, Localize):
             name = re.fullmatch('^\[([\w\ \.\(\)]+,)*([\w\ ]+(\(\d+\))?)\.',text_upstream).group(2)
             self.init_snippets_options('subtype',name=name,dot=False)
         # 逗号句号
-        elif re.fullmatch('^\[([\w\ \.\(\)]+,){0,2}([\w\ \.\(\)]+[^\.\]\,])',text_upstream):
+        elif re.fullmatch('^\[([\w\ \.\(\)]+,){0,2}([\w\ \.\(\)]+)',text_upstream):
             if text_downstream != '':
                 if text_downstream[0] not in [',','.']:
                     comma = True
