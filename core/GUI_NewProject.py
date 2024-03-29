@@ -369,19 +369,25 @@ class CreateIntelProject(CreateProject):
         # 3. 导入模板的静态media
         self.new_project_struct['mediadef'].update(self.template['media']['static'])
         # 4. 载入导入的文本
-        try:
-            self.load_text = open(logfile_path,'r',encoding='utf-8').read()
-        except UnicodeDecodeError:
+        if logfile_path == '':
+            if preference.lang == 'zh':
+                self.load_text = '[默认角色]:空白的智能项目'
+            elif preference.lang == 'en':
+                self.load_text = '[Default]:Empty Intel Project.'
+        else:
             try:
-                self.load_text = open(logfile_path,'r',encoding='gbk').read()
-            except Exception as E:
-                Messagebox().show_error(tr('无法解读导入文件的编码！\n请确定导入的是文本文件？'),title=tr('格式错误'),parent=self)
+                self.load_text = open(logfile_path,'r',encoding='utf-8').read()
+            except UnicodeDecodeError:
+                try:
+                    self.load_text = open(logfile_path,'r',encoding='gbk').read()
+                except Exception as E:
+                    Messagebox().show_error(tr('无法解读导入文件的编码！\n请确定导入的是文本文件？'),title=tr('格式错误'),parent=self)
+                    self.reset_comfirm()
+                    return False
+            except FileNotFoundError:
+                Messagebox().show_error(tr('找不到导入的剧本文件，请检查文件名！'),title=tr('找不到文件'),parent=self)
                 self.reset_comfirm()
                 return False
-        except FileNotFoundError:
-            Messagebox().show_error(tr('找不到导入的剧本文件，请检查文件名！'),title=tr('找不到文件'),parent=self)
-            self.reset_comfirm()
-            return False
         # 5. 开始解析
         self.story = StoryImporter()
         self.thread = threading.Thread(target=self.import_story)

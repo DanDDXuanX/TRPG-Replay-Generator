@@ -3066,6 +3066,24 @@ ProjectTableStruct = {
 }
 
 PortalStruct = {
+    "Friends":{
+        "Text": "Friends",
+        "Command":None,
+        "Content":{
+            "1": {
+                "title": "SealDice",
+                "icon":"./assets/portal/sealdice.jpg",
+                "describe": "An open-source chatbot for TRPG.",
+                "url": "https://sealdice.com",
+            },
+            "2": {
+                "title": "活字引擎",
+                "icon":"github",
+                "describe": "Also try 活字引擎!",
+                "url": "https://space.bilibili.com/12108288",
+            }
+        }
+    },
     "Contributors":{
         "Text": "Contributors",
         "Command":None,

@@ -3073,12 +3073,12 @@ PortalStruct = {
             "1": {
                 "title": "海豹核心-SealDice",
                 "icon":"./assets/portal/sealdice.jpg",
-                "describe": "开源跑团辅助机器人，支持各种聊天软件",
+                "describe": "超级好用的开源跑团辅助机器人",
                 "url": "https://sealdice.com",
             },
             "2": {
                 "title": "活字引擎",
-                "icon":"github",
+                "icon": "github",
                 "describe": "",
                 "url": "https://space.bilibili.com/12108288",
             }
