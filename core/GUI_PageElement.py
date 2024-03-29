@@ -482,6 +482,12 @@ class NewElementCommand(ttk.Frame):
             new_element = self.create_command(button_this=button_this,keyword=keyword)
             batch_new_element = self.create_media_inbatch_command(keyword=keyword)
             # 按钮
+            if self.pagetype in ['charactor','Pos']:
+                button_left = new_element
+                button_right = batch_new_element
+            else:
+                button_left = batch_new_element
+                button_right = new_element
             self.image[keyword] = ImageTk.PhotoImage(image=Image.open(button_this['icon']).resize(icon_size))
             self.buttons[keyword] = ttk.Button(
                 master=self,
@@ -491,10 +497,11 @@ class NewElementCommand(ttk.Frame):
                 compound='left',
                 style='output.TButton',
                 width=5,
-                command=new_element,
+                command=None,
                 cursor='hand2'
             )
-            self.buttons[keyword].bind('<ButtonRelease-3>', batch_new_element)
+            self.buttons[keyword].bind('<ButtonRelease-1>', button_left)
+            self.buttons[keyword].bind('<ButtonRelease-3>', button_right)
             self.buttons_tooltip[keyword] = FreeToolTip(
                 widget=self.buttons[keyword],
                 text=button_this['tooltip'],
@@ -504,7 +511,7 @@ class NewElementCommand(ttk.Frame):
             )
     # 生成按钮命令的闭包
     def create_command(self,button_this,keyword):
-        def command():
+        def command(event=None):
             if self.pagetype == 'charactor':
                 name_this = self.container.name
                 element_name = self.page.content.new_subtype(name=name_this,subtype=tr('新建差分'))
@@ -521,7 +528,7 @@ class NewElementCommand(ttk.Frame):
         return command
     # 从文件批量新建媒体的闭包
     def create_media_inbatch_command(self,keyword):
-        def command(event):
+        def command(event=None):
             if self.pagetype == 'charactor':
                 return
             if self.pagetype == 'Pos':
