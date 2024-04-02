@@ -505,7 +505,7 @@ class FileCollapsing(ttk.Frame):
         self.items['new:init'].destroy()
         self.items.pop('new:init')
         self.update_filelist()
-    def add_item_done(self,enter,filetype=tr('角色'))->bool: # TODO：本地化做到这一步了！
+    def add_item_done(self,enter,filetype=tr('角色'))->bool:
         new_keyword = self.re_name.get()
         origin_keyword = 'new:init'
         # 每次rename，done只能触发一次！
@@ -518,20 +518,20 @@ class FileCollapsing(ttk.Frame):
                 self.add_item_failed()
                 raise Exception('没有按回车键')
             if re.match('^[\w\ ]+$',new_keyword) is None:
-                self.add_item_failed()
                 Messagebox().show_warning(
                     message = tr('非法的{type}名：{name}\n{type}名只能包含中文、英文、数字、下划线和空格！').format(type=filetype, name=new_keyword),
                     title   = tr('失败的新建'),
-                    parent  = self.master
+                    parent  = self.items[origin_keyword]
                     )
+                self.add_item_failed()
                 raise Exception('非法名')
             if new_keyword in self.items.keys():
-                self.add_item_failed()
                 Messagebox().show_warning(
                     message = tr('重复的{type}名：{name}！').format(type=filetype, name=new_keyword),
                     title   = tr('失败的新建'),
-                    parent  = self.master
+                    parent  = self.items[origin_keyword]
                     )
+                self.add_item_failed()
                 raise Exception('重复名')
             # 删除原来的关键字
             self.items[origin_keyword].destroy()
@@ -562,7 +562,7 @@ class FileCollapsing(ttk.Frame):
             message=tr('确定要删除这个条目？\n这项删除将无法复原！'),
             title=tr('警告'),
             buttons=[tr('取消')+":primary", tr('确定')+":danger"],
-            parent=self.master
+            parent=self.items[keyword]
             )
         # 返回是否需要删除项目数据
         if choice != tr('确定'):
@@ -579,7 +579,7 @@ class FileCollapsing(ttk.Frame):
                 message=tr('尝试重命名一个已经启动的{}页面！\n重命名后，这个页面会被关闭！').format(filetype),
                 title=tr('警告'),
                 buttons=[tr('取消')+":primary", tr('确定')+":danger"],
-                parent=self.master
+                parent=self.items[keyword]
                 )
             if choice != tr('确定'):
                 return
@@ -618,20 +618,20 @@ class FileCollapsing(ttk.Frame):
                 self.rename_item_failed(origin_keyword)
                 raise Exception('没有按回车键')
             if re.match('^[\w\ ]+$',new_keyword) is None:
-                self.rename_item_failed(origin_keyword)
                 Messagebox().show_warning(
                     message = tr('非法的{type}名：{name}\n{type}名只能包含中文、英文、数字、下划线和空格！').format(type=filetype, name=new_keyword),
                     title   = tr('失败的重命名'),
-                    parent  = self.master
+                    parent  = self.items[origin_keyword]
                     )
+                self.rename_item_failed(origin_keyword)
                 raise Exception('非法名')
             if new_keyword in self.items.keys() and new_keyword != origin_keyword:
-                self.rename_item_failed(origin_keyword)
                 Messagebox().show_warning(
                     message = tr('重复的{type}名：{name}\n！').format(type=filetype, name=new_keyword),
                     title   = tr('失败的重命名'),
-                    parent  = self.master
+                    parent  = self.items[origin_keyword]
                     )
+                self.rename_item_failed(origin_keyword)
                 raise Exception('重复名')
             # 删除原来的关键字
             self.items[origin_keyword].destroy()
