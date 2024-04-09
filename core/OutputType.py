@@ -27,16 +27,16 @@ from .Utils import EDITION, zoom_surface, PUBLICATION
 # 输出媒体的基类
 class OutputMediaType:
     # 初始化模块功能，载入外部参数
-    def __init__(self,rplgenlog:RplGenLog,config:Config,output_path:str=None,key:str=None):
-        # 载入项目
-        self.rplgenlog:RplGenLog = rplgenlog
-        self.timeline:pd.DataFrame = rplgenlog.main_timeline
-        self.breakpoint:pd.Series  = rplgenlog.break_point
-        self.medias:dict           = rplgenlog.medias
-        self.config:Config         = config
+    def __init__(self,mediadef:MediaDef,chartab:CharTable,rplgenlog:RplGenLog,config:Config,output_path:str=None,key:str=None):
         # 是否终止
         self.is_terminated = False
-        # 全局变量
+        # 载入脚本
+        self.rplgenlog:RplGenLog = rplgenlog
+        self.mediadef:MediaDef = mediadef
+        self.chartab:CharTable = chartab
+        # 载入项目配置
+        self.config:Config         = config
+        # 输出参数
         if output_path:
             self.output_path:str = output_path
         else:
@@ -45,6 +45,21 @@ class OutputMediaType:
             self.stdout_name:str  = key
         else:
             self.stdout_name:str  = '%d'%time.time()
+        # 执行脚本初始化
+        self.initialize_input()
+    def initialize_input(self):
+        # 初始化配置项
+        self.config.execute()
+        # 初始化媒体
+        self.mediadef.execute()
+        # 初始化角色表
+        self.chartab.execute()
+        # 初始化log文件
+        self.rplgenlog.execute(media_define=self.mediadef,char_table=self.chartab,config=self.config)
+        # 获取时间轴对象
+        self.timeline:pd.DataFrame = self.rplgenlog.main_timeline
+        self.breakpoint:pd.Series  = self.rplgenlog.break_point
+        self.medias:dict           = self.rplgenlog.medias
     # 从timeline渲染一个单帧到一个Surface
     def render(self,surface:pygame.Surface,this_frame:pd.Series):
         # 开始之前，先把目标surface涂黑
@@ -282,9 +297,9 @@ class OutputMediaType:
         self.is_terminated = True
 # 以前台预览的形式播放
 class PreviewDisplay(OutputMediaType):
-    def __init__(self, rplgenlog: RplGenLog, config: Config, title:str=''):
-        super().__init__(rplgenlog, config)
+    def __init__(self, mediadef:MediaDef,chartab:CharTable,rplgenlog:RplGenLog,config:Config, title:str=''):
         self.title = title
+        super().__init__(mediadef=mediadef,chartab=chartab,rplgenlog=rplgenlog,config=config)
         # self.main()
     # 重载render，继承显示画面的同时，播放声音
     def render(self, surface: pygame.Surface, this_frame: pd.Series):
@@ -968,8 +983,8 @@ class PreviewDisplay(OutputMediaType):
 # 导出为MP4视频
 class ExportVideo(OutputMediaType):
     # 初始化模块功能，载入外部参数
-    def __init__(self, rplgenlog: RplGenLog, config: Config, output_path, key):
-        super().__init__(rplgenlog, config, output_path, key)
+    def __init__(self, mediadef:MediaDef,chartab:CharTable,rplgenlog:RplGenLog,config:Config, output_path, key):
+        super().__init__(mediadef=mediadef,chartab=chartab,rplgenlog=rplgenlog,config=config,output_path=output_path,key=key)
         # self.main()
     # 从timeline生成音频文件，返回成功状态：0：正常，1：异常，2：终止
     def bulid_audio(self) -> int:
@@ -1195,8 +1210,8 @@ class ExportVideo(OutputMediaType):
 # 导出PR项目
 class ExportXML(OutputMediaType):
     # 初始化模块功能，载入外部参数
-    def __init__(self, rplgenlog:RplGenLog, config:Config, output_path, key):
-        super().__init__(rplgenlog, config, output_path, key)
+    def __init__(self, mediadef:MediaDef,chartab:CharTable,rplgenlog:RplGenLog,config:Config, output_path, key):
+        super().__init__(mediadef=mediadef,chartab=chartab,rplgenlog=rplgenlog,config=config,output_path=output_path,key=key)
         # 全局变量
         self.Is_NTSC:bool    = False
         self.Audio_type:str  = 'Stereo'

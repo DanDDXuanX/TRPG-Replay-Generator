@@ -17,7 +17,7 @@ from .GUI_TableStruct import NewElement
 from .GUI_Language import tr
 from .GUI_DialogWindow import browse_multi_file
 from .GUI_CustomDialog import selection_query
-from .OutputType import PreviewDisplay, ExportVideo, ExportXML
+from .RunCore import run_core
 from .SpeechSynth import SpeechSynthesizer
 from .Medias import MediaObj
 from .Utils import extract_valid_variable_name
@@ -27,6 +27,8 @@ from .GUI_Link import Link
 from .GUI_Util import FreeToolTip
 from .ProjConfig import preference
 from .Utils import readable_timestamp
+import multiprocessing
+
 
 # 搜索窗口
 class SearchBar(ttk.Frame):
@@ -115,44 +117,35 @@ class OutPutCommand(ttk.Frame):
             # TODO：临时禁用
             item.configure(state='disable')
             item.pack(fill='both',side='left',expand=True,pady=0)
-    def load_input(self):
-        # 项目配置
-        self.pconfig = Link['project_config']
-        # 脚本
-        self.medef = self.page.ref_medef.copy()
-        self.chartab = self.page.ref_chartab.copy()
-        self.rplgenlog = self.page.content.copy()
-        # 初始化配置项
-        self.pconfig.execute()
-        # 初始化媒体
-        self.medef.execute()
-        # 初始化角色表
-        self.chartab.execute()
-        # 初始化log文件
-        self.rplgenlog.execute(media_define=self.medef,char_table=self.chartab,config=self.pconfig)
     def preview_display(self):
         exit_status = 3
         try:
-            # 载入
-            self.load_input()
-            # 初始化
-            Link['pipeline'] = PreviewDisplay(
-                rplgenlog   = self.rplgenlog,
-                config      = self.pconfig,
-                title       = self.page.page_name
+            medef = self.page.ref_medef.copy()
+            chartab = self.page.ref_chartab.copy()
+            rplgenlog = self.page.content.copy()
+            Link['pipeline'] = multiprocessing.Process(
+                target=run_core,
+                args=(
+                    'PreviewDisplay',
+                    medef,
+                    chartab,
+                    rplgenlog,
+                    Link['project_config'],
+                )
             )
             # 启用终止按钮
             Link['terminal_control'].configure(state='normal')
             # 执行
-            exit_status = Link['pipeline'].main()
+            Link['pipeline'].start()
+            Link['pipeline'].join()
             # 返回
             self.after(500,self.return_project)
         except Exception as E:
             print(E)
         finally:
             # 重置
-            pygame.init()
-            pygame.font.init()
+            # pygame.init()
+            # pygame.font.init()
             Link['pipeline'] = None
             Link['terminal_control'].configure(state='disable')
             self.winfo_toplevel().navigate_bar.enable_navigate()
@@ -209,7 +202,6 @@ class OutPutCommand(ttk.Frame):
         try:
             # 载入
             timestamp = readable_timestamp()
-            self.load_input()
             # 初始化
             Link['pipeline'] = ExportVideo(
                 rplgenlog   = self.rplgenlog,
@@ -227,8 +219,8 @@ class OutPutCommand(ttk.Frame):
             print(E)
         finally:
             # 重置
-            pygame.init()
-            pygame.font.init()
+            # pygame.init()
+            # pygame.font.init()
             Link['pipeline'] = None
             Link['terminal_control'].configure(state='disable')
             self.winfo_toplevel().navigate_bar.enable_navigate()
@@ -248,8 +240,6 @@ class OutPutCommand(ttk.Frame):
             # 检查输出路径是否存在（大多是时候都是不存在的）
             if not os.path.isdir(MediaObj.output_path):
                 os.makedirs(MediaObj.output_path)
-            # 载入
-            self.load_input()
             # 初始化
             Link['pipeline'] = ExportXML(
                 rplgenlog   = self.rplgenlog,
@@ -267,8 +257,8 @@ class OutPutCommand(ttk.Frame):
             print(E)
         finally:
             # 重置
-            pygame.init()
-            pygame.font.init()
+            # pygame.init()
+            # pygame.font.init()
             MediaObj.export_xml = False
             Link['pipeline'] = None
             Link['terminal_control'].configure(state='disable')
