@@ -22,7 +22,7 @@ from .Medias import MediaObj
 from .Boardcast import BoardcastHandler
 from .GUI_TabPage import PageFrame, RGLPage, CTBPage, MDFPage
 from .GUI_DialogWindow import browse_file, save_file, browse_multi_file
-from .GUI_CustomDialog import relocate_file, configure_project
+from .GUI_CustomDialog import relocate_file, configure_project, select_template
 from .GUI_Util import FluentFrame, ask_rename_boardcast
 from .GUI_Language import tr
 from .GUI_Link import Link
@@ -98,6 +98,7 @@ class FileManager(ttk.Frame):
         self.image = {
             'save'      : ImageTk.PhotoImage(name='save' ,   image=Image.open('./assets/icon/save.png').resize(icon_size)),
             'config'    : ImageTk.PhotoImage(name='config',   image=Image.open('./assets/icon/setting.png').resize(icon_size)),
+            'template'  : ImageTk.PhotoImage(name='template', image=Image.open('./assets/icon/template.png').resize(icon_size)),
             'import'    : ImageTk.PhotoImage(name='import',   image=Image.open('./assets/icon/import.png').resize(icon_size)),
             'export'    : ImageTk.PhotoImage(name='export',   image=Image.open('./assets/icon/export.png').resize(icon_size)),
             'close'     : ImageTk.PhotoImage(name='close',   image=Image.open('./assets/icon/close.png').resize(icon_size)),
@@ -113,6 +114,7 @@ class FileManager(ttk.Frame):
         self.buttons = {
             'save'      : ttk.Button(master=self.project_title,image='save'  ,command=self.save_file, cursor='hand2'),
             'config'    : ttk.Button(master=self.project_title,image='config',command=self.proj_config, cursor='hand2'),
+            'template'    : ttk.Button(master=self.project_title,image='template',command=self.import_template, cursor='hand2'),
             'import'    : ttk.Button(master=self.project_title,image='import',command=self.import_file, cursor='hand2'),
             'export'    : ttk.Button(master=self.project_title,image='export',command=self.export_file, cursor='hand2'),
             'close'     : ttk.Button(master=self.project_title,image='close',command=self.close_proj, cursor='hand2'),
@@ -120,6 +122,7 @@ class FileManager(ttk.Frame):
         self.buttons_tooltip = {
             'save'      : ToolTip(widget=self.buttons['save']  ,text=tr('保存项目'),bootstyle='secondary-inverse'),
             'config'    : ToolTip(widget=self.buttons['config'],text=tr('项目设置'),bootstyle='secondary-inverse'),
+            'template'  : ToolTip(widget=self.buttons['template'],text=tr('导入模板素材'),bootstyle='secondary-inverse'),
             'import'    : ToolTip(widget=self.buttons['import'],text=tr('导入工程文件'),bootstyle='secondary-inverse'),
             'export'    : ToolTip(widget=self.buttons['export'],text=tr('导出工程文件'),bootstyle='secondary-inverse'),
             'close'     : ToolTip(widget=self.buttons['close'], text=tr('关闭项目'),bootstyle='danger-inverse'),
@@ -284,6 +287,50 @@ class FileManager(ttk.Frame):
                 collapse.create_new_button(new_keyword=filename)
             # import_mode 对rgl不生效
             return tr("向剧本文件中添加新剧本【{fn}】，包含{ct}个小节。").format(fn=filename,ct=count_of_add)
+    # 导入模板
+    def import_template(self):
+        # 选择模板，并导入
+        imported:dict = select_template(
+            master=self,
+            project_path=self.project_file
+            )
+        count_of_add = 0
+        count_of_rep = 0
+        # 将导入的媒体对象添加到项目
+        if imported:
+            for keyword in imported:
+                # 检查文件名是否重复
+                keyword_new = keyword
+                if preference.import_mode == 'add':
+                    while keyword_new in self.project.mediadef.struct.keys():
+                        keyword_new = keyword_new + '_new'
+                    else:
+                        count_of_add += 1
+                else:
+                    if keyword_new in self.project.mediadef.struct.keys():
+                        count_of_rep += 1
+                    else:
+                        count_of_add += 1
+                # 执行变更
+                self.project.mediadef.struct[keyword_new] = imported[keyword]
+            # summary
+            if count_of_rep == 0:
+                message = tr("向媒体库中导入媒体对象{ct}个。").format(ct=count_of_add)
+            else:
+                message = tr("向媒体库中导入媒体对象{ct}个；更新媒体对象{cr}个。").format(ct=count_of_add,cr=count_of_rep)
+
+            # 检查是否有脱机素材，如果有则启动重定位
+            self.check_project_media_exist()
+            # 刷新已有标签页的page_element
+            self.update_pages_elements(ftype='medef')
+            # 显示
+            Messagebox().show_info(
+                title   = tr('导入文件'),
+                message = message,
+                parent  = self
+                )
+        else:
+            pass
     # 导入文件
     def import_file(self):
         get_file:list = browse_multi_file(master=self.winfo_toplevel(),filetype='rgscripts',related=False)
@@ -415,12 +462,12 @@ class FileManager(ttk.Frame):
             cover_path = f'./assets/default_cover/{preference.theme}.jpg'
             image = Image.open(cover_path).convert('RGBA')
         # 渲染标题
-        title = Image.new("RGBA",size=(960,160),color='#b3b3b3b3')
+        title = Image.new("RGBA",size=(960,128),color='#c3c3c3c3')
         draw = ImageDraw.Draw(title)
-        title_font = ImageFont.truetype('./assets/SourceHanSerifSC-Heavy.otf',size=100)
+        title_font = ImageFont.truetype('./assets/SourceHanSerifSC-Heavy.otf',size=80)
         draw.text((20,0),text=self.project.config.Name,font=title_font,fill='#1e1e1eff')
         # 合并
-        image.paste(title,(0,380),mask=title)
+        image.paste(title,(0,412),mask=title)
         self.cover = ImageTk.PhotoImage(image=image.resize([SZ_300,SZ_180]))
         self.title_pic.configure(image=self.cover)
     # 刷新目前某一类标签页的显示，导入文件时需要调用

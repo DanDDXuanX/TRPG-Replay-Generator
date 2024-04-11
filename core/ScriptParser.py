@@ -66,6 +66,24 @@ class Script:
         'Audio'         :['./assets/SE_duck.wav','Caribbean'], # TODO:这个默认的filepath应该修改！
         'BGM'           :['./assets/SE_duck.ogg',100,True,'Caribbean'] # TODO:这个默认的filepath应该修改！
         }
+    type_path_keyword = {
+        'Pos'           :[],
+        'FreePos'       :[],
+        'PosGrid'       :[],
+        'BezierCurve'   :[],
+        'Text'          :['fontfile'],
+        'StrokeText'    :['fontfile'],
+        'RichText'      :['fontfile','sub_icon'],
+        'HPLabel'       :['fontfile','fg_path','bg_path'],
+        'Bubble'        :['filepath'],
+        'Balloon'       :['filepath'],
+        'DynamicBubble' :['filepath'],
+        'ChatWindow'    :['filepath'],
+        'Background'    :['filepath'],
+        'Animation'     :['filepath'],
+        'Audio'         :['filepath'],
+        'BGM'           :['filepath']
+        }
     # 初始化
     def __init__(self,string_input=None,dict_input=None,file_input=None,json_input=None) -> None:
         # 字符串输入

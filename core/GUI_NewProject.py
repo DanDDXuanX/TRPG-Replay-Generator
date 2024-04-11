@@ -15,7 +15,7 @@ from ttkbootstrap.dialogs import Dialog, Messagebox, MessageCatalog
 from PIL import Image, ImageTk
 from .Exceptions import ParserError
 from .StoryImporter import StoryImporter
-from .ScriptParser import CharTable, RplGenLog
+from .ScriptParser import CharTable, RplGenLog, MediaDef
 from .GUI_Util import KeyValueDescribe, clear_speech
 from .GUI_TableStruct import ProjectTableStruct
 from .GUI_Language import tr
@@ -626,6 +626,68 @@ class ConfigureProject(CreateEmptyProject):
         }
         # 退出值是项目的结构！
         self.close_func(new_config_struct)
+# 打开一个预设模板选择窗口
+class ImportIntelTemplate(CreateIntelProject):
+    table_struct = ProjectTableStruct['ImportTemplate']
+    def __init__(self, master, screenzoom,project_path, close_func):
+        super().__init__(master, screenzoom, close_func)
+        self.project_path = str(Path(project_path).parent.absolute())
+    def build_struct(self):
+        # 从CreateProject继承，而不是super继承
+        CreateProject.build_struct(self)
+        # 绑定功能
+        self.elements['template'].bind_button(dtype='url:https://steamcommunity.com/app/2550090/workshop/')
+        self.elements['template'].input.bind('<<ComboboxSelected>>', self.template_selected,'+')
+        # 从预设文件夹获取
+        intels = self.get_all_name()
+        self.elements['template'].input.configure(values=intels,state='readonly')
+    def confirm(self):
+        # 0. 检查合法性
+        tplt_name = self.elements['template'].get()
+        if tplt_name == '':
+            Messagebox().show_error(title=tr('错误'),message=tr('必须要选择样式模板！'),parent=self)
+            return False
+        # 合法性通过的话，开始正儿八经的导入
+        # 1. 将素材复制到目标文件夹
+        try:
+            shutil.copytree(
+                src=self.at_path+'/media/',
+                dst=f"{self.project_path}/{tplt_name}/"
+            )
+        except FileExistsError:
+            shutil.rmtree(f"{self.project_path}/{tplt_name}/")
+            shutil.copytree(
+                src=self.at_path+'/media/',
+                dst=f"{self.project_path}/{tplt_name}/"
+            )
+        # 2. 将模板中所有的路径，重链接到新的目录
+        relative_dst = f'@/{tplt_name}/'
+        template_media = self.template['media']['static'].copy()
+        # 开始替换
+        for keyword in template_media:
+            # 潜在的路径目录
+            this_media = template_media[keyword]
+            path_arg = MediaDef.type_path_keyword[this_media['type']]
+            for arg in path_arg:
+                # 是字符型
+                if type(this_media[arg]) is str:
+                    path_old:str = this_media[arg]
+                    if path_old.startswith('@/media/'):
+                        this_media[arg] = relative_dst + path_old[8:]
+                # 是列表型
+                if type(this_media[arg]) is list:
+                    for idx in range(len(this_media[arg])):
+                        path_old = this_media[arg][idx]
+                        if type(path_old) is str:
+                            if path_old.startswith('@/media/'):
+                                this_media[arg][idx] = relative_dst + path_old[8:]
+                        else:
+                            pass
+                else:
+                    pass
+        # 3. 退出
+        self.close_func(template_media)
+
 # 对话框
 class CreateProjectDialog(Dialog):
     def __init__(self, screenzoom, parent=None, ptype='Empty', **kw_args):
@@ -635,6 +697,9 @@ class CreateProjectDialog(Dialog):
             super().__init__(parent, tr('项目设置'), alert=False)
             self.proj_configure = kw_args['config']
             self.file_path = kw_args['file_path']
+        elif ptype == 'Template':
+            super().__init__(parent, tr('导入模板素材'), alert=False)
+            self.proj_path = kw_args['proj_path']
         else:
             super().__init__(parent, tr('新建空白项目'), alert=False)
         self.sz = screenzoom
@@ -656,6 +721,13 @@ class CreateProjectDialog(Dialog):
                 close_func=self.close_dialog,
                 proj_config=self.proj_configure,
                 file_path=self.file_path
+            )
+        elif self.ptype == 'Template':
+            self.create_project = ImportIntelTemplate(
+                master = master,
+                screenzoom = self.sz,
+                project_path=self.proj_path,
+                close_func=self.close_dialog,
             )
         else:
             self.create_project = CreateEmptyProject(

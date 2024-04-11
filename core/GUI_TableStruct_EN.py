@@ -3062,8 +3062,28 @@ ProjectTableStruct = {
                 },
             }
         }
+    },
+    'ImportTemplate':{
+        "TpltSep":{
+            "Text": "Style Template",
+            "Command":None,
+            "Content":{
+                "template":{
+                    "ktext": "Template:",
+                    "tooltip":"Select a style template to import.", # ，访问创意工坊获取更多预设样式模板
+                    "dtext": "workshop",
+                    "ditem": "button",
+                    "valuekey": None,
+                    "vitem": "combox",
+                    "vtype": "str",
+                    "default": ""
+                },
+            }
+        }
     }
 }
+
+
 
 PortalStruct = {
     "Friends":{
@@ -3078,9 +3098,9 @@ PortalStruct = {
             },
             "2": {
                 "title": "活字引擎",
-                "icon":"github",
+                "icon":"./assets/portal/hzyq.png",
                 "describe": "Also try 活字引擎!",
-                "url": "https://space.bilibili.com/12108288",
+                "url": "https://store.steampowered.com/app/2124470/_/",
             }
         }
     },

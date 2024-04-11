@@ -3062,6 +3062,24 @@ ProjectTableStruct = {
                 },
             }
         }
+    },
+    "ImportTemplate":{
+        "TpltSep":{
+            "Text": "选择模板",
+            "Command":None,
+            "Content":{
+                "template":{
+                    "ktext": "模板：",
+                    "tooltip":"选择需要导入的预设模板。", # ，访问创意工坊获取更多预设样式模板
+                    "dtext": "创意工坊",
+                    "ditem": "button",
+                    "valuekey": None,
+                    "vitem": "combox",
+                    "vtype": "str",
+                    "default": ""
+                },
+            }
+        }
     }
 }
 
@@ -3078,9 +3096,9 @@ PortalStruct = {
             },
             "2": {
                 "title": "活字引擎",
-                "icon": "github",
-                "describe": "",
-                "url": "https://space.bilibili.com/12108288",
+                "icon": "./assets/portal/hzyq.png",
+                "describe": "易用完善的老牌Replay制作软件",
+                "url": "https://store.steampowered.com/app/2124470/_/",
             }
         }
     },

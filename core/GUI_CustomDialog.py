@@ -220,3 +220,15 @@ def configure_project(master, proj_config:dict,file_path:str):
     dialog_window.show()
     # 获取结果
     return dialog_window.result
+
+# 导入模板
+def select_template(master,project_path:str):
+    dialog_window = CreateProjectDialog(
+        parent=master,
+        screenzoom=master.sz,
+        ptype='Template',
+        proj_path=project_path
+    )
+    dialog_window.show()
+    # 获取结果，这里的result是媒体的dict struct
+    return dialog_window.result
