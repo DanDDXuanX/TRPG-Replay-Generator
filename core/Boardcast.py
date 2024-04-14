@@ -248,14 +248,24 @@ class BoardcastHandler:
         # 返回值：执行的次数
         return counter
     def _handle_pos(self,old_name,new_name)->int:
-        effect_type = ['Animation','Bubble','Balloon','DynamicBubble','ChatWindow','Background']
-        effect_arg = 'pos'
-        return self._boardcast_mediadef(
+        effect_type = ['BezierCurve','Animation','Bubble','Balloon','DynamicBubble','ChatWindow','Background']
+        # effect_arg = ['pos','anchor']
+        counter = 0
+        # pos
+        counter += self._boardcast_mediadef(
             old_name    = old_name,
             new_name    = new_name,
             effect_type = effect_type,
-            effect_arg  = effect_arg
+            effect_arg  = 'pos'
         )
+        # anchor
+        counter += self._boardcast_mediadef(
+            old_name    = old_name,
+            new_name    = new_name,
+            effect_type = ['BezierCurve'],
+            effect_arg  = 'anchor'
+        )
+        return counter
     def _handle_text(self,old_name,new_name)->int:
         effect_type = ['Bubble','Balloon','DynamicBubble']
         effect_arg  = ['Main_Text','Header_Text']

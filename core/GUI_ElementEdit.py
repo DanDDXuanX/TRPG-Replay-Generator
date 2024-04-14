@@ -657,7 +657,10 @@ class MediaEdit(EditWindow):
         elif self.line_type == 'BezierCurve':
             # 贝塞尔曲线是特殊的，贝塞尔曲线需要前一个点的方向来延伸下一段线
             end_right_control = self.section['control_right'][-1]
+            # TODO: end anchor，有可能是一个引用的pos对象，但是这个地方引用不到，只能强行设置了
             end_anchor = self.section['anchor'][-1]
+            if type(end_anchor) is str:
+                end_anchor = [300,300]
             end_frame_point = self.section['frame_point'][-1]
             dirction_vec = -np.array(end_right_control)/np.linalg.norm(end_right_control)
             self.elements["control_left_%d"%sep_new].set('({},{})'.format(*(dirction_vec*100).astype(int)))
