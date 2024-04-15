@@ -1,5 +1,5 @@
 # 打包
-D:\pyenv\rplgenpy\Scripts\pyinstaller.exe .\gui.d.spec
+pyinstaller.exe .\gui.d.spec
 
 # 改可执行文件的名字
 Move-Item .\dist\gui\gui.exe  .\dist\gui\RplGenStudio.exe
