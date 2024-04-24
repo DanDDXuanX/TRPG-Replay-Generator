@@ -167,14 +167,32 @@ class PreferenceTable(TableEdit):
         self.elements['BIA.heart_pic'].bind_button(dtype='picture-file',quote=False,related=False)
         self.elements['BIA.heart_shape'].bind_button(dtype='picture-file',quote=False,related=False)
     def reset(self):
+        # 获取默认的首选项
         reset_struct:dict = Preference().get_struct()
         # 重设前端显示
         for keyword in self.elements:
             self.elements[keyword].set(reset_struct[keyword])
-        # 重设prefernce对象
-        preference.set_struct(reset_struct)
-        # 消息
-        self.show_toast(message=tr('首选项已经重置为默认值！'),title=tr('重置','首选项'))
+        try:
+            # 修改首选项前，将之前的用量报文上传
+            preference.post_usage()
+            # 重设prefernce对象
+            preference.set_struct(reset_struct)
+            preference.execute() # 执行变更
+            preference.dump_json() # 保存配置文件
+            # 更新状态栏
+            try:
+                Link['update_statusbar']()
+            except Exception: # 在当前显示的不是首页时，可能会出现异常
+                pass
+            # 消息
+            self.show_toast(message=tr('首选项已经重置为默认值！'),title=tr('重置','首选项'))
+        except Exception as E:
+            error_message = f"[{E.__class__.__name__}]: {E.__str__()}"
+            # 错误
+            self.show_toast(
+                message=tr('设置首选项时发生了如下错误！\n')+error_message,
+                title=tr('错误')
+                )
     def confirm(self):
         new_struct = {}
         for keyword in self.elements:

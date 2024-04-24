@@ -6,6 +6,7 @@ import os
 import json
 from pathlib import Path
 from PIL import ImageFile
+from locale import getdefaultlocale
 from .Exceptions import ArgumentError,WarningPrint,Print,RplGenError
 from .Motion import MotionMethod
 from .Medias import MediaObj, BuiltInAnimation, HitPoint, Dice
@@ -193,6 +194,15 @@ class Preference:
         else:
             for key,value in self.keyword.items():
                 self.__setattr__(key,self.default[key])
+            # 根据系统语言，选择默认语言
+            default_lang,_ = getdefaultlocale()
+            if default_lang:
+                if default_lang.startswith('zh'):
+                    self.lang = 'zh'
+                else:
+                    self.lang = 'en'
+            else:
+                self.lang = 'en'
     def get_struct(self)->dict:
         struct = {}
         for key, value in self.keyword.items():

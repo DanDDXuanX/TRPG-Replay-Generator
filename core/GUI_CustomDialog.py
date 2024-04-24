@@ -17,6 +17,7 @@ from .GUI_Util import DictCombobox
 from .GUI_Link import Link
 # 语法解释器
 from .ScriptParser import MediaDef
+from .ProjConfig import preference
 
 # 包含一个选项的选择聊天框
 class SelectionQurey(Dialog):
@@ -160,6 +161,8 @@ def voice_chooser(master,voice_obj:StringVar,speech_obj:IntVar,pitch_obj:IntVar)
         pitchrate=init_pitch
         )
     dialog_window.show()
+    # 上传报文：NOTE: 为了操作的便捷性，这个位置先不考虑上传报文的事情。
+    # preference.post_usage()
     # 获取结果
     result_args = dialog_window.result
     if result_args:

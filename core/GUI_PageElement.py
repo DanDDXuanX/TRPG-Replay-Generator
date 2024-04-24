@@ -153,6 +153,7 @@ class OutPutCommand(ttk.Frame):
             # 重置
             pygame.init()
             pygame.font.init()
+            pygame.mixer.init()
             Link['pipeline'] = None
             Link['terminal_control'].configure(state='disable')
             self.winfo_toplevel().navigate_bar.enable_navigate()
@@ -190,6 +191,8 @@ class OutPutCommand(ttk.Frame):
             Link['terminal_control'].configure(state='normal')
             # 执行
             exit_status = Link['pipeline'].main()
+            # 上传用量报文
+            preference.post_usage()
             # 返回
             self.after(500,self.return_project)
         except Exception as E:
@@ -229,6 +232,7 @@ class OutPutCommand(ttk.Frame):
             # 重置
             pygame.init()
             pygame.font.init()
+            pygame.mixer.init()
             Link['pipeline'] = None
             Link['terminal_control'].configure(state='disable')
             self.winfo_toplevel().navigate_bar.enable_navigate()
@@ -269,6 +273,7 @@ class OutPutCommand(ttk.Frame):
             # 重置
             pygame.init()
             pygame.font.init()
+            pygame.mixer.init()
             MediaObj.export_xml = False
             Link['pipeline'] = None
             Link['terminal_control'].configure(state='disable')
