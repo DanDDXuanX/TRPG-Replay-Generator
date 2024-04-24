@@ -110,6 +110,7 @@ class FreePos(Pos):
         else: # 设置的不是一个合理的类型
             raise Exception('Unsuppoeted type to set!')
 class PosGrid:
+    pygame.font.init()
     def __init__(self,pos,end,x_step,y_step):
         x1,y1 = pos
         x2,y2 = end
@@ -119,6 +120,9 @@ class PosGrid:
             self.pos = pos
             self.end = end
         self._size = [x_step,y_step]
+        # 标记字体
+        self.markertext = pygame.font.Font('./assets/SourceHanSansCN-Regular.otf',20)
+        # 开始生成网格
         self.make_grid()
     def __getitem__(self,key)->Pos:
         return self._grid[key[0],key[1]]
@@ -146,6 +150,13 @@ class PosGrid:
                 py = pos_this.y
                 line(surface, color='#00aa00',start_pos=(px-20,py),end_pos=(px+20,py),width=3)
                 line(surface, color='#00aa00',start_pos=(px,py-20),end_pos=(px,py+20),width=3)
+                # 每一个点都标记
+                surface.blit(self.markertext.render(f"[{i},{j}]",True,'#00aa00'), (px+5,py-35))
+                # 只标记行和列
+                # if i == 0:
+                #     surface.blit(self.markertext.render(str(j),True,'#00aa00'), (px+10,py-50))
+                # elif j == 0:
+                #     surface.blit(self.markertext.render(str(i),True,'#00aa00'), (px+10,py-50))
     def convert(self):
         pass
     def get_pos(self):

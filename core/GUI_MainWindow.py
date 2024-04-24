@@ -5,6 +5,7 @@
 
 import os
 import sys
+import pygame
 import tkinter as tk
 import ttkbootstrap as ttk
 import webbrowser
@@ -251,6 +252,12 @@ class RplGenStudioMainWindow(ttk.Window):
         self.dump_recent_project()
         # 关闭当前窗口
         self.destroy()
+        # 按理说是要做的，但是很明显现在这个地方存在问题
+        # 具体来说，pygame.quit这一步，似乎会导致进程终止
+        # 感觉可能的原因是，我在非主要线程做了pygame.init
+        print('pygame.quit()')
+        pygame.quit()
+        print('pygame.quit() done')
     # 当导航栏被点击时
     def navigateBar_get_click(self,event):
         is_wide = not self.navigate_bar.is_wide
