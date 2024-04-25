@@ -229,6 +229,8 @@ class Translate:
             '帮助': 'Help',
             '示例剧本': 'Example_Script',
             '导入模板素材': 'Import Template Media',
+            '非法的图层名：{} ！': 'Invalid layer name: {}!',
+            '缺失图层：{} ！' : 'Missing layers: {}!'
         }
     }
     lang = 'zh'

@@ -165,8 +165,18 @@ class CreateEmptyProject(CreateProject):
             Messagebox().show_error(title=tr('错误'),message=tr('必须要选择一个文件夹用于保存项目文件！'),parent=self)
             return False
         # 检查合法性
-        if W<0 or H<0 or F<0:
+        if W<=0 or H<=0 or F<=0 or W%2==1 or H%2==1:
             Messagebox().show_error(title=tr('错误'),message=tr('分辨率或帧率是非法的数值！'),parent=self)
+            return False
+        all_layer = ['BG1','BG2','Am1','Am2','Am3','AmS','Bb','BbS']
+        for layer in Z:
+            if layer in all_layer:
+                all_layer.remove(layer)
+            else:
+                Messagebox().show_error(title=tr('错误'),message=tr('非法的图层名：{} ！').format(layer),parent=self)
+                return False
+        if all_layer:
+            Messagebox().show_error(title=tr('错误'),message=tr('缺失图层：{} ！').format(','.join(all_layer)),parent=self)
             return False
         for symbol in ['/','\\',':','*','?','"','<','>','|']:
             if symbol in file_name:
@@ -608,8 +618,18 @@ class ConfigureProject(CreateEmptyProject):
         file_name = self.elements['proj_name'].get()
         cover_path = self.elements['proj_cover'].get()
         # 检查合法性
-        if W<0 or H<0 or F<0:
+        if W<=0 or H<=0 or F<=0 or W%2==1 or H%2==1:
             Messagebox().show_warning(title=tr('警告'),message=tr('分辨率或帧率是非法的数值！'),parent=self)
+            return False
+        all_layer = ['BG1','BG2','Am1','Am2','Am3','AmS','Bb','BbS']
+        for layer in Z:
+            if layer in all_layer:
+                all_layer.remove(layer)
+            else:
+                Messagebox().show_warning(title=tr('警告'),message=tr('非法的图层名：{} ！').format(layer),parent=self)
+                return False
+        if all_layer:
+            Messagebox().show_warning(title=tr('警告'),message=tr('缺失图层：{} ！').format(','.join(all_layer)),parent=self)
             return False
         for symbol in ['/','\\',':','*','?','"','<','>','|']:
             if symbol in file_name:
