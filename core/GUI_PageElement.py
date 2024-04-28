@@ -117,27 +117,48 @@ class OutPutCommand(ttk.Frame):
             # TODO：临时禁用
             item.configure(state='disable')
             item.pack(fill='both',side='left',expand=True,pady=0)
+    def queue_listing(self,std_queue):
+        # 开始监听
+        recode = ''
+        while True:
+            msg = std_queue.get()
+            if msg[:17] == '[MultiProcessEnd]':
+                # 子进程终止
+                exit_status = int(msg.split(':')[-1])
+                return exit_status
+            if msg == '\r' or msg == '\n':
+                print(recode, end=msg)
+                recode = ''
+            else:
+                recode += msg
     def preview_display(self):
         exit_status = 3
         try:
             medef = self.page.ref_medef.copy()
             chartab = self.page.ref_chartab.copy()
             rplgenlog = self.page.content.copy()
+            std_queue = multiprocessing.Queue()
             Link['pipeline'] = multiprocessing.Process(
                 target=run_core,
                 args=(
                     'PreviewDisplay',
+                    std_queue,
                     medef,
                     chartab,
                     rplgenlog,
                     Link['project_config'],
+                    preference,
+                    Link['media_dir'],
+                    None,
+                    self.page.page_name
                 )
             )
             # 启用终止按钮
             Link['terminal_control'].configure(state='normal')
             # 执行
             Link['pipeline'].start()
-            Link['pipeline'].join()
+            # 开始监听
+            exit_status = self.queue_listing(std_queue)
             # 返回
             self.after(500,self.return_project)
         except Exception as E:
@@ -203,16 +224,31 @@ class OutPutCommand(ttk.Frame):
             # 载入
             timestamp = readable_timestamp()
             # 初始化
-            Link['pipeline'] = ExportVideo(
-                rplgenlog   = self.rplgenlog,
-                config      = self.pconfig,
-                output_path = Link['media_dir'],
-                key         = f"{self.name}_{timestamp}"
+            medef = self.page.ref_medef.copy()
+            chartab = self.page.ref_chartab.copy()
+            rplgenlog = self.page.content.copy()
+            std_queue = multiprocessing.Queue()
+            Link['pipeline'] = multiprocessing.Process(
+                target=run_core,
+                args=(
+                    'ExportVideo',
+                    std_queue,
+                    medef,
+                    chartab,
+                    rplgenlog,
+                    Link['project_config'],
+                    preference,
+                    Link['media_dir'],
+                    Link['media_dir'],
+                    f"{self.name}_{timestamp}"
+                )
             )
             # 启用终止按钮
             Link['terminal_control'].configure(state='normal')
             # 执行
-            exit_status = Link['pipeline'].main()
+            Link['pipeline'].start()
+            # 开始监听
+            exit_status = self.queue_listing(std_queue)
             # 返回
             self.after(500,self.return_project)
         except Exception as E:
@@ -235,22 +271,32 @@ class OutPutCommand(ttk.Frame):
         try:
             # 调整全局变量
             timestamp = readable_timestamp()
-            MediaObj.export_xml = True
-            MediaObj.output_path = Link['media_dir'] + f"{self.name}_{timestamp}/"
-            # 检查输出路径是否存在（大多是时候都是不存在的）
-            if not os.path.isdir(MediaObj.output_path):
-                os.makedirs(MediaObj.output_path)
             # 初始化
-            Link['pipeline'] = ExportXML(
-                rplgenlog   = self.rplgenlog,
-                config      = self.pconfig,
-                output_path = Link['media_dir'],
-                key         = f"{self.name}_{timestamp}"
+            medef = self.page.ref_medef.copy()
+            chartab = self.page.ref_chartab.copy()
+            rplgenlog = self.page.content.copy()
+            std_queue = multiprocessing.Queue()
+            Link['pipeline'] = multiprocessing.Process(
+                target=run_core,
+                args=(
+                    'ExportXML',
+                    std_queue,
+                    medef,
+                    chartab,
+                    rplgenlog,
+                    Link['project_config'],
+                    preference,
+                    Link['media_dir'],
+                    Link['media_dir'],
+                    f"{self.name}_{timestamp}"
+                )
             )
             # 启用终止按钮
             Link['terminal_control'].configure(state='normal')
             # 执行
-            exit_status = Link['pipeline'].main()
+            Link['pipeline'].start()
+            # 开始监听
+            exit_status = self.queue_listing(std_queue)
             # 返回
             self.after(500,self.return_project)
         except Exception as E:
@@ -259,7 +305,7 @@ class OutPutCommand(ttk.Frame):
             # 重置
             # pygame.init()
             # pygame.font.init()
-            MediaObj.export_xml = False
+            # MediaObj.export_xml = False
             Link['pipeline'] = None
             Link['terminal_control'].configure(state='disable')
             self.winfo_toplevel().navigate_bar.enable_navigate()

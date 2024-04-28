@@ -4,28 +4,50 @@
 # 尝试多进程的实现
 
 from .ScriptParser import MediaDef,CharTable,RplGenLog
-from .ProjConfig import Config
-from .OutputType import PreviewDisplay
+from .ProjConfig import Config, Preference
+from .OutputType import PreviewDisplay,ExportVideo,ExportXML
 
-from traceback import print_exc
+from multiprocessing import Queue
+import sys
 
+# 重定向，标准输出到Queue
+class StdoutQueue:
+    def __init__(self,queue:Queue) -> None:
+        self.queue = queue
+    def write(self, string):
+        # 检查string到底有没有东西
+        if string == '':
+            return
+        else:
+            self.queue.put(string)
+    def flush(self):
+        pass
+
+# 多进程：执行核心功能
 def run_core(
-        Type:str,mediadef:MediaDef,chartab:CharTable,rplgenlog:RplGenLog,config:Config, # 常规参数
-        preference, # 首选项
-        MediaPath, # 媒体路径
+        Type:str,std_queue:Queue,mediadef:MediaDef,chartab:CharTable,rplgenlog:RplGenLog,config:Config, # 常规参数
+        prefer:Preference, # 首选项
+        media_path:str, # 媒体路径
         output_path:str=None,key:str=None
         ):
     "在多进程中调用核心程序的接口"
-    # 需要做的第一件事情：同步全局变量 
-    # TODO：思考更加优雅的解决办法
-    # 1. 减少全局变量的使用，让位于独立线程的核心程序能独立的活动
-    # 2. 也就是，尽量把所有从主程序拿来的内容，都以本函数的参数的形式送入
+    # 重定向
+    sys.stdout = StdoutQueue(std_queue)
+    # 执行主程序
     try:
         if Type == 'PreviewDisplay':
-            core = PreviewDisplay(mediadef,chartab,rplgenlog,config)
-            core.main()
+            core = PreviewDisplay(mediadef,chartab,rplgenlog,config,prefer,media_path,title=key)
+            status = core.main()
+        elif Type == 'ExportVideo':
+            core = ExportVideo(mediadef,chartab,rplgenlog,config,prefer,media_path,output_path,key)
+            status = core.main()
+        elif Type == 'ExportXML':
+            core = ExportXML(mediadef,chartab,rplgenlog,config,prefer,media_path,output_path,key)
+            status = core.main()
         else:
             pass
     except Exception as E:
-        print_exc()
+        status = 1 # 异常
         print(E)
+    # 队列输出，结束的标志
+    std_queue.put(f'[MultiProcessEnd]:{status}')
