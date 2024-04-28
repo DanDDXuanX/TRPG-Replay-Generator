@@ -129,6 +129,8 @@ class MediaObj:
 # 文字对象
 class Text(MediaObj):
     pygame.font.init()
+    SymbolAvoidStart = [',','.','?','!','，','。','？','！','、']
+    SymbolAvoidEnd = ['<','(','[','《','（','【','“']
     def __init__(self,fontfile:str='./assets/SourceHanSansCN-Regular.otf',fontsize:int=40,color:tuple=(0,0,0,255),line_limit:int=20,label_color:str='Lavender'):
         super().__init__(filepath=fontfile,label_color=label_color)
         self.text_render = pygame.font.Font(self.filepath.exact(),fontsize)
@@ -150,18 +152,38 @@ class Text(MediaObj):
         out_text = []
         if text == '':
             return []
+        # 换行标准
         if ('#' in text) | (text[0]=='^'): #如果有手动指定的换行符 # bug:如果手动换行，但是第一个#在30字以外，异常的显示
             if text[0]=='^': # 如果使用^指定的手动换行，则先去掉这个字符。
                 text = text[1:]
             text_line = text.split('#')
-            for tx in text_line:
-                out_text.append(self.render(tx))
         elif len(text) > self.line_limit: #如果既没有主动指定，字符长度也超限
-            ceil_div = lambda x,y: -(-x//y)
-            for i in range(0,ceil_div(len(text),self.line_limit)):#较为简单粗暴的自动换行
-                out_text.append(self.render(text[i*self.line_limit:(i+1)*self.line_limit]))
+            text_line = []
+            rest_text = text
+            # ceil_div = lambda x,y: -(-x//y)
+            while rest_text:
+                if rest_text[0] in self.SymbolAvoidStart:
+                    if text_line:
+                        # 将首个字母移动到上一句的末尾
+                        text_line[-1] += rest_text[0]
+                        rest_text = rest_text[1:]
+                    else:
+                        pass
+                this_line = rest_text[:self.line_limit]
+                if this_line:
+                    if this_line[-1] in self.SymbolAvoidEnd:
+                        # 将末字母，移动到剩余字符
+                        this_line = this_line[:-1]
+                        rest_text = rest_text[self.line_limit-1:]
+                    else:
+                        rest_text = rest_text[self.line_limit:]
+                    text_line.append(this_line)
+                else:
+                    pass
         else:
-            out_text = [self.render(text)]
+            text_line = [text]
+        for tx in text_line:
+            out_text.append(self.render(tx))
         return out_text
     # 预览
     def preview(self, surface:pygame.Surface):
