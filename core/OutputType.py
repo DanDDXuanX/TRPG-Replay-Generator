@@ -14,10 +14,11 @@ from datetime import datetime
 import pygame.freetype
 
 from .ScriptParser import RplGenLog, MediaDef, CharTable
-from .ProjConfig import Config, preference
+from .ProjConfig import Config, Preference
 
 from .Exceptions import RenderError, MediaError
 from .Exceptions import WarningPrint, MainPrint, VideoPrint, PrxmlPrint
+from .FilePaths import Filepath
 from .Medias import BGM, Audio, MediaObj
 from .Regexs import RE_label
 from .Utils import EDITION, zoom_surface, PUBLICATION
@@ -27,16 +28,18 @@ from .Utils import EDITION, zoom_surface, PUBLICATION
 # 输出媒体的基类
 class OutputMediaType:
     # 初始化模块功能，载入外部参数
-    def __init__(self,rplgenlog:RplGenLog,config:Config,output_path:str=None,key:str=None):
-        # 载入项目
-        self.rplgenlog:RplGenLog = rplgenlog
-        self.timeline:pd.DataFrame = rplgenlog.main_timeline
-        self.breakpoint:pd.Series  = rplgenlog.break_point
-        self.medias:dict           = rplgenlog.medias
-        self.config:Config         = config
+    def __init__(self,mediadef:MediaDef,chartab:CharTable,rplgenlog:RplGenLog,prefer:Preference,config:Config,media_path:str,output_path:str=None,key:str=None):
         # 是否终止
         self.is_terminated = False
-        # 全局变量
+        # 载入脚本
+        self.rplgenlog:RplGenLog = rplgenlog
+        self.mediadef:MediaDef = mediadef
+        self.chartab:CharTable = chartab
+        # 载入项目配置
+        self.config:Config         = config
+        self.prefer:Preference = prefer
+        self.media_path = media_path
+        # 输出参数
         if output_path:
             self.output_path:str = output_path
         else:
@@ -45,10 +48,27 @@ class OutputMediaType:
             self.stdout_name:str  = key
         else:
             self.stdout_name:str  = '%d'%time.time()
+        # 执行脚本初始化
+        self.initialize_input()
+    def initialize_input(self):
+        # 初始化配置项
+        self.config.execute()
+        self.prefer.execute()
+        Filepath.Mediapath = self.media_path
+        # 初始化媒体
+        self.mediadef.execute()
+        # 初始化角色表
+        self.chartab.execute()
+        # 初始化log文件
+        self.rplgenlog.execute(media_define=self.mediadef,char_table=self.chartab,config=self.config)
+        # 获取时间轴对象
+        self.timeline:pd.DataFrame = self.rplgenlog.main_timeline
+        self.breakpoint:pd.Series  = self.rplgenlog.break_point
+        self.medias:dict           = self.rplgenlog.medias
     # 从timeline渲染一个单帧到一个Surface
     def render(self,surface:pygame.Surface,this_frame:pd.Series):
         # 开始之前，先把目标surface涂黑
-        if preference.alphaexp:
+        if self.prefer.alphaexp:
             surface.fill((0,0,0,0))
         else:
             surface.fill((0,0,0))
@@ -282,9 +302,9 @@ class OutputMediaType:
         self.is_terminated = True
 # 以前台预览的形式播放
 class PreviewDisplay(OutputMediaType):
-    def __init__(self, rplgenlog: RplGenLog, config: Config, title:str=''):
-        super().__init__(rplgenlog, config)
+    def __init__(self, mediadef:MediaDef,chartab:CharTable,rplgenlog:RplGenLog,config:Config,prefer:Preference,media_path, title:str=''):
         self.title = title
+        super().__init__(mediadef=mediadef,chartab=chartab,rplgenlog=rplgenlog,config=config,prefer=prefer,media_path=media_path)
         # self.main()
     # 重载render，继承显示画面的同时，播放声音
     def render(self, surface: pygame.Surface, this_frame: pd.Series):
@@ -357,7 +377,7 @@ class PreviewDisplay(OutputMediaType):
                 if section_width < 1:
                     section_width = 1
                 # 进度条的颜色
-                if preference.progress_bar_style == 'color':
+                if self.prefer.progress_bar_style == 'color':
                     # 小节颜色：尝试获取立绘Am1、气泡Bb、背景BG2 的colorlabel
                     section_first_frame:pd.Series = self.timeline.loc[self.breakpoint[key-1]]
                     for layer in ['Am1','Am2','Am3','Bb','BG2']:
@@ -383,7 +403,7 @@ class PreviewDisplay(OutputMediaType):
                         rect=(section_pos_x,2,section_width,self.config.Height//60),
                         width=1
                         )
-                elif preference.progress_bar_style == 'black':
+                elif self.prefer.progress_bar_style == 'black':
                     # 渲染
                     pygame.draw.rect(
                         surface=progress_bar_surface,
@@ -405,7 +425,7 @@ class PreviewDisplay(OutputMediaType):
         unit = self.config.Height//60
         triangular_surface = pygame.Surface((unit,unit*2),pygame.SRCALPHA)
         triangular_surface.fill((0,0,0,0))
-        if preference.progress_bar_style in ['color','black']:
+        if self.prefer.progress_bar_style in ['color','black']:
             pygame.draw.circle(
                 surface=triangular_surface,
                 color=(255,255,255,255),
@@ -499,20 +519,20 @@ class PreviewDisplay(OutputMediaType):
     def welcome(self) -> int:
         size = {
             'main':36,
-            'head':{'zh':64,'en':50}[preference.lang],
-            'space':{'zh':48,'en':36}[preference.lang],
+            'head':{'zh':64,'en':50}[self.prefer.lang],
+            'space':{'zh':48,'en':36}[self.prefer.lang],
         }
         rect = {
             'square':(40,40,1000,1000),
             'square_shade':(50,50,1000,1000),
-            'space': ({'zh':-400,'en':-480}[preference.lang],-112,{'zh':360,'en':440}[preference.lang],72),
+            'space': ({'zh':-400,'en':-480}[self.prefer.lang],-112,{'zh':360,'en':440}[self.prefer.lang],72),
             'dialog': (-840,40,0,72),
             'h1' : (990,60,30,5),
             'h2' : (990,1015,30,5),
             'v1' : (1015,990,5,30),
             'v2' : (1015,60,5,30),
             'k1' : (57,0,10,80),
-            'k2' : (77,0,{'zh':175,'en':320}[preference.lang],80),
+            'k2' : (77,0,{'zh':175,'en':320}[self.prefer.lang],80),
             'k3' : (80,150,900,2),
         }
         head = {
@@ -576,13 +596,13 @@ class PreviewDisplay(OutputMediaType):
                     ]
                 }
             }
-        }[preference.lang]
+        }[self.prefer.lang]
         press_space = {
             'zh' : '按空格键开始',
             'en' : 'Press Space to Start'
-        }[preference.lang]
+        }[self.prefer.lang]
         # 获取tip
-        tip_list = json.load(open('./assets/Tips.json','r',encoding='utf-8'))[preference.lang]
+        tip_list = json.load(open('./assets/Tips.json','r',encoding='utf-8'))[self.prefer.lang]
         #tip_list = open('./assets/Tips.json','r',encoding='utf-8').read().split('\n')
         def get_tips()->pygame.Surface:
             text = np.random.choice(tip_list)
@@ -622,7 +642,7 @@ class PreviewDisplay(OutputMediaType):
         # 显示环形
         main_canvas.blit(circle_canvas,(0,0))
         # 主题
-        if preference.theme == 'rplgenlight':
+        if self.prefer.theme == 'rplgenlight':
             color = {
                 'text_mg'       : '#808080',
                 'text_fg'       : '#333333',
@@ -805,7 +825,7 @@ class PreviewDisplay(OutputMediaType):
         resize_screen = 0 # 是否要强制缩小整个演示窗体
         # 进度条
         progress_bar,triangular = self.progress_bar()
-        show_progress_bar = preference.progress_bar_style in ['black','color']
+        show_progress_bar = self.prefer.progress_bar_style in ['black','color']
         # self.screen.blit(progress_bar,(0,self.config.Height-self.config.Height//30))
         # 主循环
         while n < timeline_len:
@@ -910,7 +930,7 @@ class PreviewDisplay(OutputMediaType):
                     text_space = {
                         'zh' : '按空格键继续',
                         'en' : 'Press space to continue'
-                    }[preference.lang]
+                    }[self.prefer.lang]
                     space_continue = self.note_text.render(text_space,fgcolor=MediaObj.cmap['notetext'],size=0.0278*self.config.Height)[0]
                     self.annot.blit(space_continue,((self.config.Width-space_continue.get_width())//2,0.926*self.config.Height)) # pause
                 # 显示详情模式
@@ -926,7 +946,7 @@ class PreviewDisplay(OutputMediaType):
                     self.annot.blit(self.note_text.render(detail_info[8].format(this_frame['BbS'],this_frame['BbS_header'],this_frame['BbS_main']),fgcolor=MediaObj.cmap['notetext'],size=0.0185*self.config.Height)[0],(10,10+0.2666*self.config.Height))
                 # 仅显示帧率
                 else:
-                    if preference.framerate_counter:
+                    if self.prefer.framerate_counter:
                         self.annot.blit(self.note_text.render(str(et),fgcolor=MediaObj.cmap['notetext'],size=0.0278*self.config.Height)[0],(10,10))
                 # 显示到屏幕
                 if resize_screen == 1:
@@ -968,8 +988,8 @@ class PreviewDisplay(OutputMediaType):
 # 导出为MP4视频
 class ExportVideo(OutputMediaType):
     # 初始化模块功能，载入外部参数
-    def __init__(self, rplgenlog: RplGenLog, config: Config, output_path, key):
-        super().__init__(rplgenlog, config, output_path, key)
+    def __init__(self, mediadef:MediaDef,chartab:CharTable,rplgenlog:RplGenLog,config:Config, prefer:Preference,media_path, output_path, key):
+        super().__init__(mediadef=mediadef,chartab=chartab,rplgenlog=rplgenlog,config=config,prefer=prefer,media_path=media_path,output_path=output_path,key=key)
         # self.main()
     # 从timeline生成音频文件，返回成功状态：0：正常，1：异常，2：终止
     def bulid_audio(self) -> int:
@@ -1037,7 +1057,7 @@ class ExportVideo(OutputMediaType):
         # 初始化pygame，建立一个不显示的主画面（但不使用）
         pygame.init()
         hidden_screen = pygame.display.set_mode((self.config.Width,self.config.Height),pygame.HIDDEN)
-        if preference.alphaexp:
+        if self.prefer.alphaexp:
             self.screen = pygame.Surface((self.config.Width,self.config.Height),pygame.SRCALPHA)
         else:
             self.screen = hidden_screen
@@ -1051,7 +1071,7 @@ class ExportVideo(OutputMediaType):
             audio_path=self.audio_path,
             mode='RGB'
         )
-        if preference.alphaexp:
+        if self.prefer.alphaexp:
             self.alpha_path = f'{self.output_path}{self.stdout_name}.alpha.mp4'
             self.output_engine['A'] = self.ffmpeg_output(
                 video_path=self.alpha_path,
@@ -1072,13 +1092,13 @@ class ExportVideo(OutputMediaType):
                     this_frame = self.timeline.loc[n]
                     self.render(self.screen,this_frame)
                     obyte = pygame.image.tostring(self.screen,'RGB')
-                    if preference.alphaexp:
+                    if self.prefer.alphaexp:
                         abyte = pygame.surfarray.pixels_alpha(self.screen).transpose().tobytes()
                 else:
                     pass # 节约算力
                 # 写入视频
                 self.output_engine['RGB'].stdin.write(obyte)
-                if preference.alphaexp:
+                if self.prefer.alphaexp:
                     self.output_engine['A'].stdin.write(abyte)
                 n = n + 1 #下一帧
             except Exception as E:
@@ -1119,7 +1139,7 @@ class ExportVideo(OutputMediaType):
         elif mode=='A':
             i_format = 'gray'
         # 硬件加速
-        if preference.hwaccels:
+        if self.prefer.hwaccels:
             options = {'c:v':'h264_nvenc'}
         else:
             options = {}
@@ -1139,7 +1159,7 @@ class ExportVideo(OutputMediaType):
                     video_path,
                     pix_fmt = o_format,
                     r       = self.config.frame_rate,
-                    crf     = preference.crf,
+                    crf     = self.prefer.crf,
                     loglevel= 'quiet',
                     **options
                     ) # 输出
@@ -1160,7 +1180,7 @@ class ExportVideo(OutputMediaType):
                     video_path,
                     pix_fmt = o_format,
                     r       = self.config.frame_rate,
-                    crf     = preference.crf,
+                    crf     = self.prefer.crf,
                     loglevel= 'quiet',
                     **options
                     ) # 输出
@@ -1195,13 +1215,18 @@ class ExportVideo(OutputMediaType):
 # 导出PR项目
 class ExportXML(OutputMediaType):
     # 初始化模块功能，载入外部参数
-    def __init__(self, rplgenlog:RplGenLog, config:Config, output_path, key):
-        super().__init__(rplgenlog, config, output_path, key)
+    def __init__(self, mediadef:MediaDef,chartab:CharTable,rplgenlog:RplGenLog,config:Config, prefer:Preference,media_path, output_path, key):
+        MediaObj.export_xml = True
+        MediaObj.output_path = media_path + key + '/'
+        # 检查输出路径是否存在（大多是时候都是不存在的）
+        if not os.path.isdir(MediaObj.output_path):
+            os.makedirs(MediaObj.output_path)
+        super().__init__(mediadef=mediadef,chartab=chartab,rplgenlog=rplgenlog,config=config,prefer=prefer,media_path=media_path,output_path=output_path,key=key)
         # 全局变量
         self.Is_NTSC:bool    = False
         self.Audio_type:str  = 'Stereo'
         # 是否强制切割序列
-        self.force_split_clip:bool = preference.force_split_clip
+        self.force_split_clip:bool = self.prefer.force_split_clip
         # 开始执行主程序
         # self.main()
     # 构建序列：成功0，异常1，终止2
@@ -1368,7 +1393,7 @@ class ExportXML(OutputMediaType):
         ofile.close()
         print(PrxmlPrint('Done',f'{self.output_path}{self.stdout_name}.prproj.xml'))
         # 导出SRT字幕
-        if preference.export_srt:
+        if self.prefer.export_srt:
             flag = self.bulid_srt()
             if flag != 0:
                 return flag
