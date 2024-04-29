@@ -249,6 +249,10 @@ class RplGenStudioMainWindow(ttk.Window):
         preference.post_usage()
         # 记录最近项目
         self.dump_recent_project()
+        # 如果有子进程，终止子进程
+        if 'pipeline' in Link:
+            if Link['pipeline']:
+                Link['pipeline'].terminate()
         # 关闭当前窗口
         self.destroy()
     # 当导航栏被点击时

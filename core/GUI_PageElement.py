@@ -17,7 +17,7 @@ from .GUI_TableStruct import NewElement
 from .GUI_Language import tr
 from .GUI_DialogWindow import browse_multi_file
 from .GUI_CustomDialog import selection_query
-from .RunCore import run_core
+from .RunCore import run_core, CoreProcess
 from .SpeechSynth import SpeechSynthesizer
 from .Medias import MediaObj
 from .Utils import extract_valid_variable_name
@@ -28,7 +28,6 @@ from .GUI_Util import FreeToolTip
 from .ProjConfig import preference
 from .Utils import readable_timestamp
 import multiprocessing
-
 
 # 搜索窗口
 class SearchBar(ttk.Frame):
@@ -99,13 +98,15 @@ class OutPutCommand(ttk.Frame):
                 0 : '正常',
                 1 : '异常',
                 2 : '终止',
-                3 : '初始化'
+                3 : '初始化',
+                4 : '杀死'
             },
             'en':{
                 0 : 'Normal',
                 1 : 'Error',
                 2 : 'Terminated',
-                3 : 'Initialize'
+                3 : 'Initialize',
+                4 : 'Killed'
             }
         }[preference.lang]
         # 线程
@@ -117,7 +118,7 @@ class OutPutCommand(ttk.Frame):
             # TODO：临时禁用
             item.configure(state='disable')
             item.pack(fill='both',side='left',expand=True,pady=0)
-    def queue_listing(self,std_queue):
+    def queue_listening(self,std_queue):
         # 开始监听
         recode = ''
         while True:
@@ -137,12 +138,14 @@ class OutPutCommand(ttk.Frame):
             medef = self.page.ref_medef.copy()
             chartab = self.page.ref_chartab.copy()
             rplgenlog = self.page.content.copy()
-            std_queue = multiprocessing.Queue()
-            Link['pipeline'] = multiprocessing.Process(
+            std_queue = multiprocessing.Queue() # 接受消息的队列
+            msg_queue = multiprocessing.Queue() # 发送消息的队列
+            Link['pipeline'] = CoreProcess(
                 target=run_core,
                 args=(
                     'PreviewDisplay',
                     std_queue,
+                    msg_queue,
                     medef,
                     chartab,
                     rplgenlog,
@@ -154,11 +157,12 @@ class OutPutCommand(ttk.Frame):
                 )
             )
             # 启用终止按钮
+            Link['pipeline'].bind_queue(std_queue,msg_queue)
             Link['terminal_control'].configure(state='normal')
             # 执行
             Link['pipeline'].start()
             # 开始监听
-            exit_status = self.queue_listing(std_queue)
+            exit_status = self.queue_listening(std_queue)
             # 返回
             self.after(500,self.return_project)
         except Exception as E:
@@ -227,12 +231,14 @@ class OutPutCommand(ttk.Frame):
             medef = self.page.ref_medef.copy()
             chartab = self.page.ref_chartab.copy()
             rplgenlog = self.page.content.copy()
-            std_queue = multiprocessing.Queue()
-            Link['pipeline'] = multiprocessing.Process(
+            std_queue = multiprocessing.Queue() # 接受消息的队列
+            msg_queue = multiprocessing.Queue() # 发送消息的队列
+            Link['pipeline'] = CoreProcess(
                 target=run_core,
                 args=(
                     'ExportVideo',
                     std_queue,
+                    msg_queue,
                     medef,
                     chartab,
                     rplgenlog,
@@ -248,7 +254,7 @@ class OutPutCommand(ttk.Frame):
             # 执行
             Link['pipeline'].start()
             # 开始监听
-            exit_status = self.queue_listing(std_queue)
+            exit_status = self.queue_listening(std_queue)
             # 返回
             self.after(500,self.return_project)
         except Exception as E:
@@ -275,12 +281,14 @@ class OutPutCommand(ttk.Frame):
             medef = self.page.ref_medef.copy()
             chartab = self.page.ref_chartab.copy()
             rplgenlog = self.page.content.copy()
-            std_queue = multiprocessing.Queue()
-            Link['pipeline'] = multiprocessing.Process(
+            std_queue = multiprocessing.Queue() # 接受消息的队列
+            msg_queue = multiprocessing.Queue() # 发送消息的队列
+            Link['pipeline'] = CoreProcess(
                 target=run_core,
                 args=(
                     'ExportXML',
                     std_queue,
+                    msg_queue,
                     medef,
                     chartab,
                     rplgenlog,
@@ -296,7 +304,7 @@ class OutPutCommand(ttk.Frame):
             # 执行
             Link['pipeline'].start()
             # 开始监听
-            exit_status = self.queue_listing(std_queue)
+            exit_status = self.queue_listening(std_queue)
             # 返回
             self.after(500,self.return_project)
         except Exception as E:
