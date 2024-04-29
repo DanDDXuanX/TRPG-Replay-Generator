@@ -174,6 +174,6 @@ class Terminal(ttk.Frame):
             # 消息
             ToastNotification(title='终止流程',message='已手动终止流程！',duration=3000).show_toast()
     def bind_stdout(self):
-        # sys.stdout = StdoutRedirector(text_widget=self.terminal._text,master=self)
+        sys.stdout = StdoutRedirector(text_widget=self.terminal._text,master=self)
         # 欢迎
         print(MainPrint('Welcome',EDITION))
