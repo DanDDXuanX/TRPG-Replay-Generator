@@ -250,6 +250,7 @@ class OutPutCommand(ttk.Frame):
                 )
             )
             # 启用终止按钮
+            Link['pipeline'].bind_queue(std_queue,msg_queue)
             Link['terminal_control'].configure(state='normal')
             # 执行
             Link['pipeline'].start()
@@ -300,6 +301,7 @@ class OutPutCommand(ttk.Frame):
                 )
             )
             # 启用终止按钮
+            Link['pipeline'].bind_queue(std_queue,msg_queue)
             Link['terminal_control'].configure(state='normal')
             # 执行
             Link['pipeline'].start()
