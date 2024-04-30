@@ -593,7 +593,7 @@ class NewElementCommand(ttk.Frame):
             else:
                 filetype = 'picture'
             # 开始建立
-            list_of_file = browse_multi_file(master=self.page,filetype=filetype,related=True)
+            list_of_file = browse_multi_file(master=self.page,filetype=filetype,related=True,convert=True)
             for filepath in list_of_file:
                 name = extract_valid_variable_name(Filepath(filepath,check_exist=False).prefix())
                 # 后端：新建对象
