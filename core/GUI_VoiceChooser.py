@@ -29,7 +29,12 @@ class VoiceArgs(ttk.Frame):
         # variables
         self.service = service
         self.voice_description = tr('(无)')
-        self.voice_lib = voice_lib[voice_lib.service==self.service]
+        # 重新排序voicelib
+        self.voice_lib = voice_lib[voice_lib.service==self.service].copy()
+        self.voice_lib['nature_sort'] = range(len(self.voice_lib))
+        self.voice_lib['lang_sort'] = self.voice_lib['primary_lang'].map(lambda x:1 if x == preference.lang else 2 if x=='multi' else 3)
+        self.voice_lib = self.voice_lib.sort_values(['lang_sort','nature_sort']) # 排序依据：语言顺序优先，自然顺序其次
+        # TTS_engine
         self.TTS = Aliyun_TTS_engine
         # 载入输入参数
         self.variables = {}
@@ -51,7 +56,7 @@ class VoiceArgs(ttk.Frame):
             'speechrate'    : ttk.Scale(self.frames['speechrate'],from_=-500,to=500,variable=self.variables['speechrate'],command=lambda _:self.get_scale_to_intvar(self.variables['speechrate'])),
             'pitchrate'     : ttk.Scale(self.frames['pitchrate'],from_=-500,to=500,variable=self.variables['pitchrate'],command=lambda _:self.get_scale_to_intvar(self.variables['pitchrate'])),
         }
-        self.inputs['voice'].update_dict(pd.Series(self.voice_lib.index, index=self.voice_lib['description']).to_dict())
+        self.inputs['voice'].update_dict(pd.Series(self.voice_lib.index, index=self.voice_lib['description_'+preference.lang]).to_dict())
         self.inputs['voice'].bind("<<ComboboxSelected>>",self.update_selected_voice,'+')
         # addition
         self.addition = {
@@ -83,13 +88,13 @@ class VoiceArgs(ttk.Frame):
             self.variables['voice'] = tk.StringVar(master=self, value='')
             self.variables['speechrate'] = tk.IntVar(master=self, value=0)
             self.variables['pitchrate'] = tk.IntVar(master=self, value=0)
-    def get_voice_info(self,colname='description')->str:
+    def get_voice_info(self,colname='description_zh')->str:
         if colname == 'voice':
             return self.variables['voice'].get()
         try:
             return self.voice_lib.loc[self.variables['voice'].get(),colname]
         except Exception:
-            return {'description':tr('(无)'),'style':'general','role':'Default'}[colname]
+            return {'description_zh':tr('(无)'),'description_en':tr('(无)'),'style':'general','role':'Default'}[colname]
     def update_selected_voice(self,event):
         # 更新介绍label
         self.addition['voice'].configure(text=self.get_voice_info('voice'))
@@ -306,7 +311,9 @@ class SystemVoiceArgs(VoiceArgs):
         df_of_voice = pd.DataFrame(columns=voice_lib.columns,index = range(L))
         df_of_voice['service'] = 'System'
         df_of_voice['Voice'] = list_of_voice
-        df_of_voice['description'] = list_of_voice
+        df_of_voice['description_zh'] = list_of_voice
+        df_of_voice['description_en'] = list_of_voice
+        df_of_voice['primary_lang'] = 'multi'
         df_of_voice['avaliable_volume'] = 100
         df_of_voice['style'] = 'general'
         df_of_voice['role'] = 'Default'
