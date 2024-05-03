@@ -111,13 +111,15 @@ class FileManager(ttk.Frame):
         self.title_pic = ttk.Label(master=self.project_title,borderwidth=0)
         self.load_cover()
         # 按钮
+        SZ_5 = int(self.sz * 5)
+        button_padding = [0,SZ_5,0,SZ_5]
         self.buttons = {
-            'save'      : ttk.Button(master=self.project_title,image='save'  ,command=self.save_file, cursor='hand2'),
-            'config'    : ttk.Button(master=self.project_title,image='config',command=self.proj_config, cursor='hand2'),
-            'template'    : ttk.Button(master=self.project_title,image='template',command=self.import_template, cursor='hand2'),
-            'import'    : ttk.Button(master=self.project_title,image='import',command=self.import_file, cursor='hand2'),
-            'export'    : ttk.Button(master=self.project_title,image='export',command=self.export_file, cursor='hand2'),
-            'close'     : ttk.Button(master=self.project_title,image='close',command=self.close_proj, cursor='hand2'),
+            'save'      : ttk.Button(master=self.project_title,image='save'  ,command=self.save_file, cursor='hand2',padding=button_padding),
+            'config'    : ttk.Button(master=self.project_title,image='config',command=self.proj_config, cursor='hand2',padding=button_padding),
+            'template'  : ttk.Button(master=self.project_title,image='template',command=self.import_template, cursor='hand2',padding=button_padding),
+            'import'    : ttk.Button(master=self.project_title,image='import',command=self.import_file, cursor='hand2',padding=button_padding),
+            'export'    : ttk.Button(master=self.project_title,image='export',command=self.export_file, cursor='hand2',padding=button_padding),
+            'close'     : ttk.Button(master=self.project_title,image='close',command=self.close_proj, cursor='hand2',padding=button_padding),
         }
         self.buttons_tooltip = {
             'save'      : ToolTip(widget=self.buttons['save']  ,text=tr('保存项目'),bootstyle='secondary-inverse'),
