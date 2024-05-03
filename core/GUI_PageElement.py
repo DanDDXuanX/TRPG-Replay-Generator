@@ -17,7 +17,7 @@ from .GUI_TableStruct import NewElement
 from .GUI_Language import tr
 from .GUI_DialogWindow import browse_multi_file
 from .GUI_CustomDialog import selection_query
-from .RunCore import run_core, CoreProcess
+from .OutputType import PreviewDisplay, ExportVideo, ExportXML
 from .SpeechSynth import SpeechSynthesizer
 from .Medias import MediaObj
 from .Utils import extract_valid_variable_name
@@ -27,7 +27,6 @@ from .GUI_Link import Link
 from .GUI_Util import FreeToolTip
 from .ProjConfig import preference
 from .Utils import readable_timestamp
-import multiprocessing
 
 # 搜索窗口
 class SearchBar(ttk.Frame):
@@ -98,15 +97,13 @@ class OutPutCommand(ttk.Frame):
                 0 : '正常',
                 1 : '异常',
                 2 : '终止',
-                3 : '初始化',
-                4 : '杀死'
+                3 : '初始化'
             },
             'en':{
                 0 : 'Normal',
                 1 : 'Error',
                 2 : 'Terminated',
-                3 : 'Initialize',
-                4 : 'Killed'
+                3 : 'Initialize'
             }
         }[preference.lang]
         # 线程
@@ -118,59 +115,45 @@ class OutPutCommand(ttk.Frame):
             # TODO：临时禁用
             item.configure(state='disable')
             item.pack(fill='both',side='left',expand=True,pady=0)
-    def queue_listening(self,std_queue):
-        # 开始监听
-        recode = ''
-        while True:
-            msg = std_queue.get()
-            if msg[:17] == '[MultiProcessEnd]':
-                # 子进程终止
-                exit_status = int(msg.split(':')[-1])
-                return exit_status
-            if msg == '\r' or msg == '\n':
-                print(recode, end=msg)
-                recode = ''
-            else:
-                recode += msg
+    def load_input(self):
+        # 项目配置
+        self.pconfig = Link['project_config']
+        # 脚本
+        self.medef = self.page.ref_medef.copy()
+        self.chartab = self.page.ref_chartab.copy()
+        self.rplgenlog = self.page.content.copy()
+        # 初始化配置项
+        self.pconfig.execute()
+        # 初始化媒体
+        self.medef.execute()
+        # 初始化角色表
+        self.chartab.execute()
+        # 初始化log文件
+        self.rplgenlog.execute(media_define=self.medef,char_table=self.chartab,config=self.pconfig)
     def preview_display(self):
         exit_status = 3
         try:
-            medef = self.page.ref_medef.copy()
-            chartab = self.page.ref_chartab.copy()
-            rplgenlog = self.page.content.copy()
-            std_queue = multiprocessing.Queue() # 接受消息的队列
-            msg_queue = multiprocessing.Queue() # 发送消息的队列
-            Link['pipeline'] = CoreProcess(
-                target=run_core,
-                args=(
-                    'PreviewDisplay',
-                    std_queue,
-                    msg_queue,
-                    medef,
-                    chartab,
-                    rplgenlog,
-                    Link['project_config'],
-                    preference,
-                    Link['media_dir'],
-                    None,
-                    self.page.page_name
-                )
+            # 载入
+            self.load_input()
+            # 初始化
+            Link['pipeline'] = PreviewDisplay(
+                rplgenlog   = self.rplgenlog,
+                config      = self.pconfig,
+                title       = self.page.page_name
             )
             # 启用终止按钮
-            Link['pipeline'].bind_queue(std_queue,msg_queue)
             Link['terminal_control'].configure(state='normal')
             # 执行
-            Link['pipeline'].start()
-            # 开始监听
-            exit_status = self.queue_listening(std_queue)
+            exit_status = Link['pipeline'].main()
             # 返回
             self.after(500,self.return_project)
         except Exception as E:
             print(E)
         finally:
             # 重置
-            # pygame.init()
-            # pygame.font.init()
+            pygame.init()
+            pygame.font.init()
+            pygame.mixer.init()
             Link['pipeline'] = None
             Link['terminal_control'].configure(state='disable')
             self.winfo_toplevel().navigate_bar.enable_navigate()
@@ -229,43 +212,27 @@ class OutPutCommand(ttk.Frame):
         try:
             # 载入
             timestamp = readable_timestamp()
+            self.load_input()
             # 初始化
-            medef = self.page.ref_medef.copy()
-            chartab = self.page.ref_chartab.copy()
-            rplgenlog = self.page.content.copy()
-            std_queue = multiprocessing.Queue() # 接受消息的队列
-            msg_queue = multiprocessing.Queue() # 发送消息的队列
-            Link['pipeline'] = CoreProcess(
-                target=run_core,
-                args=(
-                    'ExportVideo',
-                    std_queue,
-                    msg_queue,
-                    medef,
-                    chartab,
-                    rplgenlog,
-                    Link['project_config'],
-                    preference,
-                    Link['media_dir'],
-                    Link['media_dir'],
-                    f"{self.name}_{timestamp}"
-                )
+            Link['pipeline'] = ExportVideo(
+                rplgenlog   = self.rplgenlog,
+                config      = self.pconfig,
+                output_path = Link['media_dir'],
+                key         = f"{self.name}_{timestamp}"
             )
             # 启用终止按钮
-            Link['pipeline'].bind_queue(std_queue,msg_queue)
             Link['terminal_control'].configure(state='normal')
             # 执行
-            Link['pipeline'].start()
-            # 开始监听
-            exit_status = self.queue_listening(std_queue)
+            exit_status = Link['pipeline'].main()
             # 返回
             self.after(500,self.return_project)
         except Exception as E:
             print(E)
         finally:
             # 重置
-            # pygame.init()
-            # pygame.font.init()
+            pygame.init()
+            pygame.font.init()
+            pygame.mixer.init()
             Link['pipeline'] = None
             Link['terminal_control'].configure(state='disable')
             self.winfo_toplevel().navigate_bar.enable_navigate()
@@ -280,44 +247,34 @@ class OutPutCommand(ttk.Frame):
         try:
             # 调整全局变量
             timestamp = readable_timestamp()
+            MediaObj.export_xml = True
+            MediaObj.output_path = Link['media_dir'] + f"{self.name}_{timestamp}/"
+            # 检查输出路径是否存在（大多是时候都是不存在的）
+            if not os.path.isdir(MediaObj.output_path):
+                os.makedirs(MediaObj.output_path)
+            # 载入
+            self.load_input()
             # 初始化
-            medef = self.page.ref_medef.copy()
-            chartab = self.page.ref_chartab.copy()
-            rplgenlog = self.page.content.copy()
-            std_queue = multiprocessing.Queue() # 接受消息的队列
-            msg_queue = multiprocessing.Queue() # 发送消息的队列
-            Link['pipeline'] = CoreProcess(
-                target=run_core,
-                args=(
-                    'ExportXML',
-                    std_queue,
-                    msg_queue,
-                    medef,
-                    chartab,
-                    rplgenlog,
-                    Link['project_config'],
-                    preference,
-                    Link['media_dir'],
-                    Link['media_dir'],
-                    f"{self.name}_{timestamp}"
-                )
+            Link['pipeline'] = ExportXML(
+                rplgenlog   = self.rplgenlog,
+                config      = self.pconfig,
+                output_path = Link['media_dir'],
+                key         = f"{self.name}_{timestamp}"
             )
             # 启用终止按钮
-            Link['pipeline'].bind_queue(std_queue,msg_queue)
             Link['terminal_control'].configure(state='normal')
             # 执行
-            Link['pipeline'].start()
-            # 开始监听
-            exit_status = self.queue_listening(std_queue)
+            exit_status = Link['pipeline'].main()
             # 返回
             self.after(500,self.return_project)
         except Exception as E:
             print(E)
         finally:
             # 重置
-            # pygame.init()
-            # pygame.font.init()
-            # MediaObj.export_xml = False
+            pygame.init()
+            pygame.font.init()
+            pygame.mixer.init()
+            MediaObj.export_xml = False
             Link['pipeline'] = None
             Link['terminal_control'].configure(state='disable')
             self.winfo_toplevel().navigate_bar.enable_navigate()
