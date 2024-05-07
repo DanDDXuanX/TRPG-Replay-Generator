@@ -28,7 +28,7 @@ class TTS_engine:
     # 调用计数器
     counter = 0
     masked_symbol = []
-    def __init__(self,name='unnamed',voice = 'ailun',speech_rate=0,pitch_rate=0,aformat='wav'):
+    def __init__(self,name='unnamed',voice = 'ailun',speech_rate=0,pitch_rate=0,aformat='wav',balance:float=None):
         pass
     def start(self,text,ofile):
         pass
@@ -52,6 +52,12 @@ class TTS_engine:
         for symbol in self.masked_symbol:
             text = text.replace(symbol, '')
         return text
+    def volume_balance(self,ifile):
+        if self.balance == 0:
+            return
+        audio_original = pydub.AudioSegment.from_wav(file=ifile)
+        audio_balanced = audio_original + self.balance
+        audio_balanced.export(ifile, format="wav")
 # 阿里云的TTS引擎
 class Aliyun_TTS_engine(TTS_engine):
     # Keys
@@ -62,14 +68,18 @@ class Aliyun_TTS_engine(TTS_engine):
     URL="wss://nls-gateway.cn-shanghai.aliyuncs.com/ws/v1"
     # 音源表
     voice_list = voice_lib[voice_lib['service'] == 'Aliyun'].index
-    def __init__(self,name='unnamed',voice = 'ailun',speech_rate=0,pitch_rate=0,aformat='wav'):
+    def __init__(self,name='unnamed',voice = 'ailun',speech_rate=0,pitch_rate=0,aformat='wav',balance:float=None):
         self.ID = name
+        self.volume = 100
         self.voice = voice
         self.aformat = aformat
         self.speech_rate = speech_rate
         self.pitch_rate = pitch_rate
         # 音量值如果是np.int64的话，无法导入json
-        self.volume = int(voice_lib.loc[self.voice,'avaliable_volume'])
+        if balance is None:
+            self.balance = int(voice_lib.loc[self.voice,'avaliable_volume'])
+        else:
+            self.balance = balance
         self.synthesizer = nls.NlsSpeechSynthesizer(
                     url=Aliyun_TTS_engine.URL,
                     akid=Aliyun_TTS_engine.AKID, # BUG in aliyun nls SDK v1.0.0，ak和aks不再是这个类的初始化参数，将仅支持token
@@ -104,6 +114,7 @@ class Aliyun_TTS_engine(TTS_engine):
             # os.remove(ofile)
             raise SynthesisError('AliOther')
         else:
+            self.volume_balance(ifile=ofile)
             self.print_success(text=text,ofile=ofile)
     def on_close(self, *args):
         #print("on_close: args=>{}".format(args))
@@ -131,7 +142,7 @@ class Azure_TTS_engine(TTS_engine):
     output_format = {'mp3':23,# SpeechSynthesisOutputFormat.Audio48Khz192KBitRateMonoMp3
                      'wav':21}# SpeechSynthesisOutputFormat.Riff48Khz16BitMonoPcm
     # 类方法：裁剪音频前后的空白
-    def silence_slicer(ifile):
+    def silence_slicer(self,ifile):
         input_au = pydub.AudioSegment.from_wav(ifile)
         # 将音频转化为array，并取绝对值
         input_au_array = np.abs(np.asarray(input_au.get_array_of_samples()))
@@ -159,19 +170,20 @@ class Azure_TTS_engine(TTS_engine):
         #   first^    last^
         # 3*windows   (99+1)*windows
         sliced = input_au.get_sample_slice(start_sample=first_true_index*windows,end_sample=(last_true_index+1)*windows)
+        sliced = sliced + self.balance # 平衡音量
         # 覆盖文件
-        if sliced.frame_count() < input_au.frame_count():
-            try:
-                sliced.export(ifile,format='wav')
-                return sliced.frame_count()
-            except Exception as E:
-                print(WarningPrint('BadClip',ifile,E))
-                return -1
+        try:
+            sliced.export(ifile,format='wav')
+            return sliced.frame_count()
+        except Exception as E:
+            print(WarningPrint('BadClip',ifile,E))
+            return -1
     def ssml_symbol_rpl(text): # SSML的转义字符
         return text.replace('&','&amp;').replace('<','&lt;').replace('>','&gt;').replace("'",'&apos;')
     # 初始化
-    def __init__(self,name='unnamed',voice = 'zh-CN-XiaomoNeural:general:1:Default',speech_rate=0,pitch_rate=0,aformat='wav'):
+    def __init__(self,name='unnamed',voice = 'zh-CN-XiaomoNeural:general:1:Default',speech_rate=0,pitch_rate=0,aformat='wav',balance:float=None):
         self.ID = name
+        self.volume = 100
         self.aformat = Azure_TTS_engine.output_format[aformat]
         # 500 - 2; -500 - 0.5
         self.speech_rate = str(speech_rate//5)+'%'
@@ -188,10 +200,13 @@ class Azure_TTS_engine(TTS_engine):
             self.style = 'general'
             self.degree = '1'
             self.role = 'Default'
-        if self.voice in Azure_TTS_engine.voice_list: # 如果是表内提供的音源名
-            self.volume = voice_lib.loc[self.voice,'avaliable_volume']
+        if balance is None:
+            if self.voice in Azure_TTS_engine.voice_list: # 如果是表内提供的音源名
+                self.balance = voice_lib.loc[self.voice,'avaliable_volume']
+            else:
+                self.balance = 0 # 音量的默认值
         else:
-            self.volume = 100 # 音量的默认值
+            self.balance = balance
         self.ssml = Azure_TTS_engine.SSML_tplt.format(lang='zh-CN',voice_name=self.voice,
                                      style=self.style,degree=self.degree,role=self.role,
                                      pitch=self.pitch_rate,rate=self.speech_rate,volume=self.volume,
@@ -209,8 +224,8 @@ class Azure_TTS_engine(TTS_engine):
         speech_synthesis_result = synthesizer.speak_ssml_async(self.ssml.format(text=Azure_TTS_engine.ssml_symbol_rpl(text))).get()
         # 检查结果
         if speech_synthesis_result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted:
-            # 先裁剪掉前后的静音部分
-            Azure_TTS_engine.silence_slicer(ofile)
+            # 先裁剪掉前后的静音部分，并平衡音量
+            self.silence_slicer(ofile)
             # 输出成功
             self.print_success(text=text,ofile=ofile)
         elif speech_synthesis_result.reason == speechsdk.ResultReason.Canceled:
@@ -230,7 +245,7 @@ class Beats_engine(TTS_engine):
         'kakaka': './assets/beats/ka.wav',
         'zizizi': './assets/beats/zi.wav',
     }
-    def __init__(self,name='unnamed',voice='dadada',aformat='wav',frame_rate:int=30) -> None:
+    def __init__(self,name='unnamed',voice='dadada',aformat='wav',frame_rate:int=30,balance:float=None) -> None:
         # 初始化的参数
         self.ID = name
         self.voice = voice
@@ -286,9 +301,10 @@ class Tencent_TTS_engine(TTS_engine):
         'CLOSED'    : 5,
     }
     voice_list = voice_lib[voice_lib['service'] == 'Tencent'].index
-    def __init__(self, name='unnamed', voice='101001', speech_rate=0, pitch_rate=0, aformat='wav'):
+    def __init__(self, name='unnamed', voice='101001', speech_rate=0, pitch_rate=0, aformat='wav',balance:float=None):
         self.ID = name
         self.status = self.Status["NOTOPEN"]
+        self.volume = 100
         self.ws = None
         self.voice = voice
         self.aformat = aformat
@@ -296,7 +312,10 @@ class Tencent_TTS_engine(TTS_engine):
         # 处理
         if self.voice in self.voice_list:
             self.voice_type = int(self.voice)
-            self.volume = int(voice_lib.loc[self.voice,'avaliable_volume'])
+            if balance is None:
+                self.balance = int(voice_lib.loc[self.voice,'avaliable_volume'])
+            else:
+                self.balance = balance
         else:
             raise SynthesisError('TctInvArg', str(self.voice))
         # self.voice = 101001
@@ -453,6 +472,7 @@ class Tencent_TTS_engine(TTS_engine):
         self.ws.run_forever()
         # 根据Status，获取返回值
         if self.status == 3: # FINAL
+            self.volume_balance(ifile=ofile)
             self.print_success(text=text,ofile=ofile)
         elif self.status == 5: # ERROR
             raise SynthesisError('TctErrRetu', '; '.join(self.message))
@@ -466,7 +486,7 @@ class Tencent_TTS_engine(TTS_engine):
 # 系统的TTS
 class System_TTS_engine(TTS_engine):
     # 初始化的参数
-    def __init__(self, name='unnamed', voice=None, speech_rate=0, pitch_rate=0, aformat='wav'):
+    def __init__(self, name='unnamed', voice=None, speech_rate=0, pitch_rate=0, aformat='wav',balance:float=None):
         self.ID = name
         self.voice = voice
         self.aformat = aformat
