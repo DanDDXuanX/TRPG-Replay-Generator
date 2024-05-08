@@ -1778,10 +1778,20 @@ class Animation(MediaObj):
             ) -> None:
         # 文件和路径
         super().__init__(filepath=filepath,label_color=label_color)
-        # 立绘图像
-        self.load_image(scale=scale)
-        # 初始化PR
-        self.PR_init(file_index='AMfile_%d')
+        # 气泡底图
+        if self.filepath is None:
+            self.load_emtpy()
+            # PR项目
+            self.PR_init('None')
+        else:
+            # 读取图片文件
+            self.load_image(scale=scale)
+            # 其他参数
+            self.PR_init(file_index='AMfile_%d')
+        # # 立绘图像
+        # self.load_image(scale=scale)
+        # # 初始化PR
+        # self.PR_init(file_index='AMfile_%d')
         # 位置
         if type(pos) in [Pos,FreePos,BezierCurve]:
             self.pos = pos
@@ -1791,6 +1801,16 @@ class Animation(MediaObj):
         self.loop:bool = loop
         self.tick:int = tick
         self.this:int = 0
+    def load_emtpy(self):
+        # 媒体设为空图
+        empty_media = pygame.Surface([0,0],pygame.SRCALPHA)
+        empty_media.fill(self.cmap['empty'])
+        self.media = np.asarray([empty_media])
+        self.length = 1
+        # 尺寸和缩放
+        self.scale:float = 1.0
+        self.size:tuple = [0,0]
+        self.origin_size:tuple = self.size
     def load_image(self, scale: float):
         # 是否是动态立绘
         if self.filepath.type() in ['apng','gif']:
@@ -1833,25 +1853,28 @@ class Animation(MediaObj):
         # 立绘序列
         width,height = self.origin_size
         pr_horiz,pr_vert = self.PRpos
-        clip_this = self.clip_tplt.format(**{
-            'clipid'    : 'AM_clip_%d'%MediaObj.clip_index,
-            'clipname'  : self.filename,
-            'timebase'  : '%d'%self.frame_rate,
-            'ntsc'      : self.Is_NTSC,
-            'start'     : '%d'%begin,
-            'end'       : '%d'%end,
-            'in'        : '%d'%90000,
-            'out'       : '%d'%(90000+end-begin),
-            'fileid'    : self.fileindex,
-            'filename'  : self.filename,
-            'filepath'  : self.xmlpath,
-            'filewidth' : '%d'%width,
-            'fileheight': '%d'%height,
-            'horiz'     : '%.5f'%pr_horiz,
-            'vert'      : '%.5f'%pr_vert,
-            'scale'     : '%.2f'%(self.scale*100),
-            'colorlabel': self.label_color
-            })
+        if self.xmlpath is None:
+            clip_this = None
+        else:
+            clip_this = self.clip_tplt.format(**{
+                'clipid'    : 'AM_clip_%d'%MediaObj.clip_index,
+                'clipname'  : self.filename,
+                'timebase'  : '%d'%self.frame_rate,
+                'ntsc'      : self.Is_NTSC,
+                'start'     : '%d'%begin,
+                'end'       : '%d'%end,
+                'in'        : '%d'%90000,
+                'out'       : '%d'%(90000+end-begin),
+                'fileid'    : self.fileindex,
+                'filename'  : self.filename,
+                'filepath'  : self.xmlpath,
+                'filewidth' : '%d'%width,
+                'fileheight': '%d'%height,
+                'horiz'     : '%.5f'%pr_horiz,
+                'vert'      : '%.5f'%pr_vert,
+                'scale'     : '%.2f'%(self.scale*100),
+                'colorlabel': self.label_color
+                })
         MediaObj.clip_index = MediaObj.clip_index+1
         return clip_this
     def get_tick(self,duration:int)->np.ndarray: # 1.8.0
@@ -1878,7 +1901,10 @@ class Animation(MediaObj):
     def configure(self, key: str, value, index: int = 0):
         super().configure(key, value, index)
         if key == 'filepath':
-            self.load_image(scale=self.scale)
+            if self.filepath is None:
+                self.load_emtpy()
+            else:
+                self.load_image(scale=self.scale)
 # 内建动画的基类：不可以直接使用
 class BuiltInAnimation(Animation):
     BIA_font = './assets/SourceHanSerifSC-Heavy.otf'

@@ -12,8 +12,8 @@ class Sprite(Animation):
     def __init__(
         self, 
         filepath: str, 
-        eyepath:str,
-        mouthpath:str,
+        eyepath:str = None,
+        mouthpath:str = None,
         scale: float = 1, 
         pos: tuple = ..., 
         tick: int = 1, 
@@ -102,5 +102,12 @@ class Sprite(Animation):
         return super().get_pos()
     def configure(self, key: str, value, index: int = 0):
         # TODO: Sprite类的特殊config方法
-        return super().configure(key, value, index)
-    
+        super().configure(key, value, index)
+        if key == 'eyepath':
+            self.eye.configure(key='filepath',value=value)
+        elif key == 'mouthpath':
+            self.mouth.configure(key='filepath',value=value)
+        elif key == 'scale':
+            # 如果是scale，self的尺寸在super已经更新，eye和mouth的尺寸需要额外更新
+            self.eye.configure(key='scale',value=value)
+            self.mouth.configure(key='scale',value=value)
