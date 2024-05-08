@@ -27,8 +27,8 @@ RE_hitpoint = re.compile('<hitpoint>:\((.+?),(\d+),(\d+),(\d+)\)') # a 1.6.5 血
 RE_dice = re.compile('\((.+?),(\d+),([\d]+|NA),(\d+)\)') # a 1.7.5 骰子预设动画，老虎机
 RE_wait = re.compile('^<wait>:(.+)$')
 # 媒体定义的解析
-RE_mediadef = re.compile('^(\w+) *= *(Pos|FreePos|PosGrid|BezierCurve|Text|StrokeText|RichText|HPLabel|Bubble|Balloon|DynamicBubble|ChatWindow|Animation|GroupedAnimation|BuiltInAnimation|Background|BGM|Audio)(\(.*\))')
-RE_mediadef_args = re.compile("(fontfile|fontsize|color|line_limit|marker|fg_path|bg_path|width|repeat|filepath|scale|Main_Text|Header_Text|pos|end|x_step|y_step|mt_pos|mt_rotate|mt_end|ht_pos|ht_rotate|ht_target|fill_mode|fit_axis|align|vertical_align|head_align|line_distance|line_num_est|tick|loop|volume|edge_color|edge_width|projection|sub_key|sub_Bubble|sub_Anime|sub_align|sub_pos|sub_end|sub_icon|am_left|am_right|sub_distance|control_left|control_right|anchor|frame_point|speed_formula|label_color)?\ {0,4}=?\ {0,4}(Text\(\)|Pos\(\)|'.*?'|\[[^\]]+\]|\w+\[[\d\,]+\]|[^,()]+|\([-\d,\ ]+\))")
+RE_mediadef = re.compile('^(\w+) *= *(Pos|FreePos|PosGrid|BezierCurve|Text|StrokeText|RichText|HPLabel|Bubble|Balloon|DynamicBubble|ChatWindow|Animation|Sprite|GroupedAnimation|BuiltInAnimation|Background|BGM|Audio)(\(.*\))')
+RE_mediadef_args = re.compile("(fontfile|fontsize|color|line_limit|marker|fg_path|bg_path|width|repeat|filepath|scale|Main_Text|Header_Text|pos|end|x_step|y_step|mt_pos|mt_rotate|mt_end|ht_pos|ht_rotate|ht_target|fill_mode|fit_axis|align|vertical_align|head_align|line_distance|line_num_est|tick|loop|volume|edge_color|edge_width|projection|sub_key|sub_Bubble|sub_Anime|sub_align|sub_pos|sub_end|sub_icon|am_left|am_right|sub_distance|control_left|control_right|anchor|frame_point|speed_formula|eyepath|mouthpath|blink_mean|blink_std|label_color)?\ {0,4}=?\ {0,4}(Text\(\)|Pos\(\)|'.*?'|\[[^\]]+\]|\w+\[[\d\,]+\]|[^,()]+|\([-\d,\ ]+\))")
 RE_subscript_def = re.compile('^(\w+) *= *(\w+\[.*\])')
 # 富文本的富标记
 RE_label = re.compile("(\[/?[\w\^\#]{1,}(?:\:[\w\#]+)?\])")

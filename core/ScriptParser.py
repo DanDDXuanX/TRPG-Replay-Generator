@@ -12,6 +12,7 @@ from .Exceptions import DecodeError,ParserError,WarningPrint,SyntaxsError,MediaE
 from .Regexs import *
 from .Formulas import *
 from .Medias import Text,StrokeText,RichText,HPLabel,Bubble,Balloon,DynamicBubble,ChatWindow,Animation,GroupedAnimation,Dice,HitPoint,Background,BGM,Audio
+from .Sprite import Sprite
 from .FreePos import Pos,FreePos,PosGrid,BezierCurve
 from .FilePaths import Filepath
 from .ProjConfig import Config
@@ -26,6 +27,7 @@ class Script:
         'Text':Text,'StrokeText':StrokeText,'RichText':RichText,'HPLabel':HPLabel,
         'Bubble':Bubble,'Balloon':Balloon,'DynamicBubble':DynamicBubble,'ChatWindow':ChatWindow,
         'Animation':Animation,'GroupedAnimation':GroupedAnimation,'HitPoint':HitPoint,'Dice':Dice,
+        'Sprite':Sprite,
         'Background':Background,
         'BGM':BGM,'Audio':Audio
         }
@@ -45,6 +47,7 @@ class Script:
         'ChatWindow'    :['filepath','scale','sub_key','sub_Bubble','sub_Anime','sub_align','pos','sub_pos','sub_end','am_left','am_right','sub_distance','label_color'],
         'Background'    :['filepath','scale','pos','label_color'],
         'Animation'     :['filepath','scale','pos','tick','loop','label_color'],
+        'Sprite'        :['filepath','eyepath','mouthpath','scale','pos','tick','blink_mean','blink_std','label_color'],
         'Audio'         :['filepath','label_color'],
         'BGM'           :['filepath','volume','loop','label_color']
         }
@@ -63,6 +66,7 @@ class Script:
         'ChatWindow'    :[None,1.0,['Key1'],[{'type':'Bubble'}],[None],['left'],[0,0],[100,100],[200,200],50,250,0,'Lavender'],
         'Background'    :['black',1.0,[0,0],'Lavender'],
         'Animation'     :['./assets/heart_shape.png',1.0,[100,100],1,True,'Lavender'], # TODO:这个默认的filepath应该修改！
+        'Sprite'        :['./assets/heart_shape.png',None,None,1.0,[100,100],1,4,1,'Lavender'],
         'Audio'         :['./assets/SE_duck.wav','Caribbean'], # TODO:这个默认的filepath应该修改！
         'BGM'           :['./assets/SE_duck.ogg',100,True,'Caribbean'] # TODO:这个默认的filepath应该修改！
         }
@@ -81,6 +85,7 @@ class Script:
         'ChatWindow'    :['filepath'],
         'Background'    :['filepath'],
         'Animation'     :['filepath'],
+        'Sprite'        :['filepath','eyepath','mouthpath'],
         'Audio'         :['filepath'],
         'BGM'           :['filepath']
         }
@@ -454,7 +459,7 @@ class MediaDef(Script):
     # 访问:
     def get_type(self,_type,cw=True) -> list:
         type_name = {
-            'anime'     :['Animation'],
+            'anime'     :['Animation','Sprite'],
             'bubble'    :['Bubble','Balloon','DynamicBubble'],
             'subbubble' :['Bubble','DynamicBubble'],
             'text'      :['Text','StrokeText','RichText','HPLabel'],
@@ -1659,7 +1664,7 @@ class RplGenLog(Script):
                         elif this_am not in self.medias.keys():
                             # 如果媒体名未定义
                             raise ParserError('UndefAnime', this_am, name+'.'+subtype)
-                        elif type(self.medias[this_am]) not in [Animation,GroupedAnimation,Dice,HitPoint]:
+                        elif type(self.medias[this_am]) not in [Animation,Sprite,GroupedAnimation,Dice,HitPoint]:
                             # 如果媒体不是一个立绘类
                             raise ParserError('NotAnime', this_am, name+'.'+subtype)
                         else:
@@ -1990,7 +1995,7 @@ class RplGenLog(Script):
                             am_name = this_section['object'][idx]
                             if am_name not in self.medias.keys():
                                 raise ParserError('UndefPAnime',am_name,str(i+1))
-                            elif type(self.medias[am_name]) not in [Animation,Dice,HitPoint,GroupedAnimation]:
+                            elif type(self.medias[am_name]) not in [Animation,Sprite,Dice,HitPoint,GroupedAnimation]:
                                 raise ParserError('NotPAnime',am_name,str(i+1))
                             else:
                                 anime_name.append(am_name)
@@ -2015,7 +2020,7 @@ class RplGenLog(Script):
                     # 如果是单个立绘
                     elif this_section['object'] in self.medias.keys():
                         am_name = this_section['object']
-                        if type(self.medias[am_name]) not in [Animation,Dice,HitPoint,GroupedAnimation]:
+                        if type(self.medias[am_name]) not in [Animation,Sprite,Dice,HitPoint,GroupedAnimation]:
                             raise ParserError('NotPAnime',am_name,str(i+1))
                         else: # 如果type 不是 Animation 类，也 UndefPAnime
                             this_placed_animation = (am_name,method,method_dur,self.medias[am_name].pos)
@@ -2179,7 +2184,7 @@ class RplGenLog(Script):
                     elif type(self.medias[target]) is FreePos:
                         # 自由位置对象
                         self.medias[target].set(value_pos)
-                    elif type(self.medias[target]) in [Animation,Bubble,Balloon,DynamicBubble,Balloon,ChatWindow]:
+                    elif type(self.medias[target]) in [Animation,Sprite,Bubble,Balloon,DynamicBubble,Balloon,ChatWindow]:
                         # 如果是图形类媒体
                         self.medias[target].pos = value_pos
                     else:

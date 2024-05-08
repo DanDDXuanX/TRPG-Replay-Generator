@@ -34,7 +34,7 @@ class BoardcastHandler:
             counter['logfile'] += self._handle_rplgenlog(old_name=old_name, new_name=new_name, etype='bubble')
             counter['logfile'] += self._handle_rplgenlog(old_name=old_name, new_name=new_name, etype='clear')
             counter['logfile'] += self._handle_rplgenlog(old_name=old_name, new_name=new_name, etype='move_media')
-        elif mtype == 'Animation':
+        elif mtype in ['Animation','Sprite']:
             counter['mediadef'] += self._handle_animation(old_name=old_name, new_name=new_name)
             counter['chartab'] += self._boardcast_chartab(old_name=old_name, new_name=new_name, effect_arg='Animation')
             counter['logfile'] += self._handle_rplgenlog(old_name=old_name, new_name=new_name, etype='animation')
@@ -248,7 +248,7 @@ class BoardcastHandler:
         # 返回值：执行的次数
         return counter
     def _handle_pos(self,old_name,new_name)->int:
-        effect_type = ['BezierCurve','Animation','Bubble','Balloon','DynamicBubble','ChatWindow','Background']
+        effect_type = ['BezierCurve','Animation','Sprite','Bubble','Balloon','DynamicBubble','ChatWindow','Background']
         # effect_arg = ['pos','anchor']
         counter = 0
         # pos

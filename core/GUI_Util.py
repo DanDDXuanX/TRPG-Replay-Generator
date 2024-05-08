@@ -23,7 +23,7 @@ from .GUI_Language import tr
 media_order = {
     'Text'      : ['Text', 'StrokeText', 'RichText', 'HPLabel'],
     'Pos'       : ['Pos','FreePos','PosGrid','BezierCurve'],
-    'Animation' : ['Animation'],
+    'Animation' : ['Animation','Sprite'],
     'Bubble'    : ['Bubble','Balloon','DynamicBubble','ChatWindow'],
     'Background': ['Background'],
     'Audio'     : ['Audio','BGM'],

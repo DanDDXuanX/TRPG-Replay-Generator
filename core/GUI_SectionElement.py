@@ -91,19 +91,21 @@ class SectionElement:
         self.select_symbol.place_forget()
     def update_image_from_section(self,section,icon_size:int,thumbname='%d'):
         # 确认显示内容:image
-        if section['type'] in ['Animation','Bubble','Balloon','DynamicBubble','ChatWindow','Background']:
+        if section['type'] in ['Animation','Sprite','Bubble','Balloon','DynamicBubble','ChatWindow','Background']:
             # 是效能模式
             if preference.performance_mode:
                 # 注意：这里是因为同时会在媒体和角色页里引用这个图标，因此image_name需要加上了icon_size，以免双方相互影响
                 if section['type'] not in self.thumbnail_name.keys():
                     # 创建媒体默认图标
                     self.__class__.thumbnail_image['Animation'] = ImageTk.PhotoImage(name='Animation_%d'%icon_size, image=Image.open('./assets/icon/medias/Animation.png').resize([icon_size,icon_size]))
+                    self.__class__.thumbnail_image['Sprite'] = ImageTk.PhotoImage(name='Sprite_%d'%icon_size, image=Image.open('./assets/icon/medias/Sprite.png').resize([icon_size,icon_size]))
                     self.__class__.thumbnail_image['Bubble']   = ImageTk.PhotoImage(name='Bubble_%d'%icon_size,   image=Image.open('./assets/icon/medias/Bubble.png').resize([icon_size,icon_size]))
                     self.__class__.thumbnail_image['Balloon'] = ImageTk.PhotoImage(name='Balloon_%d'%icon_size, image=Image.open('./assets/icon/medias/Balloon.png').resize([icon_size,icon_size]))
                     self.__class__.thumbnail_image['DynamicBubble']   = ImageTk.PhotoImage(name='DynamicBubble_%d'%icon_size,   image=Image.open('./assets/icon/medias/DynamicBubble.png').resize([icon_size,icon_size]))
                     self.__class__.thumbnail_image['ChatWindow'] = ImageTk.PhotoImage(name='ChatWindow_%d'%icon_size, image=Image.open('./assets/icon/medias/ChatWindow.png').resize([icon_size,icon_size]))
                     self.__class__.thumbnail_image['Background']   = ImageTk.PhotoImage(name='Background_%d'%icon_size,   image=Image.open('./assets/icon/medias/Background.png').resize([icon_size,icon_size]))
                     self.thumbnail_name['Animation'] = 'Animation_%d'%icon_size
+                    self.thumbnail_name['Sprite'] = 'Sprite_%d'%icon_size
                     self.thumbnail_name['Bubble'] = 'Bubble_%d'%icon_size
                     self.thumbnail_name['Balloon'] = 'Balloon_%d'%icon_size
                     self.thumbnail_name['DynamicBubble'] = 'DynamicBubble_%d'%icon_size
@@ -576,7 +578,7 @@ class CTBSectionElement(ttk.Frame,SectionElement):
         else:
             section_this:dict = self.ref_medef.struct[media_name]
         # 是否是Am或者Bb
-        if section_this['type'] not in ['Animation','Bubble','Balloon','DynamicBubble','ChatWindow']:
+        if section_this['type'] not in ['Animation','Sprite','Bubble','Balloon','DynamicBubble','ChatWindow']:
             return 'MediaNotFound'
         else:
             return super().update_image_from_section(section=section_this,icon_size=icon_size,thumbname='CTBthumb%d')

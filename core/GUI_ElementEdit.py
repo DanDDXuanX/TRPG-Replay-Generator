@@ -500,9 +500,13 @@ class MediaEdit(EditWindow):
                         break
                 self.update_sep_button()
         # Pos
-        if self.line_type in ['Bubble','Balloon','DynamicBubble','ChatWindow','Animation','Background']:
+        if self.line_type in ['Bubble','Balloon','DynamicBubble','ChatWindow','Animation','Sprite','Background']:
             if self.line_type == 'Animation':
                 self.elements['filepath'].bind_button(dtype='animate-file')
+            elif self.line_type == 'Sprite':
+                self.elements['filepath'].bind_button(dtype='animate-file')
+                self.elements['eyepath'].bind_button(dtype='animate-file')
+                self.elements['mouthpath'].bind_button(dtype='animate-file')
             else:
                 self.elements['filepath'].bind_button(dtype='picture-file')
             self.elements['pos'].input.configure(values=self.get_avaliable_pos())
@@ -558,6 +562,10 @@ class MediaEdit(EditWindow):
         if self.line_type == 'Animation':
             self.elements['tick'].input.configure(from_=1,to=30,increment=1)
             self.elements['loop'].input.update_dict(True_False)
+        if self.line_type == 'Sprite':
+            self.elements['tick'].input.configure(from_=1,to=30,increment=1)
+            self.elements['blink_mean'].input.configure(from_=0.5,to=10,increment=0.1)
+            self.elements['blink_std'].input.configure(from_=0.0,to=3,increment=0.1)
         if self.line_type == 'Audio':
             self.elements['filepath'].bind_button(dtype='soundeff-file',convert=True)
         if self.line_type == 'BGM':

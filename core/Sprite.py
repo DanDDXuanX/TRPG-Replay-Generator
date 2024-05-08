@@ -17,8 +17,8 @@ class Sprite(Animation):
         scale: float = 1, 
         pos: tuple = ..., 
         tick: int = 1, 
-        blink_mean: int=4,
-        blink_std: int=1,
+        blink_mean: float=4.0,
+        blink_std: float=1.0,
         label_color: str = 'Lavender'
     ) -> None:
         # 脸层

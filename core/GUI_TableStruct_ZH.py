@@ -1916,6 +1916,148 @@ EditTableStruct = {
             "loop"          : "loop",
             "label_color"   : "label_color"
         },
+        "Sprite":{
+            "InfoSep":{
+                "Text": "基本信息",
+                "Command":None,
+                "Content":{
+                    "type": {
+                        "ktext": "类型：",
+                        "tooltip":None,
+                        "dtext": "帮助",
+                        "ditem": "button",
+                        "valuekey": "type",
+                        "vitem": "label",
+                        "vtype": "str",
+                        "default": "Sprite"
+                    },
+                    "Name": {
+                        "ktext": "媒体名：",
+                        "tooltip":None,
+                        "dtext": "（输入）",
+                        "ditem": "label",
+                        "valuekey": "$key",
+                        "vitem": "entry",
+                        "vtype": "str",
+                        "default": "新建精灵"
+                    },
+                    "label_color": {
+                        "ktext": "标签色：",
+                        "tooltip":None,
+                        "dtext": "（选择）",
+                        "ditem": "label",
+                        "valuekey": "label_color",
+                        "vitem": "combox",
+                        "vtype": "str",
+                        "default": "'Lavender'"
+                    },
+                }
+            },
+            "ImageSep":{
+                "Text": "图像",
+                "Command":None,
+                "Content":{
+                    "filepath": {
+                        "ktext": "脸廓动画：",
+                        "tooltip":None,
+                        "dtext": "浏览",
+                        "ditem": "button",
+                        "valuekey": "filepath",
+                        "vitem": "entry",
+                        "vtype": "str",
+                        "default": ""
+                    },
+                    "pos": {
+                        "ktext": "位置：",
+                        "tooltip":None,
+                        "dtext": "选择",
+                        "ditem": "button",
+                        "valuekey": "pos",
+                        "vitem": "combox",
+                        "vtype": "str",
+                        "default": "(0,0)"
+                    },
+                    "scale": {
+                        "ktext": "缩放：",
+                        "tooltip":None,
+                        "dtext": "（数值）",
+                        "ditem": "label",
+                        "valuekey": "scale",
+                        "vitem": "spine",
+                        "vtype": "float",
+                        "default": 1.0
+                    },
+                    "tick": {
+                        "ktext": "拍率：",
+                        "tooltip":None,
+                        "dtext": "（数值）",
+                        "ditem": "label",
+                        "valuekey": "tick",
+                        "vitem": "spine",
+                        "vtype": "int",
+                        "default": 1
+                    }
+                }
+            },
+            "AnimeSep":{
+                "Text": "动画",
+                "Command":None,
+                "Content":{
+                    "mouthpath": {
+                        "ktext": "张嘴动画：",
+                        "tooltip":None,
+                        "dtext": "浏览",
+                        "ditem": "button",
+                        "valuekey": "mouthpath",
+                        "vitem": "entry",
+                        "vtype": "str",
+                        "default": "None"
+                    },
+                    "eyepath": {
+                        "ktext": "眨眼动画：",
+                        "tooltip":None,
+                        "dtext": "浏览",
+                        "ditem": "button",
+                        "valuekey": "eyepath",
+                        "vitem": "entry",
+                        "vtype": "str",
+                        "default": "None"
+                    },
+                    "blink_mean": {
+                        "ktext": "间隔均值：",
+                        "tooltip":None,
+                        "dtext": "（数值）",
+                        "ditem": "label",
+                        "valuekey": "blink_mean",
+                        "vitem": "spine",
+                        "vtype": "int",
+                        "default": 4
+                    },
+                    "blink_std": {
+                        "ktext": "间隔标准差：",
+                        "tooltip":None,
+                        "dtext": "（数值）",
+                        "ditem": "label",
+                        "valuekey": "blink_std",
+                        "vitem": "spine",
+                        "vtype": "int",
+                        "default": 1
+                    },
+                }
+            },
+        },
+        "Sprite.args":{
+            "type"          : "type",
+            "filepath"      : "filepath",
+            "eyepath"       : "eyepath",
+            "mouthpath"     : "mouthpath",
+            "scale"         : "scale",
+            "pos"           : "pos",
+            "tick"          : "tick",
+            "blink_mean"    : "blink_mean",
+            "blink_std"     : "blink_std",
+            "label_color"   : "label_color"
+        },
         "Background":{
             "InfoSep":{
                 "Text": "基本信息",
@@ -3466,6 +3608,11 @@ NewElement = {
             "text":"立绘",
             "tooltip":"【立绘】是最通用的图像媒体，可以展示角色形象或者道具的图片，也可以播放动画。",
             "icon":'./assets/icon/new/Animation.png'
+        },
+        "Sprite":{
+            "text":"精灵",
+            "tooltip":"【精灵】是特殊的立绘，允许通过拆分的嘴型和眨眼，实现和语音的同步动态演出。",
+            "icon":'./assets/icon/new/Animation.png'
         }
     },
     "Background":{
@@ -3538,6 +3685,7 @@ media_help_url = {
     'DynamicBubble':    'https://www.wolai.com/pJg4oRzqPtkkNVCURr7eGD#8UKMX9fqLi58AtmNBkV3uz',
     'ChatWindow':   'https://www.wolai.com/pJg4oRzqPtkkNVCURr7eGD#6CZ7pE2bB5uN7zn1hJy2qD',
     'Animation':    'https://www.wolai.com/uVEVypkLFRuzKqiDpE5yXv#tjqF7AATGsoVgbJ2Q3Qhgn',
+    'Sprite':       'https://www.wolai.com/uVEVypkLFRuzKqiDpE5yXv#o7dYhLVbbmyi9aMfD4mYfQ',
     'Background':   'https://www.wolai.com/7r3xgHhH1Grm5Smuwrw54C#bvheC9phxeYi7zkcwUWUDv',
     'Audio':    'https://www.wolai.com/vg19WbT72VHjBGnbQ4UmgW#eaN2UDJyU3d5dj34sozhzk',
     'BGM':  'https://www.wolai.com/vg19WbT72VHjBGnbQ4UmgW#63Go1D2Nef7LoBS6J9D1zo',

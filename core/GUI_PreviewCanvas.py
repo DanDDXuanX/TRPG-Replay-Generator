@@ -15,6 +15,7 @@ from core.Medias import MediaObj
 from .ProjConfig import preference
 from .ScriptParser import MediaDef, CharTable, RplGenLog
 from .Medias import MediaObj, Animation, Bubble, ChatWindow, Balloon, Background, HitPoint, Dice, Audio, BGM
+from .Sprite import Sprite
 from .Utils import get_vppr
 from .GUI_Link import Link
 

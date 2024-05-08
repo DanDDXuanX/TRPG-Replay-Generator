@@ -1916,6 +1916,148 @@ EditTableStruct = {
             "loop"          : "loop",
             "label_color"   : "label_color"
         },
+        "Sprite":{
+            "InfoSep":{
+                "Text": "Basic Information",
+                "Command":None,
+                "Content":{
+                    "type": {
+                        "ktext": "Type:",
+                        "tooltip":None,
+                        "dtext": "help",
+                        "ditem": "button",
+                        "valuekey": "type",
+                        "vitem": "label",
+                        "vtype": "str",
+                        "default": "Sprite"
+                    },
+                    "Name": {
+                        "ktext": "Name:",
+                        "tooltip":None,
+                        "dtext": "(input)",
+                        "ditem": "label",
+                        "valuekey": "$key",
+                        "vitem": "entry",
+                        "vtype": "str",
+                        "default": "Sprite_new"
+                    },
+                    "label_color": {
+                        "ktext": "label_color:",
+                        "tooltip":None,
+                        "dtext": "(select)",
+                        "ditem": "label",
+                        "valuekey": "label_color",
+                        "vitem": "combox",
+                        "vtype": "str",
+                        "default": "'Lavender'"
+                    },
+                }
+            },
+            "ImageSep":{
+                "Text": "Image",
+                "Command":None,
+                "Content":{
+                    "filepath": {
+                        "ktext": "face_anime:",
+                        "tooltip":None,
+                        "dtext": "browse",
+                        "ditem": "button",
+                        "valuekey": "filepath",
+                        "vitem": "entry",
+                        "vtype": "str",
+                        "default": ""
+                    },
+                    "pos": {
+                        "ktext": "pos:",
+                        "tooltip":None,
+                        "dtext": "select",
+                        "ditem": "button",
+                        "valuekey": "pos",
+                        "vitem": "combox",
+                        "vtype": "str",
+                        "default": "(0,0)"
+                    },
+                    "scale": {
+                        "ktext": "scale:",
+                        "tooltip":None,
+                        "dtext": "(digit)",
+                        "ditem": "label",
+                        "valuekey": "scale",
+                        "vitem": "spine",
+                        "vtype": "float",
+                        "default": 1.0
+                    },
+                    "tick": {
+                        "ktext": "tick_rate:",
+                        "tooltip":None,
+                        "dtext": "(digit)",
+                        "ditem": "label",
+                        "valuekey": "tick",
+                        "vitem": "spine",
+                        "vtype": "int",
+                        "default": 1
+                    }
+                }
+            },
+            "AnimeSep":{
+                "Text": "Anime",
+                "Command":None,
+                "Content":{
+                    "mouthpath": {
+                        "ktext": "mouth_anime:",
+                        "tooltip":None,
+                        "dtext": "browse",
+                        "ditem": "button",
+                        "valuekey": "mouthpath",
+                        "vitem": "entry",
+                        "vtype": "str",
+                        "default": "None"
+                    },
+                    "eyepath": {
+                        "ktext": "blink_anime:",
+                        "tooltip":None,
+                        "dtext": "browse",
+                        "ditem": "button",
+                        "valuekey": "eyepath",
+                        "vitem": "entry",
+                        "vtype": "str",
+                        "default": "None"
+                    },
+                    "blink_mean": {
+                        "ktext": "blink_mean:",
+                        "tooltip":None,
+                        "dtext": "(digit)",
+                        "ditem": "label",
+                        "valuekey": "blink_mean",
+                        "vitem": "spine",
+                        "vtype": "int",
+                        "default": 4
+                    },
+                    "blink_std": {
+                        "ktext": "blink_std:",
+                        "tooltip":None,
+                        "dtext": "(digit)",
+                        "ditem": "label",
+                        "valuekey": "blink_std",
+                        "vitem": "spine",
+                        "vtype": "int",
+                        "default": 1
+                    },
+                }
+            },
+        },
+        "Sprite.args":{
+            "type"          : "type",
+            "filepath"      : "filepath",
+            "eyepath"       : "eyepath",
+            "mouthpath"     : "mouthpath",
+            "scale"         : "scale",
+            "pos"           : "pos",
+            "tick"          : "tick",
+            "blink_mean"    : "blink_mean",
+            "blink_std"     : "blink_std",
+            "label_color"   : "label_color"
+        },
         "Background":{
             "InfoSep":{
                 "Text": "Basic Information",
@@ -3540,6 +3682,7 @@ media_help_url = {
     'DynamicBubble':    'https://www.wolai.com/pJg4oRzqPtkkNVCURr7eGD#8UKMX9fqLi58AtmNBkV3uz',
     'ChatWindow':   'https://www.wolai.com/pJg4oRzqPtkkNVCURr7eGD#6CZ7pE2bB5uN7zn1hJy2qD',
     'Animation':    'https://www.wolai.com/uVEVypkLFRuzKqiDpE5yXv#tjqF7AATGsoVgbJ2Q3Qhgn',
+    'Sprite':       'https://www.wolai.com/uVEVypkLFRuzKqiDpE5yXv#o7dYhLVbbmyi9aMfD4mYfQ',
     'Background':   'https://www.wolai.com/7r3xgHhH1Grm5Smuwrw54C#bvheC9phxeYi7zkcwUWUDv',
     'Audio':    'https://www.wolai.com/vg19WbT72VHjBGnbQ4UmgW#eaN2UDJyU3d5dj34sozhzk',
     'BGM':  'https://www.wolai.com/vg19WbT72VHjBGnbQ4UmgW#63Go1D2Nef7LoBS6J9D1zo',
