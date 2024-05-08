@@ -2034,7 +2034,7 @@ EditTableStruct = {
                         "default": 4
                     },
                     "blink_std": {
-                        "ktext": "间隔标准差：",
+                        "ktext": "标准差：",
                         "tooltip":None,
                         "dtext": "（数值）",
                         "ditem": "label",
@@ -3612,7 +3612,7 @@ NewElement = {
         "Sprite":{
             "text":"精灵",
             "tooltip":"【精灵】是特殊的立绘，允许通过拆分的嘴型和眨眼，实现和语音的同步动态演出。",
-            "icon":'./assets/icon/new/Animation.png'
+            "icon":'./assets/icon/new/Sprite.png'
         }
     },
     "Background":{

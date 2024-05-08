@@ -3225,8 +3225,6 @@ ProjectTableStruct = {
     }
 }
 
-
-
 PortalStruct = {
     "Friends":{
         "Text": "Friends",
@@ -3610,6 +3608,11 @@ NewElement = {
             "text":"Animation",
             "tooltip":"[Animation] is the common image media used to display character or prop images. It can also play animations.",
             "icon":'./assets/icon/new/Animation.png'
+        },
+        "Sprite":{
+            "text":"Sprite",
+            "tooltip":"[Spirit] is a special Animation that allows for synchronized dynamic with voice through split mouth movements and blinking.",
+            "icon":'./assets/icon/new/Sprite.png'
         }
     },
     "Background":{
