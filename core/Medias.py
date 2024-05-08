@@ -1826,7 +1826,7 @@ class Animation(MediaObj):
         self.origin_size:tuple = pygame.image.load(self.filepath.list()[0]).get_size()
         self.scale:float  = scale
     def display(self,surface:pygame.Surface,alpha:float=100,center:str='NA',adjust:str='NA',frame:int=0,bright:float=100)->None:
-        self.this = frame
+        self.this = int(frame)
         if center == 'NA':
             render_center = self.pos.pos
         else:
@@ -1836,9 +1836,9 @@ class Animation(MediaObj):
         else:
             render_pos = render_center + eval(adjust)
         if bright == 100 and alpha == 100:
-           surface.blit(self.media[int(self.this)],render_pos.get())
+           surface.blit(self.media[self.this],render_pos.get())
         else:
-            temp = self.media[int(self.this)].copy()
+            temp = self.media[self.this].copy()
             if bright != 100:
                 temp = brightness(temp,bright=bright)
             if alpha != 100:

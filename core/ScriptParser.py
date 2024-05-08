@@ -1555,6 +1555,7 @@ class RplGenLog(Script):
                     if '*' in this_section['sound_set'].keys():
                         # 如果存在星标音效：持续时长 = 星标间隔 + ceil(秒数时间*帧率)
                         this_duration:int = self.dynamic['asterisk_pause'] + np.ceil(this_section['sound_set']['*']['time'] * config.frame_rate).astype(int)
+                        asterisk_voice:bool = True
                     elif '{*}' in this_section['sound_set'].keys():
                         # 如果存在待处理星标：举起伊可
                         raise ParserError('UnpreAster', str(i+1))
@@ -1566,6 +1567,7 @@ class RplGenLog(Script):
                         except:
                             raw_text = this_section['content']
                         this_duration:int = self.dynamic['asterisk_pause'] + int(len(raw_text)/(self.dynamic['speech_speed']/60/config.frame_rate))
+                        asterisk_voice:bool = False
                     # flag: 3: 全部相同 2: 仅前序相同 1: 仅后序相同 0：不存在相同
                     if self.dynamic['method_protocol'] in ['charactor','subtype','identical']:
                         flag = 0
@@ -1670,7 +1672,24 @@ class RplGenLog(Script):
                         else:
                             # 立绘的对象、帧顺序、中心位置
                             this_am_obj:Animation = self.medias[this_am]
-                            this_timeline[this_layer+'_t'] = this_am_obj.get_tick(this_duration).astype(str)
+                            if type(this_am_obj) is Sprite and chara_key == '0' and asterisk_voice: # 精灵立绘，仅首要角色有效，仅有语音的行有效
+                                this_voice_name:str = this_section['sound_set']['*']['sound'] # 语音的名字
+                                if this_voice_name in self.medias.keys():
+                                    # 如果星标语音是一个媒体对象
+                                    this_voice:Audio = self.medias[this_voice_name]
+                                else:
+                                    # 如果星标语音是一个路径
+                                    try:
+                                        this_voice = Audio(filepath=this_voice_name[1:-1])
+                                    except MediaError as E:
+                                        print(E)
+                                        raise ParserError('SEnotExist', this_sound['sound'], str(i+1))
+                                # 延迟时间
+                                fr = config.frame_rate
+                                delay:int = int(self.dynamic['asterisk_pause']/2)
+                                this_timeline[this_layer+'_t'] = this_am_obj.get_tick(this_duration,audio=this_voice,delay=delay,framerate=fr).astype(str)
+                            else:
+                                this_timeline[this_layer+'_t'] = this_am_obj.get_tick(this_duration).astype(str)
                             this_timeline[this_layer+'_c'] = this_am_obj.pos.use(this_duration)
                             # 立绘的透明度
                             if alpha is None:
