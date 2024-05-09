@@ -120,10 +120,13 @@ class RplGenStudioMainWindow(ttk.Window):
         # 载入主题
         self.style.theme_use(theme)
         # 设置全局字体
-        default_font = tkFont.nametofont('TkDefaultFont')
-        # print(default_font.cget('size'))
-        # print(default_font.cget('family'))
-        default_font.configure(family=self.system_font_family, size=9)
+        try:
+            default_font = tkFont.nametofont('TkDefaultFont')
+            text_font = tkFont.nametofont('TkTextFont')
+            default_font.configure(family=self.system_font_family, size=9)
+            text_font.configure(family=self.system_font_family, size=9)
+        except tk.TclError:
+            pass
         # 导航栏字体的大小
         if preference.lang == 'zh':
             success_font_size = 18
