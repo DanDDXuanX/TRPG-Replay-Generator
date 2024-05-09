@@ -75,13 +75,13 @@ class RplGenStudioMainWindow(ttk.Window):
             elif 'linux' in sys.platform:
                 system_font_family = '文泉驿微米黑'
             elif 'darwin' in sys.platform:
-                system_font_family = 'PingFang SC'
+                system_font_family = '华文黑体'
             else:
                 system_font_family = '华文黑体'
         else:
             # TODO: 英文
             if 'win32' in sys.platform:
-                system_font_family = '微软雅黑'
+                system_font_family = 'Microsoft YaHei UI'
             elif 'linux' in sys.platform:
                 system_font_family = '文泉驿微米黑'
             elif 'darwin' in sys.platform:
