@@ -8,6 +8,7 @@ import sys
 import pygame
 import tkinter as tk
 import ttkbootstrap as ttk
+import tkinter.font as tkFont
 import webbrowser
 from pathlib import Path
 from ttkbootstrap.toast import ToastNotification
@@ -70,7 +71,7 @@ class RplGenStudioMainWindow(ttk.Window):
         # 系统字体
         if preference.lang == 'zh':
             if 'win32' in sys.platform:
-                system_font_family = '微软雅黑'
+                system_font_family = 'Microsoft YaHei UI'
             elif 'linux' in sys.platform:
                 system_font_family = '文泉驿微米黑'
             elif 'darwin' in sys.platform:
@@ -118,6 +119,11 @@ class RplGenStudioMainWindow(ttk.Window):
         text_label_pad = (SZ_5,0,SZ_5,0)
         # 载入主题
         self.style.theme_use(theme)
+        # 设置全局字体
+        default_font = tkFont.nametofont('TkDefaultFont')
+        print(default_font.cget('size'))
+        print(default_font.cget('family'))
+        # default_font.configure(family=self.system_font_family, size=9)
         # 导航栏字体的大小
         if preference.lang == 'zh':
             success_font_size = 18
