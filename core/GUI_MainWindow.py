@@ -75,7 +75,7 @@ class RplGenStudioMainWindow(ttk.Window):
             elif 'linux' in sys.platform:
                 system_font_family = '文泉驿微米黑'
             elif 'darwin' in sys.platform:
-                system_font_family = '华文黑体'
+                system_font_family = 'PingFang SC'
             else:
                 system_font_family = '华文黑体'
         else:
@@ -121,9 +121,9 @@ class RplGenStudioMainWindow(ttk.Window):
         self.style.theme_use(theme)
         # 设置全局字体
         default_font = tkFont.nametofont('TkDefaultFont')
-        print(default_font.cget('size'))
-        print(default_font.cget('family'))
-        # default_font.configure(family=self.system_font_family, size=9)
+        # print(default_font.cget('size'))
+        # print(default_font.cget('family'))
+        default_font.configure(family=self.system_font_family, size=9)
         # 导航栏字体的大小
         if preference.lang == 'zh':
             success_font_size = 18
