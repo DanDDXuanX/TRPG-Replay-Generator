@@ -53,7 +53,7 @@ class Sprite(Animation):
         # 口型参数
         if audio is None:
             # 如果没有输入audio，则口型常驻为0：
-            mouse_ticks = np.zeros(duration)
+            mouse_ticks = np.zeros(duration).astype(int)
         else:
             ## 获取音频的响度序列
             mouse_samplerate = framerate//self.tick
