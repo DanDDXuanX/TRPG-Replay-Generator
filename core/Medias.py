@@ -456,8 +456,9 @@ class RichText(GlyphSubstitution):
                         # 最后一段半段
                         line_cells.append(self.render(rest_cell,self.riches))
                         len_of_line = len(rest_cell)
-        # 收尾工作
-        out_text.append(self.renderline(line_cells))
+        # 收尾工作，如果最后一行，len_of_line > 0
+        if len_of_line:
+            out_text.append(self.renderline(line_cells))
         return out_text
     def parse_richlabel(self,richlabel:str)->bool:
         content = richlabel[1:-1]

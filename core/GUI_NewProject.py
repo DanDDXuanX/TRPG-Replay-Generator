@@ -164,6 +164,9 @@ class CreateEmptyProject(CreateProject):
         if save_dir == '':
             Messagebox().show_error(title=tr('错误'),message=tr('必须要选择一个文件夹用于保存项目文件！'),parent=self)
             return False
+        elif '&' in save_dir:
+            Messagebox().show_error(title=tr('错误'),message=tr('选择的路径中，不可以包括特殊符号"&"！'),parent=self)
+            return False
         # 检查合法性
         if W<=0 or H<=0 or F<=0 or W%2==1 or H%2==1:
             Messagebox().show_error(title=tr('错误'),message=tr('分辨率或帧率是非法的数值！'),parent=self)
@@ -341,6 +344,9 @@ class CreateIntelProject(CreateProject):
         logfile_path = self.elements['textfile'].get()
         if save_dir == '':
             Messagebox().show_error(title=tr('错误'),message=tr('必须要选择一个文件夹用于保存项目文件！'),parent=self)
+            return False
+        elif '&' in save_dir:
+            Messagebox().show_error(title=tr('错误'),message=tr('选择的路径中，不可以包括特殊符号"&"！'),parent=self)
             return False
         if tplt_name == '':
             Messagebox().show_error(title=tr('错误'),message=tr('必须要选择样式模板！'),parent=self)

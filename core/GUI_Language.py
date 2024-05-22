@@ -230,7 +230,8 @@ class Translate:
             '示例剧本': 'Example_Script',
             '导入模板素材': 'Import Template Media',
             '非法的图层名：{} ！': 'Invalid layer name: {}!',
-            '缺失图层：{} ！' : 'Missing layers: {}!'
+            '缺失图层：{} ！' : 'Missing layers: {}!',
+            '选择的路径中，不可以包括特殊符号"&"！':'Do not select path with character "&"!'
         }
     }
     lang = 'zh'

@@ -361,12 +361,15 @@ class PreviewDisplay(OutputMediaType):
                     # 小节颜色：尝试获取立绘Am1、气泡Bb、背景BG2 的colorlabel
                     section_first_frame:pd.Series = self.timeline.loc[self.breakpoint[key-1]]
                     for layer in ['Am1','Am2','Am3','Bb','BG2']:
-                        if section_first_frame[layer] != 'NA' and section_first_frame[layer]==section_first_frame[layer]:
-                            try:
-                                this_color = self.medias[section_first_frame[layer]].label_color
-                            except:
-                                # 交叉溶解模式
-                                this_color = self.medias[section_first_frame[layer].split(' <- ')[0]].label_color
+                        timeline_object = section_first_frame[layer]
+                        if timeline_object != 'NA' and timeline_object==timeline_object:
+                            if timeline_object in self.medias:
+                                this_color = self.medias[timeline_object].label_color
+                            elif timeline_object.split(' <- ')[0] in self.medias:
+                                # 交叉溶解
+                                this_color = self.medias[timeline_object.split(' <- ')[0]].label_color
+                            else:
+                                continue # 下一个图层
                             break
                     else:
                         this_color = 'Lavender'
