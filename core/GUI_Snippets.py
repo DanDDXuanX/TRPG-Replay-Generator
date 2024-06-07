@@ -315,6 +315,44 @@ class RGLSnippets(CodeSnippet, Localize):
             "（选择颜色）": "(Choose Color)"
         }
     }
+    color_name = {
+        'zh':{
+            'Violet':'紫罗兰紫',
+            'Iris':'鸢尾花色蓝',
+            'Caribbean':'加勒比海蓝',
+            'Lavender':'薰衣草粉',
+            'Cerulean':'天蓝色',
+            'Forest':'森林绿',
+            'Rose':'玫瑰红',
+            'Mango':'芒果橙',
+            'Purple':'紫色',
+            'Blue':'蓝色',
+            'Teal':'深青色',
+            'Magenta':'洋红色',
+            'Tan':'棕黄色',
+            'Green':'绿色',
+            'Brown':'棕色',
+            'Yellow':'黄色'
+        },
+        'en':{
+            'Violet':'Violet',
+            'Iris':'Iris',
+            'Caribbean':'Caribbean',
+            'Lavender':'Lavender',
+            'Cerulean':'Cerulean',
+            'Forest':'Forest',
+            'Rose':'Rose',
+            'Mango':'Mango',
+            'Purple':'Purple',
+            'Blue':'Blue',
+            'Teal':'Teal',
+            'Magenta':'Magenta',
+            'Tan':'Tan',
+            'Green':'Green',
+            'Brown':'Brown',
+            'Yellow':'Yellow'
+        }
+    }
     localize = preference.lang
     def __init__(self, master, mediadef:MediaDef, chartab:CharTable):
         # 初始化菜单
@@ -323,6 +361,8 @@ class RGLSnippets(CodeSnippet, Localize):
         # 引用媒体
         self.ref_media = mediadef
         self.ref_char = chartab
+        # 标签颜色
+        self.label_color_name = self.color_name[preference.lang]
         # 光标位置
         try:
             index_,x,y = self.get_insert_curser()
@@ -529,16 +569,21 @@ class RGLSnippets(CodeSnippet, Localize):
             # for name,color in series_of_snippets.items():
             #     self.add_command(label=name, command=self.insert_snippets(name, len(name)),foreground=available_label_color[color],activebackground=available_label_color[color])
             # 
+            self.add_separator()
             series_of_snippets:pd.Series = self.ref_media.get_type('anime',label_color=True)
             all_color = series_of_snippets.unique()
-            for name,color in series_of_snippets.items():
-                self.add_command(label=name, command=self.insert_snippets(name, len(name)),foreground=available_label_color[color],activebackground=available_label_color[color])
+            for color in all_color:
+                sub_menu = CodeSnippet(master=self)
+                all_name = series_of_snippets.index[series_of_snippets==color]
+                for name in all_name:
+                    sub_menu.add_command(label=name, command=self.insert_snippets(name, len(name)))
+                self.add_cascade(label=self.label_color_name[color],menu=sub_menu,foreground=available_label_color[color],activebackground=available_label_color[color])
         # 气泡联想，聊天窗以对象而不是关键字的形式返回
         elif self.snippets_type=='bubble':
             self.add_command(label=self.tr('（无）'), command=self.force_line("<bubble>:NA"))
             list_of_snippets = self.ref_media.get_type('bubble',cw=False) + self.ref_media.get_type('chatwindow')
             for name in list_of_snippets:
-                self.add_command(label=name, command=self.insert_snippets(name+'("","")', len(name)+2))
+                self.add_command(label=self.tr(name), command=self.insert_snippets(name+'("","")', len(name)+2))
         # 背景音乐
         elif self.snippets_type=='bgm':
             self.add_command(label=self.tr('（停止）'), command=self.insert_snippets("stop", 4))
