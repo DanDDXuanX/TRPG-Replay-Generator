@@ -7,6 +7,7 @@ import re
 import tkinter as tk
 import ttkbootstrap as ttk
 from chlorophyll import CodeView
+import pandas as pd
 from .ProjConfig import preference
 from .Medias import Audio
 from .ScriptParser import CharTable, MediaDef
@@ -14,7 +15,7 @@ from .GUI_CustomDialog import abmethod_query
 from .GUI_DialogWindow import browse_file,color_chooser
 from .GUI_Link import Link
 from .GUI_Language import Localize
-from .Utils import rgb_2_hex
+from .Utils import rgb_2_hex,available_label_color
 
 class CodeSnippet(ttk.Menu):
     def __init__(self,master):
@@ -521,9 +522,17 @@ class RGLSnippets(CodeSnippet, Localize):
         # 立绘
         elif self.snippets_type=='animation':
             self.add_command(label=self.tr('（无）'), command=self.force_line("<animation>:NA"))
-            list_of_snippets = self.ref_media.get_type('anime')
-            for name in list_of_snippets:
-                self.add_command(label=name, command=self.insert_snippets(name, len(name)))
+            # list_of_snippets = self.ref_media.get_type('anime')
+            # for name in list_of_snippets:
+            #     self.add_command(label=name, command=self.insert_snippets(name, len(name)))
+            # series_of_snippets = self.ref_media.get_type('anime',label_color=True)
+            # for name,color in series_of_snippets.items():
+            #     self.add_command(label=name, command=self.insert_snippets(name, len(name)),foreground=available_label_color[color],activebackground=available_label_color[color])
+            # 
+            series_of_snippets:pd.Series = self.ref_media.get_type('anime',label_color=True)
+            all_color = series_of_snippets.unique()
+            for name,color in series_of_snippets.items():
+                self.add_command(label=name, command=self.insert_snippets(name, len(name)),foreground=available_label_color[color],activebackground=available_label_color[color])
         # 气泡联想，聊天窗以对象而不是关键字的形式返回
         elif self.snippets_type=='bubble':
             self.add_command(label=self.tr('（无）'), command=self.force_line("<bubble>:NA"))

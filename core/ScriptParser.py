@@ -457,7 +457,7 @@ class MediaDef(Script):
         self.activated = False
         return self.Medias
     # 访问:
-    def get_type(self,_type,cw=True) -> list:
+    def get_type(self,_type,cw=True,label_color=False) -> list:
         type_name = {
             'anime'     :['Animation','Sprite'],
             'bubble'    :['Bubble','Balloon','DynamicBubble'],
@@ -472,17 +472,30 @@ class MediaDef(Script):
             'bgm'       :['BGM'],
             'chatwindow':['ChatWindow']
         }
-        output = []
-        type_this:list = type_name[_type]
-        for keys in self.struct:
-            section_this = self.struct[keys]
-            if section_this['type'] in type_this:
-                output.append(keys)
-            # 在bubble类里的ChatWindow
-            elif cw and _type == 'bubble' and section_this['type'] == 'ChatWindow':
-                for sub_key in section_this['sub_key']:
-                    output.append(keys + ':' + sub_key)
-        output.sort()
+        if label_color:
+            output = {}
+            type_this:list = type_name[_type]
+            for keys in self.struct:
+                section_this = self.struct[keys]
+                if section_this['type'] in type_this:
+                    output[keys] = section_this['label_color']
+                # 在bubble类里的ChatWindow
+                elif cw and _type == 'bubble' and section_this['type'] == 'ChatWindow':
+                    for sub_key in section_this['sub_key']:
+                        output[keys + ':' + sub_key] = section_this['label_color']
+            output = pd.Series(output).sort_values()
+        else:
+            output = []
+            type_this:list = type_name[_type]
+            for keys in self.struct:
+                section_this = self.struct[keys]
+                if section_this['type'] in type_this:
+                    output.append(keys)
+                # 在bubble类里的ChatWindow
+                elif cw and _type == 'bubble' and section_this['type'] == 'ChatWindow':
+                    for sub_key in section_this['sub_key']:
+                        output.append(keys + ':' + sub_key)
+            output.sort()
         return output
     def get_moveable(self) -> dict:
         return {

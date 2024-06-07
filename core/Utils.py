@@ -224,3 +224,11 @@ def convert_audio(target_type:str,ifile:str,ofile:str):
         return True, ofile
     except subprocess.CalledProcessError as E:
         return False, str(E)
+    
+# 颜色标签
+available_label_color = {
+    'Violet':'#a690e0','Iris':'#729acc','Caribbean':'#29d698','Lavender':'#e384e3',
+    'Cerulean':'#2fbfde','Forest':'#51b858','Rose':'#f76fa4','Mango':'#eda63b',
+    'Purple':'#970097','Blue':'#3c3cff','Teal':'#008080','Magenta':'#e732e7',
+    'Tan':'#cec195','Green':'#1d7021','Brown':'#8b4513','Yellow':'#e2e264'
+}
