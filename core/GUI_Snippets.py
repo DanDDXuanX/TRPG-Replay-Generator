@@ -556,41 +556,23 @@ class RGLSnippets(CodeSnippet, Localize):
         elif self.snippets_type=='background':
             self.add_command(label=self.tr('（黑）'), command=self.insert_snippets("black", 5))
             self.add_command(label=self.tr('（白）'), command=self.insert_snippets("white", 5))
-            list_of_snippets = self.ref_media.get_type('background')
-            for name in list_of_snippets:
-                self.add_command(label=name, command=self.insert_snippets(name, len(name)))
+            self.add_media_selection('background')
         # 立绘
         elif self.snippets_type=='animation':
             self.add_command(label=self.tr('（无）'), command=self.force_line("<animation>:NA"))
-            # list_of_snippets = self.ref_media.get_type('anime')
-            # for name in list_of_snippets:
-            #     self.add_command(label=name, command=self.insert_snippets(name, len(name)))
-            # series_of_snippets = self.ref_media.get_type('anime',label_color=True)
-            # for name,color in series_of_snippets.items():
-            #     self.add_command(label=name, command=self.insert_snippets(name, len(name)),foreground=available_label_color[color],activebackground=available_label_color[color])
-            # 
             self.add_separator()
-            series_of_snippets:pd.Series = self.ref_media.get_type('anime',label_color=True)
-            all_color = series_of_snippets.unique()
-            for color in all_color:
-                sub_menu = CodeSnippet(master=self)
-                all_name = series_of_snippets.index[series_of_snippets==color]
-                for name in all_name:
-                    sub_menu.add_command(label=name, command=self.insert_snippets(name, len(name)))
-                self.add_cascade(label=self.label_color_name[color],menu=sub_menu,foreground=available_label_color[color],activebackground=available_label_color[color])
+            self.add_media_selection('anime')
         # 气泡联想，聊天窗以对象而不是关键字的形式返回
         elif self.snippets_type=='bubble':
             self.add_command(label=self.tr('（无）'), command=self.force_line("<bubble>:NA"))
-            list_of_snippets = self.ref_media.get_type('bubble',cw=False) + self.ref_media.get_type('chatwindow')
-            for name in list_of_snippets:
-                self.add_command(label=self.tr(name), command=self.insert_snippets(name+'("","")', len(name)+2))
+            self.add_separator()
+            self.add_media_selection('bubble',_format='{media}("","")',move_back=2,cw=False)
+            self.add_media_selection('chatwindow',_format='{media}("","")',move_back=2)
         # 背景音乐
         elif self.snippets_type=='bgm':
             self.add_command(label=self.tr('（停止）'), command=self.insert_snippets("stop", 4))
             self.add_separator() # --------------------
-            list_of_snippets = self.ref_media.get_type('bgm')
-            for name in list_of_snippets:
-                self.add_command(label=name, command=self.insert_snippets(name, len(name)))
+            self.add_media_selection('bgm')
             self.add_separator() # --------------------
             self.add_command(label=self.tr('（导入文件）'), command=self.open_browse_file(mtype='BGM'))
         # 音效
@@ -604,14 +586,10 @@ class RGLSnippets(CodeSnippet, Localize):
             self.add_separator() # --------------------
             self.add_command(label=self.tr('（无）'), command=self.insert_snippets(r"{NA}", 4))
             self.add_separator() # --------------------
-            list_of_snippets = self.ref_media.get_type('audio')
-            for name in list_of_snippets:
-                self.add_command(label=name, command=self.insert_snippets("{"+name+"}", len(name)+2))
+            self.add_media_selection(_type='audio',_format="{{{media}}}",move_back=2)
         # 清除对话框
         elif self.snippets_type=='chatwindow':
-            list_of_snippets = self.ref_media.get_type('chatwindow')
-            for name in list_of_snippets:
-                self.add_command(label=name, command=self.insert_snippets(name, len(name)))
+            self.add_media_selection('chatwindow')
         # 移动
         elif self.snippets_type=='move':
             dict_of_snippets = self.ref_media.get_moveable()
@@ -668,9 +646,7 @@ class RGLSnippets(CodeSnippet, Localize):
             # 音效
             audio_menu.add_command(label=self.tr('（无）'), command=self.insert_snippets(r"{NA}", 4))
             audio_menu.add_separator() #------------------------
-            list_of_snippets = self.ref_media.get_type('audio')
-            for name in list_of_snippets:
-                audio_menu.add_command(label=name, command=self.insert_snippets("{"+name+"}", len(name)+2))
+            self.add_media_selection(_target=audio_menu, _type='audio',_format="{{{media}}}",move_back=2)
         # 富文本
         elif self.snippets_type=='rich':
             enable_rich_menu = CodeSnippet(master=self)
@@ -688,6 +664,35 @@ class RGLSnippets(CodeSnippet, Localize):
             for i in range(10,101,10):
                 text = '%d'%i
                 self.add_command(label=text, command=self.insert_snippets(text, len(text)+1))
+    # 插入媒体选择
+    def add_media_selection(self,_type,_target=None,_format='{media}',move_back=0,**kwargs):
+        if _target is None:
+            _target = self
+        if 0: # add a preference
+            list_of_snippets = self.ref_media.get_type(_type,**kwargs)
+            for name in list_of_snippets:
+                snippet_text = _format.format(media=name)
+                _target.add_command(label=name, command=self.insert_snippets(snippet_text, len(name)+move_back))
+        elif 0: # add a preference
+            series_of_snippets:pd.Series = self.ref_media.get_color_labeled_type(_type,**kwargs)
+            for name,color in series_of_snippets.items():
+                snippet_text = _format.format(media=name)
+                _target.add_command(
+                    label=name, 
+                    command=self.insert_snippets(snippet_text, len(name)+move_back),
+                    foreground=available_label_color[color],
+                    activebackground=available_label_color[color]
+                )
+        else: # add a preference
+            series_of_snippets:pd.Series = self.ref_media.get_color_labeled_type(_type,**kwargs)
+            all_color = series_of_snippets.unique()
+            for color in all_color:
+                sub_menu = CodeSnippet(master=self)
+                all_name = series_of_snippets.index[series_of_snippets==color]
+                for name in all_name:
+                    snippet_text = _format.format(media=name)
+                    sub_menu.add_command(label=name, command=self.insert_snippets(snippet_text, len(name)+move_back))
+                _target.add_cascade(label=self.label_color_name[color],menu=sub_menu,foreground=available_label_color[color],activebackground=available_label_color[color])
     # 闭包
     def insert_snippets(self, snippet, cpos):
         # 命令内容

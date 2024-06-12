@@ -457,7 +457,7 @@ class MediaDef(Script):
         self.activated = False
         return self.Medias
     # 访问:
-    def get_type(self,_type,cw=True,label_color=False) -> list:
+    def get_type(self,_type,cw=True) -> list:
         type_name = {
             'anime'     :['Animation','Sprite'],
             'bubble'    :['Bubble','Balloon','DynamicBubble'],
@@ -472,30 +472,44 @@ class MediaDef(Script):
             'bgm'       :['BGM'],
             'chatwindow':['ChatWindow']
         }
-        if label_color:
-            output = {}
-            type_this:list = type_name[_type]
-            for keys in self.struct:
-                section_this = self.struct[keys]
-                if section_this['type'] in type_this:
-                    output[keys] = section_this['label_color']
-                # 在bubble类里的ChatWindow
-                elif cw and _type == 'bubble' and section_this['type'] == 'ChatWindow':
-                    for sub_key in section_this['sub_key']:
-                        output[keys + ':' + sub_key] = section_this['label_color']
-            output = pd.Series(output).sort_values()
-        else:
-            output = []
-            type_this:list = type_name[_type]
-            for keys in self.struct:
-                section_this = self.struct[keys]
-                if section_this['type'] in type_this:
-                    output.append(keys)
-                # 在bubble类里的ChatWindow
-                elif cw and _type == 'bubble' and section_this['type'] == 'ChatWindow':
-                    for sub_key in section_this['sub_key']:
-                        output.append(keys + ':' + sub_key)
-            output.sort()
+        output = []
+        type_this:list = type_name[_type]
+        for keys in self.struct:
+            section_this = self.struct[keys]
+            if section_this['type'] in type_this:
+                output.append(keys)
+            # 在bubble类里的ChatWindow
+            elif cw and _type == 'bubble' and section_this['type'] == 'ChatWindow':
+                for sub_key in section_this['sub_key']:
+                    output.append(keys + ':' + sub_key)
+        output.sort()
+        return output
+    def get_color_labeled_type(self,_type,cw=True)->pd.Series:
+        type_name = {
+            'anime'     :['Animation','Sprite'],
+            'bubble'    :['Bubble','Balloon','DynamicBubble'],
+            'subbubble' :['Bubble','DynamicBubble'],
+            'text'      :['Text','StrokeText','RichText','HPLabel'],
+            'pos'       :['Pos','FreePos'],
+            'bezier'    :['Pos','FreePos','BezierCurve'],
+            'posgrid'   :['PosGrid'],
+            'freepos'   :['FreePos'],
+            'background':['Background'],
+            'audio'     :['Audio'],
+            'bgm'       :['BGM'],
+            'chatwindow':['ChatWindow']
+        }
+        output = {}
+        type_this:list = type_name[_type]
+        for keys in self.struct:
+            section_this = self.struct[keys]
+            if section_this['type'] in type_this:
+                output[keys] = section_this['label_color']
+            # 在bubble类里的ChatWindow
+            elif cw and _type == 'bubble' and section_this['type'] == 'ChatWindow':
+                for sub_key in section_this['sub_key']:
+                    output[keys + ':' + sub_key] = section_this['label_color']
+        output = pd.Series(output).sort_values()
         return output
     def get_moveable(self) -> dict:
         return {
@@ -1549,7 +1563,6 @@ class RplGenLog(Script):
         for key in self.struct.keys():
             # 保留前一行的切换效果参数，重置当前行的参数
             last_dialog_method = this_dialog_method
-            this_dialog_method = {'Am':None,'Bb':None,'A1':0,'A2':0,'A3':0}
             # 本小节：
             i = int(key)
             this_section = self.struct[key]
@@ -1563,6 +1576,8 @@ class RplGenLog(Script):
                 continue
             # 对话行
             elif this_section['type'] == 'dialog':
+                # 仅时间轴有效的行会重置
+                this_dialog_method = {'Am':None,'Bb':None,'A1':0,'A2':0,'A3':0}
                 try:
                     # 这个小节的持续时长
                     if '*' in this_section['sound_set'].keys():
@@ -1928,6 +1943,8 @@ class RplGenLog(Script):
                     raise ParserError('ParErrDial', str(i+1))
             # 背景设置行
             elif this_section['type'] == 'background':
+                # 仅时间轴有效的行会重置
+                this_dialog_method = {'Am':None,'Bb':None,'A1':0,'A2':0,'A3':0}
                 try:
                     # 对象是否存在
                     this_bg:str = this_section['object']
@@ -2293,6 +2310,8 @@ class RplGenLog(Script):
                     self.medias[this_section['object']].clear()
             # 生命值动画
             elif this_section['type'] == 'hitpoint':
+                # 仅时间轴有效的行会重置
+                this_dialog_method = {'Am':None,'Bb':None,'A1':0,'A2':0,'A3':0}
                 frame_rate = config.frame_rate
                 try:
                     this_timeline=pd.DataFrame(index=range(0,frame_rate*4),dtype=str,columns=self.render_arg)
@@ -2364,6 +2383,8 @@ class RplGenLog(Script):
                     raise ParserError('ParErrHit',str(i+1))
             # 骰点动画
             elif this_section['type'] == 'dice':
+                # 仅时间轴有效的行会重置
+                this_dialog_method = {'Am':None,'Bb':None,'A1':0,'A2':0,'A3':0}
                 frame_rate = config.frame_rate
                 width = config.Width
                 height = config.Height
@@ -2428,6 +2449,8 @@ class RplGenLog(Script):
                     raise ParserError('ParErrDice',str(i+1))
             # 暂停画面
             elif this_section['type'] == 'wait':
+                # 仅时间轴有效的行会重置
+                this_dialog_method = {'Am':None,'Bb':None,'A1':0,'A2':0,'A3':0}
                 try:
                     # 持续指定帧，仅显示当前背景
                     this_timeline=pd.DataFrame(index=range(0,this_section['time']),dtype=str,columns=self.render_arg)
