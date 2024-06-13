@@ -668,12 +668,12 @@ class RGLSnippets(CodeSnippet, Localize):
     def add_media_selection(self,_type,_target=None,_format='{media}',move_back=0,**kwargs):
         if _target is None:
             _target = self
-        if 0: # add a preference
+        if preference.tab_media_listmod == 'basic': # add a preference
             list_of_snippets = self.ref_media.get_type(_type,**kwargs)
             for name in list_of_snippets:
                 snippet_text = _format.format(media=name)
                 _target.add_command(label=name, command=self.insert_snippets(snippet_text, len(name)+move_back))
-        elif 0: # add a preference
+        elif preference.tab_media_listmod == 'color_label': # add a preference
             series_of_snippets:pd.Series = self.ref_media.get_color_labeled_type(_type,**kwargs)
             for name,color in series_of_snippets.items():
                 snippet_text = _format.format(media=name)
@@ -683,7 +683,7 @@ class RGLSnippets(CodeSnippet, Localize):
                     foreground=available_label_color[color],
                     activebackground=available_label_color[color]
                 )
-        else: # add a preference
+        elif preference.tab_media_listmod == 'color_group': # add a preference
             series_of_snippets:pd.Series = self.ref_media.get_color_labeled_type(_type,**kwargs)
             all_color = series_of_snippets.unique()
             for color in all_color:
@@ -693,6 +693,8 @@ class RGLSnippets(CodeSnippet, Localize):
                     snippet_text = _format.format(media=name)
                     sub_menu.add_command(label=name, command=self.insert_snippets(snippet_text, len(name)+move_back))
                 _target.add_cascade(label=self.label_color_name[color],menu=sub_menu,foreground=available_label_color[color],activebackground=available_label_color[color])
+        else:
+            pass
     # 闭包
     def insert_snippets(self, snippet, cpos):
         # 命令内容

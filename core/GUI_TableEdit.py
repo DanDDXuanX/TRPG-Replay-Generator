@@ -11,7 +11,7 @@ from .GUI_Util import TextSeparator, FluentFrame, StickyLabelSeperator
 from .GUI_Link import Link
 from .GUI_Language import tr
 from .GUI_TableStruct import PreferenceTableStruct, ExecuteTableStruct, PortalStruct
-from .GUI_TableStruct import language, True_False, theme, progressbar, import_mode, dice_mode, askyesno, colorschemes, is_enable
+from .GUI_TableStruct import language, True_False, theme, progressbar, import_mode, dice_mode, askyesno, colorschemes, is_enable, media_display
 
 class OutPutCommandAtScriptExecuter(OutPutCommand):
     # 重载
@@ -155,6 +155,7 @@ class PreferenceTable(TableEdit):
         self.elements['Edit.auto_convert'].input.update_dict(askyesno)
         self.elements['Edit.asterisk_import'].input.update_dict(True_False)
         self.elements['Edit.rename_boardcast'].input.update_dict(askyesno)
+        self.elements['Edit.tab_media_listmod'].input.update_dict(media_display)
         self.elements['BIA.dice_mode'].input.update_dict(dice_mode)
         self.elements['TTSKey.UseBulitInKeys'].input.update_dict(is_enable)
         # spine

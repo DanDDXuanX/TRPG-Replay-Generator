@@ -2746,6 +2746,16 @@ PreferenceTableStruct = {
                 "vitem": "entry",
                 "vtype": "str",
                 "default": ""
+            },
+            'Edit.tab_media_listmod':{
+                "ktext": "Tab媒体列表模式：",
+                "tooltip":"Tab菜单列出媒体列表时的展示方式。",
+                "dtext": "（选择）",
+                "ditem": "label",
+                "valuekey": "Edit.tab_media_listmod",
+                "vitem": "combox",
+                "vtype": "str",
+                "default": "basic"
             }
         }
     },
@@ -3527,6 +3537,11 @@ colorschemes = {
     "ayu-light" : "ayu-light",
     "dracula"   : "dracula",
     "mariana"   : "mariana",
+}
+media_display = {
+    "基础" : 'basic',
+    "颜色标注" : 'color_label',
+    "颜色分组" : 'color_group'
 }
 # 新建媒体按钮的结构
 NewElement = {

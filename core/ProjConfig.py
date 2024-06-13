@@ -76,12 +76,12 @@ class Config:
         }
     def execute(self):
         # 动态效果
-        MotionMethod.screen_size:tuple = (self.Width,self.Height)
+        MotionMethod.screen_size    = (self.Width,self.Height)
         # 媒体
-        MediaObj.screen_size:tuple     = (self.Width,self.Height)
-        MediaObj.frame_rate:int        = self.frame_rate
-        MediaObj.Is_NTSC:bool          = False
-        MediaObj.Audio_type:str        = 'Audio_type'
+        MediaObj.screen_size        = (self.Width,self.Height)
+        MediaObj.frame_rate         = self.frame_rate
+        MediaObj.Is_NTSC            = False
+        MediaObj.Audio_type         = 'Audio_type'
 
 # 程序设置
 class Preference:
@@ -119,6 +119,7 @@ class Preference:
         'rename_boardcast' : 'ask',
         'asterisk_import' : True,
         'masked_symbol' : '',
+        'tab_media_listmod' : 'basic',
         # 预览
         'progress_bar_style' : 'color',
         'framerate_counter' : True,
@@ -163,6 +164,7 @@ class Preference:
         'asterisk_import' : 'Edit.asterisk_import',
         'rename_boardcast' : 'Edit.rename_boardcast',
         'masked_symbol' : 'Edit.masked_symbol',
+        'tab_media_listmod' : 'Edit.tab_media_listmod',
         # 预览
         'progress_bar_style' : 'Preview.progress_bar_style',
         'framerate_counter' : 'Preview.framerate_counter',
