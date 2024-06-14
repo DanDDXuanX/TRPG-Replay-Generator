@@ -380,19 +380,22 @@ class VerticalOutputCommand(OutPutCommand):
             return False
         else:
             return True
-    # 因为垂直输出命令，涉及的是CodeView，因此在导出前应该添加：将CodeView的内容更新到RGL
+    # 因为垂直输出命令，涉及的是CodeView，因此在导出前应该添加：将CodeView的内容更新到RGL，并尝试自动保存
     def preview_display(self):
         if self.validate_rgl_syntax():
+            # self.codeview.save_command(None) # 预览播放不自动保存
             return super().preview_display()
         else:
             return 
     def export_video(self):
         if self.validate_rgl_syntax():
+            self.codeview.save_command(None)
             return super().export_video()
         else:
             return 
     def export_xml(self):
         if self.validate_rgl_syntax():
+            self.codeview.save_command(None)
             return super().export_xml()
         else:
             return
@@ -402,6 +405,7 @@ class VerticalOutputCommand(OutPutCommand):
             super().synth_speech()
             # 更新codeview
             self.codeview.update_codeview(None)
+            self.codeview.save_command(None)
             return 
         else:
             return
