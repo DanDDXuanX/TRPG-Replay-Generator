@@ -1,3 +1,5 @@
+[中文版](./README.md)
+
 # Overview
 
 ![logo](./doc/logo.png)
