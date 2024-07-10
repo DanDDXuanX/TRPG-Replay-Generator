@@ -813,6 +813,7 @@ class PreviewDisplay(OutputMediaType):
         # 主循环
         while n < timeline_len:
             if self.is_terminated:
+                pygame.quit() # 关闭了预览之后，BGM并没有停止？
                 return 2
             ct = time.time()
             try:
@@ -1069,6 +1070,7 @@ class ExportVideo(OutputMediaType):
             if self.is_terminated:
                 for key in self.output_engine:
                     self.output_engine[key].stdin.close()
+                pygame.quit()
                 return 2
             try:
                 if n in self.timeline.index:
