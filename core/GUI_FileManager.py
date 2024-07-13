@@ -8,6 +8,7 @@ import os
 import sys
 import json
 import re
+import glob
 from PIL import Image, ImageTk, ImageEnhance, ImageFont, ImageDraw
 import ttkbootstrap as ttk
 import tkinter as tk
@@ -27,6 +28,9 @@ from .GUI_Util import FluentFrame, ask_rename_boardcast
 from .GUI_Language import tr
 from .GUI_Link import Link
 import pinyin
+from .Utils import readable_timestamp
+import shutil
+
 # 项目视图-文件管理器-RGPJ
 class RplGenProJect(Script):
     def __init__(self, json_input=None) -> None:
@@ -409,6 +413,9 @@ class FileManager(ttk.Frame):
                 self.project.dump_json(filepath=select_path)
                 self.project_file = select_path
         else:
+            # 先把旧的项目文件输出到backup
+            self.backup_file()
+            # 然后将新的项目覆写到原有的项目
             self.project.dump_json(filepath=self.project_file)
         # 弹出消息提示，Toast
         ToastNotification(
@@ -416,6 +423,23 @@ class FileManager(ttk.Frame):
             message=tr('成功保存项目到文件：\n')+self.project_file,
             duration=3000
         ).show_toast()
+    # 备份项目
+    def backup_file(self):
+        # 输出路径
+        output_path = Link['media_dir'] + f'backup/'
+        # 备份的路径
+        backup_file = f"{output_path}{self.project.config.Name}.{readable_timestamp()}.rgpj"
+        # 检查输出路径是否存在
+        if not os.path.isdir(output_path):
+            os.makedirs(output_path)
+        # 执行复制
+        shutil.copy(src=self.project_file, dst=backup_file)
+        # 检查备份文件夹的存档数量，保证数量不超过10
+        list_of_backup = glob.glob(f"{output_path}{self.project.config.Name}.*.rgpj")
+        list_of_backup.sort() # 升序排序
+        while len(list_of_backup) > 10:
+            # 删除列表开头的文件（即创建时间最小的）
+            os.remove(list_of_backup.pop(0))
     # 配置项目
     def proj_config(self):
         get_config = configure_project(
