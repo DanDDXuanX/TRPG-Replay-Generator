@@ -1277,7 +1277,7 @@ class RplGenLog(Script):
         # 返回
         return '\n'.join(list_of_scripts)
     # 执行解析 -> (timeline:pd.DF,breakpoint:pd.Ser,builtin_media:dict?<方便在其他模块实例化>
-    def tx_method_execute(self,text:str,text_obj:Text,tx_method:dict,line_limit:int,this_duration:int,i=0) -> np.ndarray:
+    def tx_method_execute(self,text:str,text_obj:Text,tx_method:dict,line_limit:int,this_duration:int,line_num:int=4,i=0) -> np.ndarray:
         # content: 不包含richlabel
         content, idxmap = text_obj.raw(text)
         idx_uf = np.frompyfunc(lambda x:idxmap[x],1,1)
@@ -1285,7 +1285,7 @@ class RplGenLog(Script):
         content_length:int = len(content)
         UF_limit_content_length:np.ufunc = np.frompyfunc(lambda x:int(x) if x<=content_length else content_length,1,1)
         # 检查文字是否合理
-        self.check_text_execute(content_text=content,this_line_limit=line_limit,i=i)
+        self.check_text_execute(content_text=content,this_line_limit=line_limit,this_line_num_est=line_num,i=i)
         # 检查文字效果时间
         if this_duration < tx_method['method_dur']:
             # 小节持续时间过短，不显示任何文字效果
@@ -1379,11 +1379,13 @@ class RplGenLog(Script):
             # 如果是放置正常的气泡
             if type(self.medias[this_bb]) in [Bubble,Balloon,DynamicBubble]:
                 maintext_this = self.medias[this_bb].MainText
+                line_num_est_this = self.medias[this_bb].line_num_est
                 line_limit_this = maintext_this.line_limit
             # 如果是放置一个的聊天窗
             elif type(self.medias[this_bb]) is ChatWindow:
                 keyword_this = this_hd.split('|')[-1].split('#')[0]
                 maintext_this = self.medias[this_bb].sub_Bubble[keyword_this].MainText
+                line_num_est_this = self.medias[this_bb].sub_Bubble[keyword_this].line_num_est
                 line_limit_this = maintext_this.line_limit
             # 切换效果
             self.main_timeline.loc[last_placed_index,'BbS_main_e'] = self.tx_method_execute(
@@ -1391,6 +1393,7 @@ class RplGenLog(Script):
                 text_obj=maintext_this,
                 tx_method={'method':text_method,'method_dur':text_dur},
                 line_limit=line_limit_this,
+                line_num=line_num_est_this,
                 this_duration=this_duration,
                 i=last_section)
     def place_anime_execute(self,this_placed_anime:tuple,last_section:int,this_section:int)->None:
@@ -1422,7 +1425,7 @@ class RplGenLog(Script):
             self.main_timeline.loc[last_placed_index,'AmS_p'] = am_method_obj.motion(this_duration)
             self.main_timeline.loc[last_placed_index,'AmS_t'] = self.medias[this_am].get_tick(this_duration)
             self.main_timeline.loc[last_placed_index,'AmS_c'] = am_center.use(this_duration)
-    def check_text_execute(self,content_text,this_line_limit,i):
+    def check_text_execute(self,content_text,this_line_limit,this_line_num_est,i):
         # 检查文本是否为空
         if len(content_text) == 0:
             return
@@ -1431,8 +1434,8 @@ class RplGenLog(Script):
             # content_text = '^' + content_text # 补齐申明符号 # 因为和富文本冲突，取消这个功能
             print(WarningPrint('UndeclMB',str(i+1)))
         # 行数过多的警告
-        if (len(content_text)>this_line_limit*4) | (len(content_text.split('#'))>4):
-            print(WarningPrint('More4line',str(i+1)))
+        if (len(content_text)>this_line_limit*this_line_num_est) | (len(content_text.split('#'))>this_line_num_est):
+            print(WarningPrint('More4line', str(i+1), str(this_line_num_est)))
         # 手动换行的字数超限的警告
         if ((content_text[0]=='^')|('#' in content_text))&(np.frompyfunc(len,1,1)(content_text.replace('^','').split('#')).max()>this_line_limit):
             print(WarningPrint('MBExceed',str(i+1)))
@@ -1802,8 +1805,10 @@ class RplGenLog(Script):
                                 content_text = this_section['content']
                                 if type(this_bb_obj) is ChatWindow:
                                     mainText_this = this_bb_obj.sub_Bubble[cw_key].MainText
+                                    line_num_est_this = this_bb_obj.sub_Bubble[cw_key].line_num_est
                                 else:
                                     mainText_this = this_bb_obj.MainText
+                                    line_num_est_this = this_bb_obj.line_num_est
                                 if mainText_this is None:
                                     # 气泡如果缺失主文本
                                     raise ParserError('MissMainTx',this_bb)
@@ -1845,6 +1850,7 @@ class RplGenLog(Script):
                                     tx_method=tx_method,
                                     line_limit=this_line_limit,
                                     this_duration=this_duration,
+                                    line_num=line_num_est_this,
                                     i=i)
                     # 音效
                     for sound_key in this_section['sound_set'].keys():
