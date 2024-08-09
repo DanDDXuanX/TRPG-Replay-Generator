@@ -19,14 +19,14 @@ class SpeechSynthesizer:
     def __init__(self,rplgenlog:RplGenLog,chartab:CharTable,mediadef:MediaDef,output_path:str,config:Config=Config()) -> None:
         # 项目配置
         self.config = config
+        # 媒体定义
+        self.medias:MediaDef = mediadef
         # 输出路径
         self.output_path = output_path
         # 角色表
         self.charactor_table = chartab.execute()
         # 建立 TTS 对象
         self.charactor_table['TTS'] = self.bulid_tts_engine()
-        # 媒体定义
-        self.medias:MediaDef = mediadef
         # log文件
         self.rgl:RplGenLog = rplgenlog
         # 是否终止
@@ -72,7 +72,8 @@ class SpeechSynthesizer:
                     TTS[key] = Beats_engine(
                         name=key,
                         voice=value.Voice[7:],
-                        frame_rate=self.config.frame_rate
+                        frame_rate=self.config.frame_rate,
+                        medias=self.medias
                         )
                 # System 模式：如果音源名以 "System::" 作为开头
                 elif value.Voice[0:8] == 'System::':

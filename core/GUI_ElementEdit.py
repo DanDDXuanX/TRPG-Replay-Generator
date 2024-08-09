@@ -306,7 +306,7 @@ class CharactorEdit(EditWindow):
             self.page.preview.preview(char_name=self.section_index)
     # 打开音源选择窗
     def open_voice_selection(self, master, voice, speech_rate, pitch_rate):
-        voice_chooser(master=master,voice_obj=voice,speech_obj=speech_rate,pitch_obj=pitch_rate)
+        voice_chooser(master=master,voice_obj=voice,speech_obj=speech_rate,pitch_obj=pitch_rate,medias=self.page.ref_medef)
         # def 这个时候应有回调
         self.update_section_from()
     # 添加一个自定义列

@@ -155,10 +155,17 @@ class AliyunVoiceArgs(VoiceArgs):
         else:
             raise ValueError(tr('音源名是无效的！'))
 class BeatsVoiceArgs(VoiceArgs):
-    def __init__(self, master, screenzoom, voice: str = '', speech_rate: int = 0, pitch_rate: int = 0):
+    def __init__(self, master, screenzoom, medias, voice: str = '', speech_rate: int = 0, pitch_rate: int = 0):
+        self.medias = medias
+        self.se_list = self.medias.get_type('audio')
         # 继承
         super().__init__(master, screenzoom, service='Beats', voice=voice, speech_rate=0, pitch_rate=0)
         self.TTS = Beats_engine
+        # 添加媒体音效选项
+        all_beats = pd.Series(self.voice_lib.index, index=self.voice_lib['description_'+preference.lang]).to_dict()
+        for se in self.se_list:
+            all_beats['SE:'+se] = 'SE:' + se
+        self.inputs['voice'].update_dict(all_beats)
         # 禁用语速语调
         for keyword in ['speechrate','pitchrate']:
             self.inputs[keyword].configure(state='disable')
@@ -167,13 +174,21 @@ class BeatsVoiceArgs(VoiceArgs):
         self.update_selected_voice(None)
         self.update_elements()
         self.update_items()
-    def load_input_args(self, voice, speech_rate, pitch_rate):
+    def load_input_args(self, voice:str, speech_rate, pitch_rate):
         super().load_input_args(voice, speech_rate, pitch_rate)
         # 强制归零语速和语调
         self.variables['speechrate'].set(0)
         self.variables['pitchrate'].set(0)
+        # 重新检查音效是否可用
+        if voice.startswith('SE:'):
+            if voice[3:] in self.se_list:
+                self.variables['voice'] = tk.StringVar(master=self, value=voice)
     def get_args(self) -> dict:
         if self.variables['voice'].get() in self.voice_lib.index:
+            args = super().get_args()
+            args['voice'] = 'Beats::' + args['voice']
+            return args
+        elif self.variables['voice'].get().startswith('SE:'):
             args = super().get_args()
             args['voice'] = 'Beats::' + args['voice']
             return args
@@ -198,7 +213,8 @@ class BeatsVoiceArgs(VoiceArgs):
             name = 'preview',
             voice = TTS_voice,
             frame_rate = 30,
-            aformat = 'wav'
+            aformat = 'wav',
+            medias = self.medias
         )
         this_TTS.tx_method_specify(tx_method={"method":"w2w","method_dur":3})
         # 执行合成
@@ -258,8 +274,15 @@ class AzureVoiceArgs(VoiceArgs):
     def load_input_args(self, voice, speech_rate, pitch_rate):
         # Azure解析
         if ':' in voice:
-            speaker,style,degree,roleplay = voice.split(':')
-            degree = float(degree)
+            SSDR = voice.split('-')
+            if len(SSDR) == 4:
+                speaker,style,degree,roleplay = SSDR
+                degree = float(degree)
+            else:
+                speaker = voice
+                style = 'general'
+                degree = 1.0
+                roleplay = 'Default'
         else:
             speaker = voice
             style = 'general'
@@ -360,7 +383,7 @@ class TencentVoiceArgs(VoiceArgs):
             raise ValueError(tr('音源名是无效的！'))
 # 语音选择
 class VoiceChooser(ttk.Frame):
-    def __init__(self,master,screenzoom,voice:str,speech_rate:int,pitch_rate:int,close_func):
+    def __init__(self,master,screenzoom,medias,voice:str,speech_rate:int,pitch_rate:int,close_func):
         # 缩放尺度
         self.sz = screenzoom
         super().__init__(master,borderwidth=0)
@@ -385,7 +408,7 @@ class VoiceChooser(ttk.Frame):
             'Aliyun'    : AliyunVoiceArgs(master=self.argument_notebook,screenzoom=self.sz,voice=speaker,speech_rate=speech_rate,pitch_rate=pitch_rate),
             'Azure'     : AzureVoiceArgs(master=self.argument_notebook,screenzoom=self.sz,voice=speaker,speech_rate=speech_rate,pitch_rate=pitch_rate),
             'Tencent'   : TencentVoiceArgs(master=self.argument_notebook,screenzoom=self.sz,voice=speaker,speech_rate=speech_rate,pitch_rate=pitch_rate),
-            'Beats'     : BeatsVoiceArgs(master=self.argument_notebook,screenzoom=self.sz,voice=speaker,speech_rate=speech_rate,pitch_rate=pitch_rate),
+            'Beats'     : BeatsVoiceArgs(master=self.argument_notebook,screenzoom=self.sz,voice=speaker,speech_rate=speech_rate,pitch_rate=pitch_rate,medias=medias),
             'System'    : SystemVoiceArgs(master=self.argument_notebook,screenzoom=self.sz,voice=speaker,speech_rate=speech_rate,pitch_rate=pitch_rate),
         }
         self.service_name = {
@@ -527,12 +550,13 @@ class VoiceChooser(ttk.Frame):
         else:
             self.after(500,self.wait_message)
 class VoiceChooserDialog(Dialog):
-    def __init__(self, screenzoom, parent=None, title="选择语音音源", voice='', speechrate=0, pitchrate=0):
+    def __init__(self, screenzoom, medias, parent=None, title="选择语音音源", voice='', speechrate=0, pitchrate=0):
         super().__init__(parent, title, alert=False)
         self.sz = screenzoom
         self.voice = voice
         self.speech_rate = speechrate
         self.pitch_rate = pitchrate
+        self.medias = medias
     def close_dialog(self,result=None):
         self._result = result
         self._toplevel.destroy()
@@ -540,6 +564,7 @@ class VoiceChooserDialog(Dialog):
         self.voice_chooser = VoiceChooser(
             master,
             screenzoom=self.sz,
+            medias=self.medias,
             voice=self.voice,
             speech_rate=self.speech_rate,
             pitch_rate=self.pitch_rate,

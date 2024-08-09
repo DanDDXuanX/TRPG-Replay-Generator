@@ -148,7 +148,7 @@ def abmethod_query(master,screenzoom)->str:
     return result_args
 
 # 打开语音选择器，并把结果输出给 StringVar
-def voice_chooser(master,voice_obj:StringVar,speech_obj:IntVar,pitch_obj:IntVar):
+def voice_chooser(master,voice_obj:StringVar,speech_obj:IntVar,pitch_obj:IntVar,medias:dict):
     init_voice = voice_obj.get()
     init_speech = speech_obj.get()
     init_pitch = pitch_obj.get()
@@ -158,7 +158,8 @@ def voice_chooser(master,voice_obj:StringVar,speech_obj:IntVar,pitch_obj:IntVar)
         title=tr('选择音源'),
         voice=init_voice,
         speechrate=init_speech,
-        pitchrate=init_pitch
+        pitchrate=init_pitch,
+        medias=medias
         )
     dialog_window.show()
     # 上传报文：NOTE: 为了操作的便捷性，这个位置先不考虑上传报文的事情。
