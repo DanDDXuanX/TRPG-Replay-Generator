@@ -224,7 +224,15 @@ def convert_audio(target_type:str,ifile:str,ofile:str):
         return True, ofile
     except subprocess.CalledProcessError as E:
         return False, str(E)
-    
+
+# 计算分贝值
+def volume_to_db(volume_ratio):
+    db_value = 20 * np.log10(volume_ratio)
+    # 如果分贝值小于-200，则设置为-200
+    if db_value < -200:
+        return -200
+    return db_value
+
 # 颜色标签
 available_label_color = {
     'Violet':'#a690e0','Iris':'#729acc','Caribbean':'#29d698','Lavender':'#e384e3',
