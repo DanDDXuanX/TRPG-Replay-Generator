@@ -568,6 +568,7 @@ class MediaEdit(EditWindow):
             self.elements['blink_std'].input.configure(from_=0.0,to=3,increment=0.1)
         if self.line_type == 'Audio':
             self.elements['filepath'].bind_button(dtype='soundeff-file',convert=True)
+            self.elements['volume'].input.configure(from_=0,to=100,increment=10)
         if self.line_type == 'BGM':
             self.elements['filepath'].bind_button(dtype='BGM-file',convert=True)
             self.elements['volume'].input.configure(from_=0,to=100,increment=10)

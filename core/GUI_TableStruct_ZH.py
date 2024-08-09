@@ -2189,13 +2189,24 @@ EditTableStruct = {
                         "vitem": "entry",
                         "vtype": "str",
                         "default": ""
-                    }
+                    },
+                    "volume": {
+                        "ktext": "音量：",
+                        "tooltip":None,
+                        "dtext": "（数值）",
+                        "ditem": "label",
+                        "valuekey": "volume",
+                        "vitem": "spine",
+                        "vtype": "int",
+                        "default": 100
+                    },
                 }
             }
         },
         "Audio.args":{
             "type"          : "type",
             "filepath"      : "filepath",
+            "volume"        : "volume",
             "label_color"   : "label_color"
         },
         "BGM":{

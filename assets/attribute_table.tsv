@@ -44,7 +44,7 @@ am_right	头像右边界	am_right	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0
 sub_distance	滚动间距	sub_distance	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0
 tick	拍率	tick	0	0	0	0	0	0	0	0	0	0	0	0	1	1	0	0	0
 loop	循环播放	loop	0	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	1
-volume	音量	volume	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1
+volume	音量	volume	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	1
 control_left	左控制点	control_left	0	0	0	2	0	0	0	0	0	0	0	0	0	0	0	0	0
 control_right	右控制点	control_right	0	0	0	2	0	0	0	0	0	0	0	0	0	0	0	0	0
 anchor	锚点	anchor	0	0	0	2	0	0	0	0	0	0	0	0	0	0	0	0	0

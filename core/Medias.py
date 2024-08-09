@@ -2308,7 +2308,7 @@ class Audio(MediaObj):
         # 载入音频
         self.volume = volume/100
         try:
-            self.media = pygame.mixer.Sound(self.filepath.exact())
+            self.media:pygame.mixer.Sound = pygame.mixer.Sound(self.filepath.exact())
             # 设置音量
             self.media.set_volume(self.volume)
         except Exception as E:
@@ -2381,6 +2381,14 @@ class Audio(MediaObj):
         if key == 'filepath':
             self.media = pygame.mixer.Sound(self.filepath.exact())
             self.length:int = int(self.media.get_length()*self.frame_rate)
+        elif key == 'volume':
+            self.volume = value/100
+            # media
+            self.media.set_volume(self.volume)
+            # audioseg
+            if self.audioseg is not None:
+                self.audioseg = pydub.AudioSegment.from_file(self.filepath.exact())
+                self.audioseg = self.audioseg + volume_to_db(self.volume)
 # 背景音乐
 class BGM(MediaObj):
     def __init__(self,filepath,volume=100,loop=True,label_color='Caribbean'):

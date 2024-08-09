@@ -48,7 +48,7 @@ class Script:
         'Background'    :['filepath','scale','pos','label_color'],
         'Animation'     :['filepath','scale','pos','tick','loop','label_color'],
         'Sprite'        :['filepath','eyepath','mouthpath','scale','pos','tick','blink_mean','blink_std','label_color'],
-        'Audio'         :['filepath','label_color'],
+        'Audio'         :['filepath','volume','label_color'],
         'BGM'           :['filepath','volume','loop','label_color']
         }
     type_keyword_default = {
@@ -67,7 +67,7 @@ class Script:
         'Background'    :['black',1.0,[0,0],'Lavender'],
         'Animation'     :['./assets/heart_shape.png',1.0,[100,100],1,True,'Lavender'], # TODO:这个默认的filepath应该修改！
         'Sprite'        :['./assets/heart_shape.png',None,None,1.0,[100,100],1,4,1,'Lavender'],
-        'Audio'         :['./assets/SE_duck.wav','Caribbean'], # TODO:这个默认的filepath应该修改！
+        'Audio'         :['./assets/SE_duck.wav',100,'Caribbean'], # TODO:这个默认的filepath应该修改！
         'BGM'           :['./assets/SE_duck.ogg',100,True,'Caribbean'] # TODO:这个默认的filepath应该修改！
         }
     type_path_keyword = {
