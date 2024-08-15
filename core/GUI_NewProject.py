@@ -20,6 +20,7 @@ from .GUI_Util import KeyValueDescribe, clear_speech
 from .GUI_TableStruct import ProjectTableStruct
 from .GUI_Language import tr
 from .ProjConfig import preference
+from .Utils import is_valid_filename
 
 class CreateProject(ttk.Frame):
     table_struct = {}
@@ -181,7 +182,7 @@ class CreateEmptyProject(CreateProject):
         if all_layer:
             Messagebox().show_error(title=tr('错误'),message=tr('缺失图层：{} ！').format(','.join(all_layer)),parent=self)
             return False
-        for symbol in ['/','\\',':','*','?','"','<','>','|']:
+        for symbol in ['/','\\',':','*','?','"','<','>','|','\n']:
             if symbol in file_name:
                 Messagebox().show_error(title=tr('错误'),message=tr('项目名中不能包含符号 {} ！').format(symbol),parent=self)
                 return False
