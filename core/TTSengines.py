@@ -256,7 +256,10 @@ class Beats_engine(TTS_engine):
         if voice in self.voice_list:
             self.unit:pydub.AudioSegment = pydub.AudioSegment.from_file(self.voice_list[self.voice])
         elif voice.startswith('SE:'):
-            self.unit:pydub.AudioSegment = medias.instance_execute(medias.struct[voice[3:]]).recode()
+            if voice[3:] in medias.get_type('audio'):
+                self.unit:pydub.AudioSegment = medias.instance_execute(medias.struct[voice[3:]]).recode()
+            else:
+                raise SynthesisError('BeatsNoSE', voice[3:])
     # 指定一个文字显示效果，重设单位时间
     def tx_method_specify(self, tx_method:dict)->None:
         # 通过文字显示方法，获取单个字的时长

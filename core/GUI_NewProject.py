@@ -20,7 +20,6 @@ from .GUI_Util import KeyValueDescribe, clear_speech
 from .GUI_TableStruct import ProjectTableStruct
 from .GUI_Language import tr
 from .ProjConfig import preference
-from .Utils import is_valid_filename
 
 class CreateProject(ttk.Frame):
     table_struct = {}

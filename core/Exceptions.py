@@ -245,6 +245,8 @@ class SynthesisError(RplGenError):
                         "Azure错误：语音服务Key尚未初始化。"],
         'TencentKey'  :["TencentError: Service Key uninitialized.",
                         "腾讯语音错误：语音服务Key尚未初始化。"],
+        'BeatsNoSE'   :["BeatsError: Cannot found the specified audio media: {}",
+                        "节奏音错误：找不到到指定的音效媒体：{}"]
     }
     error_type = ["\x1B[31m[SynthesisError]:\x1B[0m ",
                   "\x1B[31m[合成错误]:\x1B[0m "]
