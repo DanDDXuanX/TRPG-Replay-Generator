@@ -255,7 +255,7 @@ class Beats_engine(TTS_engine):
         # 载入文件
         if voice in self.voice_list:
             self.unit:pydub.AudioSegment = pydub.AudioSegment.from_file(self.voice_list[self.voice])
-        elif voice.startswith('SE:'):
+        elif voice.startswith('SE-'):
             if voice[3:] in medias.get_type('audio'):
                 self.unit:pydub.AudioSegment = medias.instance_execute(medias.struct[voice[3:]]).recode()
             else:

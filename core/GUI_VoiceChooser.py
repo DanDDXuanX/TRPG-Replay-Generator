@@ -164,7 +164,7 @@ class BeatsVoiceArgs(VoiceArgs):
         # 添加媒体音效选项
         all_beats = pd.Series(self.voice_lib.index, index=self.voice_lib['description_'+preference.lang]).to_dict()
         for se in self.se_list:
-            all_beats['SE:'+se] = 'SE:' + se
+            all_beats['SE-'+se] = 'SE-' + se
         self.inputs['voice'].update_dict(all_beats)
         # 禁用语速语调
         for keyword in ['speechrate','pitchrate']:
@@ -180,7 +180,7 @@ class BeatsVoiceArgs(VoiceArgs):
         self.variables['speechrate'].set(0)
         self.variables['pitchrate'].set(0)
         # 重新检查音效是否可用
-        if voice.startswith('SE:'):
+        if voice.startswith('SE-'):
             if voice[3:] in self.se_list:
                 self.variables['voice'] = tk.StringVar(master=self, value=voice)
     def get_args(self) -> dict:
@@ -188,7 +188,7 @@ class BeatsVoiceArgs(VoiceArgs):
             args = super().get_args()
             args['voice'] = 'Beats::' + args['voice']
             return args
-        elif self.variables['voice'].get().startswith('SE:'):
+        elif self.variables['voice'].get().startswith('SE-'):
             args = super().get_args()
             args['voice'] = 'Beats::' + args['voice']
             return args
