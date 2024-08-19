@@ -13,7 +13,7 @@ from .FilePaths import Filepath
 from .FreePos import Pos,FreePos,BezierCurve
 from .Exceptions import MediaError, WarningPrint
 from .Formulas import sigmoid
-from .Utils import hex_2_rgba, rotate_surface, rotate_vector, brightness
+from .Utils import hex_2_rgba, rotate_surface, rotate_vector, brightness, volume_to_db
 from .UtilityImage import UtilityImage
 from .Regexs import RE_rich,RE_label
 # 主程序 replay_generator
@@ -2302,12 +2302,15 @@ class Dice(BuiltInAnimation):
 # 音效
 class Audio(MediaObj):
     pygame.mixer.init()
-    def __init__(self,filepath,label_color='Caribbean'):
+    def __init__(self,filepath,volume=100,label_color='Caribbean'):
         # 文件路径
         super().__init__(filepath=filepath,label_color=label_color)
         # 载入音频
+        self.volume = volume/100
         try:
-            self.media = pygame.mixer.Sound(self.filepath.exact())
+            self.media:pygame.mixer.Sound = pygame.mixer.Sound(self.filepath.exact())
+            # 设置音量
+            self.media.set_volume(self.volume)
         except Exception as E:
             raise MediaError('BadAudio',filepath)
         # 音频时长：单位是帧！
@@ -2319,10 +2322,12 @@ class Audio(MediaObj):
         self.audioseg = None
         # PR 项目
         self.PR_init(file_index='AUfile_%d')
-    def display(self,channel,volume=100):
-        channel.set_volume(volume/100)
+    # def display(self,channel,volume=100):
+    def display(self,channel):
+        # channel.set_volume(volume/100)
         channel.play(self.media)
     def export(self,begin:int)->str:
+        # TODO：音频音量不适用！声道数量不适用！
         clip_this = self.audio_clip_tplt.format(**{
             'clipid'    : 'AU_clip_%d'%MediaObj.clip_index,
             'type'      : self.Audio_type,
@@ -2345,6 +2350,8 @@ class Audio(MediaObj):
     def recode(self)->pydub.AudioSegment:
         if self.audioseg is None:
             self.audioseg = pydub.AudioSegment.from_file(self.filepath.exact())
+            # 调整音量
+            self.audioseg = self.audioseg + volume_to_db(self.volume)
         return self.audioseg
     # 预览播放
     def waveplot(self):
@@ -2374,6 +2381,14 @@ class Audio(MediaObj):
         if key == 'filepath':
             self.media = pygame.mixer.Sound(self.filepath.exact())
             self.length:int = int(self.media.get_length()*self.frame_rate)
+        elif key == 'volume':
+            self.volume = value/100
+            # media
+            self.media.set_volume(self.volume)
+            # audioseg
+            if self.audioseg is not None:
+                self.audioseg = pydub.AudioSegment.from_file(self.filepath.exact())
+                self.audioseg = self.audioseg + volume_to_db(self.volume)
 # 背景音乐
 class BGM(MediaObj):
     def __init__(self,filepath,volume=100,loop=True,label_color='Caribbean'):

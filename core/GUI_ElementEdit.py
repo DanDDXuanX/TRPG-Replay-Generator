@@ -306,7 +306,7 @@ class CharactorEdit(EditWindow):
             self.page.preview.preview(char_name=self.section_index)
     # 打开音源选择窗
     def open_voice_selection(self, master, voice, speech_rate, pitch_rate):
-        voice_chooser(master=master,voice_obj=voice,speech_obj=speech_rate,pitch_obj=pitch_rate)
+        voice_chooser(master=master,voice_obj=voice,speech_obj=speech_rate,pitch_obj=pitch_rate,medias=self.page.ref_medef)
         # def 这个时候应有回调
         self.update_section_from()
     # 添加一个自定义列
@@ -568,6 +568,7 @@ class MediaEdit(EditWindow):
             self.elements['blink_std'].input.configure(from_=0.0,to=3,increment=0.1)
         if self.line_type == 'Audio':
             self.elements['filepath'].bind_button(dtype='soundeff-file',convert=True)
+            self.elements['volume'].input.configure(from_=0,to=100,increment=10)
         if self.line_type == 'BGM':
             self.elements['filepath'].bind_button(dtype='BGM-file',convert=True)
             self.elements['volume'].input.configure(from_=0,to=100,increment=10)

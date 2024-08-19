@@ -433,7 +433,11 @@ class FileManager(ttk.Frame):
         if not os.path.isdir(output_path):
             os.makedirs(output_path)
         # 执行复制
-        shutil.copy(src=self.project_file, dst=backup_file)
+        try:
+            shutil.copy(src=self.project_file, dst=backup_file)
+        except OSError:
+            # TODO: 由于项目文件名包含非法字符的原因，可能会导致无法正常备份，在这里处理这种异常
+            pass
         # 检查备份文件夹的存档数量，保证数量不超过10
         list_of_backup = glob.glob(f"{output_path}{self.project.config.Name}.*.rgpj")
         list_of_backup.sort() # 升序排序

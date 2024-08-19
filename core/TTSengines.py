@@ -245,7 +245,7 @@ class Beats_engine(TTS_engine):
         'kakaka': './assets/beats/ka.wav',
         'zizizi': './assets/beats/zi.wav',
     }
-    def __init__(self,name='unnamed',voice='dadada',aformat='wav',frame_rate:int=30,balance:float=None) -> None:
+    def __init__(self,name='unnamed',voice='dadada',aformat='wav',frame_rate:int=30,medias:dict=None,balance:float=None) -> None:
         # 初始化的参数
         self.ID = name
         self.voice = voice
@@ -253,7 +253,13 @@ class Beats_engine(TTS_engine):
         # 项目画面的帧率
         self.frame_rate:int = frame_rate
         # 载入文件
-        self.unit:pydub.AudioSegment = pydub.AudioSegment.from_file(self.voice_list[self.voice])
+        if voice in self.voice_list:
+            self.unit:pydub.AudioSegment = pydub.AudioSegment.from_file(self.voice_list[self.voice])
+        elif voice.startswith('SE-'):
+            if voice[3:] in medias.get_type('audio'):
+                self.unit:pydub.AudioSegment = medias.instance_execute(medias.struct[voice[3:]]).recode()
+            else:
+                raise SynthesisError('BeatsNoSE', voice[3:])
     # 指定一个文字显示效果，重设单位时间
     def tx_method_specify(self, tx_method:dict)->None:
         # 通过文字显示方法，获取单个字的时长
