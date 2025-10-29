@@ -216,7 +216,12 @@ class PreviewCanvas(ttk.Frame):
         self.canvas.blit(self.empty_canvas,(0,0))
     # 更新背景底图
     def update_empty_canvas(self):
-        self.empty_canvas = pygame.image.load('./assets/canvas.png').subsurface([0,0,self.proj_config.Width,self.proj_config.Height])
+        # 处理，当指定的项目分辨率超过了1920x1920时
+        if self.proj_config.Width > 1920 or self.proj_config.Height > 1920:
+            self.empty_canvas = pygame.Surface(size=(self.proj_config.Width, self.proj_config.Height))
+            self.empty_canvas.fill('#eeeeee')
+        else:
+            self.empty_canvas = pygame.image.load('./assets/canvas.png').subsurface([0,0,self.proj_config.Width,self.proj_config.Height])
         # 如果是黑暗模式，做反相
         if preference.theme == 'rplgendark':
             self.empty_canvas = pygame.surfarray.make_surface(270-pygame.surfarray.array3d(self.empty_canvas))

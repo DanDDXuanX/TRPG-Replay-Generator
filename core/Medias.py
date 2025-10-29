@@ -1906,6 +1906,11 @@ class Animation(MediaObj):
                 self.load_emtpy()
             else:
                 self.load_image(scale=self.scale)
+
+# 集群立绘
+class ClusterAnimation(Animation):
+    pass
+
 # 内建动画的基类：不可以直接使用
 class BuiltInAnimation(Animation):
     BIA_font = './assets/SourceHanSerifSC-Heavy.otf'
