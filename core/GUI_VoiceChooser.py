@@ -274,7 +274,7 @@ class AzureVoiceArgs(VoiceArgs):
     def load_input_args(self, voice, speech_rate, pitch_rate):
         # Azure解析
         if ':' in voice:
-            SSDR = voice.split('-')
+            SSDR = voice.split(':')
             if len(SSDR) == 4:
                 speaker,style,degree,roleplay = SSDR
                 degree = float(degree)
