@@ -1837,9 +1837,9 @@ class Animation(MediaObj):
         else:
             render_pos = render_center + eval(adjust)
         if bright == 100 and alpha == 100:
-           surface.blit(self.media[self.this],render_pos.get())
+            surface.blit(self.media[self.this],render_pos.get())
         else:
-            temp = self.media[self.this].copy()
+            temp:pygame.Surface = self.media[self.this].copy()
             if bright != 100:
                 temp = brightness(temp,bright=bright)
             if alpha != 100:
