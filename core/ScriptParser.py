@@ -1705,20 +1705,25 @@ class RplGenLog(Script):
                             this_am_obj:Animation = self.medias[this_am]
                             if type(this_am_obj) is Sprite and chara_key == '0' and asterisk_voice: # 精灵立绘，仅首要角色有效，仅有语音的行有效
                                 this_voice_name:str = this_section['sound_set']['*']['sound'] # 语音的名字
-                                if this_voice_name in self.medias.keys():
-                                    # 如果星标语音是一个媒体对象
-                                    this_voice:Audio = self.medias[this_voice_name]
+                                if this_voice_name == 'NA':
+                                    # 如果是NA
+                                    this_timeline[this_layer+'_t'] = 0
                                 else:
-                                    # 如果星标语音是一个路径
-                                    try:
-                                        this_voice = Audio(filepath=this_voice_name[1:-1])
-                                    except MediaError as E:
-                                        print(E)
-                                        raise ParserError('SEnotExist', this_sound['sound'], str(i+1))
-                                # 延迟时间
-                                fr = config.frame_rate
-                                delay:int = int(self.dynamic['asterisk_pause']/2)
-                                this_timeline[this_layer+'_t'] = this_am_obj.get_tick(this_duration,audio=this_voice,delay=delay,framerate=fr).astype(str)
+                                    # 如果是真的
+                                    if this_voice_name in self.medias.keys():
+                                        # 如果星标语音是一个媒体对象
+                                        this_voice:Audio = self.medias[this_voice_name]
+                                    else:
+                                        # 如果星标语音是一个路径
+                                        try:
+                                            this_voice = Audio(filepath=this_voice_name[1:-1])
+                                        except MediaError as E:
+                                            print(E)
+                                            raise ParserError('SEnotExist', this_sound['sound'], str(i+1))
+                                    # 延迟时间
+                                    fr = config.frame_rate
+                                    delay:int = int(self.dynamic['asterisk_pause']/2)
+                                    this_timeline[this_layer+'_t'] = this_am_obj.get_tick(this_duration,audio=this_voice,delay=delay,framerate=fr).astype(str)
                             else:
                                 this_timeline[this_layer+'_t'] = this_am_obj.get_tick(this_duration).astype(str)
                             this_timeline[this_layer+'_c'] = this_am_obj.pos.use(this_duration)
