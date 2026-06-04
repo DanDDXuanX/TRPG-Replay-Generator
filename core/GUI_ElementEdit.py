@@ -262,7 +262,7 @@ class CharactorEdit(EditWindow):
             for key in new_section:
                 if key not in self.section:
                     changed_key.append(key)
-                if new_section[key] != self.section[key]:
+                elif new_section[key] != self.section[key]:
                     changed_key.append(key)
         # 新小节的keyword
         new_keyword = new_section['Name']+'.'+new_section['Subtype']
